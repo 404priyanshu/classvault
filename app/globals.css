@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #090c0a;
+  --foreground: #e3ece5;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-green: #82b089;
+  --color-brand-green-hover: #a5d0ad;
+  --color-brand-bg: #111512;
+  --color-brand-card: #151b17;
+  --color-brand-border: rgba(163, 207, 169, 0.08);
+  --color-brand-border-active: rgba(130, 176, 137, 0.4);
+  --font-sans: "Outfit", "Inter", "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(130, 176, 137, 0.25);
+  color: #ffffff;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(163, 207, 169, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(163, 207, 169, 0.3);
+}
+
+.form-field {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  border: 1px solid rgba(163, 207, 169, 0.08);
+  border-radius: 0.5rem;
+  background: #111512;
+  padding: 0 0.75rem;
+  color: #e3ece5;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.form-field::placeholder {
+  color: rgba(163, 207, 169, 0.35);
+}
+
+.form-field:focus {
+  border-color: rgba(130, 176, 137, 0.6);
+  box-shadow: 0 0 0 4px rgba(130, 176, 137, 0.1);
+}
+
+textarea.form-field {
+  height: auto;
+}
+
+/* Custom transitions and animation classes */
+.glow-on-active {
+  box-shadow: 0 0 15px rgba(130, 176, 137, 0.15);
+}
