@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #090c0a;
-  --foreground: #e3ece5;
+  --background: #f6f7fb;
+  --foreground: #0f172a;
 }
 
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-green: #82b089;
-  --color-brand-green-hover: #a5d0ad;
-  --color-brand-bg: #111512;
-  --color-brand-card: #151b17;
-  --color-brand-border: rgba(163, 207, 169, 0.08);
-  --color-brand-border-active: rgba(130, 176, 137, 0.4);
-  --font-sans: "Outfit", "Inter", "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-indigo: #6366f1;
+  --color-brand-indigo-hover: #4f46e5;
+  --color-brand-indigo-bg: rgba(99, 102, 241, 0.08);
+  --color-brand-card: #ffffff;
+  --color-brand-border: rgba(99, 102, 241, 0.08);
+  --color-brand-border-active: rgba(99, 102, 241, 0.25);
+  
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
@@ -31,8 +31,8 @@ body {
 }
 
 ::selection {
-  background: rgba(130, 176, 137, 0.25);
-  color: #ffffff;
+  background: rgba(99, 102, 241, 0.15);
+  color: #0f172a;
 }
 
 /* Custom scrollbars */
@@ -46,24 +46,24 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(163, 207, 169, 0.15);
+  background: rgba(99, 102, 241, 0.15);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(163, 207, 169, 0.3);
+  background: rgba(99, 102, 241, 0.3);
 }
 
 .form-field {
   width: 100%;
   min-width: 0;
-  height: 2.75rem;
-  border: 1px solid rgba(163, 207, 169, 0.08);
-  border-radius: 0.5rem;
-  background: #111512;
+  height: 2.5rem;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 0.75rem;
+  background: #ffffff;
   padding: 0 0.75rem;
-  color: #e3ece5;
-  font-size: 0.875rem;
+  color: #0f172a;
+  font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.25rem;
   outline: none;
@@ -73,19 +73,24 @@ body {
 }
 
 .form-field::placeholder {
-  color: rgba(163, 207, 169, 0.35);
+  color: #94a3b8;
 }
 
 .form-field:focus {
-  border-color: rgba(130, 176, 137, 0.6);
-  box-shadow: 0 0 0 4px rgba(130, 176, 137, 0.1);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
 }
 
 textarea.form-field {
   height: auto;
 }
 
-/* Custom transitions and animation classes */
-.glow-on-active {
-  box-shadow: 0 0 15px rgba(130, 176, 137, 0.15);
+/* Rounded widgets styling */
+.widget-card {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    0 18px 45px -30px rgba(15, 23, 42, 0.28),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
+
