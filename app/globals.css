@@ -195,121 +195,121 @@ textarea.form-field {
 }
 
 .classvault-shell {
-  --cv-bg: #f5f7fb;
-  --cv-text: #111827;
-  --cv-muted: #64748b;
-  --cv-soft-muted: #94a3b8;
-  --cv-card: #ffffff;
-  --cv-subtle: #f8fafc;
-  --cv-muted-surface: #f1f5f9;
-  --cv-border: rgba(148, 163, 184, 0.24);
-  --cv-sidebar: #0f172a;
-  --cv-sidebar-border: rgba(255, 255, 255, 0.08);
-  --cv-toggle-bg: #e2e8f0;
-  --cv-toggle-active: #ffffff;
-  --cv-search-bg: #eef2f7;
-  --cv-search-hover-bg: #e2e8f0;
-  --cv-search-border: rgba(148, 163, 184, 0.32);
-  --cv-search-placeholder: #64748b;
-  --cv-search-text: #0f172a;
-  --cv-search-icon: #94a3b8;
-  --cv-search-kbd-bg: #ffffff;
-  --cv-search-kbd-border: rgba(148, 163, 184, 0.38);
-  --cv-search-kbd-text: #64748b;
-  --cv-modal-overlay: rgba(15, 23, 42, 0.34);
-  --cv-modal-bg: #ffffff;
-  --cv-modal-border: rgba(148, 163, 184, 0.28);
-  --cv-modal-shadow: 0 28px 90px -28px rgba(15, 23, 42, 0.26), 0 0 0 1px rgba(15, 23, 42, 0.04);
-  --cv-modal-divider: rgba(148, 163, 184, 0.18);
-  --cv-modal-icon: #94a3b8;
-  --cv-modal-input-text: #0f172a;
-  --cv-modal-input-placeholder: #94a3b8;
-  --cv-modal-kbd-bg: #f8fafc;
-  --cv-modal-kbd-border: rgba(148, 163, 184, 0.32);
-  --cv-modal-kbd-text: #64748b;
-  --cv-modal-filter-bg: #f8fafc;
-  --cv-modal-filter-border: rgba(148, 163, 184, 0.24);
-  --cv-modal-filter-text: #64748b;
-  --cv-modal-filter-hover-bg: #f1f5f9;
-  --cv-modal-filter-hover-text: #0f172a;
+  --cv-bg: #F5F4EF;
+  --cv-text: #121212;
+  --cv-muted: #57534e;
+  --cv-soft-muted: #78716c;
+  --cv-card: #F5F4EF;
+  --cv-subtle: #F0EEE6;
+  --cv-muted-surface: #E5E2D9;
+  --cv-border: #121212;
+  --cv-sidebar: #121212;
+  --cv-sidebar-border: #121212;
+  --cv-toggle-bg: #E5E2D9;
+  --cv-toggle-active: #121212;
+  --cv-search-bg: #F0EEE6;
+  --cv-search-hover-bg: #E5E2D9;
+  --cv-search-border: #121212;
+  --cv-search-placeholder: #57534e;
+  --cv-search-text: #121212;
+  --cv-search-icon: #78716c;
+  --cv-search-kbd-bg: #F5F4EF;
+  --cv-search-kbd-border: #121212;
+  --cv-search-kbd-text: #57534e;
+  --cv-modal-overlay: rgba(18, 18, 18, 0.4);
+  --cv-modal-bg: #F5F4EF;
+  --cv-modal-border: #121212;
+  --cv-modal-shadow: 6px 6px 0px #121212;
+  --cv-modal-divider: #121212;
+  --cv-modal-icon: #78716c;
+  --cv-modal-input-text: #121212;
+  --cv-modal-input-placeholder: #78716c;
+  --cv-modal-kbd-bg: #F5F4EF;
+  --cv-modal-kbd-border: #121212;
+  --cv-modal-kbd-text: #57534e;
+  --cv-modal-filter-bg: #F0EEE6;
+  --cv-modal-filter-border: #121212;
+  --cv-modal-filter-text: #57534e;
+  --cv-modal-filter-hover-bg: #E5E2D9;
+  --cv-modal-filter-hover-text: #121212;
   --cv-modal-filter-active-bg: rgba(29, 78, 216, 0.1);
-  --cv-modal-filter-active-border: rgba(29, 78, 216, 0.32);
-  --cv-modal-filter-active-text: #1d4ed8;
-  --cv-modal-section-label: #94a3b8;
-  --cv-modal-result-hover-bg: #f8fafc;
-  --cv-modal-result-hover-border: rgba(148, 163, 184, 0.2);
-  --cv-modal-result-active-bg: #eef2ff;
-  --cv-modal-result-active-border: rgba(99, 102, 241, 0.22);
-  --cv-modal-result-icon-bg: #f8fafc;
-  --cv-modal-result-icon-border: rgba(148, 163, 184, 0.22);
-  --cv-modal-result-icon-color: #1d4ed8;
-  --cv-modal-result-title: #0f172a;
-  --cv-modal-result-meta: #64748b;
-  --cv-modal-empty-bg: #f8fafc;
-  --cv-modal-empty-border: rgba(148, 163, 184, 0.2);
-  --cv-modal-empty-title: #334155;
-  --cv-modal-empty-text: #94a3b8;
-  --cv-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --cv-modal-filter-active-border: #121212;
+  --cv-modal-filter-active-text: #1D4ED8;
+  --cv-modal-section-label: #78716c;
+  --cv-modal-result-hover-bg: #E5E2D9;
+  --cv-modal-result-hover-border: #121212;
+  --cv-modal-result-active-bg: #FACC15;
+  --cv-modal-result-active-border: #121212;
+  --cv-modal-result-icon-bg: #F0EEE6;
+  --cv-modal-result-icon-border: #121212;
+  --cv-modal-result-icon-color: #1D4ED8;
+  --cv-modal-result-title: #121212;
+  --cv-modal-result-meta: #57534e;
+  --cv-modal-empty-bg: #F0EEE6;
+  --cv-modal-empty-border: #121212;
+  --cv-modal-empty-title: #121212;
+  --cv-modal-empty-text: #78716c;
+  --cv-shadow: 4px 4px 0px #121212;
   background: var(--cv-bg);
   color: var(--cv-text);
 }
 
 .classvault-shell[data-theme="dark"] {
-  --cv-bg: #070b14;
-  --cv-text: #e5edf8;
-  --cv-muted: #9aa8bc;
-  --cv-soft-muted: #718099;
-  --cv-card: #0f1725;
-  --cv-subtle: #111c2d;
-  --cv-muted-surface: #182235;
-  --cv-border: rgba(148, 163, 184, 0.16);
-  --cv-sidebar: #101827;
-  --cv-sidebar-border: rgba(255, 255, 255, 0.08);
-  --cv-toggle-bg: #111827;
-  --cv-toggle-active: #263247;
-  --cv-search-bg: #1a2436;
-  --cv-search-hover-bg: #222f45;
-  --cv-search-border: rgba(148, 163, 184, 0.2);
-  --cv-search-placeholder: #9aa8bc;
-  --cv-search-text: #e5edf8;
-  --cv-search-icon: #718099;
+  --cv-bg: #121212;
+  --cv-text: #F5F4EF;
+  --cv-muted: #a8a29e;
+  --cv-soft-muted: #78716c;
+  --cv-card: #121212;
+  --cv-subtle: #1c1c1c;
+  --cv-muted-surface: #262626;
+  --cv-border: #F5F4EF;
+  --cv-sidebar: #1c1c1c;
+  --cv-sidebar-border: #F5F4EF;
+  --cv-toggle-bg: #262626;
+  --cv-toggle-active: #F5F4EF;
+  --cv-search-bg: #1c1c1c;
+  --cv-search-hover-bg: #262626;
+  --cv-search-border: #F5F4EF;
+  --cv-search-placeholder: #a8a29e;
+  --cv-search-text: #F5F4EF;
+  --cv-search-icon: #78716c;
   --cv-search-kbd-bg: rgba(255, 255, 255, 0.06);
-  --cv-search-kbd-border: rgba(148, 163, 184, 0.22);
-  --cv-search-kbd-text: #9aa8bc;
-  --cv-modal-overlay: rgba(2, 6, 23, 0.74);
-  --cv-modal-bg: #0f1725;
-  --cv-modal-border: rgba(148, 163, 184, 0.14);
-  --cv-modal-shadow: 0 32px 120px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --cv-modal-divider: rgba(148, 163, 184, 0.12);
-  --cv-modal-icon: #718099;
-  --cv-modal-input-text: #e5edf8;
-  --cv-modal-input-placeholder: #718099;
+  --cv-search-kbd-border: #F5F4EF;
+  --cv-search-kbd-text: #a8a29e;
+  --cv-modal-overlay: rgba(0, 0, 0, 0.7);
+  --cv-modal-bg: #121212;
+  --cv-modal-border: #F5F4EF;
+  --cv-modal-shadow: 6px 6px 0px #F5F4EF;
+  --cv-modal-divider: #F5F4EF;
+  --cv-modal-icon: #78716c;
+  --cv-modal-input-text: #F5F4EF;
+  --cv-modal-input-placeholder: #78716c;
   --cv-modal-kbd-bg: rgba(255, 255, 255, 0.06);
-  --cv-modal-kbd-border: rgba(148, 163, 184, 0.18);
-  --cv-modal-kbd-text: #9aa8bc;
+  --cv-modal-kbd-border: #F5F4EF;
+  --cv-modal-kbd-text: #a8a29e;
   --cv-modal-filter-bg: rgba(255, 255, 255, 0.04);
-  --cv-modal-filter-border: rgba(148, 163, 184, 0.14);
-  --cv-modal-filter-text: #9aa8bc;
+  --cv-modal-filter-border: #F5F4EF;
+  --cv-modal-filter-text: #a8a29e;
   --cv-modal-filter-hover-bg: rgba(255, 255, 255, 0.08);
-  --cv-modal-filter-hover-text: #e5edf8;
+  --cv-modal-filter-hover-text: #F5F4EF;
   --cv-modal-filter-active-bg: rgba(59, 130, 246, 0.18);
-  --cv-modal-filter-active-border: rgba(96, 165, 250, 0.42);
+  --cv-modal-filter-active-border: #F5F4EF;
   --cv-modal-filter-active-text: #bfdbfe;
-  --cv-modal-section-label: #718099;
+  --cv-modal-section-label: #78716c;
   --cv-modal-result-hover-bg: rgba(255, 255, 255, 0.05);
-  --cv-modal-result-hover-border: rgba(148, 163, 184, 0.14);
-  --cv-modal-result-active-bg: rgba(255, 255, 255, 0.09);
-  --cv-modal-result-active-border: rgba(148, 163, 184, 0.2);
+  --cv-modal-result-hover-border: #F5F4EF;
+  --cv-modal-result-active-bg: #FACC15;
+  --cv-modal-result-active-border: #F5F4EF;
   --cv-modal-result-icon-bg: rgba(255, 255, 255, 0.06);
-  --cv-modal-result-icon-border: rgba(148, 163, 184, 0.14);
+  --cv-modal-result-icon-border: #F5F4EF;
   --cv-modal-result-icon-color: #93c5fd;
   --cv-modal-result-title: #f1f5f9;
-  --cv-modal-result-meta: #9aa8bc;
+  --cv-modal-result-meta: #a8a29e;
   --cv-modal-empty-bg: rgba(255, 255, 255, 0.03);
-  --cv-modal-empty-border: rgba(148, 163, 184, 0.14);
+  --cv-modal-empty-border: #F5F4EF;
   --cv-modal-empty-title: #e2e8f0;
-  --cv-modal-empty-text: #718099;
-  --cv-shadow: 0 20px 56px -34px rgba(0, 0, 0, 0.9), 0 1px 1px rgba(255, 255, 255, 0.03);
+  --cv-modal-empty-text: #78716c;
+  --cv-shadow: 4px 4px 0px #F5F4EF;
 }
 
 .classvault-search-trigger {
@@ -774,3 +774,127 @@ textarea.form-field {
 .animate-slide-in {
   animation: slideInRight 280ms ease-out;
 }
+
+/* ==========================================================================
+   BAUHAUS MODERN DESIGN SYSTEM OVERRIDES FOR CLASSVAULT APP
+   ========================================================================== */
+
+/* Force border-radius of 0px for stark modernist feel */
+.classvault-shell,
+.classvault-shell *,
+.classvault-shell button,
+.classvault-shell input,
+.classvault-shell select,
+.classvault-shell textarea,
+.classvault-shell div {
+  border-radius: 0px !important;
+}
+
+/* Redesign card shadows to be solid offset, not blurred */
+.classvault-shell .widget-card {
+  border: 2px solid var(--cv-border) !important;
+  box-shadow: var(--cv-shadow) !important;
+  background-color: var(--cv-card) !important;
+}
+
+/* Redesign buttons to be bold, uppercase, geometric blocks */
+.classvault-shell button:not(.classvault-search-filter),
+.classvault-shell a.cv-primary-btn {
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  transition: all 150ms ease;
+}
+
+/* Primary buttons are Cadmium Red */
+.classvault-shell .cv-primary-btn {
+  background-color: #E03C31 !important;
+  color: #F5F4EF !important;
+  border: 2px solid var(--cv-border) !important;
+  box-shadow: 3px 3px 0px var(--cv-border) !important;
+}
+
+.classvault-shell .cv-primary-btn:hover {
+  background-color: var(--cv-border) !important;
+  color: var(--cv-bg) !important;
+  box-shadow: none !important;
+  transform: translate(3px, 3px);
+}
+
+.classvault-shell[data-theme="dark"] .cv-primary-btn {
+  background-color: #E03C31 !important;
+  color: #F5F4EF !important;
+  border: 2px solid var(--cv-border) !important;
+}
+
+/* Selected notes library row / card turns Yellow */
+.classvault-shell .cv-note-selected {
+  background-color: #FACC15 !important;
+  color: #121212 !important;
+  border-color: var(--cv-border) !important;
+}
+
+.classvault-shell[data-theme="dark"] .cv-note-selected {
+  background-color: #FACC15 !important;
+  color: #121212 !important;
+  border-color: var(--cv-border) !important;
+}
+
+/* Invert colors inside selected note row tags */
+.classvault-shell .cv-note-selected span {
+  background-color: #121212 !important;
+  color: #FACC15 !important;
+}
+
+/* Badge colors styled as primary blocks */
+.classvault-shell .bg-indigo-50 {
+  background-color: #1D4ED8 !important; /* Cobalt Blue */
+  color: #F5F4EF !important;
+}
+.classvault-shell .bg-rose-50 {
+  background-color: #E03C31 !important; /* Cadmium Red */
+  color: #F5F4EF !important;
+}
+.classvault-shell .bg-amber-50 {
+  background-color: #FACC15 !important; /* Yellow */
+  color: #121212 !important;
+}
+.classvault-shell .bg-emerald-50 {
+  background-color: #78716c !important; /* Stone */
+  color: #F5F4EF !important;
+}
+
+/* Thick borders for active lines */
+.classvault-shell :is(.border, .border-t, .border-b, .border-r, .border-l, .border-x, .border-y) {
+  border-width: 2px !important;
+  border-color: var(--cv-border) !important;
+}
+
+/* Input fields overrides */
+.classvault-shell .form-field {
+  border: 2px solid var(--cv-border) !important;
+  background-color: var(--cv-card) !important;
+  color: var(--cv-text) !important;
+}
+.classvault-shell .form-field:focus {
+  border-color: #E03C31 !important; /* Focus glows Cadmium Red */
+}
+
+/* Search bar styling */
+.classvault-shell .classvault-search-trigger {
+  border: 2px solid var(--cv-border) !important;
+  background-color: var(--cv-search-bg) !important;
+}
+
+/* Text selections */
+.classvault-shell ::selection {
+  background-color: #E03C31;
+  color: #F5F4EF;
+}
+
+/* Aside navigation panel overrides */
+.classvault-shell aside {
+  background-color: var(--cv-sidebar) !important;
+  border-color: var(--cv-border) !important;
+}
+

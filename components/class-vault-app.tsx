@@ -396,7 +396,7 @@ export function ClassVaultApp() {
       </header>
 
       {/* NARROW SIDEBAR */}
-      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-slate-800 bg-slate-950 px-3 shadow-xl md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
+      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t-2 md:border-r-2 md:border-t-0 border-[var(--cv-border)] bg-[var(--cv-sidebar)] px-3 md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:px-0 md:py-6">
         <div className="flex min-w-0 flex-1 items-center md:w-full md:flex-none md:flex-col md:gap-10">
           {/* Logo badge */}
           <button
@@ -1297,19 +1297,19 @@ function SidebarIconButton({
       onClick={onClick}
       title={label}
       className={classNames(
-        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent transition md:h-12 md:w-12",
+        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border transition md:h-12 md:w-12",
         mobileHidden && "hidden md:flex",
         active
-          ? "border-white/10 bg-white text-slate-950"
-          : "text-slate-400 hover:bg-white/8 hover:text-white",
+          ? "border-[var(--cv-border)] bg-[#E03C31] text-white"
+          : "border-transparent text-stone-400 hover:bg-[#E5E2D9]/20 hover:text-[var(--cv-text)]",
       )}
     >
       {active && (
-        <span className="absolute -bottom-1 h-1 w-6 rounded-t bg-white md:bottom-auto md:-left-2 md:h-6 md:w-1 md:rounded-r md:rounded-t-none" />
+        <span className="absolute -bottom-1 h-1 w-6 bg-[#FACC15] md:bottom-auto md:-left-2 md:h-6 md:w-1" />
       )}
       <Icon className="h-5 w-5" />
       {/* Tooltip */}
-      <span className="pointer-events-none absolute left-16 z-30 hidden origin-left scale-95 rounded bg-slate-900 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-md transition-all group-hover:scale-100 group-hover:opacity-100 md:block">
+      <span className="pointer-events-none absolute left-16 z-30 hidden origin-left scale-95 bg-[#121212] border border-[#F5F4EF]/20 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-md transition-all group-hover:scale-100 group-hover:opacity-100 md:block">
         {label}
       </span>
     </button>
