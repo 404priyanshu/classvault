@@ -97,6 +97,16 @@ body {
   box-sizing: border-box;
 }
 
+/* Force pointer cursor on interactive elements */
+button:not(:disabled),
+a,
+select,
+label,
+input[type="file"],
+[role="button"] {
+  cursor: pointer;
+}
+
 ::selection {
   background: rgba(99, 102, 241, 0.15);
   color: #0f172a;
