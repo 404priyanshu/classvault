@@ -611,9 +611,16 @@ export function ClassVaultApp() {
             <button
               type="button"
               onClick={() => setUploadOpen(true)}
-              className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 p-5 text-left text-white shadow-[0_22px_55px_rgba(15,23,42,0.25)] transition hover:border-slate-300/60 hover:shadow-[0_26px_60px_rgba(15,23,42,0.32)]"
+              style={{
+                backgroundImage: "url('/folder-bg.png')",
+                backgroundSize: "180%",
+                backgroundPosition: "85% 25%",
+                backgroundRepeat: "no-repeat",
+              }}
+              className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 bg-cover bg-center p-5 text-left text-white shadow-[0_22px_55px_rgba(15,23,42,0.25)] transition hover:border-slate-300/60 hover:shadow-[0_26px_60px_rgba(15,23,42,0.32)]"
             >
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-white/10 blur-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-slate-950/45 transition group-hover:bg-slate-950/35" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/70 to-transparent" />
               <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
                 <Plus className="h-5 w-5" />
               </div>

@@ -207,8 +207,8 @@ function ProductProofSection() {
                 <Image
                   src="/logo_full.png"
                   alt="ClassVault"
-                  width={148}
-                  height={38}
+                  width={192}
+                  height={74}
                   className="brightness-0 invert"
                   style={{ width: "148px", height: "auto" }}
                 />

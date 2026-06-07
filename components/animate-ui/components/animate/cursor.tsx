@@ -13,13 +13,16 @@ import {
 import { cn } from '@/lib/utils';
 
 type CursorProviderProps = Omit<CursorProviderPropsPrimitive, 'children'> &
-  CursorContainerPropsPrimitive;
+  Omit<CursorContainerPropsPrimitive, 'asChild'> & {
+    asChild?: false;
+    children?: React.ReactNode;
+  };
 
 function CursorProvider({
   global,
   children,
   ...props
-}: CursorProviderProps & { children?: React.ReactNode }) {
+}: CursorProviderProps) {
   return (
     <CursorProviderPrimitive global={global}>
       <CursorContainerPrimitive {...props}>{children}</CursorContainerPrimitive>

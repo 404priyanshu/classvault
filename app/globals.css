@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@source not "../.codegraph";
+@source not "../.codegraph/**";
+@source not "../.agents";
+@source not "../.agents/**";
 
 :root {
   --background: #f6f7fb;
