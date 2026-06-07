@@ -100,7 +100,7 @@ function HeroSection() {
           <a href="#proof" className="transition hover:text-white">Proof</a>
         </nav>
         <a
-          href="#demo"
+          href="/app"
           className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-black transition hover:bg-[#d9ff64]"
         >
           Open preview
@@ -122,7 +122,7 @@ function HeroSection() {
                 ClassVault turns PDFs, previous-year questions, lab files, and assignment resources into one searchable college vault built for fast revision.
               </p>
               <a
-                href="#library"
+                href="/app"
                 className="inline-flex h-14 w-fit items-center gap-3 rounded-full bg-[#d9ff64] px-6 text-base font-bold text-black transition hover:bg-white"
               >
                 See the system
@@ -402,7 +402,7 @@ function FinalCta() {
             Make notes easier to find than messages.
           </h2>
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a href="#demo" className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-black px-6 text-base font-bold text-white transition hover:bg-white hover:text-black">
+            <a href="/app" className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-black px-6 text-base font-bold text-white transition hover:bg-white hover:text-black">
               View prototype
               <ArrowRight className="h-5 w-5" />
             </a>
