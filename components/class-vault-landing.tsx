@@ -655,7 +655,7 @@ export function ClassVaultLanding() {
             <div className="lg:col-span-4 flex flex-col justify-between border-b-2 border-[#121212] lg:border-b-0 lg:border-r-2 lg:border-[#121212] pb-8 lg:pb-0 lg:pr-8">
               <div>
                 <span className="text-xs font-bold tracking-widest text-[#78716c] mb-2">TECHNICAL INDEX STRUCTURE</span>
-                <h2 className="text-3xl font-black tracking-tight sm:text-5xl uppercase leading-none">
+                <h2 className="text-3xl font-black tracking-tighter sm:text-4xl lg:text-[2rem] xl:text-[2.5rem] uppercase leading-none">
                   03 / SPECIFICATIONS
                 </h2>
                 <p className="mt-6 text-xs sm:text-sm font-medium leading-relaxed text-[#121212]/85">
