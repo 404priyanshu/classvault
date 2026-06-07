@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Trash2,
   BookOpen,
@@ -14,6 +15,15 @@ import {
   Layers,
   Award
 } from "lucide-react";
+
+const ZenGarden3D = dynamic(() => import("./zen-garden-3d"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+      Loading 3D Zen Tray...
+    </div>
+  ),
+});
 
 // Definitions of module types for ClassVault study deck (Japanese Minimalism color theme)
 interface StudyModuleType {
@@ -119,11 +129,7 @@ const PRESETS = [
   },
 ];
 
-interface Ripple {
-  id: number;
-  x: number;
-  y: number;
-}
+
 
 export function ClassVaultLanding() {
   const BASE_COVERAGE = 15;
@@ -131,7 +137,6 @@ export function ClassVaultLanding() {
   const [grid, setGrid] = useState<string[]>(Array(9).fill("")); // 3x3 tray
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [ripples, setRipples] = useState<Ripple[]>([]);
 
   // Compute stats
   const activeModulesCount = useMemo(() => grid.filter(Boolean).length, [grid]);
@@ -181,17 +186,7 @@ export function ClassVaultLanding() {
     setActivePreset(null);
   }, []);
 
-  // Handle water ripple click
-  const handleGardenClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const newRipple = { id: Date.now(), x, y };
-    setRipples((prev) => [...prev, newRipple]);
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 1800);
-  };
+
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FAF8F5] font-sans text-[#2C2B29] antialiased selection:bg-[#A3B4A2]/40">
@@ -298,60 +293,9 @@ export function ClassVaultLanding() {
           </div>
 
           {/* Hero interactive Zen garden box */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div 
-              onClick={handleGardenClick}
-              className="raked-sand-bg relative w-full max-w-[360px] aspect-square rounded-[2rem] border border-[#2C2B29]/10 p-6 flex flex-col justify-between cursor-pointer select-none animate-zen-float shadow-sm overflow-hidden"
-              title="Click to ripple the raked sand"
-            >
-              {/* Animated Ripples */}
-              {ripples.map((ripple) => (
-                <div
-                  key={ripple.id}
-                  className="animate-zen-ripple"
-                  style={{
-                    left: ripple.x,
-                    top: ripple.y,
-                    width: 12,
-                    height: 12,
-                    marginLeft: -6,
-                    marginTop: -6,
-                  }}
-                />
-              ))}
-
-              <div className="flex justify-between border-b border-[#2C2B29]/10 pb-4 text-[9px] font-bold tracking-widest text-[#2C2B29]/40">
-                <span>ZEN GARDEN MODEL</span>
-                <span>蔵 ARCHIVE v1</span>
-              </div>
-
-              {/* Graphic Stones inside Garden */}
-              <div className="relative flex-1 flex items-center justify-center">
-                <div className="w-56 h-56 rounded-full border border-dashed border-[#2C2B29]/15 relative flex items-center justify-center animate-zen-pulse">
-                  
-                  {/* Sakura Stone */}
-                  <div className="absolute top-6 left-6 w-20 h-20 rounded-full bg-[#E5A99E]/90 border border-[#2C2B29]/10 flex flex-col justify-center items-center p-2 transform -translate-x-1 translate-y-1 hover:scale-105 transition-all duration-500">
-                    <span className="text-[7px] font-black text-[#2C2B29]/40 tracking-wider">PYQ</span>
-                    <span className="text-[9px] font-extrabold text-[#2C2B29] mt-0.5">過去問</span>
-                  </div>
-
-                  {/* Matcha Stone */}
-                  <div className="absolute bottom-6 right-6 w-24 h-24 rounded-[3rem] bg-[#A3B4A2]/90 border border-[#2C2B29]/10 flex flex-col justify-center items-center p-2 transform translate-x-2 -translate-y-1 hover:scale-105 transition-all duration-500">
-                    <span className="text-[7px] font-black text-[#2C2B29]/40 tracking-wider">LAB MANUAL</span>
-                    <span className="text-[10px] font-extrabold text-[#2C2B29] mt-0.5">実験書</span>
-                  </div>
-
-                  {/* Center focus pebble */}
-                  <div className="w-14 h-14 rounded-full bg-[#FAF8F5] border border-[#2C2B29]/15 flex items-center justify-center shadow-inner">
-                    <div className="h-2 w-2 rounded-full bg-[#8F9779] animate-ping"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-[#2C2B29]/10 pt-4 text-[9px] font-bold text-[#2C2B29]/40">
-                <span>CLICK TO INTERACT</span>
-                <span>MA (NEGATIVE SPACE)</span>
-              </div>
+          <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
+            <div className="relative w-full max-w-[360px] aspect-square rounded-[2rem] border border-[#2C2B29]/10 bg-[#FAF8F5] p-3 shadow-sm select-none animate-zen-float overflow-hidden">
+              <ZenGarden3D />
             </div>
           </div>
 
