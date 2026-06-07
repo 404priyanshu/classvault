@@ -1,5 +1,5 @@
-import { ClassVaultApp } from "@/components/class-vault-app";
+import { ClassVaultLanding } from "@/components/class-vault-landing";
 
 export default function Home() {
-  return <ClassVaultApp />;
+  return <ClassVaultLanding />;
 }
