@@ -37,13 +37,7 @@ import {
   type UploadDraft,
 } from "@/lib/classvault-data";
 
-import {
-  Cursor,
-  CursorFollow,
-  CursorProvider,
-} from "@/components/animate-ui/components/animate/cursor";
 import { SearchCommandPalette } from "@/components/search-command-palette";
-import StarBorder from "@/components/StarBorder";
 
 type View = "library" | "saved" | "uploads" | "explore";
 type ThemeMode = "light" | "dark";
@@ -363,7 +357,7 @@ export function ClassVaultApp() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => updateTheme(theme === "dark" ? "light" : "dark")}
-            className="text-[var(--cv-muted)] hover:text-[var(--cv-text)] transition"
+            className="rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)]"
             title="Toggle theme"
           >
             {theme === "dark" ? (
@@ -402,7 +396,7 @@ export function ClassVaultApp() {
       </header>
 
       {/* NARROW SIDEBAR */}
-      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-[var(--cv-sidebar-border)] bg-[var(--cv-sidebar)] px-3 shadow-2xl md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
+      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-slate-800 bg-slate-950 px-3 shadow-xl md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
         <div className="flex min-w-0 flex-1 items-center md:w-full md:flex-none md:flex-col md:gap-10">
           {/* Logo badge */}
           <button
@@ -509,19 +503,19 @@ export function ClassVaultApp() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-[4.5rem] sm:px-6 md:pb-6 md:pl-[6.5rem] md:pt-5 lg:px-8 lg:pl-28">
+      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-[4.5rem] sm:px-6 md:pb-8 md:pl-24 md:pt-5 lg:px-8 lg:pl-28">
         {/* TOP ROW HEADER */}
-        <header className="flex min-w-0 flex-col gap-4 border-b border-slate-200/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
+        <header className="sticky top-3 z-30 flex min-w-0 flex-col gap-4 rounded-lg border border-[var(--cv-border)] bg-[var(--cv-card)]/95 px-4 py-3 shadow-sm backdrop-blur xl:flex-row xl:items-center xl:justify-between">
           {/* Sub-nav tabs */}
-          <div className="flex min-w-0 items-center gap-5 overflow-x-auto pb-1 sm:gap-6 xl:pb-0">
+          <div className="flex min-w-0 items-center gap-1 overflow-x-auto rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
             {topNavTabs.map((tab) => (
               <button
                 key={tab}
                 className={classNames(
-                  "text-sm font-bold pb-2 relative transition cursor-pointer",
+                  "relative cursor-pointer rounded px-3 py-2 text-sm font-semibold transition",
                   tab === "Dashboard"
-                    ? "text-slate-900 border-b-2 border-slate-900"
-                    : "text-slate-400 hover:text-slate-600",
+                    ? "bg-[var(--cv-card)] text-[var(--cv-text)] shadow-sm"
+                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
                 )}
               >
                 {tab}
@@ -534,13 +528,13 @@ export function ClassVaultApp() {
             <SearchCommandPalette query={query} onQueryChange={setQuery} />
 
             {/* Light / Dark Toggle */}
-            <div className="flex w-fit items-center rounded-full border border-[var(--cv-border)] bg-[var(--cv-toggle-bg)] p-0.5 shadow-inner">
+            <div className="flex w-fit items-center rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-0.5">
               <button
                 type="button"
                 aria-pressed={theme === "light"}
                 onClick={() => updateTheme("light")}
                 className={classNames(
-                  "cursor-pointer rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
                   theme === "light"
                     ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
@@ -553,7 +547,7 @@ export function ClassVaultApp() {
                 aria-pressed={theme === "dark"}
                 onClick={() => updateTheme("dark")}
                 className={classNames(
-                  "cursor-pointer rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
                   theme === "dark"
                     ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
@@ -564,22 +558,22 @@ export function ClassVaultApp() {
             </div>
 
             {/* Icons */}
-            <button className="hidden p-2 text-slate-400 transition hover:text-slate-600 sm:inline-flex">
+            <button className="hidden rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] sm:inline-flex">
               <Bell className="h-4.5 w-4.5" />
             </button>
-            <button className="hidden p-2 text-slate-400 transition hover:text-slate-600 sm:inline-flex">
+            <button className="hidden rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] sm:inline-flex">
               <Settings className="h-4.5 w-4.5" />
             </button>
 
             {/* Buttons */}
-            <button className="hidden h-9 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 lg:inline-flex lg:items-center">
+            <button className="hidden h-9 rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] px-4 text-xs font-semibold text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] lg:inline-flex lg:items-center">
               Export data
             </button>
             <button
               onClick={() => setUploadOpen(true)}
-              className="cv-primary-btn h-9 w-full rounded-xl px-4 text-xs font-bold shadow sm:w-auto"
+              className="cv-primary-btn h-9 w-full rounded-md px-4 text-xs font-semibold sm:w-auto"
             >
-              Add new board
+              Upload resource
             </button>
           </div>
         </header>
@@ -596,51 +590,32 @@ export function ClassVaultApp() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
+            <span className="rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] px-3 py-1.5">
               {filteredNotes.length} visible
             </span>
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700">
-              Auto-publish prototype
+            <span className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-indigo-700">
+              Local workspace
             </span>
           </div>
         </div>
 
         {/* TOP QUICK ACCESS CARDS ROW */}
         <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <CursorProvider className="relative block h-full w-full">
-            <button
-              type="button"
-              onClick={() => setUploadOpen(true)}
-              style={{
-                backgroundImage: "url('/folder-bg.png')",
-                backgroundSize: "195%",
-                backgroundPosition: "60% 30%",
-                backgroundRepeat: "no-repeat",
-              }}
-              className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 bg-cover bg-center p-5 text-left text-white shadow-[0_22px_55px_rgba(15,23,42,0.25)] transition hover:border-slate-300/60 hover:shadow-[0_26px_60px_rgba(15,23,42,0.32)]"
-            >
-              <div className="pointer-events-none absolute inset-0 bg-slate-950/45 transition group-hover:bg-slate-950/35" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/70 to-transparent" />
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
-                <Plus className="h-5 w-5" />
-              </div>
-              <p className="relative mt-8 text-sm font-semibold">Upload a new resource</p>
-              <p className="relative mt-1 text-xs leading-5 text-slate-300">
+          <button
+            type="button"
+            onClick={() => setUploadOpen(true)}
+            className="widget-card group flex min-h-40 w-full flex-col justify-between rounded-lg p-5 text-left transition hover:border-slate-300 hover:shadow-md"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-950 text-white">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-950">Upload a new resource</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
                 Add PDFs, slides, question sets, or lab files to the vault.
               </p>
-            </button>
-            <Cursor className="text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]" />
-            <CursorFollow
-              side="right"
-              align="center"
-              sideOffset={12}
-              alignOffset={0}
-              transition={{ stiffness: 420, damping: 42, bounce: 0 }}
-              className="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-slate-950 shadow-lg"
-            >
-              Upload
-            </CursorFollow>
-          </CursorProvider>
+            </div>
+          </button>
 
           <MetricCard
             icon={BookOpenCheck}
@@ -666,7 +641,7 @@ export function ClassVaultApp() {
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+          <div className="widget-card min-w-0 rounded-lg p-4">
             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -688,7 +663,7 @@ export function ClassVaultApp() {
             </div>
           </div>
 
-          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+          <div className="widget-card min-w-0 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Your uploads
@@ -707,12 +682,12 @@ export function ClassVaultApp() {
         </div>
 
         {/* NOTES FILTER PANEL */}
-        <div className="mt-8 min-w-0 rounded-[1.35rem] border border-white/80 bg-white p-4 shadow-[0_22px_55px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/70 sm:p-5">
+        <div className="mt-8 min-w-0 rounded-lg border border-[var(--cv-border)] bg-[var(--cv-card)] p-4 shadow-sm sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-extrabold tracking-tight text-slate-800">Notes Library</h2>
             <button
               onClick={() => setUploadOpen(true)}
-              className="cv-primary-btn inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold shadow-sm"
+              className="cv-primary-btn inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold"
             >
               Upload Notes
               <ChevronDown className="h-3.5 w-3.5" />
@@ -721,24 +696,16 @@ export function ClassVaultApp() {
 
           <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-              <StarBorder
-                as="div"
-                className="w-full min-w-0 md:w-[260px]"
-                color="#818cf8"
-                speed="5s"
-                thickness={2}
-              >
-                <div className="relative min-w-0">
-                  <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Search by title or course"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold text-slate-900 shadow-[0_3px_14px_rgba(15,23,42,0.06)] outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                  />
-                </div>
-              </StarBorder>
+              <div className="relative w-full min-w-0 md:w-[280px]">
+                <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search by title or course"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="h-10 w-full rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] pl-10 pr-4 text-sm font-medium text-[var(--cv-text)] outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                />
+              </div>
 
               <FilterDropdown
                 label="All Semesters"
@@ -762,7 +729,7 @@ export function ClassVaultApp() {
               {(query || semester !== "All" || subject !== "All" || noteTag !== "All") && (
                 <button
                   onClick={resetFilters}
-                  className="inline-flex h-11 items-center gap-2 rounded-xl px-1 text-sm font-bold text-slate-500 transition hover:text-slate-950"
+                  className="inline-flex h-10 items-center gap-2 rounded-md px-1 text-sm font-semibold text-slate-500 transition hover:text-slate-950"
                 >
                   <X className="h-5 w-5 rounded-full border border-slate-300 p-1 text-slate-500" />
                   Reset filters
@@ -770,7 +737,7 @@ export function ClassVaultApp() {
               )}
             </div>
 
-            <div className="flex h-11 w-fit max-w-full items-center gap-1 rounded-xl bg-slate-50 p-1 shadow-[0_3px_14px_rgba(15,23,42,0.05)] ring-1 ring-slate-200">
+            <div className="flex h-10 w-fit max-w-full items-center gap-1 rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
               <button
                 onClick={() => setLayoutMode("list")}
                 className={classNames(
@@ -838,23 +805,23 @@ export function ClassVaultApp() {
         {/* MIDDLE GRID COLUMNS (Notifications, Assignments, Calendar) */}
         <div className="mt-8 grid min-w-0 gap-5 md:grid-cols-3">
           {/* Notifications */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Notifications
                 </h3>
-                <button className="text-[10px] font-bold text-[#6366f1] hover:underline">
+                <button className="text-[10px] font-bold text-[#1d4ed8] hover:underline">
                   Clear
                 </button>
               </div>
 
               <div className="space-y-3">
                 {/* Event notification */}
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 relative">
+                <div className="rounded-md border border-slate-100 bg-slate-50 p-3 relative">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#6366f1] inline-block mr-1.5" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#1d4ed8] inline-block mr-1.5" />
                       <span className="text-[10px] font-bold text-slate-800">
                         Upcoming revision session
                       </span>
@@ -864,16 +831,16 @@ export function ClassVaultApp() {
                   <h4 className="text-[11px] font-extrabold text-slate-900 mt-1.5">
                     DBMS Exam normalization notes
                   </h4>
-                  <div className="mt-3 flex items-center justify-between text-[9px] text-[#6366f1] font-bold bg-[#6366f1]/5 rounded-lg px-2 py-1">
+                  <div className="mt-3 flex items-center justify-between text-[9px] text-[#1d4ed8] font-bold bg-blue-50 rounded px-2 py-1">
                     <span>Sat, 10 May</span>
                     <span>11:00 AM - 12:00 PM</span>
                   </div>
                 </div>
 
                 {/* Message notification */}
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold text-[#6366f1]">
+                    <span className="text-[10px] font-bold text-[#1d4ed8]">
                       Message | Study Club
                     </span>
                     <span className="text-[9px] font-semibold text-slate-400">Just now</span>
@@ -886,13 +853,13 @@ export function ClassVaultApp() {
               </div>
             </div>
 
-            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-slate-500 border border-slate-200 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-slate-500 border border-slate-200 rounded-md bg-slate-50 hover:bg-slate-100 transition">
               See all notifications
             </button>
           </div>
 
           {/* Assignments / Study Tasks widget */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
@@ -908,7 +875,7 @@ export function ClassVaultApp() {
                 {studyTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl p-2.5"
+                    className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-md p-2.5"
                   >
                     <div className="min-w-0">
                       <h4 className="text-[11px] font-extrabold text-slate-800 truncate">
@@ -950,11 +917,11 @@ export function ClassVaultApp() {
                 placeholder="New task..."
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="flex-1 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#6366f1]"
+                className="flex-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#1d4ed8]"
               />
               <button
                 onClick={addStudyTask}
-                className="h-8 w-8 rounded-lg bg-[#6366f1] text-white flex items-center justify-center hover:bg-[#4f46e5] transition shrink-0"
+                className="h-8 w-8 rounded-md bg-slate-950 text-white flex items-center justify-center hover:bg-slate-800 transition shrink-0"
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -962,7 +929,7 @@ export function ClassVaultApp() {
           </div>
 
           {/* Calendar Widget */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
@@ -993,16 +960,16 @@ export function ClassVaultApp() {
                 <span className="text-slate-300">2</span>
                 <span className="text-slate-300">3</span>
                 <span className="text-slate-300">4</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">5</span>
-                <span className="rounded-lg bg-[#6366f1] text-white py-0.5 shadow-sm">6</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">7</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">8</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">9</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">10</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">11</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">12</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">13</span>
-                <span className="rounded-lg bg-slate-50 py-0.5">14</span>
+                <span className="rounded bg-slate-50 py-0.5">5</span>
+                <span className="rounded bg-slate-950 text-white py-0.5 shadow-sm">6</span>
+                <span className="rounded bg-slate-50 py-0.5">7</span>
+                <span className="rounded bg-slate-50 py-0.5">8</span>
+                <span className="rounded bg-slate-50 py-0.5">9</span>
+                <span className="rounded bg-slate-50 py-0.5">10</span>
+                <span className="rounded bg-slate-50 py-0.5">11</span>
+                <span className="rounded bg-slate-50 py-0.5">12</span>
+                <span className="rounded bg-slate-50 py-0.5">13</span>
+                <span className="rounded bg-slate-50 py-0.5">14</span>
               </div>
 
               {/* Events lists */}
@@ -1018,7 +985,7 @@ export function ClassVaultApp() {
               </div>
             </div>
 
-            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-[#6366f1] border border-violet-100 rounded-lg bg-violet-50/50 hover:bg-violet-50 transition">
+            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-[#1d4ed8] border border-blue-100 rounded-md bg-blue-50/60 hover:bg-blue-50 transition">
               Manage schedule
             </button>
           </div>
@@ -1027,12 +994,12 @@ export function ClassVaultApp() {
         {/* BOTTOM ROW WIDGETS (Tasks progress, Go premium, Circular progress, Board meeting) */}
         <div className="mt-8 grid min-w-0 gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Today Tasks Progress list */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between md:col-span-1">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between md:col-span-1">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4">
               Today Tasks
             </h3>
             <div className="space-y-4">
-              <ProgressItem label="DBMS Normalization notes" percentage={90} color="bg-[#6366f1]" />
+              <ProgressItem label="DBMS Normalization notes" percentage={90} color="bg-[#1d4ed8]" />
               <ProgressItem
                 label="Computer Networks complete notes"
                 percentage={50}
@@ -1042,32 +1009,31 @@ export function ClassVaultApp() {
             </div>
             <div className="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between text-[10px] font-extrabold text-slate-400">
               <span>Finished: 1/3</span>
-              <span className="text-[#6366f1]">Detail</span>
+              <span className="text-[#1d4ed8]">Detail</span>
             </div>
           </div>
 
           {/* Go Premium Box */}
-          <div className="rounded-2xl bg-[#6366f1] p-5 flex flex-col justify-between text-white shadow-xl relative overflow-hidden">
-            <div className="absolute right-0 bottom-0 top-0 w-24 bg-white/5 rounded-l-full blur-xl pointer-events-none" />
+          <div className="rounded-lg bg-slate-950 p-5 flex flex-col justify-between text-white shadow-sm relative overflow-hidden">
             <div>
               <h3 className="text-sm font-extrabold">Go premium!</h3>
               <p className="mt-2 text-[10px] leading-relaxed text-white/80 font-semibold">
                 Gain access to a range of benefits designed to enhance your user experience.
               </p>
             </div>
-            <button className="mt-6 w-full h-9 rounded-xl bg-white text-[#6366f1] text-xs font-bold hover:bg-white/95 transition shadow">
+            <button className="mt-6 w-full h-9 rounded-md bg-white text-slate-950 text-xs font-bold hover:bg-slate-100 transition">
               Find out more
             </button>
           </div>
 
           {/* Circular Progress Rings */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4">
               Completeness
             </h3>
             <div className="flex items-center justify-around gap-2">
               <div className="text-center">
-                <CircularGauge percentage={90} color="#6366f1" size={56} />
+                <CircularGauge percentage={90} color="#1d4ed8" size={56} />
                 <p className="mt-2 text-[9px] font-extrabold text-slate-800 leading-none">
                   Database
                 </p>
@@ -1087,10 +1053,10 @@ export function ClassVaultApp() {
           </div>
 
           {/* Study Group Session Card */}
-          <div className="widget-card rounded-2xl p-5 flex flex-col justify-between">
+          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[9px] font-bold">
+                <span className="rounded bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[9px] font-bold">
                   Study Group
                 </span>
                 <span className="text-[9px] font-semibold text-slate-400">March 26 at 4:00 PM</span>
@@ -1102,10 +1068,10 @@ export function ClassVaultApp() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button className="h-8 rounded-lg border border-slate-200 bg-white text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition">
+              <button className="h-8 rounded-md border border-slate-200 bg-white text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition">
                 Reschedule
               </button>
-              <button className="h-8 rounded-lg bg-[#6366f1] text-white text-[10px] font-bold hover:bg-[#4f46e5] transition">
+              <button className="h-8 rounded-md bg-slate-950 text-white text-[10px] font-bold hover:bg-slate-800 transition">
                 Accept invite
               </button>
             </div>
@@ -1122,7 +1088,7 @@ export function ClassVaultApp() {
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6366f1]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#1d4ed8]">
                     Selected Note
                   </span>
                   <h3 className="text-base font-extrabold text-slate-900 mt-1">
@@ -1133,15 +1099,15 @@ export function ClassVaultApp() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleSaved(selectedNote.id)}
-                    className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#6366f1] transition cursor-pointer"
+                    className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#1d4ed8] transition cursor-pointer"
                   >
                     <Bookmark
-                      className={`h-4.5 w-4.5 ${savedIds.has(selectedNote.id) ? "fill-[#6366f1] text-[#6366f1]" : ""}`}
+                      className={`h-4.5 w-4.5 ${savedIds.has(selectedNote.id) ? "fill-[#1d4ed8] text-[#1d4ed8]" : ""}`}
                     />
                   </button>
                   <button
                     onClick={() => setDetailOpen(false)}
-                    className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition cursor-pointer"
+                    className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1149,11 +1115,11 @@ export function ClassVaultApp() {
               </div>
 
               {/* Uploader profile block */}
-              <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 p-3">
                 <img
                   src={selectedNote.uploaderAvatar ?? "/avatar_neha.png"}
                   alt={selectedNote.uploader}
-                  className="h-9 w-9 rounded-full object-cover border border-[#6366f1]/20"
+                  className="h-9 w-9 rounded-full object-cover border border-[#1d4ed8]/20"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 leading-none">
@@ -1163,9 +1129,9 @@ export function ClassVaultApp() {
                     {selectedNote.uploaderRole}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 rounded-lg bg-[#6366f1]/10 px-2 py-1 text-[11px] font-bold text-[#6366f1]">
+                <div className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-[#1d4ed8]">
                   {selectedNote.rating ? selectedNote.rating.toFixed(1) : "5.0"}
-                  <Star className="h-3 w-3 fill-[#6366f1] text-[#6366f1]" />
+                  <Star className="h-3 w-3 fill-[#1d4ed8] text-[#1d4ed8]" />
                 </div>
               </div>
 
@@ -1215,7 +1181,7 @@ export function ClassVaultApp() {
                     />
                   </div>
                   <div className="flex flex-col gap-1.5 h-full overflow-y-auto">
-                    <div className="aspect-[4/5] overflow-hidden rounded border border-[#6366f1]/40 bg-white shadow-sm">
+                    <div className="aspect-[4/5] overflow-hidden rounded border border-[#1d4ed8]/40 bg-white shadow-sm">
                       <img
                         src="/preview_dbms_main.png"
                         alt=""
@@ -1241,7 +1207,7 @@ export function ClassVaultApp() {
               </div>
 
               {/* Rating block */}
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-md border border-slate-100 bg-slate-50 p-4">
                 <p className="text-[11px] font-bold text-slate-800">Rate this note</p>
                 <div className="mt-2.5 flex gap-1">
                   {[1, 2, 3, 4, 5].map((value) => (
@@ -1275,22 +1241,22 @@ export function ClassVaultApp() {
               <div className="grid grid-cols-[1.5fr_1fr] gap-2">
                 <button
                   onClick={() => downloadNote(selectedNote.id)}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#6366f1] py-3 text-xs font-bold text-white hover:bg-[#4f46e5] transition cursor-pointer shadow"
+                  className="flex items-center justify-center gap-2 rounded-md bg-slate-950 py-3 text-xs font-bold text-white hover:bg-slate-800 transition cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   Download PDF
                 </button>
                 <button
                   onClick={() => toggleSaved(selectedNote.id)}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-sm"
+                  className="flex items-center justify-center gap-2 rounded-md border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                 >
                   <Bookmark className="h-4 w-4 text-slate-400" />
                   Bookmark
                 </button>
               </div>
-              <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
+              <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
                 View full document
-                <ArrowRight className="h-3.5 w-3.5 text-[#6366f1]" />
+                <ArrowRight className="h-3.5 w-3.5 text-[#1d4ed8]" />
               </button>
             </div>
           </div>
@@ -1331,15 +1297,15 @@ function SidebarIconButton({
       onClick={onClick}
       title={label}
       className={classNames(
-        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-transparent transition md:h-12 md:w-full",
+        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent transition md:h-12 md:w-12",
         mobileHidden && "hidden md:flex",
         active
-          ? "border-white/10 bg-white/15 text-white shadow-sm"
-          : "text-indigo-100/70 hover:border-white/10 hover:bg-white/10 hover:text-white",
+          ? "border-white/10 bg-white text-slate-950"
+          : "text-slate-400 hover:bg-white/8 hover:text-white",
       )}
     >
       {active && (
-        <span className="absolute bottom-0 h-1 w-6 rounded-t bg-white md:bottom-auto md:left-0 md:h-6 md:w-1 md:rounded-r md:rounded-t-none" />
+        <span className="absolute -bottom-1 h-1 w-6 rounded-t bg-white md:bottom-auto md:-left-2 md:h-6 md:w-1 md:rounded-r md:rounded-t-none" />
       )}
       <Icon className="h-5 w-5" />
       {/* Tooltip */}
@@ -1388,7 +1354,7 @@ function FilterDropdown({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-3.5 pr-9 text-sm font-semibold text-slate-800 shadow-[0_3px_14px_rgba(15,23,42,0.06)] outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 md:w-auto"
+        className="h-10 w-full appearance-none rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] pl-3.5 pr-9 text-sm font-medium text-[var(--cv-text)] outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 md:w-auto"
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -1419,19 +1385,19 @@ function DocumentRow({
         type="button"
         onClick={onOpen}
         className={classNames(
-          "flex min-h-48 min-w-0 flex-col justify-between rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg",
+          "flex min-h-44 min-w-0 flex-col justify-between rounded-lg border p-4 text-left transition hover:border-slate-300 hover:shadow-md",
           selected
-            ? "cv-note-selected border-slate-950 bg-slate-950 text-white shadow-xl"
-            : "border-slate-200 bg-white text-slate-950 shadow-sm",
+            ? "cv-note-selected border-blue-700 bg-blue-50 text-slate-950 shadow-sm"
+            : "border-slate-200 bg-white text-slate-950",
         )}
       >
         <div>
           <div className="flex min-w-0 items-start justify-between gap-3">
             <span
               className={classNames(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[10px] font-bold uppercase",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-md border text-[10px] font-bold uppercase",
                 selected
-                  ? "border-white/15 bg-white/10 text-white"
+                  ? "border-blue-200 bg-white text-blue-700"
                   : "border-rose-200 bg-rose-50 text-rose-600",
               )}
             >
@@ -1439,8 +1405,8 @@ function DocumentRow({
             </span>
             <span
               className={classNames(
-                "rounded-full px-2.5 py-1 text-[10px] font-semibold",
-                selected ? "bg-white/10 text-white/80" : "bg-slate-100 text-slate-500",
+                "rounded px-2.5 py-1 text-[10px] font-semibold",
+                selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-500",
               )}
             >
               {note.courseCode}
@@ -1452,7 +1418,7 @@ function DocumentRow({
           <p
             className={classNames(
               "mt-2 text-xs font-medium",
-              selected ? "text-white/60" : "text-slate-500",
+              "text-slate-500",
             )}
           >
             Sem {note.semester} · {note.subject}
@@ -1466,7 +1432,7 @@ function DocumentRow({
                 key={tag}
                 className={classNames(
                   "rounded-md px-2 py-1 text-[10px] font-semibold",
-                  selected ? "bg-white/10 text-white/75" : "bg-slate-100 text-slate-600",
+                  selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
                 )}
               >
                 {tag}
@@ -1476,7 +1442,7 @@ function DocumentRow({
           <div
             className={classNames(
               "mt-4 flex items-center justify-between border-t pt-3 text-xs font-semibold",
-              selected ? "border-white/10 text-white/75" : "border-slate-100 text-slate-500",
+              selected ? "border-blue-100 text-slate-600" : "border-slate-100 text-slate-500",
             )}
           >
             <span className="flex items-center gap-1">
@@ -1498,18 +1464,18 @@ function DocumentRow({
       type="button"
       onClick={onOpen}
       className={classNames(
-        "grid w-full min-w-0 grid-cols-1 items-start gap-3 rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-md sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:grid-cols-[minmax(0,1fr)_90px_90px_auto] lg:grid-cols-[minmax(0,1fr)_110px_110px_90px]",
+        "grid w-full min-w-0 grid-cols-1 items-start gap-3 rounded-lg border px-4 py-3 text-left transition hover:border-slate-300 hover:shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:grid-cols-[minmax(0,1fr)_90px_90px_auto] lg:grid-cols-[minmax(0,1fr)_110px_110px_90px]",
         selected
-          ? "cv-note-selected border-slate-950 bg-slate-950 text-white shadow-lg"
-          : "border-slate-200 bg-white text-slate-950 shadow-sm hover:border-slate-300",
+          ? "cv-note-selected border-blue-700 bg-blue-50 text-slate-950 shadow-sm"
+          : "border-slate-200 bg-white text-slate-950",
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
         <span
           className={classNames(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-[10px] font-bold uppercase",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border text-[10px] font-bold uppercase",
             selected
-              ? "border-white/15 bg-white/10 text-white"
+              ? "border-blue-200 bg-white text-blue-700"
               : "border-rose-200 bg-rose-50 text-rose-600",
           )}
         >
@@ -1520,7 +1486,7 @@ function DocumentRow({
           <p
             className={classNames(
               "mt-1 truncate text-xs font-medium",
-              selected ? "text-white/60" : "text-slate-500",
+              "text-slate-500",
             )}
           >
             Sem {note.semester} · {note.subject} · {note.unit}
@@ -1531,7 +1497,7 @@ function DocumentRow({
                 key={tag}
                 className={classNames(
                   "rounded-md px-2 py-0.5 text-[10px] font-semibold",
-                  selected ? "bg-white/10 text-white/70" : "bg-slate-100 text-slate-600",
+                  selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
                 )}
               >
                 {tag}
@@ -1544,7 +1510,7 @@ function DocumentRow({
       <div
         className={classNames(
           "hidden items-center gap-1 text-xs font-semibold md:flex",
-          selected ? "text-white/75" : "text-slate-600",
+          "text-slate-600",
         )}
       >
         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -1553,7 +1519,7 @@ function DocumentRow({
       <div
         className={classNames(
           "hidden items-center gap-1 text-xs font-semibold md:flex",
-          selected ? "text-white/75" : "text-slate-600",
+          "text-slate-600",
         )}
       >
         <Download className="h-3.5 w-3.5" />
@@ -1563,7 +1529,7 @@ function DocumentRow({
         <span
           className={classNames(
             "rounded-lg px-2.5 py-1 text-xs font-semibold",
-            selected ? "bg-white/10 text-white/80" : "bg-slate-100 text-slate-600",
+            selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
           )}
         >
           {note.courseCode}
@@ -1571,14 +1537,12 @@ function DocumentRow({
         <span
           className={classNames(
             "hidden text-xs font-semibold xl:inline",
-            selected ? "text-white/50" : "text-slate-400",
+            "text-slate-400",
           )}
         >
           {note.uploadDate}
         </span>
-        <span
-          className={classNames("p-1 transition", selected ? "text-white/50" : "text-slate-300")}
-        >
+        <span className="p-1 text-slate-300 transition">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"
@@ -1612,11 +1576,11 @@ function MetricCard({
   tone: string;
 }) {
   return (
-    <div className="widget-card rounded-2xl p-5">
+    <div className="widget-card rounded-lg p-5">
       <div className="flex items-start justify-between gap-4">
         <div
           className={classNames(
-            "flex h-11 w-11 items-center justify-center rounded-xl border",
+            "flex h-10 w-10 items-center justify-center rounded-md border",
             tone,
           )}
         >
@@ -1733,7 +1697,7 @@ function UploadDialog({
     >
       <form
         onSubmit={onSubmit}
-        className="cv-dialog-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl"
+        className="cv-dialog-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-slate-100 bg-white shadow-2xl"
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
           <div>
@@ -1746,7 +1710,7 @@ function UploadDialog({
             type="button"
             onClick={onClose}
             aria-label="Close upload dialog"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-slate-800 transition cursor-pointer"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-800 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -1812,7 +1776,7 @@ function UploadDialog({
             </select>
           </Field>
           <Field label="File">
-            <label className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-200 px-3 text-xs font-semibold text-slate-500 hover:border-[#6366f1]/40 hover:text-slate-800 transition">
+            <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-200 px-3 text-xs font-semibold text-slate-500 hover:border-[#1d4ed8]/40 hover:text-slate-800 transition">
               <Upload className="h-4 w-4" />
               <span className="truncate">{draft.fileName || "Choose file"}</span>
               <input
@@ -1847,13 +1811,13 @@ function UploadDialog({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6366f1] px-4 text-xs font-bold text-white hover:bg-[#4f46e5] transition"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-xs font-bold text-white hover:bg-slate-800 transition"
           >
             <Check className="h-4 w-4" />
             Publish upload
@@ -1885,9 +1849,9 @@ function Field({
 /* TOAST */
 function ToastMessage({ toast }: { toast: Toast }) {
   return (
-    <div className="cv-toast-panel fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl">
+    <div className="cv-toast-panel fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-lg border border-slate-100 bg-white p-4 shadow-2xl">
       <div className="flex gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1d4ed8] border border-blue-100">
           <Check className="h-4 w-4" />
         </div>
         <div>

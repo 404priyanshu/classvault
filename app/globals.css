@@ -5,8 +5,8 @@
 @source not "../.agents/**";
 
 :root {
-  --background: #f6f7fb;
-  --foreground: #0f172a;
+  --background: #f5f7fb;
+  --foreground: #111827;
 }
 
 .classvault-cursor-provider {
@@ -75,9 +75,9 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-indigo: #6366f1;
-  --color-brand-indigo-hover: #4f46e5;
-  --color-brand-indigo-bg: rgba(99, 102, 241, 0.08);
+  --color-brand-indigo: #1d4ed8;
+  --color-brand-indigo-hover: #1e40af;
+  --color-brand-indigo-bg: rgba(29, 78, 216, 0.08);
   --color-brand-card: #ffffff;
   --color-brand-border: rgba(99, 102, 241, 0.08);
   --color-brand-border-active: rgba(99, 102, 241, 0.25);
@@ -125,8 +125,8 @@ body {
   width: 100%;
   min-width: 0;
   height: 2.5rem;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 0.5rem;
   background: #ffffff;
   padding: 0 0.75rem;
   color: #0f172a;
@@ -144,21 +144,19 @@ body {
 }
 
 .form-field:focus {
-  border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
+  border-color: rgba(29, 78, 216, 0.45);
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.08);
 }
 
 textarea.form-field {
   height: auto;
 }
 
-/* Rounded widgets styling */
+/* Workspace surfaces */
 .widget-card {
   background: #ffffff;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow:
-    0 18px 45px -30px rgba(15, 23, 42, 0.28),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .classvault-marquee {
@@ -197,16 +195,16 @@ textarea.form-field {
 }
 
 .classvault-shell {
-  --cv-bg: #f6f7fb;
-  --cv-text: #0f172a;
+  --cv-bg: #f5f7fb;
+  --cv-text: #111827;
   --cv-muted: #64748b;
   --cv-soft-muted: #94a3b8;
   --cv-card: #ffffff;
   --cv-subtle: #f8fafc;
   --cv-muted-surface: #f1f5f9;
-  --cv-border: rgba(148, 163, 184, 0.22);
-  --cv-sidebar: #020617;
-  --cv-sidebar-border: rgba(255, 255, 255, 0.1);
+  --cv-border: rgba(148, 163, 184, 0.24);
+  --cv-sidebar: #0f172a;
+  --cv-sidebar-border: rgba(255, 255, 255, 0.08);
   --cv-toggle-bg: #e2e8f0;
   --cv-toggle-active: #ffffff;
   --cv-search-bg: #eef2f7;
@@ -234,9 +232,9 @@ textarea.form-field {
   --cv-modal-filter-text: #64748b;
   --cv-modal-filter-hover-bg: #f1f5f9;
   --cv-modal-filter-hover-text: #0f172a;
-  --cv-modal-filter-active-bg: rgba(99, 102, 241, 0.1);
-  --cv-modal-filter-active-border: rgba(99, 102, 241, 0.32);
-  --cv-modal-filter-active-text: #4338ca;
+  --cv-modal-filter-active-bg: rgba(29, 78, 216, 0.1);
+  --cv-modal-filter-active-border: rgba(29, 78, 216, 0.32);
+  --cv-modal-filter-active-text: #1d4ed8;
   --cv-modal-section-label: #94a3b8;
   --cv-modal-result-hover-bg: #f8fafc;
   --cv-modal-result-hover-border: rgba(148, 163, 184, 0.2);
@@ -244,14 +242,14 @@ textarea.form-field {
   --cv-modal-result-active-border: rgba(99, 102, 241, 0.22);
   --cv-modal-result-icon-bg: #f8fafc;
   --cv-modal-result-icon-border: rgba(148, 163, 184, 0.22);
-  --cv-modal-result-icon-color: #6366f1;
+  --cv-modal-result-icon-color: #1d4ed8;
   --cv-modal-result-title: #0f172a;
   --cv-modal-result-meta: #64748b;
   --cv-modal-empty-bg: #f8fafc;
   --cv-modal-empty-border: rgba(148, 163, 184, 0.2);
   --cv-modal-empty-title: #334155;
   --cv-modal-empty-text: #94a3b8;
-  --cv-shadow: 0 18px 45px -30px rgba(15, 23, 42, 0.28), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --cv-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   background: var(--cv-bg);
   color: var(--cv-text);
 }
@@ -265,8 +263,8 @@ textarea.form-field {
   --cv-subtle: #111c2d;
   --cv-muted-surface: #182235;
   --cv-border: rgba(148, 163, 184, 0.16);
-  --cv-sidebar: #030712;
-  --cv-sidebar-border: rgba(148, 163, 184, 0.14);
+  --cv-sidebar: #101827;
+  --cv-sidebar-border: rgba(255, 255, 255, 0.08);
   --cv-toggle-bg: #111827;
   --cv-toggle-active: #263247;
   --cv-search-bg: #1a2436;
@@ -294,9 +292,9 @@ textarea.form-field {
   --cv-modal-filter-text: #9aa8bc;
   --cv-modal-filter-hover-bg: rgba(255, 255, 255, 0.08);
   --cv-modal-filter-hover-text: #e5edf8;
-  --cv-modal-filter-active-bg: rgba(99, 102, 241, 0.18);
-  --cv-modal-filter-active-border: rgba(129, 140, 248, 0.42);
-  --cv-modal-filter-active-text: #c7d2fe;
+  --cv-modal-filter-active-bg: rgba(59, 130, 246, 0.18);
+  --cv-modal-filter-active-border: rgba(96, 165, 250, 0.42);
+  --cv-modal-filter-active-text: #bfdbfe;
   --cv-modal-section-label: #718099;
   --cv-modal-result-hover-bg: rgba(255, 255, 255, 0.05);
   --cv-modal-result-hover-border: rgba(148, 163, 184, 0.14);
@@ -304,7 +302,7 @@ textarea.form-field {
   --cv-modal-result-active-border: rgba(148, 163, 184, 0.2);
   --cv-modal-result-icon-bg: rgba(255, 255, 255, 0.06);
   --cv-modal-result-icon-border: rgba(148, 163, 184, 0.14);
-  --cv-modal-result-icon-color: #a5b4fc;
+  --cv-modal-result-icon-color: #93c5fd;
   --cv-modal-result-title: #f1f5f9;
   --cv-modal-result-meta: #9aa8bc;
   --cv-modal-empty-bg: rgba(255, 255, 255, 0.03);
@@ -713,14 +711,6 @@ textarea.form-field {
   border-color: rgba(16, 185, 129, 0.2) !important;
 }
 
-/* Dark: violet/purple status badges */
-.classvault-shell[data-theme="dark"] .border-violet-100 {
-  border-color: rgba(139, 92, 246, 0.25) !important;
-}
-.classvault-shell[data-theme="dark"] .bg-violet-50\/50 {
-  background-color: rgba(139, 92, 246, 0.1) !important;
-}
-
 /* Dark: focus ring */
 .classvault-shell[data-theme="dark"] .focus\:ring-slate-100:focus {
   --tw-ring-color: rgba(148, 163, 184, 0.1) !important;
@@ -731,12 +721,12 @@ textarea.form-field {
 
 /* Dark: primary button class — inverts in dark mode */
 .cv-primary-btn {
-  background-color: #0f172a;
+  background-color: #111827;
   color: #ffffff;
   transition: background-color 160ms ease, color 160ms ease;
 }
 .cv-primary-btn:hover {
-  background-color: #1e293b;
+  background-color: #1f2937;
 }
 .classvault-shell[data-theme="dark"] .cv-primary-btn {
   background-color: #e5edf8 !important;
@@ -748,8 +738,8 @@ textarea.form-field {
 
 /* Dark: selected note row — use indigo tint instead of solid dark bg */
 .classvault-shell[data-theme="dark"] .cv-note-selected {
-  border-color: rgba(99, 102, 241, 0.5) !important;
-  background-color: rgba(99, 102, 241, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  background-color: rgba(59, 130, 246, 0.12) !important;
 }
 
 /* Dark: detail drawer panel */
