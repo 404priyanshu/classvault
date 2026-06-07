@@ -613,8 +613,8 @@ export function ClassVaultApp() {
               onClick={() => setUploadOpen(true)}
               style={{
                 backgroundImage: "url('/folder-bg.png')",
-                backgroundSize: "180%",
-                backgroundPosition: "85% 25%",
+                backgroundSize: "195%",
+                backgroundPosition: "60% 30%",
                 backgroundRepeat: "no-repeat",
               }}
               className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 bg-cover bg-center p-5 text-left text-white shadow-[0_22px_55px_rgba(15,23,42,0.25)] transition hover:border-slate-300/60 hover:shadow-[0_26px_60px_rgba(15,23,42,0.32)]"
