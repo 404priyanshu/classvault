@@ -924,3 +924,77 @@ textarea.form-field {
   scrollbar-width: none !important;  /* Firefox */
 }
 
+/* ==========================================================================
+   JAPANESE MINIMALIST STYLE & ANIMATIONS
+   ========================================================================== */
+
+/* Serene Floating */
+@keyframes zenFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.animate-zen-float {
+  animation: zenFloat 6s ease-in-out infinite;
+}
+
+/* Water Ripple Animation */
+@keyframes zenRipple {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.0);
+    opacity: 0;
+  }
+}
+.animate-zen-ripple {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(143, 151, 121, 0.4);
+  animation: zenRipple 1.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+/* Soft Pulsing for Zen state */
+@keyframes zenPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+.animate-zen-pulse {
+  animation: zenPulse 5s ease-in-out infinite;
+}
+
+/* Raked sand canvas texture */
+.raked-sand-bg {
+  background-color: #FAF8F5;
+  background-image: 
+    radial-gradient(circle at 100% 150%, transparent 24%, rgba(44, 43, 41, 0.02) 24%, rgba(44, 43, 41, 0.02) 28%, transparent 28%, transparent),
+    radial-gradient(circle at 0% 150%, transparent 24%, rgba(44, 43, 41, 0.02) 24%, rgba(44, 43, 41, 0.02) 28%, transparent 28%, transparent);
+  background-size: 24px 24px;
+}
+
+/* Shikkui Plaster Soft Card shadow */
+.zen-card {
+  background-color: #FAF8F5;
+  border: 1px solid rgba(44, 43, 41, 0.07);
+  box-shadow: 0 4px 24px -2px rgba(44, 43, 41, 0.02), 0 2px 6px -1px rgba(44, 43, 41, 0.01);
+  border-radius: 1.5rem;
+  transition: all 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.zen-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(143, 151, 121, 0.25);
+  box-shadow: 0 16px 36px -4px rgba(44, 43, 41, 0.05), 0 6px 16px -2px rgba(44, 43, 41, 0.02);
+}
+
