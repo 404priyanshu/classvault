@@ -26,7 +26,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
 
 import {
   currentUser,
@@ -38,6 +38,9 @@ import {
 } from "@/lib/classvault-data";
 
 type View = "library" | "saved" | "uploads" | "explore";
+type ThemeMode = "light" | "dark";
+const THEME_STORAGE_KEY = "classvault-theme";
+const THEME_CHANGE_EVENT = "classvault-theme-change";
 
 type Toast = {
   title: string;
@@ -72,7 +75,26 @@ function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function getStoredTheme(): ThemeMode {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+}
+
+function subscribeTheme(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+  };
+}
+
 export function ClassVaultApp() {
+  const theme = useSyncExternalStore(subscribeTheme, getStoredTheme, () => "light");
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [activeView, setActiveView] = useState<View>("library");
   const [query, setQuery] = useState("");
@@ -154,6 +176,11 @@ export function ClassVaultApp() {
   const totalDownloads = notes.reduce((sum, note) => sum + note.downloads, 0);
   const averageRating =
     notes.reduce((sum, note) => sum + note.rating, 0) / Math.max(notes.length, 1);
+
+  function updateTheme(nextTheme: ThemeMode) {
+    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+  }
 
   useEffect(() => {
     if (!toast) {
@@ -301,9 +328,12 @@ export function ClassVaultApp() {
   }
 
   return (
-    <main className="flex min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,#eef2ff_0,#f6f7fb_34%,#f8fafc_100%)] text-[#0f172a]">
+    <main
+      data-theme={theme}
+      className="classvault-shell flex min-h-screen overflow-x-hidden bg-[var(--cv-bg)] text-[var(--cv-text)] transition-colors duration-300"
+    >
       {/* NARROW SIDEBAR */}
-      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-white/10 bg-slate-950 px-3 shadow-2xl md:sticky md:top-0 md:h-screen md:w-20 md:shrink-0 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
+      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-[var(--cv-sidebar-border)] bg-[var(--cv-sidebar)] px-3 shadow-2xl md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
         <div className="flex min-w-0 flex-1 items-center md:w-full md:flex-none md:flex-col md:gap-10">
           {/* Logo badge */}
           <button onClick={() => setActiveView("library")} className="hidden cursor-pointer md:block">
@@ -387,7 +417,7 @@ export function ClassVaultApp() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-5 sm:px-6 md:pb-6 lg:px-8">
+      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-5 sm:px-6 md:pb-6 md:pl-[6.5rem] lg:px-8 lg:pl-28">
         {/* TOP ROW HEADER */}
         <header className="flex min-w-0 flex-col gap-4 border-b border-slate-200/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
           {/* Sub-nav tabs */}
@@ -419,11 +449,31 @@ export function ClassVaultApp() {
             </div>
 
             {/* Light / Dark Toggle */}
-            <div className="hidden items-center rounded-full border border-slate-300 bg-slate-200 p-0.5 shadow-inner sm:flex">
-              <button className="rounded-full bg-white px-3 py-1 text-[10px] font-bold text-slate-900 shadow">
+            <div className="flex w-fit items-center rounded-full border border-[var(--cv-border)] bg-[var(--cv-toggle-bg)] p-0.5 shadow-inner">
+              <button
+                type="button"
+                aria-pressed={theme === "light"}
+                onClick={() => updateTheme("light")}
+                className={classNames(
+                  "rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  theme === "light"
+                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
+                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]"
+                )}
+              >
                 Light
               </button>
-              <button className="rounded-full px-3 py-1 text-[10px] font-bold text-slate-500">
+              <button
+                type="button"
+                aria-pressed={theme === "dark"}
+                onClick={() => updateTheme("dark")}
+                className={classNames(
+                  "rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  theme === "dark"
+                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
+                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]"
+                )}
+              >
                 Dark
               </button>
             </div>
@@ -1024,19 +1074,19 @@ function SidebarIconButton({
       onClick={onClick}
       title={label}
       className={classNames(
-        "relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl transition md:h-12 md:w-full",
+        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-transparent transition md:h-12 md:w-full",
         mobileHidden && "hidden md:flex",
         active
-          ? "bg-white/15 text-white border border-white/10 shadow-sm"
-          : "text-indigo-100/70 hover:bg-white/10 hover:text-white"
+          ? "border-white/10 bg-white/15 text-white shadow-sm"
+          : "text-indigo-100/70 hover:border-white/10 hover:bg-white/10 hover:text-white"
       )}
     >
       {active && (
-        <span className="absolute left-0 w-1 h-6 rounded-r bg-white" />
+        <span className="absolute bottom-0 h-1 w-6 rounded-t bg-white md:bottom-auto md:left-0 md:h-6 md:w-1 md:rounded-r md:rounded-t-none" />
       )}
       <Icon className="h-5 w-5" />
       {/* Tooltip */}
-      <span className="absolute left-16 z-30 hidden scale-0 rounded bg-slate-900 px-2 py-1 text-[10px] font-bold text-white shadow-md transition-all group-hover:scale-100 md:block">
+      <span className="pointer-events-none absolute left-16 z-30 hidden origin-left scale-95 rounded bg-slate-900 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-md transition-all group-hover:scale-100 group-hover:opacity-100 md:block">
         {label}
       </span>
     </button>

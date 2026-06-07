@@ -128,3 +128,108 @@ textarea.form-field {
     animation: none;
   }
 }
+
+.classvault-shell {
+  --cv-bg: #f6f7fb;
+  --cv-text: #0f172a;
+  --cv-muted: #64748b;
+  --cv-soft-muted: #94a3b8;
+  --cv-card: #ffffff;
+  --cv-subtle: #f8fafc;
+  --cv-muted-surface: #f1f5f9;
+  --cv-border: rgba(148, 163, 184, 0.22);
+  --cv-sidebar: #020617;
+  --cv-sidebar-border: rgba(255, 255, 255, 0.1);
+  --cv-toggle-bg: #e2e8f0;
+  --cv-toggle-active: #ffffff;
+  --cv-shadow: 0 18px 45px -30px rgba(15, 23, 42, 0.28), 0 1px 2px rgba(15, 23, 42, 0.04);
+  background: var(--cv-bg);
+  color: var(--cv-text);
+}
+
+.classvault-shell[data-theme="dark"] {
+  --cv-bg: #070b14;
+  --cv-text: #e5edf8;
+  --cv-muted: #9aa8bc;
+  --cv-soft-muted: #718099;
+  --cv-card: #0f1725;
+  --cv-subtle: #111c2d;
+  --cv-muted-surface: #182235;
+  --cv-border: rgba(148, 163, 184, 0.16);
+  --cv-sidebar: #030712;
+  --cv-sidebar-border: rgba(148, 163, 184, 0.14);
+  --cv-toggle-bg: #111827;
+  --cv-toggle-active: #263247;
+  --cv-shadow: 0 20px 56px -34px rgba(0, 0, 0, 0.9), 0 1px 1px rgba(255, 255, 255, 0.03);
+}
+
+.classvault-shell .widget-card {
+  background: var(--cv-card);
+  border-color: var(--cv-border);
+  box-shadow: var(--cv-shadow);
+}
+
+.classvault-shell .form-field {
+  background: var(--cv-card);
+  border-color: var(--cv-border);
+  color: var(--cv-text);
+}
+
+.classvault-shell .form-field::placeholder {
+  color: var(--cv-soft-muted);
+}
+
+.classvault-shell[data-theme="dark"] .bg-white {
+  background-color: var(--cv-card) !important;
+}
+
+.classvault-shell[data-theme="dark"] .bg-slate-50,
+.classvault-shell[data-theme="dark"] .bg-slate-100 {
+  background-color: var(--cv-subtle) !important;
+}
+
+.classvault-shell[data-theme="dark"] .bg-slate-200 {
+  background-color: var(--cv-muted-surface) !important;
+}
+
+.classvault-shell[data-theme="dark"] .border-slate-100,
+.classvault-shell[data-theme="dark"] .border-slate-200,
+.classvault-shell[data-theme="dark"] .border-slate-300,
+.classvault-shell[data-theme="dark"] .border-white\/80 {
+  border-color: var(--cv-border) !important;
+}
+
+.classvault-shell[data-theme="dark"] .ring-slate-200\/70,
+.classvault-shell[data-theme="dark"] .ring-slate-200 {
+  --tw-ring-color: var(--cv-border) !important;
+}
+
+.classvault-shell[data-theme="dark"] .text-slate-950,
+.classvault-shell[data-theme="dark"] .text-slate-900,
+.classvault-shell[data-theme="dark"] .text-slate-800,
+.classvault-shell[data-theme="dark"] .text-slate-700 {
+  color: var(--cv-text) !important;
+}
+
+.classvault-shell[data-theme="dark"] .text-slate-600,
+.classvault-shell[data-theme="dark"] .text-slate-500 {
+  color: var(--cv-muted) !important;
+}
+
+.classvault-shell[data-theme="dark"] .text-slate-400,
+.classvault-shell[data-theme="dark"] .text-slate-300 {
+  color: var(--cv-soft-muted) !important;
+}
+
+.classvault-shell[data-theme="dark"] input,
+.classvault-shell[data-theme="dark"] select,
+.classvault-shell[data-theme="dark"] textarea {
+  background-color: var(--cv-card);
+  border-color: var(--cv-border);
+  color: var(--cv-text);
+}
+
+.classvault-shell[data-theme="dark"] option {
+  background: var(--cv-card);
+  color: var(--cv-text);
+}
