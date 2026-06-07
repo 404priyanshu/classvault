@@ -507,7 +507,7 @@ export function ClassVaultApp() {
         {/* TOP ROW HEADER */}
         <header className="sticky top-3 z-30 flex min-w-0 flex-col gap-4 rounded-lg border border-[var(--cv-border)] bg-[var(--cv-card)]/95 px-4 py-3 shadow-sm backdrop-blur xl:flex-row xl:items-center xl:justify-between">
           {/* Sub-nav tabs */}
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
+          <div className="flex min-w-0 items-center gap-1 overflow-x-auto no-scrollbar rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
             {topNavTabs.map((tab) => (
               <button
                 key={tab}
@@ -536,7 +536,7 @@ export function ClassVaultApp() {
                 className={classNames(
                   "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
                   theme === "light"
-                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
+                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-toggle-active-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
                 )}
               >
@@ -549,7 +549,7 @@ export function ClassVaultApp() {
                 className={classNames(
                   "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
                   theme === "dark"
-                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
+                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-toggle-active-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
                 )}
               >
@@ -1918,8 +1918,8 @@ function ProfileView({
     <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_2fr]">
       {/* LEFT COLUMN: USER DETAILS */}
       <div className="flex flex-col gap-6">
-        <div className="widget-card p-6 flex flex-col items-center text-center border-2 border-[#121212] bg-[#F5F4EF]">
-          <div className="relative h-28 w-28 border-4 border-[#121212] bg-[#121212] overflow-hidden mb-4">
+        <div className="widget-card p-6 flex flex-col items-center text-center">
+          <div className="relative h-28 w-28 border-4 border-[var(--cv-border)] bg-[var(--cv-border)] overflow-hidden mb-4">
             <img
               src="/avatar_arjun.png"
               alt="User avatar"
@@ -1929,7 +1929,7 @@ function ProfileView({
           <h2 className="text-2xl font-black uppercase tracking-tight">{profileName}</h2>
           <p className="text-xs font-black uppercase text-[#E03C31] mt-1">{profileMajor}</p>
           
-          <div className="w-full mt-6 border-t-2 border-[#121212] pt-4 flex flex-col gap-2.5 text-xs text-left">
+          <div className="w-full mt-6 border-t-2 border-[var(--cv-border)] pt-4 flex flex-col gap-2.5 text-xs text-left">
             <div className="flex justify-between">
               <span className="font-bold text-stone-500 uppercase">ROLE</span>
               <span className="font-black">STUDENT CONTRIBUTOR</span>
@@ -1950,7 +1950,7 @@ function ProfileView({
         </div>
 
         {/* PROFILE EDIT FORM */}
-        <div className="widget-card p-6 border-2 border-[#121212] bg-[#F5F4EF]">
+        <div className="widget-card p-6">
           <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8] block mb-3">01 / PROFILE SETTINGS</span>
           <form onSubmit={handleSave} className="flex flex-col gap-4">
             <div>
@@ -2001,7 +2001,7 @@ function ProfileView({
 
             <button
               type="submit"
-              className="cv-primary-btn w-full h-10 mt-2 text-xs font-bold tracking-widest text-[#F5F4EF] bg-[#E03C31]"
+              className="cv-primary-btn w-full h-10 mt-2 text-xs font-bold tracking-widest text-[#F5F4EF]"
             >
               {isSaved ? "SETTINGS SAVED" : "SAVE SETTINGS"}
             </button>
@@ -2014,17 +2014,17 @@ function ProfileView({
         
         {/* STATS ROW */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+          <div className="widget-card p-5">
             <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">UPLOADS</span>
             <p className="text-4xl font-black mt-2">{userUploads.length}</p>
             <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Conceded files</p>
           </div>
-          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+          <div className="widget-card p-5">
             <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">DOWNLOADS</span>
             <p className="text-4xl font-black mt-2">{formatCount(totalDownloads)}</p>
             <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Mock traffic</p>
           </div>
-          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+          <div className="widget-card p-5">
             <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">AVG RATING</span>
             <p className="text-4xl font-black mt-2">{averageRating.toFixed(1)}</p>
             <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Cohort reviews</p>
@@ -2032,8 +2032,8 @@ function ProfileView({
         </div>
 
         {/* MY UPLOADS LIST */}
-        <div className="widget-card p-6 border-2 border-[#121212] bg-[#F5F4EF] flex-1 flex flex-col">
-          <div className="flex items-center justify-between border-b-2 border-[#121212] pb-4 mb-4">
+        <div className="widget-card p-6 flex-1 flex flex-col">
+          <div className="flex items-center justify-between border-b-2 border-[var(--cv-border)] pb-4 mb-4">
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8]">02 / PERSONAL VAULT CONTRIBUTIONS</span>
               <h3 className="text-lg font-black uppercase mt-1">My Uploaded Resources</h3>
@@ -2051,7 +2051,7 @@ function ProfileView({
               userUploads.map((note) => (
                 <div
                   key={note.id}
-                  className="flex items-center justify-between border-2 border-[#121212] p-3 hover:bg-[#E5E2D9]/20 transition-colors"
+                  className="flex items-center justify-between border-2 border-[var(--cv-border)] p-3 hover:bg-[var(--cv-muted-surface)]/20 transition-colors"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -2070,7 +2070,7 @@ function ProfileView({
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => onOpenNote(note.id)}
-                      className="border-2 border-[#121212] px-3 py-1.5 text-[10px] font-bold hover:bg-[#121212] hover:text-white transition-colors uppercase tracking-wider"
+                      className="border-2 border-[var(--cv-border)] px-3 py-1.5 text-[10px] font-bold hover:bg-[var(--cv-border)] hover:text-[var(--cv-card)] transition-colors uppercase tracking-wider"
                     >
                       VIEW
                     </button>

@@ -207,6 +207,7 @@ textarea.form-field {
   --cv-sidebar-border: #121212;
   --cv-toggle-bg: #E5E2D9;
   --cv-toggle-active: #121212;
+  --cv-toggle-active-text: #F5F4EF;
   --cv-search-bg: #F0EEE6;
   --cv-search-hover-bg: #E5E2D9;
   --cv-search-border: #121212;
@@ -255,61 +256,62 @@ textarea.form-field {
 }
 
 .classvault-shell[data-theme="dark"] {
-  --cv-bg: #121212;
+  --cv-bg: #151413;
   --cv-text: #F5F4EF;
   --cv-muted: #a8a29e;
   --cv-soft-muted: #78716c;
-  --cv-card: #121212;
-  --cv-subtle: #1c1c1c;
-  --cv-muted-surface: #262626;
-  --cv-border: #F5F4EF;
-  --cv-sidebar: #1c1c1c;
-  --cv-sidebar-border: #F5F4EF;
-  --cv-toggle-bg: #262626;
-  --cv-toggle-active: #F5F4EF;
-  --cv-search-bg: #1c1c1c;
-  --cv-search-hover-bg: #262626;
-  --cv-search-border: #F5F4EF;
+  --cv-card: #201f1d;
+  --cv-subtle: #262523;
+  --cv-muted-surface: #2e2d2a;
+  --cv-border: #E5E2D9;
+  --cv-sidebar: #11100f;
+  --cv-sidebar-border: #E5E2D9;
+  --cv-toggle-bg: #262523;
+  --cv-toggle-active: #E5E2D9;
+  --cv-toggle-active-text: #121212;
+  --cv-search-bg: #201f1d;
+  --cv-search-hover-bg: #262523;
+  --cv-search-border: #E5E2D9;
   --cv-search-placeholder: #a8a29e;
   --cv-search-text: #F5F4EF;
   --cv-search-icon: #78716c;
   --cv-search-kbd-bg: rgba(255, 255, 255, 0.06);
-  --cv-search-kbd-border: #F5F4EF;
+  --cv-search-kbd-border: #E5E2D9;
   --cv-search-kbd-text: #a8a29e;
   --cv-modal-overlay: rgba(0, 0, 0, 0.7);
-  --cv-modal-bg: #121212;
-  --cv-modal-border: #F5F4EF;
-  --cv-modal-shadow: 6px 6px 0px #F5F4EF;
-  --cv-modal-divider: #F5F4EF;
+  --cv-modal-bg: #1c1b1a;
+  --cv-modal-border: #E5E2D9;
+  --cv-modal-shadow: 6px 6px 0px #000000;
+  --cv-modal-divider: #E5E2D9;
   --cv-modal-icon: #78716c;
   --cv-modal-input-text: #F5F4EF;
   --cv-modal-input-placeholder: #78716c;
   --cv-modal-kbd-bg: rgba(255, 255, 255, 0.06);
-  --cv-modal-kbd-border: #F5F4EF;
+  --cv-modal-kbd-border: #E5E2D9;
   --cv-modal-kbd-text: #a8a29e;
   --cv-modal-filter-bg: rgba(255, 255, 255, 0.04);
-  --cv-modal-filter-border: #F5F4EF;
+  --cv-modal-filter-border: #E5E2D9;
   --cv-modal-filter-text: #a8a29e;
   --cv-modal-filter-hover-bg: rgba(255, 255, 255, 0.08);
   --cv-modal-filter-hover-text: #F5F4EF;
   --cv-modal-filter-active-bg: rgba(59, 130, 246, 0.18);
-  --cv-modal-filter-active-border: #F5F4EF;
+  --cv-modal-filter-active-border: #E5E2D9;
   --cv-modal-filter-active-text: #bfdbfe;
   --cv-modal-section-label: #78716c;
   --cv-modal-result-hover-bg: rgba(255, 255, 255, 0.05);
-  --cv-modal-result-hover-border: #F5F4EF;
+  --cv-modal-result-hover-border: #E5E2D9;
   --cv-modal-result-active-bg: #D9A036;
-  --cv-modal-result-active-border: #F5F4EF;
+  --cv-modal-result-active-border: #E5E2D9;
   --cv-modal-result-icon-bg: rgba(255, 255, 255, 0.06);
-  --cv-modal-result-icon-border: #F5F4EF;
+  --cv-modal-result-icon-border: #E5E2D9;
   --cv-modal-result-icon-color: #93c5fd;
   --cv-modal-result-title: #f1f5f9;
   --cv-modal-result-meta: #a8a29e;
   --cv-modal-empty-bg: rgba(255, 255, 255, 0.03);
-  --cv-modal-empty-border: #F5F4EF;
+  --cv-modal-empty-border: #E5E2D9;
   --cv-modal-empty-title: #e2e8f0;
   --cv-modal-empty-text: #78716c;
-  --cv-shadow: 4px 4px 0px #F5F4EF;
+  --cv-shadow: 4px 4px 0px #000000;
 }
 
 .classvault-search-trigger {
@@ -835,15 +837,20 @@ textarea.form-field {
 }
 
 .classvault-shell[data-theme="dark"] .cv-note-selected {
-  background-color: #D9A036 !important;
-  color: #121212 !important;
-  border-color: var(--cv-border) !important;
+  background-color: #2c2a26 !important;
+  color: #F5F4EF !important;
+  border-color: #D9A036 !important;
 }
 
 /* Invert colors inside selected note row tags */
 .classvault-shell .cv-note-selected span {
   background-color: #121212 !important;
   color: #D9A036 !important;
+}
+
+.classvault-shell[data-theme="dark"] .cv-note-selected span {
+  background-color: #D9A036 !important;
+  color: #121212 !important;
 }
 
 /* Badge colors styled as primary blocks */
@@ -896,5 +903,14 @@ textarea.form-field {
 .classvault-shell aside {
   background-color: var(--cv-sidebar) !important;
   border-color: var(--cv-border) !important;
+}
+
+/* Hide scrollbar utility for Bauhaus tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
 }
 
