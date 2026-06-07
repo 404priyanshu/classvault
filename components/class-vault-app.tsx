@@ -26,7 +26,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import {
   currentUser,
@@ -40,7 +40,6 @@ import {
 type View = "library" | "saved" | "uploads" | "explore";
 type ThemeMode = "light" | "dark";
 const THEME_STORAGE_KEY = "classvault-theme";
-const THEME_CHANGE_EVENT = "classvault-theme-change";
 
 type Toast = {
   title: string;
@@ -75,26 +74,23 @@ function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function getStoredTheme(): ThemeMode {
-  if (typeof window === "undefined") {
-    return "light";
-  }
-
-  return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
-}
-
-function subscribeTheme(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener(THEME_CHANGE_EVENT, callback);
-
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(THEME_CHANGE_EVENT, callback);
-  };
-}
-
 export function ClassVaultApp() {
-  const theme = useSyncExternalStore(subscribeTheme, getStoredTheme, () => "light");
+  const [theme, setTheme] = useState<ThemeMode>("light");
+
+  // Read theme from localStorage on mount
+  useEffect(() => {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "dark") {
+      setTheme("dark");
+    }
+  }, []);
+
+  // Toggle theme handler
+  const updateTheme = useCallback((nextTheme: ThemeMode) => {
+    setTheme(nextTheme);
+    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  }, []);
+
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [activeView, setActiveView] = useState<View>("library");
   const [query, setQuery] = useState("");
@@ -176,11 +172,6 @@ export function ClassVaultApp() {
   const totalDownloads = notes.reduce((sum, note) => sum + note.downloads, 0);
   const averageRating =
     notes.reduce((sum, note) => sum + note.rating, 0) / Math.max(notes.length, 1);
-
-  function updateTheme(nextTheme: ThemeMode) {
-    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
-  }
 
   useEffect(() => {
     if (!toast) {
@@ -332,6 +323,24 @@ export function ClassVaultApp() {
       data-theme={theme}
       className="classvault-shell flex min-h-screen overflow-x-hidden bg-[var(--cv-bg)] text-[var(--cv-text)] transition-colors duration-300"
     >
+      {/* MOBILE TOP HEADER */}
+      <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[var(--cv-border)] bg-[var(--cv-card)] px-4 shadow-sm md:hidden">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo_badge.png" alt="Logo" className="h-7 w-7 object-contain" />
+          <span className="text-sm font-bold text-[var(--cv-text)]">ClassVault</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => updateTheme(theme === "dark" ? "light" : "dark")} className="text-[var(--cv-muted)] hover:text-[var(--cv-text)] transition" title="Toggle theme">
+            {theme === "dark" ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            )}
+          </button>
+          <img src="/avatar_arjun.png" alt="User" className="h-7 w-7 rounded-full border border-[var(--cv-border)] object-cover" />
+        </div>
+      </header>
+
       {/* NARROW SIDEBAR */}
       <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t border-[var(--cv-sidebar-border)] bg-[var(--cv-sidebar)] px-3 shadow-2xl md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:border-r md:border-t-0 md:px-0 md:py-6">
         <div className="flex min-w-0 flex-1 items-center md:w-full md:flex-none md:flex-col md:gap-10">
@@ -417,7 +426,7 @@ export function ClassVaultApp() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-5 sm:px-6 md:pb-6 md:pl-[6.5rem] lg:px-8 lg:pl-28">
+      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-[4.5rem] sm:px-6 md:pb-6 md:pl-[6.5rem] md:pt-5 lg:px-8 lg:pl-28">
         {/* TOP ROW HEADER */}
         <header className="flex min-w-0 flex-col gap-4 border-b border-slate-200/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
           {/* Sub-nav tabs */}
@@ -455,7 +464,7 @@ export function ClassVaultApp() {
                 aria-pressed={theme === "light"}
                 onClick={() => updateTheme("light")}
                 className={classNames(
-                  "rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  "cursor-pointer rounded-full px-3 py-1 text-[10px] font-bold transition",
                   theme === "light"
                     ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]"
@@ -468,7 +477,7 @@ export function ClassVaultApp() {
                 aria-pressed={theme === "dark"}
                 onClick={() => updateTheme("dark")}
                 className={classNames(
-                  "rounded-full px-3 py-1 text-[10px] font-bold transition",
+                  "cursor-pointer rounded-full px-3 py-1 text-[10px] font-bold transition",
                   theme === "dark"
                     ? "bg-[var(--cv-toggle-active)] text-[var(--cv-text)] shadow"
                     : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]"
@@ -492,7 +501,7 @@ export function ClassVaultApp() {
             </button>
             <button
               onClick={() => setUploadOpen(true)}
-              className="h-9 w-full rounded-xl bg-slate-950 px-4 text-xs font-bold text-white shadow transition hover:bg-slate-800 sm:w-auto"
+              className="cv-primary-btn h-9 w-full rounded-xl px-4 text-xs font-bold shadow sm:w-auto"
             >
               Add new board
             </button>
@@ -585,7 +594,7 @@ export function ClassVaultApp() {
             <h2 className="text-lg font-extrabold tracking-tight text-slate-800">Notes Library</h2>
             <button
               onClick={() => setUploadOpen(true)}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
+              className="cv-primary-btn inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold shadow-sm"
             >
               Upload Notes
               <ChevronDown className="h-3.5 w-3.5" />
@@ -820,7 +829,7 @@ export function ClassVaultApp() {
         </div>
 
         {/* BOTTOM ROW WIDGETS (Tasks progress, Go premium, Circular progress, Board meeting) */}
-        <div className="mt-8 grid min-w-0 gap-5 md:grid-cols-4">
+        <div className="mt-8 grid min-w-0 gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Today Tasks Progress list */}
           <div className="widget-card rounded-2xl p-5 flex flex-col justify-between md:col-span-1">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4">Today Tasks</h3>
@@ -900,7 +909,7 @@ export function ClassVaultApp() {
       {detailOpen && selectedNote ? (
         <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm flex justify-end">
           <div className="fixed inset-0 cursor-pointer" onClick={() => setDetailOpen(false)} />
-          <div className="relative w-full max-w-md h-full bg-white shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between z-50 animate-slide-in overflow-y-auto">
+          <div className="cv-drawer-panel relative w-full max-w-md h-full bg-white shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between z-50 animate-slide-in overflow-y-auto">
             <div className="space-y-5">
               {/* Header */}
               <div className="flex items-start justify-between">
@@ -1164,7 +1173,7 @@ function DocumentRow({
         className={classNames(
           "flex min-h-48 min-w-0 flex-col justify-between rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg",
           selected
-            ? "border-slate-950 bg-slate-950 text-white shadow-xl"
+            ? "cv-note-selected border-slate-950 bg-slate-950 text-white shadow-xl"
             : "border-slate-200 bg-white text-slate-950 shadow-sm"
         )}
       >
@@ -1220,7 +1229,7 @@ function DocumentRow({
       className={classNames(
         "grid w-full min-w-0 grid-cols-1 items-start gap-3 rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-md sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:grid-cols-[minmax(0,1fr)_90px_90px_auto] lg:grid-cols-[minmax(0,1fr)_110px_110px_90px]",
         selected
-          ? "border-slate-950 bg-slate-950 text-white shadow-lg"
+          ? "cv-note-selected border-slate-950 bg-slate-950 text-white shadow-lg"
           : "border-slate-200 bg-white text-slate-950 shadow-sm hover:border-slate-300"
       )}
     >
@@ -1330,7 +1339,7 @@ function CircularGauge({ percentage, color, size }: { percentage: number; color:
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="#e2e8f0"
+          stroke="var(--cv-muted-surface, #e2e8f0)"
           strokeWidth={strokeWidth}
         />
         {/* Colored progress circle */}
@@ -1371,7 +1380,7 @@ function UploadDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm">
       <form
         onSubmit={onSubmit}
-        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl"
+        className="cv-dialog-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl"
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
           <div>
@@ -1521,7 +1530,7 @@ function Field({
 /* TOAST */
 function ToastMessage({ toast }: { toast: Toast }) {
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl">
+    <div className="cv-toast-panel fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl">
       <div className="flex gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20">
           <Check className="h-4 w-4" />
