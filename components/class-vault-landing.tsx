@@ -55,8 +55,8 @@ const STUDY_MODULES_CATALOG: Record<string, StudyModuleType> = {
     studyTime: 2.0,
     fileSize: 8.5,
     coverage: 12,
-    color: "#FACC15", // Golden Yellow
-    bgColor: "bg-[#FACC15]",
+    color: "#D9A036", // Golden Ochre
+    bgColor: "bg-[#D9A036]",
     textColor: "text-[#121212]",
     description: "Vetted peer handwritten unit notes.",
   },
@@ -192,7 +192,7 @@ export function ClassVaultLanding() {
           <nav className="hidden items-center justify-center gap-8 text-xs font-bold tracking-widest md:flex">
             <a href="#deck-builder" className="hover:text-[#E03C31] hover:underline hover:underline-offset-4">01/BUILD</a>
             <a href="#specs" className="hover:text-[#1D4ED8] hover:underline hover:underline-offset-4">02/SPECS</a>
-            <a href="#principles" className="hover:text-[#FACC15] hover:underline hover:underline-offset-4">03/VALUES</a>
+            <a href="#principles" className="hover:text-[#D9A036] hover:underline hover:underline-offset-4">03/VALUES</a>
             <a href="#examples" className="hover:text-[#78716c] hover:underline hover:underline-offset-4">04/SUBJECTS</a>
           </nav>
 
@@ -221,7 +221,7 @@ export function ClassVaultLanding() {
             <nav className="flex flex-col gap-4 text-sm font-bold tracking-widest">
               <a href="#deck-builder" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#E03C31]">01/BUILD</a>
               <a href="#specs" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1D4ED8]">02/SPECS</a>
-              <a href="#principles" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#FACC15]">03/VALUES</a>
+              <a href="#principles" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#D9A036]">03/VALUES</a>
               <a href="#examples" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#78716c]">04/SUBJECTS</a>
               <a
                 href="/app"
@@ -313,7 +313,7 @@ export function ClassVaultLanding() {
                     </div>
 
                     {/* YELLOW BLOCK (LECTURE NOTES) */}
-                    <div className="absolute top-4 right-4 w-24 h-24 bg-[#FACC15] border-2 border-[#121212] flex flex-col justify-between p-2 transform translate-x-3 -translate-y-2 hover:translate-x-0 hover:translate-y-0 transition-transform duration-300">
+                    <div className="absolute top-4 right-4 w-24 h-24 bg-[#D9A036] border-2 border-[#121212] flex flex-col justify-between p-2 transform translate-x-3 -translate-y-2 hover:translate-x-0 hover:translate-y-0 transition-transform duration-300">
                       <span className="text-[8px] font-black text-[#121212]">NOTES</span>
                       <div className="h-6 w-full bg-[#121212] text-[8px] flex items-center justify-center text-green-400 font-mono">
                         UNIT_1_VETTED
@@ -360,7 +360,7 @@ export function ClassVaultLanding() {
           </div>
 
           <div className="lg:col-span-4 bg-[#121212] text-[#F5F4EF] p-6 md:p-8 flex flex-col justify-between">
-            <span className="text-xs font-bold tracking-widest text-[#FACC15] mb-2">PREP METRICS</span>
+            <span className="text-xs font-bold tracking-widest text-[#D9A036] mb-2">PREP METRICS</span>
             <div>
               <div className="flex items-baseline justify-between border-b border-[#F5F4EF]/20 pb-3">
                 <span className="text-xs font-bold uppercase tracking-widest text-[#F5F4EF]/60">Syllabus Coverage</span>
@@ -633,13 +633,13 @@ export function ClassVaultLanding() {
 
           <div className="p-8 flex flex-col justify-between min-h-[320px]">
             <div>
-              <span className="text-sm font-black text-[#FACC15]">03 / HONESTY</span>
+              <span className="text-sm font-black text-[#D9A036]">03 / HONESTY</span>
               <h3 className="text-3xl font-black mt-8 mb-4">STUDENT VETTED.</h3>
               <p className="text-xs sm:text-sm font-medium leading-relaxed text-[#121212]/80">
                 All uploaded materials are rated, bookmarked, and peer-reviewed by active students. No paywalls, no distracting ads, no bloated PDF files. Just structural utility when the exam clock starts.
               </p>
             </div>
-            <div className="h-8 w-8 bg-[#FACC15] mt-8 border border-[#121212]"></div>
+            <div className="h-8 w-8 bg-[#D9A036] mt-8 border border-[#121212]"></div>
           </div>
 
         </div>
@@ -687,7 +687,7 @@ export function ClassVaultLanding() {
               </div>
 
               <div className="border-2 border-[#121212] p-5">
-                <span className="text-[10px] font-black text-[#FACC15] block mb-2">CONTRIBUTION RULES</span>
+                <span className="text-[10px] font-black text-[#D9A036] block mb-2">CONTRIBUTION RULES</span>
                 <h4 className="text-lg font-black uppercase mb-3">Moderated Uploads</h4>
                 <p className="text-xs leading-relaxed text-[#121212]/70">
                   Hot-swap drafts are parsed directly in-browser before submission to keep files compact, annotated, and clean.
@@ -757,7 +757,7 @@ export function ClassVaultLanding() {
 
           <div className="p-6 flex flex-col justify-between min-h-[300px] hover:bg-[#F0EEE6] transition-colors duration-200">
             <div>
-              <div className="bg-[#FACC15] text-[#121212] px-2 py-0.5 text-[9px] font-bold tracking-widest w-fit mb-4">CS303 / ALGORITHMS</div>
+              <div className="bg-[#D9A036] text-[#121212] px-2 py-0.5 text-[9px] font-bold tracking-widest w-fit mb-4">CS303 / ALGORITHMS</div>
               <h4 className="text-xl font-black uppercase mb-2">Design & Analysis</h4>
               <p className="text-xs text-[#121212]/70 leading-relaxed">
                 Asymptotic notations guides, dynamic programming paradigms, algorithm templates, and handwritten complexity notes.
@@ -777,7 +777,7 @@ export function ClassVaultLanding() {
             
             {/* CTA LEFT */}
             <div className="lg:col-span-8">
-              <span className="text-xs font-bold tracking-widest text-[#FACC15] mb-2 uppercase">JOIN THE COHORT</span>
+              <span className="text-xs font-bold tracking-widest text-[#D9A036] mb-2 uppercase">JOIN THE COHORT</span>
               <h2 className="text-4xl font-black tracking-tight sm:text-6xl uppercase leading-none">
                 REVAMP YOUR REVISION.
               </h2>

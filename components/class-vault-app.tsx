@@ -39,7 +39,7 @@ import {
 
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
-type View = "library" | "saved" | "uploads" | "explore";
+type View = "library" | "saved" | "uploads" | "explore" | "profile";
 type ThemeMode = "light" | "dark";
 const THEME_STORAGE_KEY = "classvault-theme";
 
@@ -420,8 +420,8 @@ export function ClassVaultApp() {
             />
             <SidebarIconButton
               icon={User}
-              active={activeView === "uploads"}
-              onClick={() => setActiveView("uploads")}
+              active={activeView === "profile"}
+              onClick={() => setActiveView("profile")}
               label="Profile"
             />
             <SidebarIconButton
@@ -578,12 +578,24 @@ export function ClassVaultApp() {
           </div>
         </header>
 
-        {/* GREETING BANNER */}
-        <div className="mt-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-              Hi, Arjun. Your notes workspace is ready.
-            </h1>
+        {activeView === "profile" ? (
+          <ProfileView
+            notes={notes}
+            savedCount={savedCount}
+            uploadCount={uploadCount}
+            totalDownloads={totalDownloads}
+            averageRating={averageRating}
+            onOpenNote={openNote}
+            onUploadOpen={() => setUploadOpen(true)}
+          />
+        ) : (
+          <>
+            {/* GREETING BANNER */}
+            <div className="mt-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+                  Hi, Arjun. Your notes workspace is ready.
+                </h1>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
               Browse shared resources, pick up your saved notes, and keep today&apos;s revision
               moving from one focused dashboard.
@@ -1077,6 +1089,8 @@ export function ClassVaultApp() {
             </div>
           </div>
         </div>
+        </>
+      )}
       </section>
 
       {/* SLIDE-OVER DETAIL DRAWER OVERLAY */}
@@ -1305,7 +1319,7 @@ function SidebarIconButton({
       )}
     >
       {active && (
-        <span className="absolute -bottom-1 h-1 w-6 bg-[#FACC15] md:bottom-auto md:-left-2 md:h-6 md:w-1" />
+        <span className="absolute -bottom-1 h-1 w-6 bg-[#D9A036] md:bottom-auto md:-left-2 md:h-6 md:w-1" />
       )}
       <Icon className="h-5 w-5" />
       {/* Tooltip */}
@@ -1860,6 +1874,217 @@ function ToastMessage({ toast }: { toast: Toast }) {
             {toast.detail}
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* PROFILE VIEW COMPONENT */
+function ProfileView({
+  notes,
+  savedCount,
+  uploadCount,
+  totalDownloads,
+  averageRating,
+  onOpenNote,
+  onUploadOpen,
+}: {
+  notes: Note[];
+  savedCount: number;
+  uploadCount: number;
+  totalDownloads: number;
+  averageRating: number;
+  onOpenNote: (id: string) => void;
+  onUploadOpen: () => void;
+}) {
+  const [profileName, setProfileName] = useState(currentUser.name);
+  const [profileMajor, setProfileMajor] = useState("Computer Science & Engineering");
+  const [profileSemester, setProfileSemester] = useState("5");
+  const [profileEmail, setProfileEmail] = useState("arjun.mehta@university.edu");
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Get user's uploads
+  const userUploads = useMemo(() => {
+    return notes.filter((note) => note.ownerId === "current-user" || note.ownerId === currentUser.id);
+  }, [notes]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  return (
+    <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_2fr]">
+      {/* LEFT COLUMN: USER DETAILS */}
+      <div className="flex flex-col gap-6">
+        <div className="widget-card p-6 flex flex-col items-center text-center border-2 border-[#121212] bg-[#F5F4EF]">
+          <div className="relative h-28 w-28 border-4 border-[#121212] bg-[#121212] overflow-hidden mb-4">
+            <img
+              src="/avatar_arjun.png"
+              alt="User avatar"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight">{profileName}</h2>
+          <p className="text-xs font-black uppercase text-[#E03C31] mt-1">{profileMajor}</p>
+          
+          <div className="w-full mt-6 border-t-2 border-[#121212] pt-4 flex flex-col gap-2.5 text-xs text-left">
+            <div className="flex justify-between">
+              <span className="font-bold text-stone-500 uppercase">ROLE</span>
+              <span className="font-black">STUDENT CONTRIBUTOR</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold text-stone-500 uppercase">SEMESTER</span>
+              <span className="font-black">SEM {profileSemester}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold text-stone-500 uppercase">STUDENT ID</span>
+              <span className="font-black">CSE-2024-104</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold text-stone-500 uppercase">INDEX RATING</span>
+              <span className="font-black text-green-600">VERIFIED INDEXER</span>
+            </div>
+          </div>
+        </div>
+
+        {/* PROFILE EDIT FORM */}
+        <div className="widget-card p-6 border-2 border-[#121212] bg-[#F5F4EF]">
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8] block mb-3">01 / PROFILE SETTINGS</span>
+          <form onSubmit={handleSave} className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="p-name" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">NAME</label>
+              <input
+                type="text"
+                id="p-name"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="form-field text-xs font-bold"
+              />
+            </div>
+            <div>
+              <label htmlFor="p-email" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">EMAIL</label>
+              <input
+                type="email"
+                id="p-email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="form-field text-xs font-bold"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="p-sem" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">SEMESTER</label>
+                <select
+                  id="p-sem"
+                  value={profileSemester}
+                  onChange={(e) => setProfileSemester(e.target.value)}
+                  className="form-field text-xs font-bold"
+                >
+                  {["1", "2", "3", "4", "5", "6", "7", "8"].map((sem) => (
+                    <option key={sem} value={sem}>Sem {sem}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="p-major" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">MAJOR</label>
+                <input
+                  type="text"
+                  id="p-major"
+                  value={profileMajor}
+                  onChange={(e) => setProfileMajor(e.target.value)}
+                  className="form-field text-xs font-bold"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="cv-primary-btn w-full h-10 mt-2 text-xs font-bold tracking-widest text-[#F5F4EF] bg-[#E03C31]"
+            >
+              {isSaved ? "SETTINGS SAVED" : "SAVE SETTINGS"}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: STATS & MY UPLOADS */}
+      <div className="flex flex-col gap-6">
+        
+        {/* STATS ROW */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">UPLOADS</span>
+            <p className="text-4xl font-black mt-2">{userUploads.length}</p>
+            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Conceded files</p>
+          </div>
+          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">DOWNLOADS</span>
+            <p className="text-4xl font-black mt-2">{formatCount(totalDownloads)}</p>
+            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Mock traffic</p>
+          </div>
+          <div className="widget-card p-5 border-2 border-[#121212] bg-[#F5F4EF]">
+            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">AVG RATING</span>
+            <p className="text-4xl font-black mt-2">{averageRating.toFixed(1)}</p>
+            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Cohort reviews</p>
+          </div>
+        </div>
+
+        {/* MY UPLOADS LIST */}
+        <div className="widget-card p-6 border-2 border-[#121212] bg-[#F5F4EF] flex-1 flex flex-col">
+          <div className="flex items-center justify-between border-b-2 border-[#121212] pb-4 mb-4">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8]">02 / PERSONAL VAULT CONTRIBUTIONS</span>
+              <h3 className="text-lg font-black uppercase mt-1">My Uploaded Resources</h3>
+            </div>
+            <button
+              onClick={onUploadOpen}
+              className="cv-primary-btn px-4 py-2 text-xs font-bold tracking-widest text-[#F5F4EF]"
+            >
+              UPLOAD NEW
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto max-h-[360px] pr-1 space-y-3">
+            {userUploads.length > 0 ? (
+              userUploads.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex items-center justify-between border-2 border-[#121212] p-3 hover:bg-[#E5E2D9]/20 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-[#E03C31] text-white px-2 py-0.5 text-[8px] font-black tracking-widest uppercase">
+                        {note.fileType}
+                      </span>
+                      <span className="text-[9px] font-bold text-stone-500 uppercase tracking-widest">
+                        {note.courseCode} · Sem {note.semester}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-black truncate mt-1.5 uppercase tracking-wide">{note.title}</h4>
+                    <p className="text-[9px] font-bold text-[#E03C31] mt-0.5 uppercase tracking-widest">
+                      {note.subject} · {note.unit}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => onOpenNote(note.id)}
+                      className="border-2 border-[#121212] px-3 py-1.5 text-[10px] font-bold hover:bg-[#121212] hover:text-white transition-colors uppercase tracking-wider"
+                    >
+                      VIEW
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 text-xs font-bold text-stone-400 uppercase tracking-widest">
+                You have not uploaded any resources yet.
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

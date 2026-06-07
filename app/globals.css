@@ -238,7 +238,7 @@ textarea.form-field {
   --cv-modal-section-label: #78716c;
   --cv-modal-result-hover-bg: #E5E2D9;
   --cv-modal-result-hover-border: #121212;
-  --cv-modal-result-active-bg: #FACC15;
+  --cv-modal-result-active-bg: #D9A036;
   --cv-modal-result-active-border: #121212;
   --cv-modal-result-icon-bg: #F0EEE6;
   --cv-modal-result-icon-border: #121212;
@@ -298,7 +298,7 @@ textarea.form-field {
   --cv-modal-section-label: #78716c;
   --cv-modal-result-hover-bg: rgba(255, 255, 255, 0.05);
   --cv-modal-result-hover-border: #F5F4EF;
-  --cv-modal-result-active-bg: #FACC15;
+  --cv-modal-result-active-bg: #D9A036;
   --cv-modal-result-active-border: #F5F4EF;
   --cv-modal-result-icon-bg: rgba(255, 255, 255, 0.06);
   --cv-modal-result-icon-border: #F5F4EF;
@@ -829,13 +829,13 @@ textarea.form-field {
 
 /* Selected notes library row / card turns Yellow */
 .classvault-shell .cv-note-selected {
-  background-color: #FACC15 !important;
+  background-color: #D9A036 !important;
   color: #121212 !important;
   border-color: var(--cv-border) !important;
 }
 
 .classvault-shell[data-theme="dark"] .cv-note-selected {
-  background-color: #FACC15 !important;
+  background-color: #D9A036 !important;
   color: #121212 !important;
   border-color: var(--cv-border) !important;
 }
@@ -843,7 +843,7 @@ textarea.form-field {
 /* Invert colors inside selected note row tags */
 .classvault-shell .cv-note-selected span {
   background-color: #121212 !important;
-  color: #FACC15 !important;
+  color: #D9A036 !important;
 }
 
 /* Badge colors styled as primary blocks */
@@ -856,7 +856,7 @@ textarea.form-field {
   color: #F5F4EF !important;
 }
 .classvault-shell .bg-amber-50 {
-  background-color: #FACC15 !important; /* Yellow */
+  background-color: #D9A036 !important; /* Yellow */
   color: #121212 !important;
 }
 .classvault-shell .bg-emerald-50 {
