@@ -1,6 +1,10 @@
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { currentUser, initialNotes } from "../lib/classvault-data";
+import { hashPassword } from "../lib/server/password";
+
+// Shared dev password for every seeded account.
+const SEED_PASSWORD = "classvault";
 
 const adapter = new PrismaBetterSqlite3({
   url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
@@ -43,6 +47,7 @@ async function main() {
       data: {
         name: note.uploader,
         email: isCurrent ? currentUser.email : emailFor(note.uploader),
+        passwordHash: hashPassword(SEED_PASSWORD),
         role: "STUDENT",
         ...parseRole(note.uploaderRole),
       },
@@ -99,6 +104,7 @@ async function main() {
     saved: await db.savedNote.count(),
   };
   console.log("Seeded:", counts);
+  console.log(`All seeded accounts use the password "${SEED_PASSWORD}".`);
 }
 
 main()

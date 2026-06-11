@@ -12,19 +12,34 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  name       String
-  email      String   @unique
-  role       String   @default("STUDENT")
-  department String?
-  semester   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  role         String   @default("STUDENT")
+  department   String?
+  semester     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   notes      Note[]
   savedNotes SavedNote[]
   ratings    Rating[]
   downloads  DownloadEvent[]
+  sessions   Session[]
+}
+
+// Server-side session store. The browser cookie holds the raw token; only its
+// SHA-256 hash is persisted, so a leaked database row cannot be replayed.
+model Session {
+  tokenHash String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Note {

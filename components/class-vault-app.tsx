@@ -181,6 +181,17 @@ export function ClassVaultApp() {
     setRefetchTick(refetchCounter.current);
   }, []);
 
+  async function signOut() {
+    try {
+      const response = await fetch("/api/auth/sign-out", { method: "POST" });
+      if (!response.ok) throw new Error(await readError(response));
+      // Full navigation so the cleared cookie applies everywhere.
+      window.location.href = "/sign-in";
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Sign out failed.");
+    }
+  }
+
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(null), 3500);
@@ -422,6 +433,7 @@ export function ClassVaultApp() {
               stats={stats}
               onOpenNote={setOpenNote}
               onUpload={() => setUploadOpen(true)}
+              onSignOut={signOut}
             />
           ) : (
             <>
@@ -923,6 +935,7 @@ function ProfileView({
   stats,
   onOpenNote,
   onUpload,
+  onSignOut,
 }: {
   me: ApiUser | null;
   uploads: ApiNote[];
@@ -930,6 +943,7 @@ function ProfileView({
   stats: MetaResponse["stats"] | undefined;
   onOpenNote: (note: ApiNote) => void;
   onUpload: () => void;
+  onSignOut: () => void;
 }) {
   const statItems: Array<[string, string]> = [
     ["Uploads", stats ? String(stats.uploadCount) : "—"],
@@ -958,13 +972,24 @@ function ProfileView({
             <Upload className="h-4 w-4" />
             Upload
           </button>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
+          {me ? (
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              <User className="h-4 w-4" />
+              Sign in
+            </Link>
+          )}
         </div>
       </section>
 
