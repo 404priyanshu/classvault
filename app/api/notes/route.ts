@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, requireCurrentUser } from "@/lib/server/auth";
 import { handleRouteError, jsonError } from "@/lib/server/http";
 import { createNote, listNotes } from "@/lib/server/notes";
+import { assertRateLimit, requestKey } from "@/lib/server/rate-limit";
 import { db } from "@/lib/server/db";
 import { ALLOWED_MIME_TYPES, createNoteSchema, notesQuerySchema } from "@/lib/server/validation";
 
@@ -21,6 +22,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
+    await assertRateLimit({
+      key: requestKey(request, "note-create", user.id),
+      limit: 30,
+      windowMs: 60 * 60 * 1000,
+    });
     const input = createNoteSchema.parse(await request.json());
 
     const upload = await db.uploadedFile.findUnique({ where: { storageKey: input.storageKey } });

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const FILE_TYPES = ["PDF", "DOCX", "PPTX", "ZIP"] as const;
+export const USER_ROLES = ["STUDENT", "MODERATOR", "ADMIN"] as const;
+export const NOTE_STATUSES = ["PENDING", "PUBLISHED", "REJECTED", "HIDDEN", "DELETED"] as const;
 
 export const ALLOWED_MIME_TYPES: Record<string, (typeof FILE_TYPES)[number]> = {
   "application/pdf": "PDF",
@@ -19,6 +21,7 @@ export const notesQuerySchema = z.object({
   tag: z.string().trim().max(60).optional(),
   owner: z.literal("me").optional(),
   saved: z.literal("true").optional(),
+  status: z.enum(NOTE_STATUSES).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().optional(),
 });
@@ -37,4 +40,31 @@ export const createNoteSchema = z.object({
 
 export const ratingSchema = z.object({
   value: z.number().int().min(1).max(5),
+});
+
+export const profileUpdateSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  department: z.string().trim().max(20).nullable().optional(),
+  semester: z.enum(["1", "2", "3", "4", "5", "6", "7", "8"]).nullable().optional(),
+});
+
+export const reportSchema = z.object({
+  noteId: z.string().trim().min(1),
+  reason: z.string().trim().min(3).max(120),
+  details: z.string().trim().max(1000).optional(),
+});
+
+export const adminNotesQuerySchema = z.object({
+  status: z.enum(NOTE_STATUSES).default("PENDING"),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+export const moderationSchema = z.object({
+  reason: z.string().trim().max(1000).optional(),
+});
+
+export const presignUploadSchema = z.object({
+  fileName: z.string().trim().min(1).max(240),
+  mimeType: z.string().trim().min(1).max(200),
+  sizeBytes: z.number().int().min(1).max(MAX_FILE_SIZE_BYTES),
 });

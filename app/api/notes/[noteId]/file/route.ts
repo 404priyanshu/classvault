@@ -1,7 +1,7 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/server/db";
 import { handleRouteError, jsonError } from "@/lib/server/http";
-import { readStoredFile } from "@/lib/server/storage";
+import { createDownloadUrl, readStoredFile } from "@/lib/server/storage";
 
 const CONTENT_TYPES: Record<string, string> = {
   PDF: "application/pdf",
@@ -21,6 +21,11 @@ export async function GET(
     });
     if (!note || !note.storageKey) {
       return jsonError("NOT_FOUND", "File not found.", 404);
+    }
+
+    const remoteUrl = await createDownloadUrl(note.storageKey);
+    if (remoteUrl) {
+      return NextResponse.redirect(remoteUrl);
     }
 
     const data = await readStoredFile(note.storageKey);

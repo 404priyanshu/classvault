@@ -2,11 +2,16 @@
 // Keep this file free of server-only imports.
 
 export type FileType = "PDF" | "DOCX" | "PPTX" | "ZIP";
+export type UserRole = "STUDENT" | "MODERATOR" | "ADMIN";
+export type NoteStatus = "PENDING" | "PUBLISHED" | "REJECTED" | "HIDDEN" | "DELETED";
 
 export type ApiUser = {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
+  department: string | null;
+  semester: string | null;
   roleLabel: string;
 };
 
@@ -23,6 +28,8 @@ export type ApiNote = {
   fileSizeBytes: number;
   pageCount: number | null;
   hasFile: boolean;
+  status: NoteStatus;
+  rejectionReason: string | null;
   uploader: { id: string; name: string; roleLabel: string };
   tags: string[];
   ratingAverage: number;
@@ -32,6 +39,16 @@ export type ApiNote = {
   ownedByMe: boolean;
   myRating: number | null;
   createdAt: string;
+};
+
+export type AdminReport = {
+  id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  createdAt: string;
+  note: ApiNote;
+  reporter: { id: string; name: string; email: string } | null;
 };
 
 export type NotesResponse = {

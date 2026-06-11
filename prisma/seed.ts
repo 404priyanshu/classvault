@@ -1,14 +1,16 @@
 import { PrismaClient } from "../lib/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { currentUser, initialNotes } from "../lib/classvault-data";
 import { hashPassword } from "../lib/server/password";
 
 // Shared dev password for every seeded account.
 const SEED_PASSWORD = "classvault";
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
-});
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required to seed ClassVault.");
+}
+const adapter = new PrismaPg({ connectionString });
 const db = new PrismaClient({ adapter });
 
 function parseSizeBytes(label: string) {
@@ -28,6 +30,14 @@ function emailFor(name: string) {
   return `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@classvault.edu`;
 }
 
+function isAdminEmail(email: string) {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email.toLowerCase());
+}
+
 async function main() {
   await db.downloadEvent.deleteMany();
   await db.rating.deleteMany();
@@ -43,12 +53,13 @@ async function main() {
   for (const note of initialNotes) {
     if (userByName.has(note.uploader)) continue;
     const isCurrent = note.uploader === currentUser.name;
+    const email = isCurrent ? currentUser.email : emailFor(note.uploader);
     const user = await db.user.create({
       data: {
         name: note.uploader,
-        email: isCurrent ? currentUser.email : emailFor(note.uploader),
+        email,
         passwordHash: hashPassword(SEED_PASSWORD),
-        role: "STUDENT",
+        role: isAdminEmail(email) ? "ADMIN" : "STUDENT",
         ...parseRole(note.uploaderRole),
       },
     });

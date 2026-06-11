@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import type { UserRole } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
 
 export { hashPassword, verifyPassword } from "@/lib/server/password";
@@ -11,6 +12,37 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 // lives exclusively in the browser cookie.
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function envList(name: string) {
+  return (process.env[name] ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isAdminEmail(email: string) {
+  return envList("ADMIN_EMAILS").includes(email.trim().toLowerCase());
+}
+
+export function isAllowedCampusEmail(email: string) {
+  const domains = envList("ALLOWED_EMAIL_DOMAINS");
+  if (!domains.length) return true;
+  const domain = email.trim().toLowerCase().split("@")[1];
+  return Boolean(domain && domains.includes(domain));
+}
+
+export function roleForEmail(email: string, fallback: UserRole = "STUDENT"): UserRole {
+  return isAdminEmail(email) ? "ADMIN" : fallback;
+}
+
+export async function applyUserBootstrap<T extends { id: string; email: string; role: string }>(
+  user: T,
+): Promise<T> {
+  const targetRole = roleForEmail(user.email, user.role as UserRole);
+  if (targetRole === user.role) return user;
+  await db.user.update({ where: { id: user.id }, data: { role: targetRole } });
+  return { ...user, role: targetRole } as T;
 }
 
 export async function createSession(userId: string) {
@@ -52,13 +84,21 @@ export async function getCurrentUser() {
     await db.session.delete({ where: { tokenHash: session.tokenHash } }).catch(() => {});
     return null;
   }
-  return session.user;
+  return applyUserBootstrap(session.user);
 }
 
 export async function requireCurrentUser() {
   const user = await getCurrentUser();
   if (!user) {
     throw new AuthError("Not signed in.");
+  }
+  return user;
+}
+
+export async function requireRole(...roles: UserRole[]) {
+  const user = await requireCurrentUser();
+  if (!roles.includes(user.role as UserRole)) {
+    throw new AuthError("You do not have access to this area.");
   }
   return user;
 }

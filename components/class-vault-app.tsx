@@ -7,12 +7,15 @@ import {
   ChevronDown,
   Download,
   FileText,
+  Flag,
   Grid2X2,
   LayoutDashboard,
   List,
   LogOut,
   Plus,
+  RefreshCw,
   Search,
+  ShieldCheck,
   Star,
   Trash2,
   Upload,
@@ -29,12 +32,20 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import type { ApiError, ApiNote, ApiUser, MetaResponse, NotesResponse } from "@/lib/api-types";
+import type {
+  AdminReport,
+  ApiError,
+  ApiNote,
+  ApiUser,
+  MetaResponse,
+  NotesResponse,
+} from "@/lib/api-types";
 import { formatBytes, formatCount, formatDate, initialsOf } from "@/lib/format";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
-type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile";
+type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile" | "review";
 type LayoutMode = "list" | "grid";
+type ModerationAction = "approve" | "reject" | "hide" | "restore";
 
 type StudyTask = {
   id: string;
@@ -51,6 +62,16 @@ type UploadDraft = {
   tags: string;
   description: string;
   file: File | null;
+};
+
+type UploadTargetResponse = {
+  storageKey: string;
+  uploadUrl: string;
+  method: "PUT" | "POST";
+  provider: "R2" | "LOCAL";
+  expiresIn: number | null;
+  fileType: ApiNote["fileType"];
+  fileSizeBytes: number;
 };
 
 const emptyDraft: UploadDraft = {
@@ -70,6 +91,7 @@ const navItems: Array<{ id: ActiveView; label: string; icon: LucideIcon }> = [
   { id: "saved", label: "Saved", icon: Bookmark },
   { id: "uploads", label: "Uploads", icon: Upload },
   { id: "profile", label: "Profile", icon: User },
+  { id: "review", label: "Review", icon: FileText },
 ];
 
 const viewTitles: Record<ActiveView, string> = {
@@ -78,6 +100,7 @@ const viewTitles: Record<ActiveView, string> = {
   saved: "Saved",
   uploads: "Your uploads",
   profile: "Profile",
+  review: "Review queue",
 };
 
 const initialStudyTasks: StudyTask[] = [
@@ -88,6 +111,10 @@ const initialStudyTasks: StudyTask[] = [
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function statusLabel(status: ApiNote["status"]) {
+  return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
 async function readError(response: Response) {
@@ -103,6 +130,9 @@ export function ClassVaultApp() {
   const [me, setMe] = useState<ApiUser | null>(null);
   const [meta, setMeta] = useState<MetaResponse | null>(null);
   const [notes, setNotes] = useState<ApiNote[]>([]);
+  const [adminNotes, setAdminNotes] = useState<ApiNote[]>([]);
+  const [adminReports, setAdminReports] = useState<AdminReport[]>([]);
+  const [adminLoading, setAdminLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -118,6 +148,9 @@ export function ClassVaultApp() {
   const [toast, setToast] = useState<string | null>(null);
   const refetchCounter = useRef(0);
   const [refetchTick, setRefetchTick] = useState(0);
+  const canModerate = me?.role === "ADMIN" || me?.role === "MODERATOR";
+  const visibleNavItems = navItems.filter((item) => item.id !== "review" || canModerate);
+  const currentView = activeView === "review" && !canModerate ? "dashboard" : activeView;
 
   const refreshMeta = useCallback(async () => {
     try {
@@ -143,15 +176,17 @@ export function ClassVaultApp() {
 
   // Server-side filtering: every filter/view change becomes /api/notes params.
   useEffect(() => {
+    if (currentView === "review") return;
+
     const controller = new AbortController();
     const params = new URLSearchParams();
-    if (activeView !== "dashboard") {
+    if (currentView !== "dashboard") {
       if (query.trim()) params.set("q", query.trim());
       if (semester !== "All") params.set("semester", semester);
       if (subject !== "All") params.set("subject", subject);
     }
-    if (activeView === "saved") params.set("saved", "true");
-    if (activeView === "uploads" || activeView === "profile") params.set("owner", "me");
+    if (currentView === "saved") params.set("saved", "true");
+    if (currentView === "uploads" || currentView === "profile") params.set("owner", "me");
 
     const timer = window.setTimeout(async () => {
       setLoading(true);
@@ -174,12 +209,39 @@ export function ClassVaultApp() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [activeView, query, semester, subject, refetchTick]);
+  }, [currentView, query, semester, subject, refetchTick]);
 
   const refetchNotes = useCallback(() => {
     refetchCounter.current += 1;
     setRefetchTick(refetchCounter.current);
   }, []);
+
+  const refreshAdminQueue = useCallback(async () => {
+    if (!canModerate) return;
+    setAdminLoading(true);
+    try {
+      const [notesResponse, reportsResponse] = await Promise.all([
+        fetch("/api/admin/notes?status=PENDING"),
+        fetch("/api/admin/reports"),
+      ]);
+      if (!notesResponse.ok) throw new Error(await readError(notesResponse));
+      if (!reportsResponse.ok) throw new Error(await readError(reportsResponse));
+      const notesBody = (await notesResponse.json()) as { items: ApiNote[] };
+      const reportsBody = (await reportsResponse.json()) as { items: AdminReport[] };
+      setAdminNotes(notesBody.items);
+      setAdminReports(reportsBody.items);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not load review queue.");
+    } finally {
+      setAdminLoading(false);
+    }
+  }, [canModerate]);
+
+  useEffect(() => {
+    if (currentView !== "review") return;
+    const timer = window.setTimeout(() => void refreshAdminQueue(), 0);
+    return () => window.clearTimeout(timer);
+  }, [currentView, refreshAdminQueue]);
 
   async function signOut() {
     try {
@@ -189,6 +251,21 @@ export function ClassVaultApp() {
       window.location.href = "/sign-in";
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Sign out failed.");
+    }
+  }
+
+  async function saveProfile(input: { name: string; department: string | null; semester: string | null }) {
+    try {
+      const response = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      setMe((await response.json()) as ApiUser);
+      setToast("Profile updated");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not update profile.");
     }
   }
 
@@ -214,7 +291,7 @@ export function ClassVaultApp() {
       });
       if (!response.ok) throw new Error(await readError(response));
       void refreshMeta();
-      if (activeView === "saved") refetchNotes();
+      if (currentView === "saved") refetchNotes();
     } catch (error) {
       patchNote(note.id, { savedByMe: note.savedByMe });
       setToast(error instanceof Error ? error.message : "Could not update saved state.");
@@ -261,17 +338,58 @@ export function ClassVaultApp() {
     }
   }
 
+  async function reportNote(note: ApiNote) {
+    const reason = window.prompt("What should moderators review?")?.trim();
+    if (!reason) return;
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId: note.id, reason }),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      setToast("Report sent to moderators");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not send report.");
+    }
+  }
+
   async function submitUpload(draft: UploadDraft) {
     if (!draft.file) {
       setToast("Choose a file to upload.");
       return false;
     }
     try {
-      const formData = new FormData();
-      formData.set("file", draft.file);
-      const uploadResponse = await fetch("/api/uploads", { method: "POST", body: formData });
-      if (!uploadResponse.ok) throw new Error(await readError(uploadResponse));
-      const { storageKey } = (await uploadResponse.json()) as { storageKey: string };
+      let storageKey: string;
+      const presignResponse = await fetch("/api/uploads/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: draft.file.name,
+          mimeType: draft.file.type,
+          sizeBytes: draft.file.size,
+        }),
+      });
+      if (!presignResponse.ok) throw new Error(await readError(presignResponse));
+      const target = (await presignResponse.json()) as UploadTargetResponse;
+
+      if (target.provider === "R2" && target.method === "PUT") {
+        const directUpload = await fetch(target.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": draft.file.type },
+          body: draft.file,
+        });
+        if (!directUpload.ok) {
+          throw new Error("Could not upload file to storage. Check the R2 bucket CORS settings.");
+        }
+        storageKey = target.storageKey;
+      } else {
+        const formData = new FormData();
+        formData.set("file", draft.file);
+        const uploadResponse = await fetch("/api/uploads", { method: "POST", body: formData });
+        if (!uploadResponse.ok) throw new Error(await readError(uploadResponse));
+        storageKey = ((await uploadResponse.json()) as { storageKey: string }).storageKey;
+      }
 
       const noteResponse = await fetch("/api/notes", {
         method: "POST",
@@ -291,7 +409,7 @@ export function ClassVaultApp() {
       if (!noteResponse.ok) throw new Error(await readError(noteResponse));
 
       setUploadOpen(false);
-      setToast("Resource published");
+      setToast("Resource submitted for review");
       refetchNotes();
       void refreshMeta();
       return true;
@@ -307,6 +425,27 @@ export function ClassVaultApp() {
     if (!title) return;
     setTasks((current) => [...current, { id: `task-${Date.now()}`, title, done: false }]);
     setNewTask("");
+  }
+
+  async function moderateNote(note: ApiNote, action: ModerationAction) {
+    const reason =
+      action === "reject" || action === "hide"
+        ? window.prompt(action === "reject" ? "Reason for rejection" : "Reason for hiding") || ""
+        : "";
+    try {
+      const response = await fetch(`/api/admin/notes/${note.id}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      setToast(action === "approve" || action === "restore" ? "Resource published" : "Resource updated");
+      void refreshAdminQueue();
+      refetchNotes();
+      void refreshMeta();
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Moderation failed.");
+    }
   }
 
   const stats = meta?.stats;
@@ -334,14 +473,14 @@ export function ClassVaultApp() {
         </div>
 
         <nav className="flex-1 space-y-0.5 p-2.5">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setActiveView(item.id)}
               className={cx(
                 "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition",
-                activeView === item.id
+                currentView === item.id
                   ? "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]"
                   : "text-ink-soft hover:bg-paper hover:text-ink",
               )}
@@ -369,15 +508,15 @@ export function ClassVaultApp() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface px-2 py-1.5 lg:hidden">
-        {navItems.map((item) => (
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface px-2 py-1.5 lg:hidden">
+        {visibleNavItems.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setActiveView(item.id)}
             className={cx(
-              "flex flex-col items-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-medium",
-              activeView === item.id ? "text-ink" : "text-ink-faint",
+              "flex min-w-14 flex-1 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-medium",
+              currentView === item.id ? "text-ink" : "text-ink-faint",
             )}
           >
             <item.icon className="h-4 w-4" />
@@ -389,7 +528,7 @@ export function ClassVaultApp() {
       <main className="px-4 pb-24 pt-20 sm:px-6 lg:ml-56 lg:px-10 lg:pb-12 lg:pt-8">
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-xl font-semibold tracking-tight">{viewTitles[activeView]}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{viewTitles[currentView]}</h1>
             <div className="flex items-center gap-2">
               <SearchCommandPalette
                 subjects={meta?.subjects ?? []}
@@ -406,7 +545,7 @@ export function ClassVaultApp() {
             </div>
           </div>
 
-          {activeView === "dashboard" ? (
+          {currentView === "dashboard" ? (
             <DashboardView
               notes={notes}
               loading={loading}
@@ -425,8 +564,9 @@ export function ClassVaultApp() {
               onOpenNote={setOpenNote}
               onGoToLibrary={() => setActiveView("library")}
             />
-          ) : activeView === "profile" ? (
+          ) : currentView === "profile" ? (
             <ProfileView
+              key={me?.id ?? "guest"}
               me={me}
               uploads={notes}
               loading={loading}
@@ -434,6 +574,16 @@ export function ClassVaultApp() {
               onOpenNote={setOpenNote}
               onUpload={() => setUploadOpen(true)}
               onSignOut={signOut}
+              onSaveProfile={saveProfile}
+            />
+          ) : currentView === "review" ? (
+            <ReviewView
+              notes={adminNotes}
+              reports={adminReports}
+              loading={adminLoading}
+              onRefresh={refreshAdminQueue}
+              onOpenNote={setOpenNote}
+              onModerate={moderateNote}
             />
           ) : (
             <>
@@ -463,9 +613,9 @@ export function ClassVaultApp() {
                 layoutMode={layoutMode}
                 onOpenNote={setOpenNote}
                 emptyHint={
-                  activeView === "saved"
+                  currentView === "saved"
                     ? "Resources you bookmark will collect here."
-                    : activeView === "uploads"
+                    : currentView === "uploads"
                       ? "Resources you contribute will appear here."
                       : "Try clearing a filter or searching for another course."
                 }
@@ -482,6 +632,7 @@ export function ClassVaultApp() {
           onToggleSaved={() => toggleSaved(openNote)}
           onRate={(value) => rateNote(openNote, value)}
           onDownload={() => downloadNote(openNote)}
+          onReport={() => reportNote(openNote)}
         />
       ) : null}
 
@@ -872,6 +1023,23 @@ function FileBadge({ type }: { type: ApiNote["fileType"] }) {
   );
 }
 
+function StatusBadge({ status }: { status: ApiNote["status"] }) {
+  if (status === "PUBLISHED") return null;
+  return (
+    <span
+      className={cx(
+        "shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase",
+        status === "PENDING" && "border-line-strong bg-paper text-ink-soft",
+        status === "REJECTED" && "border-red-200 bg-red-50 text-red-700",
+        status === "HIDDEN" && "border-amber-200 bg-amber-50 text-amber-700",
+        status === "DELETED" && "border-line bg-paper text-ink-faint",
+      )}
+    >
+      {statusLabel(status)}
+    </span>
+  );
+}
+
 function NoteRow({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
   return (
     <button
@@ -883,12 +1051,13 @@ function NoteRow({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="truncate text-sm font-medium">{note.title}</span>
+          <StatusBadge status={note.status} />
           {note.savedByMe ? (
             <Bookmark className="h-3 w-3 shrink-0 fill-current text-ink-soft" />
           ) : null}
         </span>
         <span className="mt-0.5 block truncate text-xs text-ink-faint">
-          {note.subject} · Sem {note.semester} · {note.unit}
+          {note.subject} · Sem {note.semester} · {note.rejectionReason ?? note.unit}
         </span>
       </span>
       <span className="hidden shrink-0 font-mono text-xs text-ink-faint sm:block">{note.courseCode}</span>
@@ -910,7 +1079,10 @@ function NoteCard({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
     >
       <div className="flex w-full items-start justify-between gap-3">
         <FileBadge type={note.fileType} />
-        <span className="font-mono text-xs text-ink-faint">{note.courseCode}</span>
+        <span className="flex min-w-0 flex-col items-end gap-1">
+          <span className="font-mono text-xs text-ink-faint">{note.courseCode}</span>
+          <StatusBadge status={note.status} />
+        </span>
       </div>
       <h3 className="mt-4 line-clamp-2 text-sm font-semibold">{note.title}</h3>
       <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-faint">{note.topic}</p>
@@ -936,6 +1108,7 @@ function ProfileView({
   onOpenNote,
   onUpload,
   onSignOut,
+  onSaveProfile,
 }: {
   me: ApiUser | null;
   uploads: ApiNote[];
@@ -944,13 +1117,33 @@ function ProfileView({
   onOpenNote: (note: ApiNote) => void;
   onUpload: () => void;
   onSignOut: () => void;
+  onSaveProfile: (input: { name: string; department: string | null; semester: string | null }) => Promise<void>;
 }) {
+  const [name, setName] = useState(me?.name ?? "");
+  const [department, setDepartment] = useState(me?.department ?? "");
+  const [semester, setSemester] = useState(me?.semester ?? "");
+  const [saving, setSaving] = useState(false);
   const statItems: Array<[string, string]> = [
     ["Uploads", stats ? String(stats.uploadCount) : "—"],
     ["Saved", stats ? String(stats.savedCount) : "—"],
     ["Downloads", stats ? formatCount(stats.totalDownloads) : "—"],
     ["Avg rating", stats ? stats.ratingAverage.toFixed(1) : "—"],
   ];
+
+  async function submitProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!me || saving) return;
+    setSaving(true);
+    await onSaveProfile({
+      name: name.trim(),
+      department: department.trim() || null,
+      semester: semester || null,
+    });
+    setSaving(false);
+  }
+
+  const profileInputClasses =
+    "h-9 rounded-md border border-line bg-surface px-3 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint";
 
   return (
     <div className="space-y-8">
@@ -993,6 +1186,59 @@ function ProfileView({
         </div>
       </section>
 
+      <form onSubmit={submitProfile} className="rounded-lg border border-line bg-surface p-5 sm:p-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-3">
+            Name
+            <input
+              required
+              minLength={2}
+              maxLength={80}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              disabled={!me || saving}
+              className={profileInputClasses}
+            />
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Department
+            <input
+              value={department}
+              onChange={(event) => setDepartment(event.target.value.toUpperCase())}
+              disabled={!me || saving}
+              maxLength={20}
+              placeholder="CSE"
+              className={profileInputClasses}
+            />
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Semester
+            <select
+              value={semester}
+              onChange={(event) => setSemester(event.target.value)}
+              disabled={!me || saving}
+              className={cx(profileInputClasses, "appearance-none")}
+            >
+              <option value="">Not set</option>
+              {["1", "2", "3", "4", "5", "6", "7", "8"].map((item) => (
+                <option key={item} value={item}>
+                  Semester {item}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={!me || saving}
+              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save profile"}
+            </button>
+          </div>
+        </div>
+      </form>
+
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
         {statItems.map(([label, value]) => (
           <div key={label} className="bg-surface p-4 sm:p-5">
@@ -1025,20 +1271,149 @@ function ProfileView({
   );
 }
 
+function ReviewView({
+  notes,
+  reports,
+  loading,
+  onRefresh,
+  onOpenNote,
+  onModerate,
+}: {
+  notes: ApiNote[];
+  reports: AdminReport[];
+  loading: boolean;
+  onRefresh: () => void;
+  onOpenNote: (note: ApiNote) => void;
+  onModerate: (note: ApiNote, action: ModerationAction) => void;
+}) {
+  return (
+    <div className="space-y-8">
+      <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-ink-faint" />
+            <h2 className="text-base font-semibold tracking-tight">Moderation</h2>
+          </div>
+          <p className="mt-1 text-sm text-ink-faint">
+            {notes.length} pending upload{notes.length === 1 ? "" : "s"} and {reports.length} open report
+            {reports.length === 1 ? "" : "s"}.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink disabled:opacity-60"
+        >
+          <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </section>
+
+      <section>
+        <div className="pb-3">
+          <SectionLabel>Pending uploads</SectionLabel>
+        </div>
+        {loading ? (
+          <LoadingRows count={4} />
+        ) : notes.length ? (
+          <div className="space-y-2">
+            {notes.map((note) => (
+              <div key={note.id} className="grid gap-2 rounded-lg border border-line bg-surface p-2 sm:grid-cols-[1fr_auto] sm:items-center">
+                <NoteRow note={note} onOpen={() => onOpenNote(note)} />
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => onModerate(note, "approve")}
+                    className="inline-flex h-9 items-center justify-center rounded-md bg-ink px-3 text-sm font-medium text-surface transition hover:bg-ink/85"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onModerate(note, "reject")}
+                    className="inline-flex h-9 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-line-strong px-5 py-14 text-center">
+            <p className="text-sm font-medium">No pending uploads</p>
+            <p className="mt-1 text-sm text-ink-faint">New student submissions will appear here before publication.</p>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="pb-3">
+          <SectionLabel>Reports</SectionLabel>
+        </div>
+        {loading ? (
+          <LoadingRows count={3} />
+        ) : reports.length ? (
+          <div className="space-y-2">
+            {reports.map((report) => (
+              <div key={report.id} className="rounded-lg border border-line bg-surface p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={() => onOpenNote(report.note)}
+                    className="min-w-0 text-left"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <Flag className="h-4 w-4 shrink-0 text-ink-faint" />
+                      <span className="truncate">{report.note.title}</span>
+                    </span>
+                    <span className="mt-1 block text-xs text-ink-faint">
+                      {report.reason} · {report.reporter?.email ?? "Unknown reporter"} · {formatDate(report.createdAt)}
+                    </span>
+                    {report.details ? (
+                      <span className="mt-2 block text-sm leading-6 text-ink-soft">{report.details}</span>
+                    ) : null}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onModerate(report.note, "hide")}
+                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                  >
+                    Hide note
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-line-strong px-5 py-14 text-center">
+            <p className="text-sm font-medium">No open reports</p>
+            <p className="mt-1 text-sm text-ink-faint">Reports from students will collect here for review.</p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 function DetailDrawer({
   note,
   onClose,
   onToggleSaved,
   onRate,
   onDownload,
+  onReport,
 }: {
   note: ApiNote;
   onClose: () => void;
   onToggleSaved: () => void;
   onRate: (value: number) => void;
   onDownload: () => void;
+  onReport: () => void;
 }) {
   const [hoverRating, setHoverRating] = useState(0);
+  const isPublished = note.status === "PUBLISHED";
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/25">
@@ -1063,8 +1438,16 @@ function DetailDrawer({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-6">
-          <h2 className="text-xl font-semibold tracking-tight">{note.title}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold tracking-tight">{note.title}</h2>
+            <StatusBadge status={note.status} />
+          </div>
           <p className="mt-3 text-sm leading-6 text-ink-soft">{note.description}</p>
+          {note.rejectionReason ? (
+            <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {note.rejectionReason}
+            </p>
+          ) : null}
 
           <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">
             {(
@@ -1092,45 +1475,47 @@ function DetailDrawer({
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg border border-line p-3.5">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">
-                {note.myRating ? "Your rating" : "Rate this resource"}
-              </p>
-              <span className="font-mono text-xs text-ink-faint">
-                {note.ratingCount} rating{note.ratingCount === 1 ? "" : "s"}
-              </span>
+          {isPublished ? (
+            <div className="mt-6 rounded-lg border border-line p-3.5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">
+                  {note.myRating ? "Your rating" : "Rate this resource"}
+                </p>
+                <span className="font-mono text-xs text-ink-faint">
+                  {note.ratingCount} rating{note.ratingCount === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div
+                className="mt-3 flex gap-1"
+                onMouseLeave={() => setHoverRating(0)}
+                role="radiogroup"
+                aria-label="Rate this resource from 1 to 5 stars"
+              >
+                {[1, 2, 3, 4, 5].map((value) => {
+                  const active = value <= (hoverRating || note.myRating || 0);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={note.myRating === value}
+                      aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                      onMouseEnter={() => setHoverRating(value)}
+                      onClick={() => onRate(value)}
+                      className="rounded p-0.5 transition hover:scale-110"
+                    >
+                      <Star
+                        className={cx(
+                          "h-5 w-5 transition",
+                          active ? "fill-current text-ink" : "text-line-strong",
+                        )}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div
-              className="mt-3 flex gap-1"
-              onMouseLeave={() => setHoverRating(0)}
-              role="radiogroup"
-              aria-label="Rate this resource from 1 to 5 stars"
-            >
-              {[1, 2, 3, 4, 5].map((value) => {
-                const active = value <= (hoverRating || note.myRating || 0);
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={note.myRating === value}
-                    aria-label={`${value} star${value === 1 ? "" : "s"}`}
-                    onMouseEnter={() => setHoverRating(value)}
-                    onClick={() => onRate(value)}
-                    className="rounded p-0.5 transition hover:scale-110"
-                  >
-                    <Star
-                      className={cx(
-                        "h-5 w-5 transition",
-                        active ? "fill-current text-ink" : "text-line-strong",
-                      )}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          ) : null}
 
           {note.tags.length ? (
             <div className="mt-6">
@@ -1149,24 +1534,38 @@ function DetailDrawer({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 border-t border-line p-4">
-          <button
-            type="button"
-            onClick={onToggleSaved}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-          >
-            <Bookmark className={cx("h-4 w-4", note.savedByMe && "fill-current")} />
-            {note.savedByMe ? "Saved" : "Save"}
-          </button>
-          <button
-            type="button"
-            onClick={onDownload}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85"
-          >
-            <Download className="h-4 w-4" />
-            Download
-          </button>
-        </div>
+        {isPublished ? (
+          <div className="grid grid-cols-3 gap-2 border-t border-line p-4">
+            <button
+              type="button"
+              onClick={onToggleSaved}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              <Bookmark className={cx("h-4 w-4", note.savedByMe && "fill-current")} />
+              {note.savedByMe ? "Saved" : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={onReport}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              <Flag className="h-4 w-4" />
+              Report
+            </button>
+            <button
+              type="button"
+              onClick={onDownload}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </button>
+          </div>
+        ) : (
+          <div className="border-t border-line p-4 text-sm text-ink-faint">
+            This resource is {statusLabel(note.status).toLowerCase()} and is not available in the public library.
+          </div>
+        )}
       </aside>
     </div>
   );
@@ -1206,7 +1605,7 @@ function UploadDialog({
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
             <h2 className="text-base font-semibold tracking-tight">Upload resource</h2>
-            <p className="mt-0.5 text-sm text-ink-faint">PDF, DOCX, PPTX, or ZIP up to 25 MB.</p>
+            <p className="mt-0.5 text-sm text-ink-faint">PDF, DOCX, PPTX, or ZIP up to 25 MB. Submissions go to review.</p>
           </div>
           <button
             type="button"
@@ -1316,7 +1715,7 @@ function UploadDialog({
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
           >
-            {submitting ? "Uploading…" : "Publish resource"}
+            {submitting ? "Uploading..." : "Submit for review"}
           </button>
         </div>
       </form>

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireCurrentUser } from "@/lib/server/auth";
 import { handleRouteError, jsonError } from "@/lib/server/http";
 import { rateNote } from "@/lib/server/notes";
+import { assertRateLimit, requestKey } from "@/lib/server/rate-limit";
 import { ratingSchema } from "@/lib/server/validation";
 
 export async function POST(
@@ -11,6 +12,11 @@ export async function POST(
   try {
     const { noteId } = await params;
     const user = await requireCurrentUser();
+    await assertRateLimit({
+      key: requestKey(request, "rating", user.id),
+      limit: 120,
+      windowMs: 60 * 60 * 1000,
+    });
     const { value } = ratingSchema.parse(await request.json());
 
     const result = await rateNote(noteId, user.id, value);

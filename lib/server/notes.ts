@@ -1,5 +1,5 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
-import type { ApiNote, FileType } from "@/lib/api-types";
+import type { ApiNote, FileType, NoteStatus } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
 import type { notesQuerySchema, createNoteSchema } from "@/lib/server/validation";
 import type { z } from "zod";
@@ -12,14 +12,15 @@ const noteInclude = (userId: string | null) =>
     ratings: userId ? { where: { userId } } : false,
   }) satisfies Prisma.NoteInclude;
 
-type NoteWithRelations = Prisma.NoteGetPayload<{
+export type NoteWithRelations = Prisma.NoteGetPayload<{
   include: {
     owner: true;
     tags: { include: { tag: true } };
-    savedBy: true;
-    ratings: true;
   };
-}>;
+}> & {
+  savedBy?: Array<{ userId: string; noteId: string }>;
+  ratings?: Array<{ value: number }>;
+};
 
 function ordinal(value: string) {
   const n = Number(value);
@@ -48,6 +49,8 @@ export function serializeNote(note: NoteWithRelations, userId: string | null): A
     fileSizeBytes: note.fileSizeBytes,
     pageCount: note.pageCount,
     hasFile: Boolean(note.storageKey),
+    status: note.status as NoteStatus,
+    rejectionReason: note.rejectionReason,
     uploader: {
       id: note.owner.id,
       name: note.owner.name,
@@ -65,7 +68,10 @@ export function serializeNote(note: NoteWithRelations, userId: string | null): A
 }
 
 export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId: string | null) {
-  const where: Prisma.NoteWhereInput = { status: "PUBLISHED" };
+  const ownerView = query.owner === "me" && userId;
+  const where: Prisma.NoteWhereInput = ownerView
+    ? { ownerId: userId, status: query.status ?? { not: "DELETED" } }
+    : { status: "PUBLISHED" };
 
   if (query.q) {
     where.OR = [
@@ -81,7 +87,6 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
   if (query.subject) where.subject = query.subject;
   if (query.semester) where.semester = query.semester;
   if (query.tag) where.tags = { some: { tag: { name: query.tag } } };
-  if (query.owner === "me" && userId) where.ownerId = userId;
   if (query.saved === "true" && userId) where.savedBy = { some: { userId } };
 
   const notes = await db.note.findMany({
@@ -134,7 +139,10 @@ export async function createNote(
         fileType: input.fileType,
         fileSizeBytes: input.fileSizeBytes,
         storageKey: input.storageKey,
-        status: "PUBLISHED",
+        status: "PENDING",
+        rejectionReason: null,
+        reviewedAt: null,
+        reviewedById: null,
         ownerId,
         tags: { create: tags.map((tag) => ({ tagId: tag.id })) },
       },

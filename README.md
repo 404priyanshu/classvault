@@ -2,14 +2,14 @@
 
 A shared library of notes, previous-year questions, and study resources for your class. Browse, save, rate, and upload — without digging through group chats.
 
-Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with SQLite, Zod validation, and local filesystem storage for uploaded files. The original build plan lives in `docs/backend-build-guide.md`.
+Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, reviewed uploads, staff moderation, reports, and local/R2-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
 
 ## Setup
 
 ```bash
 pnpm install
 cp .env.example .env
-pnpm db:migrate   # create the SQLite database
+pnpm db:migrate   # create the Postgres schema
 pnpm db:seed      # load demo users + notes
 pnpm dev
 ```
@@ -17,30 +17,64 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000).
 
 - `/` — landing page (`components/class-vault-landing.tsx`)
-- `/app` — the app: dashboard, library, saved, uploads, profile (`components/class-vault-app.tsx`)
+- `/app` — the app: dashboard, library, saved, uploads, profile, and moderator review queue (`components/class-vault-app.tsx`)
+
+Google sign-in:
+
+1. Create a Google OAuth web client in Google Cloud.
+2. Add `http://localhost:3000/api/auth/google/callback` as an authorized redirect URI.
+3. Set `APP_ORIGIN`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` in `.env`.
+4. Set `ALLOWED_EMAIL_DOMAINS` for the campus beta, for example `classvault.edu`.
+
+Production defaults:
+
+- Host on Vercel.
+- Use Neon Postgres for `DATABASE_URL`; use local Postgres for development.
+- Use Cloudflare R2 for `R2_*` direct uploads and signed downloads.
+- Set `ADMIN_EMAILS` before first sign-in to bootstrap admins.
+- Authorized Google redirect URI: `${APP_ORIGIN}/api/auth/google/callback`.
 
 ## API
 
 | Endpoint                        | Purpose                                          |
 | ------------------------------- | ------------------------------------------------ |
+| `POST /api/auth/sign-in`        | Password sign-in, returns the app session cookie |
+| `POST /api/auth/sign-out`       | Destroy current app session                      |
+| `GET /api/auth/google/start`    | Start Google OAuth sign-in                       |
+| `GET /api/auth/google/callback` | Complete Google OAuth sign-in                    |
 | `GET /api/health`               | Liveness + note count                            |
-| `GET /api/me`                   | Current user (temporary fixed session)           |
+| `GET /api/health/deep`          | DB and R2 readiness check                        |
+| `GET /api/me`                   | Current signed-in user                           |
+| `PATCH /api/me`                 | Update profile name, department, semester        |
 | `GET /api/meta`                 | Filter options + dashboard stats                 |
 | `GET /api/notes`                | List/search notes (`q`, `subject`, `semester`, `tag`, `saved`, `owner`, `limit`, `cursor`) |
-| `POST /api/notes`               | Create note metadata for an uploaded file        |
+| `POST /api/notes`               | Create pending note metadata for an uploaded file|
 | `GET /api/notes/:id`            | One note                                         |
 | `POST/DELETE /api/notes/:id/save`   | Save / unsave                                |
 | `POST /api/notes/:id/rating`    | Rate 1–5 (upsert, returns fresh aggregates)      |
 | `POST /api/notes/:id/download`  | Record download, returns download URL            |
 | `GET /api/notes/:id/file`       | Stream the stored file                           |
-| `POST /api/uploads`             | Multipart file upload, returns `storageKey`      |
+| `POST /api/uploads/presign`     | Create R2 upload target, or local upload fallback|
+| `POST /api/uploads`             | Local multipart upload fallback                  |
+| `GET /api/admin/notes`          | Staff moderation queue                           |
+| `POST /api/admin/notes/:id/approve` | Publish pending note                         |
+| `POST /api/admin/notes/:id/reject`  | Reject pending note with reason              |
+| `POST /api/admin/notes/:id/hide`    | Hide published note                         |
+| `POST /api/admin/notes/:id/restore` | Restore hidden note                         |
+| `POST /api/reports`             | Report a published note                          |
+| `GET /api/admin/reports`        | Staff report queue                               |
 
 Architecture notes:
 
 - Business logic in `lib/server/notes.ts`; route handlers stay thin.
-- Auth is a temporary `getCurrentUser()` in `lib/server/auth.ts` that resolves the seeded demo student — swap its internals for real session auth without touching endpoints.
-- Files are stored under `var/storage/` (gitignored); `lib/server/storage.ts` is shaped so the functions can be swapped for S3/R2 presigned URLs.
+- Auth uses HTTP-only app session cookies backed by the `Session` table. Password and Google sign-in both create the same `classvault_session` cookie.
+- Google sign-in links by provider account ID, falls back to verified email linking, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
+- Password login remains for seeded/existing fallback users. New release access should use Google.
+- New uploads are `PENDING`; only `PUBLISHED` notes appear in the public library.
+- Files are stored under `var/storage/` locally. With `R2_*` configured, browsers upload directly to Cloudflare R2 and downloads use either `R2_PUBLIC_BASE_URL` or short-lived signed URLs.
+- Staff routes use `requireRole("ADMIN", "MODERATOR")`.
 - Ratings/downloads are event rows plus cached aggregates on `Note`; seeded aggregates fold into live averages.
+- Abuse-sensitive APIs have DB-backed rate limits for sign-in, upload, note creation, download, rating, and reports.
 
 ## Scripts
 
@@ -50,6 +84,22 @@ Architecture notes:
 | `pnpm build`     | Production build             |
 | `pnpm start`     | Serve production build       |
 | `pnpm lint`      | Run ESLint                   |
+| `pnpm test`      | Run Vitest unit/integration tests |
+| `pnpm test:e2e`  | Run Playwright browser smoke tests |
 | `pnpm db:migrate`| Apply Prisma migrations      |
 | `pnpm db:seed`   | Reset + seed demo data       |
 | `pnpm db:studio` | Inspect the database         |
+
+## Release Gates
+
+Run these before a campus beta deploy:
+
+```bash
+pnpm prisma validate
+pnpm lint
+pnpm test
+pnpm test:e2e
+pnpm build
+```
+
+Then deploy a Vercel preview, open `/sign-in`, confirm Google starts with the expected redirect URI, upload a resource, approve/reject it from the Review queue, and confirm `/api/health/deep` reports database healthy and R2 reachable when R2 is configured.
