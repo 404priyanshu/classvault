@@ -1,14 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import {
-  BookOpenCheck,
-  FileText,
-  FolderSearch,
-  GraduationCap,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import {
   useEffect,
   useMemo,
@@ -16,135 +9,61 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-
-type SearchResult = {
-  id: string;
-  title: string;
-  subject: string;
-  semester: string;
-  type: string;
-  icon: typeof FileText;
-};
-
-const quickFilters = [
-  "Notes",
-  "PYQs",
-  "Assignments",
-  "Semester 1",
-  "DBMS",
-  "Blockchain",
-  "Computer Networks",
-];
-
-const mockResults: SearchResult[] = [
-  {
-    id: "dbms-normalization",
-    title: "DBMS Unit 2 Normalization Notes",
-    subject: "DBMS",
-    semester: "Semester 5",
-    type: "Notes",
-    icon: BookOpenCheck,
-  },
-  {
-    id: "blockchain-contracts",
-    title: "Blockchain CSET605 Smart Contracts",
-    subject: "Blockchain",
-    semester: "Semester 6",
-    type: "Notes",
-    icon: Sparkles,
-  },
-  {
-    id: "cn-pyq",
-    title: "Computer Networks Previous Year Questions",
-    subject: "Computer Networks",
-    semester: "Semester 4",
-    type: "PYQs",
-    icon: FolderSearch,
-  },
-  {
-    id: "os-deadlock",
-    title: "OS Deadlock Notes",
-    subject: "Operating Systems",
-    semester: "Semester 4",
-    type: "Notes",
-    icon: FileText,
-  },
-  {
-    id: "sda-assignment",
-    title: "Software Design Architecture Assignment",
-    subject: "Software Design",
-    semester: "Semester 5",
-    type: "Assignments",
-    icon: GraduationCap,
-  },
-];
+import type { Note } from "@/lib/classvault-data";
 
 type SearchCommandPaletteProps = {
-  query: string;
-  onQueryChange: (value: string) => void;
+  notes: Note[];
+  onSelectNote: (id: string) => void;
 };
 
-export function SearchCommandPalette({
-  query,
-  onQueryChange,
-}: SearchCommandPaletteProps) {
+export function SearchCommandPalette({ notes, onSelectNote }: SearchCommandPaletteProps) {
   const [open, setOpen] = useState(false);
-  const [modalQuery, setModalQuery] = useState(query);
+  const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filteredResults = useMemo(() => {
-    const normalizedQuery = modalQuery.trim().toLowerCase();
-    const normalizedFilter = activeFilter?.toLowerCase();
+  const quickFilters = useMemo(
+    () => Array.from(new Set(notes.map((note) => note.subject))).sort(),
+    [notes],
+  );
 
-    return mockResults.filter((result) => {
-      const resultText = [
-        result.title,
-        result.subject,
-        result.semester,
-        result.type,
-      ]
-        .join(" ")
-        .toLowerCase();
-      const queryMatch = !normalizedQuery || resultText.includes(normalizedQuery);
-      const filterMatch =
-        !normalizedFilter ||
-        resultText.includes(normalizedFilter) ||
-        (normalizedFilter === "semester 1" && result.semester === "Semester 1");
+  const results = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
 
-      return queryMatch && filterMatch;
-    });
-  }, [activeFilter, modalQuery]);
+    return notes
+      .filter((note) => {
+        const haystack = [note.title, note.subject, note.courseCode, note.unit, note.topic, ...note.tags]
+          .join(" ")
+          .toLowerCase();
+        const queryMatch = !normalized || haystack.includes(normalized);
+        const filterMatch = !activeFilter || note.subject === activeFilter;
+        return queryMatch && filterMatch;
+      })
+      .slice(0, 8);
+  }, [notes, query, activeFilter]);
 
   function openPalette() {
-    setModalQuery(query);
+    setQuery("");
     setActiveIndex(0);
     setOpen(true);
   }
 
-  function closePalette() {
+  function selectResult(note: Note) {
     setOpen(false);
-  }
-
-  function selectResult(result: SearchResult) {
-    // TODO: connect this to real search/result routing when backend search lands.
-    onQueryChange(result.title);
-    setModalQuery(result.title);
-    closePalette();
+    onSelectNote(note.id);
   }
 
   useEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
-      const isShortcut = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
-
-      if (isShortcut) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setOpen((current) => !current);
+        setQuery("");
+        setActiveIndex(0);
       }
-
       if (event.key === "Escape") {
-        closePalette();
+        setOpen(false);
       }
     }
 
@@ -153,13 +72,11 @@ export function SearchCommandPalette({
   }, []);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 60);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -170,19 +87,15 @@ export function SearchCommandPalette({
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((current) =>
-        Math.min(current + 1, Math.max(filteredResults.length - 1, 0)),
-      );
+      setActiveIndex((current) => Math.min(current + 1, Math.max(results.length - 1, 0)));
     }
-
     if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((current) => Math.max(current - 1, 0));
     }
-
-    if (event.key === "Enter" && filteredResults[activeIndex]) {
+    if (event.key === "Enter" && results[activeIndex]) {
       event.preventDefault();
-      selectResult(filteredResults[activeIndex]);
+      selectResult(results[activeIndex]);
     }
   }
 
@@ -191,134 +104,111 @@ export function SearchCommandPalette({
       <button
         type="button"
         onClick={openPalette}
-        className="classvault-search-trigger group flex h-10 w-full min-w-0 items-center gap-3 rounded-2xl px-3.5 text-left text-sm font-medium outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/20 sm:w-72"
-        aria-label="Open ClassVault search"
+        className="flex h-9 w-full min-w-0 items-center gap-2.5 rounded-md border border-line bg-surface px-3 text-left text-sm text-ink-faint transition hover:border-line-strong hover:text-ink-soft sm:w-72"
+        aria-label="Search resources"
       >
-        <Search className="classvault-search-trigger-icon h-4 w-4 shrink-0 transition" />
-        <span
-          className="min-w-0 flex-1 truncate"
-          style={{ color: query ? "var(--cv-search-text)" : "var(--cv-search-placeholder)" }}
-        >
-          {query || "Search notes, PYQs, assignments..."}
-        </span>
-        <span className="classvault-search-kbd" aria-hidden="true">
-          <span>⌘</span>
-          <span className="opacity-70">+</span>
-          <span>K</span>
-        </span>
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">Search resources…</span>
+        <kbd className="hidden items-center gap-0.5 rounded border border-line bg-paper px-1.5 py-0.5 font-mono text-[11px] text-ink-faint sm:inline-flex">
+          ⌘K
+        </kbd>
       </button>
 
       <AnimatePresence>
         {open ? (
           <motion.div
-            className="classvault-search-modal-overlay fixed inset-0 z-[90] flex items-start justify-center px-4 py-20 sm:py-28"
+            className="fixed inset-0 z-[90] flex items-start justify-center bg-black/25 px-4 py-20 backdrop-blur-[2px] sm:py-28"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             onMouseDown={(event) => {
-              if (event.target === event.currentTarget) {
-                closePalette();
-              }
+              if (event.target === event.currentTarget) setOpen(false);
             }}
           >
             <motion.div
               role="dialog"
               aria-modal="true"
-              aria-labelledby="classvault-search-title"
-              className="classvault-search-modal w-full max-w-2xl overflow-hidden rounded-2xl"
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              aria-label="Search resources"
+              className="w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-[0_24px_60px_rgba(0,0,0,0.14),0_4px_18px_rgba(0,0,0,0.06)]"
+              initial={{ opacity: 0, scale: 0.97, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 8 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              exit={{ opacity: 0, scale: 0.98, y: 6 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="classvault-search-modal-header">
-                <Search className="classvault-search-modal-icon" />
-                <label id="classvault-search-title" className="sr-only">
-                  Search ClassVault resources
-                </label>
+              <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+                <Search className="h-4 w-4 shrink-0 text-ink-faint" />
                 <input
                   ref={inputRef}
-                  value={modalQuery}
+                  value={query}
                   onChange={(event) => {
-                    setModalQuery(event.target.value);
-                    onQueryChange(event.target.value);
+                    setQuery(event.target.value);
                     setActiveIndex(0);
                   }}
                   onKeyDown={handleInputKeyDown}
-                  placeholder="Search notes, PYQs, assignments, subjects..."
-                  className="classvault-search-modal-input"
+                  placeholder="Search notes, PYQs, subjects…"
+                  className="h-8 min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
                 />
-                <kbd className="classvault-search-modal-kbd">Esc</kbd>
+                <kbd className="rounded border border-line bg-paper px-1.5 py-0.5 font-mono text-[11px] text-ink-faint">
+                  esc
+                </kbd>
               </div>
 
-              <div className="classvault-search-modal-filters">
-                <div className="classvault-search-modal-filters-row">
-                  {quickFilters.map((filter) => {
-                    const selected = activeFilter === filter;
+              <div className="flex gap-1.5 overflow-x-auto border-b border-line px-4 py-2.5">
+                {quickFilters.map((filter) => {
+                  const selected = activeFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => {
+                        setActiveFilter(selected ? null : filter);
+                        setActiveIndex(0);
+                      }}
+                      className={
+                        selected
+                          ? "shrink-0 rounded-md border border-ink bg-ink px-2.5 py-1 text-xs font-medium text-surface"
+                          : "shrink-0 rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                      }
+                    >
+                      {filter}
+                    </button>
+                  );
+                })}
+              </div>
 
-                    return (
+              <div className="max-h-[50vh] overflow-y-auto p-2">
+                {results.length ? (
+                  <div className="space-y-0.5">
+                    {results.map((note, index) => (
                       <button
-                        key={filter}
+                        key={note.id}
                         type="button"
-                        onClick={() => {
-                          setActiveFilter(selected ? null : filter);
-                          setActiveIndex(0);
-                        }}
-                        className={[
-                          "classvault-search-filter",
-                          selected ? "is-active" : "",
-                        ].join(" ")}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => selectResult(note)}
+                        className={`flex w-full items-center gap-3 rounded-md border px-2.5 py-2.5 text-left transition ${
+                          index === activeIndex
+                            ? "border-line bg-paper"
+                            : "border-transparent"
+                        }`}
                       >
-                        {filter}
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line bg-surface text-ink-soft">
+                          <FileText className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-ink">{note.title}</span>
+                          <span className="block truncate text-xs text-ink-faint">
+                            {note.subject} · Sem {note.semester} · {note.courseCode}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono text-[11px] text-ink-faint">{note.fileType}</span>
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="classvault-search-modal-results">
-                <p className="classvault-search-modal-section-label">
-                  Suggested resources
-                </p>
-                {filteredResults.length ? (
-                  <div className="space-y-1">
-                    {filteredResults.map((result, index) => {
-                      const Icon = result.icon;
-                      const active = index === activeIndex;
-
-                      return (
-                        <button
-                          key={result.id}
-                          type="button"
-                          onMouseEnter={() => setActiveIndex(index)}
-                          onClick={() => selectResult(result)}
-                          className={[
-                            "classvault-search-result",
-                            active ? "is-active" : "",
-                          ].join(" ")}
-                        >
-                          <span className="classvault-search-result-icon">
-                            <Icon className="h-4.5 w-4.5" />
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="classvault-search-result-title">
-                              {result.title}
-                            </span>
-                            <span className="classvault-search-result-meta">
-                              {result.subject} · {result.semester} · {result.type}
-                            </span>
-                          </span>
-                        </button>
-                      );
-                    })}
+                    ))}
                   </div>
                 ) : (
-                  <div className="classvault-search-modal-empty">
-                    <p className="classvault-search-modal-empty-title">No mock results found</p>
-                    <p className="classvault-search-modal-empty-text">
-                      TODO: connect this empty state to real Supabase search suggestions.
-                    </p>
+                  <div className="rounded-md border border-line bg-paper px-4 py-10 text-center">
+                    <p className="text-sm font-medium text-ink">No matching resources</p>
+                    <p className="mt-1 text-xs text-ink-faint">Try a different subject, course code, or tag.</p>
                   </div>
                 )}
               </div>

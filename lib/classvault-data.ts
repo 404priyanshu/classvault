@@ -10,7 +10,6 @@ export type Note = {
   topic: string;
   uploader: string;
   uploaderRole: string;
-  uploaderAvatar?: string;
   fileType: FileType;
   fileSize: string;
   uploadDate: string;
@@ -21,7 +20,6 @@ export type Note = {
   summary: string;
   ownerId: "current-user" | "community";
   saved: boolean;
-  coverImage?: string;
   pages?: number;
 };
 
@@ -42,7 +40,6 @@ export const currentUser = {
   name: "Arjun Mehta",
   role: "Student",
   email: "arjun.mehta@classvault.edu",
-  avatar: "/avatar_arjun.png",
 };
 
 export const emptyUploadDraft: UploadDraft = {
@@ -57,6 +54,15 @@ export const emptyUploadDraft: UploadDraft = {
   fileName: "",
 };
 
+export function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
 export const initialNotes: Note[] = [
   {
     id: "note-dbms-unit2",
@@ -68,7 +74,6 @@ export const initialNotes: Note[] = [
     topic: "Relational Model & SQL",
     uploader: "Neha Sharma",
     uploaderRole: "CSE, 5th Semester",
-    uploaderAvatar: "/avatar_neha.png",
     fileType: "PDF",
     fileSize: "1.8 MB",
     pages: 24,
@@ -80,7 +85,6 @@ export const initialNotes: Note[] = [
     summary: "Comprehensive handwritten notes covering relational model, relational algebra, SQL queries, constraints and normalization techniques with solved examples.",
     ownerId: "community",
     saved: true,
-    coverImage: "/card_dbms.png",
   },
   {
     id: "note-cn-complete",
@@ -92,7 +96,6 @@ export const initialNotes: Note[] = [
     topic: "TCP/IP, Routing, Protocol layers",
     uploader: "Arjun Mehta",
     uploaderRole: "CSE, 7th Semester",
-    uploaderAvatar: "/avatar_arjun.png",
     fileType: "PDF",
     fileSize: "4.2 MB",
     pages: 58,
@@ -104,7 +107,6 @@ export const initialNotes: Note[] = [
     summary: "Full semester notes covering the TCP/IP stack, physical layer encoding, sliding window protocols, routing algorithms (OSPF, BGP) and application layer protocol details.",
     ownerId: "current-user",
     saved: false,
-    coverImage: "/card_networks.png",
   },
   {
     id: "note-ds-all",
@@ -116,7 +118,6 @@ export const initialNotes: Note[] = [
     topic: "Trees, Graphs, Stacks & Queues",
     uploader: "Riya Patel",
     uploaderRole: "CSE, 3rd Semester",
-    uploaderAvatar: "/avatar_riya.png",
     fileType: "PDF",
     fileSize: "3.5 MB",
     pages: 45,
@@ -128,7 +129,6 @@ export const initialNotes: Note[] = [
     summary: "Clear handwritten diagrams and derivations for AVL trees, red-black trees, BFS/DFS traversal, Dijkstra's algorithm, and standard complexity cheat sheets.",
     ownerId: "community",
     saved: true,
-    coverImage: "/card_dsa.png",
   },
   {
     id: "note-dld-short",
@@ -140,7 +140,6 @@ export const initialNotes: Note[] = [
     topic: "Gates, K-Maps, Sequentials",
     uploader: "Devansh Jain",
     uploaderRole: "ECE, 3rd Semester",
-    uploaderAvatar: "/avatar_devansh.png",
     fileType: "PDF",
     fileSize: "2.1 MB",
     pages: 18,
@@ -152,7 +151,6 @@ export const initialNotes: Note[] = [
     summary: "Compact last-minute revision notes with detailed truth tables, K-map minimization techniques, state reduction methods, and synchronous counter design steps.",
     ownerId: "community",
     saved: false,
-    coverImage: "/card_digital.png",
   },
   {
     id: "note-os-notes",
@@ -164,7 +162,6 @@ export const initialNotes: Note[] = [
     topic: "CPU Scheduling & Semaphores",
     uploader: "Neha Sharma",
     uploaderRole: "CSE, 5th Semester",
-    uploaderAvatar: "/avatar_neha.png",
     fileType: "PDF",
     fileSize: "1.6 MB",
     pages: 12,
@@ -187,7 +184,6 @@ export const initialNotes: Note[] = [
     topic: "Functional Dependencies & NF",
     uploader: "Arjun Mehta",
     uploaderRole: "CSE, 5th Semester",
-    uploaderAvatar: "/avatar_arjun.png",
     fileType: "PDF",
     fileSize: "2.4 MB",
     pages: 20,
@@ -210,7 +206,6 @@ export const initialNotes: Note[] = [
     topic: "AVL, B-Trees & Traversal",
     uploader: "Riya Patel",
     uploaderRole: "CSE, 3rd Semester",
-    uploaderAvatar: "/avatar_riya.png",
     fileType: "PDF",
     fileSize: "3.1 MB",
     pages: 15,
@@ -233,7 +228,6 @@ export const initialNotes: Note[] = [
     topic: "Past exams and solutions",
     uploader: "Karan Verma",
     uploaderRole: "CSE, 7th Semester",
-    uploaderAvatar: "/avatar_karan.png",
     fileType: "PDF",
     fileSize: "2.0 MB",
     pages: 35,
@@ -256,7 +250,6 @@ export const initialNotes: Note[] = [
     topic: "Transforms & Integrals",
     uploader: "Ishita Roy",
     uploaderRole: "CSE, 3rd Semester",
-    uploaderAvatar: "/avatar_ishita.png",
     fileType: "PDF",
     fileSize: "1.1 MB",
     pages: 10,
@@ -279,7 +272,6 @@ export const initialNotes: Note[] = [
     topic: "Minimization & combinational logic",
     uploader: "Devansh Jain",
     uploaderRole: "ECE, 3rd Semester",
-    uploaderAvatar: "/avatar_devansh.png",
     fileType: "PDF",
     fileSize: "980 KB",
     pages: 8,
@@ -302,7 +294,6 @@ export const initialNotes: Note[] = [
     topic: "Paging, Virtual Memory & Swapping",
     uploader: "Neha Sharma",
     uploaderRole: "CSE, 5th Semester",
-    uploaderAvatar: "/avatar_neha.png",
     fileType: "PDF",
     fileSize: "1.3 MB",
     pages: 14,
@@ -325,7 +316,6 @@ export const initialNotes: Note[] = [
     topic: "OSI Model & TCP/IP stack",
     uploader: "Aman Kumar",
     uploaderRole: "CSE, 7th Semester",
-    uploaderAvatar: "/avatar_aman.png",
     fileType: "PDF",
     fileSize: "867 KB",
     pages: 6,

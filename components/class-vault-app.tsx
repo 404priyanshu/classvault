@@ -1,1358 +1,635 @@
 "use client";
 
 import {
-  ArrowRight,
   ArrowUpRight,
-  Bell,
   Bookmark,
-  BookOpenCheck,
-  Check,
+  BookOpen,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Download,
   FileText,
+  Grid2X2,
   LayoutDashboard,
-  LayoutGrid,
-  Star,
-  Upload,
-  X,
-  Settings,
-  Calendar as CalendarIcon,
-  Inbox,
-  User,
-  Activity,
+  List,
+  LogOut,
   Plus,
+  Search,
+  Star,
   Trash2,
+  Upload,
+  User,
+  X,
+  type LucideIcon,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-
+import Link from "next/link";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   currentUser,
   emptyUploadDraft,
   initialNotes,
+  initialsOf,
   type FileType,
   type Note,
   type UploadDraft,
 } from "@/lib/classvault-data";
-
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
-type View = "library" | "saved" | "uploads" | "explore" | "profile";
-type ThemeMode = "light" | "dark";
-const THEME_STORAGE_KEY = "classvault-theme";
+type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile";
+type LayoutMode = "list" | "grid";
 
-type Toast = {
-  title: string;
-  detail: string;
-};
-
-// Top navigation tabs
-const topNavTabs = ["Dashboard", "Workflows", "Integrations"];
-
-// Tasks state for the assignments checklist widget
 type StudyTask = {
   id: string;
   title: string;
-  tag: string;
-  priority: "High" | "Medium" | "Low";
+  done: boolean;
+};
+
+const navItems: Array<{ id: ActiveView; label: string; icon: LucideIcon }> = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "library", label: "Library", icon: BookOpen },
+  { id: "saved", label: "Saved", icon: Bookmark },
+  { id: "uploads", label: "Uploads", icon: Upload },
+  { id: "profile", label: "Profile", icon: User },
+];
+
+const viewTitles: Record<ActiveView, string> = {
+  dashboard: "Dashboard",
+  library: "Library",
+  saved: "Saved",
+  uploads: "Your uploads",
+  profile: "Profile",
 };
 
 const initialStudyTasks: StudyTask[] = [
-  {
-    id: "task-1",
-    title: "Solve DBMS normal form numericals",
-    tag: "Normalization",
-    priority: "High",
-  },
-  {
-    id: "task-2",
-    title: "Revise CPU scheduling Gantt charts",
-    tag: "OS scheduling",
-    priority: "Medium",
-  },
-  { id: "task-3", title: "Read sliding window protocol details", tag: "Networks", priority: "Low" },
+  { id: "task-1", title: "Solve DBMS normal form numericals", done: false },
+  { id: "task-2", title: "Revise CPU scheduling Gantt charts", done: false },
+  { id: "task-3", title: "Read sliding window protocol details", done: true },
 ];
 
-function formatCount(value: number) {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}K`;
-  }
-  return String(value);
-}
-
-function classNames(...classes: Array<string | false | null | undefined>) {
+function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function formatCount(value: number) {
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+  return String(value);
+}
+
 export function ClassVaultApp() {
-  const [theme, setTheme] = useState<ThemeMode>("light");
-
-  // Read theme from localStorage on mount
-  useEffect(() => {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "dark") {
-      const timer = window.setTimeout(() => setTheme("dark"), 0);
-      return () => window.clearTimeout(timer);
-    }
-  }, []);
-
-  // Toggle theme handler
-  const updateTheme = useCallback((nextTheme: ThemeMode) => {
-    setTheme(nextTheme);
-    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  }, []);
-
   const [notes, setNotes] = useState<Note[]>(initialNotes);
-  const [activeView, setActiveView] = useState<View>("library");
+  const [activeView, setActiveView] = useState<ActiveView>("dashboard");
   const [query, setQuery] = useState("");
   const [semester, setSemester] = useState("All");
   const [subject, setSubject] = useState("All");
-  const [noteTag, setNoteTag] = useState("All");
-  const [layoutMode, setLayoutMode] = useState<"list" | "grid">("list");
-
-  const [savedIds, setSavedIds] = useState<Set<string>>(
-    () => new Set(initialNotes.filter((note) => note.saved).map((note) => note.id)),
-  );
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [selectedNoteId, setSelectedNoteId] = useState(initialNotes[0]?.id ?? "");
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("list");
+  const [openNoteId, setOpenNoteId] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [, setIsSignedIn] = useState(true);
   const [uploadDraft, setUploadDraft] = useState<UploadDraft>(emptyUploadDraft);
-  const [toast, setToast] = useState<Toast | null>(null);
+  const [tasks, setTasks] = useState<StudyTask[]>(initialStudyTasks);
+  const [newTask, setNewTask] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
 
-  // V4 assignments widget state
-  const [studyTasks, setStudyTasks] = useState<StudyTask[]>(initialStudyTasks);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskTag, setNewTaskTag] = useState("");
+  const savedCount = notes.filter((note) => note.saved).length;
+  const myUploads = notes.filter((note) => note.ownerId === "current-user");
+  const totalDownloads = notes.reduce((sum, note) => sum + note.downloads, 0);
+  const averageRating = notes.length
+    ? notes.reduce((sum, note) => sum + note.rating, 0) / notes.length
+    : 0;
 
+  const semesters = useMemo(
+    () => ["All", ...Array.from(new Set(notes.map((note) => note.semester))).sort((a, b) => Number(a) - Number(b))],
+    [notes],
+  );
   const subjects = useMemo(
     () => ["All", ...Array.from(new Set(notes.map((note) => note.subject))).sort()],
     [notes],
   );
 
-  const semesters = useMemo(
-    () => [
-      "All",
-      ...Array.from(new Set(notes.map((note) => note.semester))).sort(
-        (a, b) => Number(a) - Number(b),
-      ),
-    ],
-    [notes],
-  );
-
-  const tags = useMemo(
-    () => ["All", ...Array.from(new Set(notes.flatMap((note) => note.tags))).sort()],
-    [notes],
-  );
-
   const filteredNotes = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalized = query.trim().toLowerCase();
 
     return notes.filter((note) => {
       const viewMatch =
-        activeView === "library" ||
-        activeView === "explore" ||
-        (activeView === "saved" && savedIds.has(note.id)) ||
-        (activeView === "uploads" && note.ownerId === currentUser.id);
+        activeView === "saved"
+          ? note.saved
+          : activeView === "uploads"
+            ? note.ownerId === "current-user"
+            : true;
 
-      const semesterMatch = semester === "All" || note.semester === semester;
-      const subjectMatch = subject === "All" || note.subject === subject;
-      const tagMatch = noteTag === "All" || note.tags.includes(noteTag);
+      const queryMatch = normalized
+        ? [note.title, note.subject, note.courseCode, note.unit, note.topic, ...note.tags]
+            .join(" ")
+            .toLowerCase()
+            .includes(normalized)
+        : true;
 
-      const searchableText = [
-        note.title,
-        note.subject,
-        note.semester,
-        note.courseCode,
-        note.unit,
-        note.topic,
-        note.uploader,
-        note.tags.join(" "),
-      ]
-        .join(" ")
-        .toLowerCase();
-      const queryMatch = !normalizedQuery || searchableText.includes(normalizedQuery);
-
-      return viewMatch && semesterMatch && subjectMatch && tagMatch && queryMatch;
+      return (
+        viewMatch &&
+        queryMatch &&
+        (semester === "All" || note.semester === semester) &&
+        (subject === "All" || note.subject === subject)
+      );
     });
-  }, [activeView, notes, query, savedIds, semester, subject, noteTag]);
+  }, [activeView, notes, query, semester, subject]);
 
-  const selectedNote = useMemo(() => {
-    const selectedInFiltered = filteredNotes.find((note) => note.id === selectedNoteId);
-    return (
-      selectedInFiltered ??
-      filteredNotes[0] ??
-      notes.find((note) => note.id === selectedNoteId) ??
-      notes[0]
-    );
-  }, [filteredNotes, notes, selectedNoteId]);
-
-  const savedCount = savedIds.size;
-  const uploadCount = notes.filter((note) => note.ownerId === currentUser.id).length;
-  const totalDownloads = notes.reduce((sum, note) => sum + note.downloads, 0);
-  const averageRating =
-    notes.reduce((sum, note) => sum + note.rating, 0) / Math.max(notes.length, 1);
+  const openNote = openNoteId ? notes.find((note) => note.id === openNoteId) ?? null : null;
 
   useEffect(() => {
-    if (!toast) {
-      return;
-    }
-
+    if (!toast) return;
     const timer = window.setTimeout(() => setToast(null), 3200);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  function toggleSaved(noteId: string) {
+    setNotes((current) =>
+      current.map((note) => (note.id === noteId ? { ...note, saved: !note.saved } : note)),
+    );
+  }
 
   function resetFilters() {
     setQuery("");
     setSemester("All");
     setSubject("All");
-    setNoteTag("All");
-  }
-
-  function toggleSaved(noteId: string) {
-    setSavedIds((current) => {
-      const next = new Set(current);
-      const isSaved = next.has(noteId);
-
-      if (isSaved) {
-        next.delete(noteId);
-      } else {
-        next.add(noteId);
-      }
-
-      setToast({
-        title: isSaved ? "Removed from saved" : "Saved to vault",
-        detail: isSaved
-          ? "The note is no longer in your saved list."
-          : "You can find this note under Bookmarks.",
-      });
-
-      return next;
-    });
-  }
-
-  function rateNote(noteId: string, value: number) {
-    setRatings((current) => ({ ...current, [noteId]: value }));
-    setToast({
-      title: "Rating captured",
-      detail: `You rated this resource ${value} out of 5.`,
-    });
-  }
-
-  function downloadNote(noteId: string) {
-    const note = notes.find((item) => item.id === noteId);
-
-    setNotes((current) =>
-      current.map((item) =>
-        item.id === noteId ? { ...item, downloads: item.downloads + 1 } : item,
-      ),
-    );
-
-    setToast({
-      title: "Download started",
-      detail: note
-        ? `${note.title} is ready as a mock ${note.fileType} download.`
-        : "Mock file ready.",
-    });
-  }
-
-  function openNote(noteId: string) {
-    setSelectedNoteId(noteId);
-    setDetailOpen(true);
   }
 
   function submitUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const title = uploadDraft.title.trim();
-    const courseCodeVal = uploadDraft.courseCode.trim();
+    if (!title) return;
 
-    if (!title || !courseCodeVal) {
-      setToast({
-        title: "Upload needs a title and code",
-        detail: "Add the resource title and course code before publishing.",
-      });
-      return;
-    }
+    const tags = uploadDraft.tags
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
 
-    const newNote: Note = {
-      id: `note-upload-${Date.now()}`,
+    const note: Note = {
+      id: `note-${Date.now()}`,
       title,
       subject: uploadDraft.subject.trim() || "General",
       semester: uploadDraft.semester,
-      courseCode: courseCodeVal.toUpperCase(),
-      unit: uploadDraft.unit.trim() || "All Units",
-      topic: uploadDraft.tags.trim() || "Student upload",
+      courseCode: uploadDraft.courseCode.trim().toUpperCase() || "—",
+      unit: uploadDraft.unit.trim() || "Uploaded resource",
+      topic: tags[0] || uploadDraft.unit.trim() || "Student contribution",
       uploader: currentUser.name,
-      uploaderRole: "You",
+      uploaderRole: currentUser.role,
       fileType: uploadDraft.fileType,
-      fileSize: uploadDraft.fileName ? "New file" : "Draft file",
+      fileSize: "Pending",
       uploadDate: "Just now",
       rating: 0,
       ratingsCount: 0,
       downloads: 0,
-      tags: uploadDraft.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-        .slice(0, 4),
-      summary:
-        uploadDraft.summary.trim() ||
-        "A newly uploaded ClassVault resource available in the local prototype.",
+      tags,
+      summary: uploadDraft.summary.trim() || "New upload awaiting review.",
       ownerId: "current-user",
       saved: false,
     };
 
-    setNotes((current) => [newNote, ...current]);
-    setActiveView("uploads");
-    setSelectedNoteId(newNote.id);
-    setDetailOpen(true);
-    setUploadOpen(false);
+    setNotes((current) => [note, ...current]);
     setUploadDraft(emptyUploadDraft);
-    setToast({
-      title: "Resource auto-published",
-      detail: "Your mock upload now appears under My uploads.",
-    });
+    setUploadOpen(false);
+    setToast("Resource submitted for review");
   }
 
-  // Add study task helper
-  function addStudyTask() {
-    if (!newTaskTitle.trim()) {
-      return;
-    }
-    const newTask: StudyTask = {
-      id: `task-${Date.now()}`,
-      title: newTaskTitle.trim(),
-      tag: newTaskTag.trim() || "General",
-      priority: Math.random() > 0.5 ? "High" : Math.random() > 0.5 ? "Medium" : "Low",
-    };
-    setStudyTasks([...studyTasks, newTask]);
-    setNewTaskTitle("");
-    setNewTaskTag("");
-    setToast({
-      title: "Task added",
-      detail: "Your custom study task is added to the checklist.",
-    });
-  }
-
-  // Remove study task helper
-  function removeStudyTask(id: string) {
-    setStudyTasks(studyTasks.filter((t) => t.id !== id));
+  function submitTask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const title = newTask.trim();
+    if (!title) return;
+    setTasks((current) => [...current, { id: `task-${Date.now()}`, title, done: false }]);
+    setNewTask("");
   }
 
   return (
-    <main
-      data-theme={theme}
-      className="classvault-shell flex min-h-screen overflow-x-hidden bg-[var(--cv-bg)] text-[var(--cv-text)] transition-colors duration-300"
-    >
-      {/* MOBILE TOP HEADER */}
-      <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[var(--cv-border)] bg-[var(--cv-card)] px-4 shadow-sm md:hidden">
-        <div className="flex items-center gap-2.5">
-          <img src="/logo_badge.png" alt="Logo" className="h-7 w-7 object-contain" />
-          <span className="text-sm font-bold text-[var(--cv-text)]">ClassVault</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => updateTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)]"
-            title="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </button>
-          <img
-            src="/avatar_arjun.png"
-            alt="User"
-            className="h-7 w-7 rounded-full border border-[var(--cv-border)] object-cover"
-          />
-        </div>
+    <div className="min-h-screen bg-paper text-ink">
+      {/* Mobile header */}
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-surface px-4 lg:hidden">
+        <Wordmark />
+        <button
+          type="button"
+          onClick={() => setUploadOpen(true)}
+          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-ink px-3 text-sm font-medium text-surface"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Upload
+        </button>
       </header>
 
-      {/* NARROW SIDEBAR */}
-      <aside className="fixed inset-x-0 bottom-0 z-40 flex h-16 w-full items-center justify-between border-t-2 md:border-r-2 md:border-t-0 border-[var(--cv-border)] bg-[var(--cv-sidebar)] px-3 md:inset-x-auto md:inset-y-0 md:left-0 md:h-screen md:w-20 md:flex-col md:px-0 md:py-6">
-        <div className="flex min-w-0 flex-1 items-center md:w-full md:flex-none md:flex-col md:gap-10">
-          {/* Logo badge */}
-          <button
-            onClick={() => setActiveView("library")}
-            className="hidden cursor-pointer md:block"
-          >
-            <img
-              src="/logo_badge.png"
-              alt="Logo"
-              className="h-8 w-8 object-contain brightness-0 invert"
-            />
-          </button>
-
-          {/* Navigation vertical icons */}
-          <nav className="flex w-full min-w-0 items-center justify-around gap-1 md:flex-col md:gap-4 md:px-3">
-            <SidebarIconButton
-              icon={LayoutDashboard}
-              active={activeView === "library"}
-              onClick={() => setActiveView("library")}
-              label="Dashboard"
-            />
-            <SidebarIconButton
-              icon={User}
-              active={activeView === "profile"}
-              onClick={() => setActiveView("profile")}
-              label="Profile"
-            />
-            <SidebarIconButton
-              icon={Activity}
-              active={activeView === "explore"}
-              onClick={() => setActiveView("explore")}
-              label="Analytics"
-            />
-            <SidebarIconButton
-              icon={Bell}
-              active={false}
-              onClick={() => {}}
-              label="Notifications"
-              mobileHidden
-            />
-            <SidebarIconButton
-              icon={CalendarIcon}
-              active={false}
-              onClick={() => {}}
-              label="Calendar"
-              mobileHidden
-            />
-            <SidebarIconButton
-              icon={Inbox}
-              active={false}
-              onClick={() => {}}
-              label="Inbox"
-              mobileHidden
-            />
-            <SidebarIconButton
-              icon={Bookmark}
-              active={activeView === "saved"}
-              onClick={() => setActiveView("saved")}
-              label="Bookmarks"
-            />
-            <SidebarIconButton
-              icon={Settings}
-              active={false}
-              onClick={() => {}}
-              label="Settings"
-              mobileHidden
-            />
-          </nav>
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-line bg-surface lg:flex">
+        <div className="flex h-14 items-center border-b border-line px-4">
+          <Wordmark />
         </div>
 
-        {/* Bottom profile avatar */}
-        <div className="hidden flex-col items-center gap-4 md:flex">
-          <button
-            onClick={() => {
-              setIsSignedIn(false);
-              setToast({
-                title: "Signed out",
-                detail: "Prototype switched to guest browsing mode.",
-              });
-            }}
-            title="Log out"
-            className="text-white/70 hover:text-white transition cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
+        <nav className="flex-1 space-y-0.5 p-2.5">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveView(item.id)}
+              className={cx(
+                "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition",
+                activeView === item.id
+                  ? "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]"
+                  : "text-ink-soft hover:bg-paper hover:text-ink",
+              )}
             >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-          </button>
-          <img
-            src="/avatar_arjun.png"
-            alt="User avatar"
-            className="h-8 w-8 rounded-full border-2 border-white/40 object-cover shadow-sm"
-          />
-        </div>
+              <item.icon className="h-4 w-4" />
+              {item.label}
+              {item.id === "saved" && savedCount > 0 ? (
+                <span className="ml-auto font-mono text-xs text-ink-faint">{savedCount}</span>
+              ) : null}
+            </button>
+          ))}
+        </nav>
+
+        <button
+          type="button"
+          onClick={() => setActiveView("profile")}
+          className="flex items-center gap-3 border-t border-line p-3.5 text-left transition hover:bg-paper"
+        >
+          <Avatar name={currentUser.name} size="sm" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium">{currentUser.name}</span>
+            <span className="block truncate text-xs text-ink-faint">{currentUser.email}</span>
+          </span>
+        </button>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-24 pt-[4.5rem] sm:px-6 md:pb-8 md:pl-24 md:pt-5 lg:px-8 lg:pl-28">
-        {/* TOP ROW HEADER */}
-        <header className="sticky top-3 z-30 flex min-w-0 flex-col gap-4 rounded-lg border border-[var(--cv-border)] bg-[var(--cv-card)]/95 px-4 py-3 shadow-sm backdrop-blur xl:flex-row xl:items-center xl:justify-between">
-          {/* Sub-nav tabs */}
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto no-scrollbar rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
-            {topNavTabs.map((tab) => (
-              <button
-                key={tab}
-                className={classNames(
-                  "relative cursor-pointer rounded px-3 py-2 text-sm font-semibold transition",
-                  tab === "Dashboard"
-                    ? "bg-[var(--cv-card)] text-[var(--cv-text)] shadow-sm"
-                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
-                )}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Search bar & utilities */}
-          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center xl:justify-end">
-            <SearchCommandPalette query={query} onQueryChange={setQuery} />
-
-            {/* Light / Dark Toggle */}
-            <div className="flex w-fit items-center rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-0.5">
-              <button
-                type="button"
-                aria-pressed={theme === "light"}
-                onClick={() => updateTheme("light")}
-                className={classNames(
-                  "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
-                  theme === "light"
-                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-toggle-active-text)] shadow"
-                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
-                )}
-              >
-                Light
-              </button>
-              <button
-                type="button"
-                aria-pressed={theme === "dark"}
-                onClick={() => updateTheme("dark")}
-                className={classNames(
-                  "cursor-pointer rounded px-3 py-1 text-[10px] font-bold transition",
-                  theme === "dark"
-                    ? "bg-[var(--cv-toggle-active)] text-[var(--cv-toggle-active-text)] shadow"
-                    : "text-[var(--cv-muted)] hover:text-[var(--cv-text)]",
-                )}
-              >
-                Dark
-              </button>
-            </div>
-
-            {/* Icons */}
-            <button className="hidden rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] sm:inline-flex">
-              <Bell className="h-4.5 w-4.5" />
-            </button>
-            <button className="hidden rounded-md border border-[var(--cv-border)] p-2 text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] sm:inline-flex">
-              <Settings className="h-4.5 w-4.5" />
-            </button>
-
-            {/* Buttons */}
-            <button className="hidden h-9 rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] px-4 text-xs font-semibold text-[var(--cv-muted)] transition hover:bg-[var(--cv-muted-surface)] hover:text-[var(--cv-text)] lg:inline-flex lg:items-center">
-              Export data
-            </button>
-            <button
-              onClick={() => setUploadOpen(true)}
-              className="cv-primary-btn h-9 w-full rounded-md px-4 text-xs font-semibold sm:w-auto"
-            >
-              Upload resource
-            </button>
-          </div>
-        </header>
-
-        {activeView === "profile" ? (
-          <ProfileView
-            notes={notes}
-            savedCount={savedCount}
-            uploadCount={uploadCount}
-            totalDownloads={totalDownloads}
-            averageRating={averageRating}
-            onOpenNote={openNote}
-            onUploadOpen={() => setUploadOpen(true)}
-          />
-        ) : (
-          <>
-            {/* GREETING BANNER */}
-            <div className="mt-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-                  Hi, Arjun. Your notes workspace is ready.
-                </h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-              Browse shared resources, pick up your saved notes, and keep today&apos;s revision
-              moving from one focused dashboard.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
-            <span className="rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] px-3 py-1.5">
-              {filteredNotes.length} visible
-            </span>
-            <span className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-indigo-700">
-              Local workspace
-            </span>
-          </div>
-        </div>
-
-        {/* TOP QUICK ACCESS CARDS ROW */}
-        <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* Mobile bottom nav */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface px-2 py-1.5 lg:hidden">
+        {navItems.map((item) => (
           <button
+            key={item.id}
             type="button"
-            onClick={() => setUploadOpen(true)}
-            className="widget-card group flex min-h-40 w-full flex-col justify-between rounded-lg p-5 text-left transition hover:border-slate-300 hover:shadow-md"
+            onClick={() => setActiveView(item.id)}
+            className={cx(
+              "flex flex-col items-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-medium",
+              activeView === item.id ? "text-ink" : "text-ink-faint",
+            )}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-950 text-white">
-              <Plus className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-950">Upload a new resource</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                Add PDFs, slides, question sets, or lab files to the vault.
-              </p>
-            </div>
+            <item.icon className="h-4 w-4" />
+            <span className="truncate">{item.label}</span>
           </button>
+        ))}
+      </nav>
 
-          <MetricCard
-            icon={BookOpenCheck}
-            label="Library"
-            value={formatCount(notes.length)}
-            detail={`${filteredNotes.length} resources in this view`}
-            tone="bg-indigo-50 text-indigo-600 border-indigo-100"
-          />
-          <MetricCard
-            icon={Bookmark}
-            label="Saved"
-            value={formatCount(savedCount)}
-            detail="Pinned for exam revision"
-            tone="bg-amber-50 text-amber-600 border-amber-100"
-          />
-          <MetricCard
-            icon={Download}
-            label="Downloads"
-            value={formatCount(totalDownloads)}
-            detail={`${averageRating.toFixed(1)} average rating`}
-            tone="bg-emerald-50 text-emerald-600 border-emerald-100"
-          />
-        </div>
-
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="widget-card min-w-0 rounded-lg p-4">
-            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Today&apos;s focus
-                </p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-950">DBMS revision sprint</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Finish normalization notes, then review CPU scheduling numericals.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 sm:flex">
-                <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
-                  3 tasks
-                </span>
-                <span className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700">
-                  1 high priority
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="widget-card min-w-0 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Your uploads
-              </span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                {uploadCount}
-              </span>
-            </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-[68%] rounded-full bg-slate-950" />
-            </div>
-            <p className="mt-3 text-sm font-medium text-slate-500">
-              Storage mock: 6.8 GB of 10 GB used
-            </p>
-          </div>
-        </div>
-
-        {/* NOTES FILTER PANEL */}
-        <div className="mt-8 min-w-0 rounded-lg border border-[var(--cv-border)] bg-[var(--cv-card)] p-4 shadow-sm sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-extrabold tracking-tight text-slate-800">Notes Library</h2>
-            <button
-              onClick={() => setUploadOpen(true)}
-              className="cv-primary-btn inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold"
-            >
-              Upload Notes
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-              <div className="relative w-full min-w-0 md:w-[280px]">
-                <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="Search by title or course"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="h-10 w-full rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] pl-10 pr-4 text-sm font-medium text-[var(--cv-text)] outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                />
-              </div>
-
-              <FilterDropdown
-                label="All Semesters"
-                value={semester}
-                onChange={setSemester}
-                options={semesters}
-              />
-              <FilterDropdown
-                label="All Subjects"
-                value={subject}
-                onChange={setSubject}
-                options={subjects}
-              />
-              <FilterDropdown
-                label="Filter by tag"
-                value={noteTag}
-                onChange={setNoteTag}
-                options={tags}
-              />
-
-              {(query || semester !== "All" || subject !== "All" || noteTag !== "All") && (
-                <button
-                  onClick={resetFilters}
-                  className="inline-flex h-10 items-center gap-2 rounded-md px-1 text-sm font-semibold text-slate-500 transition hover:text-slate-950"
-                >
-                  <X className="h-5 w-5 rounded-full border border-slate-300 p-1 text-slate-500" />
-                  Reset filters
-                </button>
-              )}
-            </div>
-
-            <div className="flex h-10 w-fit max-w-full items-center gap-1 rounded-md border border-[var(--cv-border)] bg-[var(--cv-muted-surface)] p-1">
+      <main className="px-4 pb-24 pt-20 sm:px-6 lg:ml-56 lg:px-10 lg:pb-12 lg:pt-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-xl font-semibold tracking-tight">{viewTitles[activeView]}</h1>
+            <div className="flex items-center gap-2">
+              <SearchCommandPalette notes={notes} onSelectNote={setOpenNoteId} />
               <button
-                onClick={() => setLayoutMode("list")}
-                className={classNames(
-                  "rounded-lg p-2 transition",
-                  layoutMode === "list"
-                    ? "bg-white text-slate-950 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600",
-                )}
-                aria-label="List view"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-              <button
-                onClick={() => setLayoutMode("grid")}
-                className={classNames(
-                  "rounded-lg p-2 transition",
-                  layoutMode === "grid"
-                    ? "bg-white text-slate-950 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600",
-                )}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Document list view based on layout mode */}
-          <div
-            className={classNames(
-              "mt-4 min-w-0 max-h-[420px] overflow-y-auto pr-1",
-              layoutMode === "grid" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-2",
-            )}
-          >
-            {filteredNotes.length > 0 ? (
-              filteredNotes.map((note) => (
-                <DocumentRow
-                  key={note.id}
-                  note={note}
-                  selected={note.id === selectedNoteId}
-                  onOpen={() => openNote(note.id)}
-                  mode={layoutMode}
-                />
-              ))
-            ) : (
-              <div className="text-center py-10 text-xs font-bold text-slate-400">
-                No notes match this filter combination.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* MIDDLE GRID COLUMNS (Notifications, Assignments, Calendar) */}
-        <div className="mt-8 grid min-w-0 gap-5 md:grid-cols-3">
-          {/* Notifications */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                  Notifications
-                </h3>
-                <button className="text-[10px] font-bold text-[#1d4ed8] hover:underline">
-                  Clear
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {/* Event notification */}
-                <div className="rounded-md border border-slate-100 bg-slate-50 p-3 relative">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1d4ed8] inline-block mr-1.5" />
-                      <span className="text-[10px] font-bold text-slate-800">
-                        Upcoming revision session
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-slate-400">Time: 120 min</span>
-                  </div>
-                  <h4 className="text-[11px] font-extrabold text-slate-900 mt-1.5">
-                    DBMS Exam normalization notes
-                  </h4>
-                  <div className="mt-3 flex items-center justify-between text-[9px] text-[#1d4ed8] font-bold bg-blue-50 rounded px-2 py-1">
-                    <span>Sat, 10 May</span>
-                    <span>11:00 AM - 12:00 PM</span>
-                  </div>
-                </div>
-
-                {/* Message notification */}
-                <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold text-[#1d4ed8]">
-                      Message | Study Club
-                    </span>
-                    <span className="text-[9px] font-semibold text-slate-400">Just now</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                    Hey Arjun, I uploaded the normalization revision sheets, let me know if they
-                    help!
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-slate-500 border border-slate-200 rounded-md bg-slate-50 hover:bg-slate-100 transition">
-              See all notifications
-            </button>
-          </div>
-
-          {/* Assignments / Study Tasks widget */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                  Study Tasks
-                </h3>
-                <span className="rounded bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 text-[9px] font-bold">
-                  {studyTasks.length} left
-                </span>
-              </div>
-
-              {/* Tasks list */}
-              <div className="space-y-2.5 max-h-[190px] overflow-y-auto pr-1">
-                {studyTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-md p-2.5"
-                  >
-                    <div className="min-w-0">
-                      <h4 className="text-[11px] font-extrabold text-slate-800 truncate">
-                        {task.title}
-                      </h4>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                          {task.tag}
-                        </span>
-                        <span
-                          className={classNames(
-                            "text-[9px] font-bold px-1.5 py-0.5 rounded",
-                            task.priority === "High"
-                              ? "bg-rose-50 text-rose-600 border border-rose-100"
-                              : task.priority === "Medium"
-                                ? "bg-amber-50 text-amber-600 border border-amber-100"
-                                : "bg-emerald-50 text-emerald-600 border border-emerald-100",
-                          )}
-                        >
-                          {task.priority}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeStudyTask(task.id)}
-                      className="text-slate-400 hover:text-rose-500 transition shrink-0 p-1"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick add task input */}
-            <div className="mt-4 flex gap-1.5">
-              <input
-                type="text"
-                placeholder="New task..."
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="flex-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#1d4ed8]"
-              />
-              <button
-                onClick={addStudyTask}
-                className="h-8 w-8 rounded-md bg-slate-950 text-white flex items-center justify-center hover:bg-slate-800 transition shrink-0"
+                type="button"
+                onClick={() => setUploadOpen(true)}
+                className="hidden h-9 shrink-0 items-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 sm:inline-flex"
               >
                 <Plus className="h-4 w-4" />
+                Upload
               </button>
             </div>
           </div>
 
-          {/* Calendar Widget */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                  June 2026
-                </h3>
-                <div className="flex items-center gap-1">
-                  <button className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600">
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </button>
-                  <button className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Minimal Calendar Matrix */}
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 mb-2 border-b border-slate-100 pb-1">
-                <span>M</span>
-                <span>T</span>
-                <span>W</span>
-                <span>T</span>
-                <span>F</span>
-                <span>S</span>
-                <span>S</span>
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-700">
-                <span className="text-slate-300">1</span>
-                <span className="text-slate-300">2</span>
-                <span className="text-slate-300">3</span>
-                <span className="text-slate-300">4</span>
-                <span className="rounded bg-slate-50 py-0.5">5</span>
-                <span className="rounded bg-slate-950 text-white py-0.5 shadow-sm">6</span>
-                <span className="rounded bg-slate-50 py-0.5">7</span>
-                <span className="rounded bg-slate-50 py-0.5">8</span>
-                <span className="rounded bg-slate-50 py-0.5">9</span>
-                <span className="rounded bg-slate-50 py-0.5">10</span>
-                <span className="rounded bg-slate-50 py-0.5">11</span>
-                <span className="rounded bg-slate-50 py-0.5">12</span>
-                <span className="rounded bg-slate-50 py-0.5">13</span>
-                <span className="rounded bg-slate-50 py-0.5">14</span>
-              </div>
-
-              {/* Events lists */}
-              <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
-                <div className="flex items-center justify-between text-[9px] font-bold">
-                  <span className="text-slate-400 uppercase">04:30 - 05:00 PM</span>
-                  <span className="text-slate-800">Team Study Session</span>
-                </div>
-                <div className="flex items-center justify-between text-[9px] font-bold">
-                  <span className="text-slate-400 uppercase">11:30 - 12:30 PM</span>
-                  <span className="text-slate-800">Discrete Math PYQs revision</span>
-                </div>
-              </div>
-            </div>
-
-            <button className="mt-4 w-full h-8 text-center text-[10px] font-bold text-[#1d4ed8] border border-blue-100 rounded-md bg-blue-50/60 hover:bg-blue-50 transition">
-              Manage schedule
-            </button>
-          </div>
-        </div>
-
-        {/* BOTTOM ROW WIDGETS (Tasks progress, Go premium, Circular progress, Board meeting) */}
-        <div className="mt-8 grid min-w-0 gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Today Tasks Progress list */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between md:col-span-1">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4">
-              Today Tasks
-            </h3>
-            <div className="space-y-4">
-              <ProgressItem label="DBMS Normalization notes" percentage={90} color="bg-[#1d4ed8]" />
-              <ProgressItem
-                label="Computer Networks complete notes"
-                percentage={50}
-                color="bg-amber-500"
+          {activeView === "dashboard" ? (
+            <DashboardView
+              notes={notes}
+              savedCount={savedCount}
+              uploadCount={myUploads.length}
+              totalDownloads={totalDownloads}
+              averageRating={averageRating}
+              tasks={tasks}
+              newTask={newTask}
+              onNewTaskChange={setNewTask}
+              onSubmitTask={submitTask}
+              onToggleTask={(id) =>
+                setTasks((current) =>
+                  current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)),
+                )
+              }
+              onRemoveTask={(id) => setTasks((current) => current.filter((task) => task.id !== id))}
+              onOpenNote={setOpenNoteId}
+              onGoToLibrary={() => setActiveView("library")}
+            />
+          ) : activeView === "profile" ? (
+            <ProfileView
+              uploads={myUploads}
+              savedCount={savedCount}
+              totalDownloads={totalDownloads}
+              averageRating={averageRating}
+              onOpenNote={setOpenNoteId}
+              onUpload={() => setUploadOpen(true)}
+            />
+          ) : (
+            <>
+              <FilterBar
+                query={query}
+                onQueryChange={setQuery}
+                semester={semester}
+                semesters={semesters}
+                onSemesterChange={setSemester}
+                subject={subject}
+                subjects={subjects}
+                onSubjectChange={setSubject}
+                layoutMode={layoutMode}
+                onLayoutModeChange={setLayoutMode}
+                onReset={resetFilters}
+                count={filteredNotes.length}
               />
-              <ProgressItem label="Digital Logic gates notes" percentage={10} color="bg-rose-500" />
-            </div>
-            <div className="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between text-[10px] font-extrabold text-slate-400">
-              <span>Finished: 1/3</span>
-              <span className="text-[#1d4ed8]">Detail</span>
-            </div>
-          </div>
-
-          {/* Go Premium Box */}
-          <div className="rounded-lg bg-slate-950 p-5 flex flex-col justify-between text-white shadow-sm relative overflow-hidden">
-            <div>
-              <h3 className="text-sm font-extrabold">Go premium!</h3>
-              <p className="mt-2 text-[10px] leading-relaxed text-white/80 font-semibold">
-                Gain access to a range of benefits designed to enhance your user experience.
-              </p>
-            </div>
-            <button className="mt-6 w-full h-9 rounded-md bg-white text-slate-950 text-xs font-bold hover:bg-slate-100 transition">
-              Find out more
-            </button>
-          </div>
-
-          {/* Circular Progress Rings */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4">
-              Completeness
-            </h3>
-            <div className="flex items-center justify-around gap-2">
-              <div className="text-center">
-                <CircularGauge percentage={90} color="#1d4ed8" size={56} />
-                <p className="mt-2 text-[9px] font-extrabold text-slate-800 leading-none">
-                  Database
-                </p>
-                <p className="text-[8px] font-bold text-slate-400 mt-0.5">9/10 notes read</p>
-              </div>
-              <div className="text-center">
-                <CircularGauge percentage={65} color="#22c55e" size={56} />
-                <p className="mt-2 text-[9px] font-extrabold text-slate-800 leading-none">
-                  Networks
-                </p>
-                <p className="text-[8px] font-bold text-slate-400 mt-0.5">2/3 slides read</p>
-              </div>
-            </div>
-            <div className="text-[9px] font-semibold text-slate-400 text-center mt-2">
-              Daily study goal: 80%
-            </div>
-          </div>
-
-          {/* Study Group Session Card */}
-          <div className="widget-card rounded-lg p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="rounded bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[9px] font-bold">
-                  Study Group
-                </span>
-                <span className="text-[9px] font-semibold text-slate-400">March 26 at 4:00 PM</span>
-              </div>
-              <h4 className="text-xs font-extrabold text-slate-800">Study Group Session</h4>
-              <p className="mt-1 text-[10px] text-slate-400 font-semibold leading-relaxed">
-                Join Riya, Karan and Aman to discuss Networks protocols sheet.
-              </p>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button className="h-8 rounded-md border border-slate-200 bg-white text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition">
-                Reschedule
-              </button>
-              <button className="h-8 rounded-md bg-slate-950 text-white text-[10px] font-bold hover:bg-slate-800 transition">
-                Accept invite
-              </button>
-            </div>
-          </div>
+              <NoteCollection
+                notes={filteredNotes}
+                layoutMode={layoutMode}
+                onOpenNote={setOpenNoteId}
+                emptyHint={
+                  activeView === "saved"
+                    ? "Resources you bookmark will collect here."
+                    : activeView === "uploads"
+                      ? "Resources you contribute will appear here."
+                      : "Try clearing a filter or searching for another course."
+                }
+              />
+            </>
+          )}
         </div>
-        </>
-      )}
-      </section>
+      </main>
 
-      {/* SLIDE-OVER DETAIL DRAWER OVERLAY */}
-      {detailOpen && selectedNote ? (
-        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm flex justify-end">
-          <div className="fixed inset-0 cursor-pointer" onClick={() => setDetailOpen(false)} />
-          <div className="cv-drawer-panel relative w-full max-w-md h-full bg-white shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between z-50 animate-slide-in overflow-y-auto">
-            <div className="space-y-5">
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#1d4ed8]">
-                    Selected Note
-                  </span>
-                  <h3 className="text-base font-extrabold text-slate-900 mt-1">
-                    {selectedNote.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 font-semibold">{selectedNote.topic}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toggleSaved(selectedNote.id)}
-                    className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#1d4ed8] transition cursor-pointer"
-                  >
-                    <Bookmark
-                      className={`h-4.5 w-4.5 ${savedIds.has(selectedNote.id) ? "fill-[#1d4ed8] text-[#1d4ed8]" : ""}`}
-                    />
-                  </button>
-                  <button
-                    onClick={() => setDetailOpen(false)}
-                    className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Uploader profile block */}
-              <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 p-3">
-                <img
-                  src={selectedNote.uploaderAvatar ?? "/avatar_neha.png"}
-                  alt={selectedNote.uploader}
-                  className="h-9 w-9 rounded-full object-cover border border-[#1d4ed8]/20"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-800 leading-none">
-                    {selectedNote.uploader}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-1">
-                    {selectedNote.uploaderRole}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-[#1d4ed8]">
-                  {selectedNote.rating ? selectedNote.rating.toFixed(1) : "5.0"}
-                  <Star className="h-3 w-3 fill-[#1d4ed8] text-[#1d4ed8]" />
-                </div>
-              </div>
-
-              {/* Summary */}
-              <p className="text-xs leading-relaxed text-slate-500 font-semibold">
-                {selectedNote.summary}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5">
-                {selectedNote.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Metadata */}
-              <div className="border-t border-b border-slate-100 py-3 text-[10px] font-bold text-slate-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 uppercase">
-                  <FileText className="h-3.5 w-3.5 text-slate-400" />
-                  {selectedNote.fileType}
-                </span>
-                <span>•</span>
-                <span>{selectedNote.pages ?? 24} Pages</span>
-                <span>•</span>
-                <span>{selectedNote.fileSize}</span>
-                <span>•</span>
-                <span>Uploaded {selectedNote.uploadDate}</span>
-              </div>
-
-              {/* Preview with thumbnails */}
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold mb-2">
-                  <span className="text-slate-800">Preview</span>
-                  <span className="text-slate-400">1 / {selectedNote.pages ?? 24}</span>
-                </div>
-                <div className="grid grid-cols-[1fr_50px] gap-2 rounded-xl border border-slate-100 bg-slate-50 p-2">
-                  <div className="aspect-[4/5] overflow-hidden rounded-lg bg-white border border-slate-100">
-                    <img
-                      src="/preview_dbms_main.png"
-                      alt="Notes preview"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5 h-full overflow-y-auto">
-                    <div className="aspect-[4/5] overflow-hidden rounded border border-[#1d4ed8]/40 bg-white shadow-sm">
-                      <img
-                        src="/preview_dbms_main.png"
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="aspect-[4/5] overflow-hidden rounded border border-slate-200 bg-white opacity-60 hover:opacity-100 transition">
-                      <img
-                        src="/preview_dbms_thumb1.png"
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="aspect-[4/5] overflow-hidden rounded border border-slate-200 bg-white opacity-60 hover:opacity-100 transition">
-                      <img
-                        src="/preview_dbms_thumb2.png"
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rating block */}
-              <div className="rounded-md border border-slate-100 bg-slate-50 p-4">
-                <p className="text-[11px] font-bold text-slate-800">Rate this note</p>
-                <div className="mt-2.5 flex gap-1">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => rateNote(selectedNote.id, value)}
-                      className="text-amber-400 hover:scale-110 transition cursor-pointer p-0.5"
-                    >
-                      <Star
-                        className={classNames(
-                          "h-5 w-5",
-                          ratings[selectedNote.id] && value <= ratings[selectedNote.id]
-                            ? "fill-amber-400"
-                            : "fill-transparent",
-                        )}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1.5 text-[9px] font-bold text-slate-400">
-                  {ratings[selectedNote.id]
-                    ? `Your rating: ${ratings[selectedNote.id]}/5`
-                    : `${selectedNote.ratingsCount} students rated this resource`}
-                </p>
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="mt-8 pt-4 border-t border-slate-100">
-              <div className="grid grid-cols-[1.5fr_1fr] gap-2">
-                <button
-                  onClick={() => downloadNote(selectedNote.id)}
-                  className="flex items-center justify-center gap-2 rounded-md bg-slate-950 py-3 text-xs font-bold text-white hover:bg-slate-800 transition cursor-pointer"
-                >
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </button>
-                <button
-                  onClick={() => toggleSaved(selectedNote.id)}
-                  className="flex items-center justify-center gap-2 rounded-md border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-                >
-                  <Bookmark className="h-4 w-4 text-slate-400" />
-                  Bookmark
-                </button>
-              </div>
-              <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
-                View full document
-                <ArrowRight className="h-3.5 w-3.5 text-[#1d4ed8]" />
-              </button>
-            </div>
-          </div>
-        </div>
+      {openNote ? (
+        <DetailDrawer
+          note={openNote}
+          onClose={() => setOpenNoteId(null)}
+          onToggleSaved={() => toggleSaved(openNote.id)}
+        />
       ) : null}
 
-      {/* DIALOGS */}
       {uploadOpen ? (
         <UploadDialog
           draft={uploadDraft}
           onDraftChange={setUploadDraft}
-          onClose={() => setUploadOpen(false)}
           onSubmit={submitUpload}
+          onClose={() => setUploadOpen(false)}
         />
       ) : null}
 
-      {toast ? <ToastMessage toast={toast} /> : null}
-    </main>
+      {toast ? (
+        <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-md border border-line bg-ink px-4 py-2.5 text-sm font-medium text-surface shadow-lg lg:bottom-6">
+          {toast}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-/* SIDEBAR ICON BUTTON */
-function SidebarIconButton({
-  icon: Icon,
-  active,
-  onClick,
-  label,
-  mobileHidden = false,
-}: {
-  icon: LucideIcon;
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  mobileHidden?: boolean;
-}) {
+function Wordmark() {
   return (
-    <button
-      onClick={onClick}
-      title={label}
-      className={classNames(
-        "group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border transition md:h-12 md:w-12",
-        mobileHidden && "hidden md:flex",
-        active
-          ? "border-[var(--cv-border)] bg-[#E03C31] text-white"
-          : "border-transparent text-stone-400 hover:bg-[#E5E2D9]/20 hover:text-[var(--cv-text)]",
-      )}
-    >
-      {active && (
-        <span className="absolute -bottom-1 h-1 w-6 bg-[#D9A036] md:bottom-auto md:-left-2 md:h-6 md:w-1" />
-      )}
-      <Icon className="h-5 w-5" />
-      {/* Tooltip */}
-      <span className="pointer-events-none absolute left-16 z-30 hidden origin-left scale-95 bg-[#121212] border border-[#F5F4EF]/20 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-md transition-all group-hover:scale-100 group-hover:opacity-100 md:block">
-        {label}
+    <Link href="/" className="flex items-center gap-2" aria-label="ClassVault home">
+      <span className="flex h-6 w-6 items-center justify-center rounded bg-ink font-mono text-[10px] font-semibold text-surface">
+        CV
       </span>
-    </button>
+      <span className="text-sm font-semibold tracking-tight">ClassVault</span>
+    </Link>
   );
 }
 
-/* SEARCH ICON ELEMENT */
-function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "lg" }) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
+    <span
+      className={cx(
+        "flex shrink-0 items-center justify-center rounded-full border border-line bg-paper font-medium text-ink-soft",
+        size === "sm" ? "h-8 w-8 text-xs" : "h-16 w-16 text-xl",
+      )}
     >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
+      {initialsOf(name)}
+    </span>
   );
 }
 
-/* FILTER DROPDOWN COMPONENT */
-function FilterDropdown({
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
+      {children}
+    </p>
+  );
+}
+
+function DashboardView({
+  notes,
+  savedCount,
+  uploadCount,
+  totalDownloads,
+  averageRating,
+  tasks,
+  newTask,
+  onNewTaskChange,
+  onSubmitTask,
+  onToggleTask,
+  onRemoveTask,
+  onOpenNote,
+  onGoToLibrary,
+}: {
+  notes: Note[];
+  savedCount: number;
+  uploadCount: number;
+  totalDownloads: number;
+  averageRating: number;
+  tasks: StudyTask[];
+  newTask: string;
+  onNewTaskChange: (value: string) => void;
+  onSubmitTask: (event: FormEvent<HTMLFormElement>) => void;
+  onToggleTask: (id: string) => void;
+  onRemoveTask: (id: string) => void;
+  onOpenNote: (id: string) => void;
+  onGoToLibrary: () => void;
+}) {
+  const metrics: Array<[string, string]> = [
+    ["Resources", String(notes.length)],
+    ["Saved", String(savedCount)],
+    ["Your uploads", String(uploadCount)],
+    ["Downloads", formatCount(totalDownloads)],
+  ];
+
+  return (
+    <div className="space-y-8">
+      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
+        {metrics.map(([label, value]) => (
+          <div key={label} className="bg-surface p-4 sm:p-5">
+            <p className="font-mono text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="mt-1 text-xs font-medium text-ink-faint">{label}</p>
+          </div>
+        ))}
+      </section>
+
+      <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
+        <section>
+          <div className="flex items-center justify-between pb-3">
+            <SectionLabel>Recent resources</SectionLabel>
+            <button
+              type="button"
+              onClick={onGoToLibrary}
+              className="flex items-center gap-1 text-xs font-medium text-ink-soft transition hover:text-ink"
+            >
+              View library
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {notes.slice(0, 5).map((note) => (
+              <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between pb-3">
+            <SectionLabel>Study tasks</SectionLabel>
+            <span className="font-mono text-xs text-ink-faint">
+              {tasks.filter((task) => !task.done).length} open
+            </span>
+          </div>
+          <div className="rounded-lg border border-line bg-surface">
+            <div className="divide-y divide-line">
+              {tasks.map((task) => (
+                <div key={task.id} className="group flex items-center gap-3 px-3.5 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => onToggleTask(task.id)}
+                    aria-label={task.done ? `Mark "${task.title}" not done` : `Mark "${task.title}" done`}
+                    className={cx(
+                      "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition",
+                      task.done ? "border-ink bg-ink" : "border-line-strong hover:border-ink",
+                    )}
+                  >
+                    {task.done ? <span className="h-1.5 w-1.5 rounded-full bg-surface" /> : null}
+                  </button>
+                  <span
+                    className={cx(
+                      "min-w-0 flex-1 truncate text-sm",
+                      task.done ? "text-ink-faint line-through" : "text-ink",
+                    )}
+                  >
+                    {task.title}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveTask(task.id)}
+                    className="text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
+                    aria-label={`Remove ${task.title}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+              {!tasks.length ? (
+                <p className="px-3.5 py-6 text-center text-sm text-ink-faint">No open tasks.</p>
+              ) : null}
+            </div>
+            <form onSubmit={onSubmitTask} className="flex gap-2 border-t border-line p-2.5">
+              <input
+                value={newTask}
+                onChange={(event) => onNewTaskChange(event.target.value)}
+                placeholder="Add a task…"
+                className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-sm outline-none transition placeholder:text-ink-faint focus:border-line-strong"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
+                aria-label="Add task"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-line bg-surface p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Library rating</p>
+              <Star className="h-4 w-4 text-ink-faint" />
+            </div>
+            <p className="mt-3 font-mono text-2xl font-semibold">{averageRating.toFixed(1)}</p>
+            <p className="mt-1 text-xs text-ink-faint">average across all resources</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function FilterBar({
+  query,
+  onQueryChange,
+  semester,
+  semesters,
+  onSemesterChange,
+  subject,
+  subjects,
+  onSubjectChange,
+  layoutMode,
+  onLayoutModeChange,
+  onReset,
+  count,
+}: {
+  query: string;
+  onQueryChange: (value: string) => void;
+  semester: string;
+  semesters: string[];
+  onSemesterChange: (value: string) => void;
+  subject: string;
+  subjects: string[];
+  onSubjectChange: (value: string) => void;
+  layoutMode: LayoutMode;
+  onLayoutModeChange: (value: LayoutMode) => void;
+  onReset: () => void;
+  count: number;
+}) {
+  const filtersActive = query !== "" || semester !== "All" || subject !== "All";
+
+  return (
+    <div className="flex flex-col gap-2 pb-4 sm:flex-row sm:flex-wrap sm:items-center">
+      <label className="relative min-w-0 flex-1 sm:max-w-64">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+        <input
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder="Filter by title, tag, code…"
+          className="h-9 w-full rounded-md border border-line bg-surface pl-8 pr-3 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint"
+        />
+      </label>
+      <FilterSelect label="Semester" value={semester} options={semesters} onChange={onSemesterChange} />
+      <FilterSelect label="Subject" value={subject} options={subjects} onChange={onSubjectChange} />
+      {filtersActive ? (
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex h-9 items-center rounded-md px-2.5 text-sm font-medium text-ink-soft transition hover:text-ink"
+        >
+          Clear
+        </button>
+      ) : null}
+      <div className="flex items-center gap-3 sm:ml-auto">
+        <span className="font-mono text-xs text-ink-faint">{count} results</span>
+        <div className="inline-flex rounded-md border border-line bg-surface p-0.5">
+          {(
+            [
+              ["list", List],
+              ["grid", Grid2X2],
+            ] as Array<[LayoutMode, LucideIcon]>
+          ).map(([mode, Icon]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => onLayoutModeChange(mode)}
+              className={cx(
+                "inline-flex h-7 w-7 items-center justify-center rounded text-ink-faint transition",
+                layoutMode === mode && "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]",
+              )}
+              aria-label={`${mode} layout`}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterSelect({
   label,
   value,
   options,
@@ -1361,14 +638,15 @@ function FilterDropdown({
   label: string;
   value: string;
   options: string[];
-  onChange: (val: string) => void;
+  onChange: (value: string) => void;
 }) {
   return (
-    <div className="relative w-full md:w-auto">
+    <label className="relative">
+      <span className="sr-only">{label}</span>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full appearance-none rounded-md border border-[var(--cv-border)] bg-[var(--cv-card)] pl-3.5 pr-9 text-sm font-medium text-[var(--cv-text)] outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 md:w-auto"
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 w-full appearance-none rounded-md border border-line bg-surface pl-3 pr-8 text-sm font-medium text-ink-soft outline-none transition hover:border-line-strong focus:border-ink-faint sm:w-auto"
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -1376,390 +654,368 @@ function FilterDropdown({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-    </div>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+    </label>
   );
 }
 
-/* DOCUMENT ROW LIST ITEM */
-function DocumentRow({
-  note,
-  selected,
-  onOpen,
-  mode,
+function NoteCollection({
+  notes,
+  layoutMode,
+  onOpenNote,
+  emptyHint,
 }: {
-  note: Note;
-  selected: boolean;
-  onOpen: () => void;
-  mode: "list" | "grid";
+  notes: Note[];
+  layoutMode: LayoutMode;
+  onOpenNote: (id: string) => void;
+  emptyHint: string;
 }) {
-  if (mode === "grid") {
+  if (!notes.length) {
     return (
-      <button
-        type="button"
-        onClick={onOpen}
-        className={classNames(
-          "flex min-h-44 min-w-0 flex-col justify-between rounded-lg border p-4 text-left transition hover:border-slate-300 hover:shadow-md",
-          selected
-            ? "cv-note-selected border-blue-700 bg-blue-50 text-slate-950 shadow-sm"
-            : "border-slate-200 bg-white text-slate-950",
-        )}
-      >
-        <div>
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <span
-              className={classNames(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-md border text-[10px] font-bold uppercase",
-                selected
-                  ? "border-blue-200 bg-white text-blue-700"
-                  : "border-rose-200 bg-rose-50 text-rose-600",
-              )}
-            >
-              {note.fileType}
-            </span>
-            <span
-              className={classNames(
-                "rounded px-2.5 py-1 text-[10px] font-semibold",
-                selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-500",
-              )}
-            >
-              {note.courseCode}
-            </span>
-          </div>
-          <h4 className="mt-4 line-clamp-2 min-w-0 text-sm font-semibold leading-5">
-            {note.title}
-          </h4>
-          <p
-            className={classNames(
-              "mt-2 text-xs font-medium",
-              "text-slate-500",
-            )}
-          >
-            Sem {note.semester} · {note.subject}
-          </p>
-        </div>
+      <div className="flex flex-col items-center rounded-lg border border-dashed border-line-strong px-5 py-20 text-center">
+        <FileText className="h-5 w-5 text-ink-faint" />
+        <p className="mt-4 text-sm font-medium">Nothing here yet</p>
+        <p className="mt-1 text-sm text-ink-faint">{emptyHint}</p>
+      </div>
+    );
+  }
 
-        <div>
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {note.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className={classNames(
-                  "rounded-md px-2 py-1 text-[10px] font-semibold",
-                  selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
-                )}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-          <div
-            className={classNames(
-              "mt-4 flex items-center justify-between border-t pt-3 text-xs font-semibold",
-              selected ? "border-blue-100 text-slate-600" : "border-slate-100 text-slate-500",
-            )}
-          >
-            <span className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {note.rating ? note.rating.toFixed(1) : "New"}
-            </span>
-            <span className="flex items-center gap-1">
-              <Download className="h-3.5 w-3.5" />
-              {formatCount(note.downloads)}
-            </span>
-          </div>
-        </div>
-      </button>
+  if (layoutMode === "grid") {
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {notes.map((note) => (
+          <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+        ))}
+      </div>
     );
   }
 
   return (
+    <div className="space-y-2">
+      {notes.map((note) => (
+        <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+      ))}
+    </div>
+  );
+}
+
+function FileBadge({ type }: { type: FileType }) {
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-paper font-mono text-[10px] font-semibold text-ink-soft">
+      {type}
+    </span>
+  );
+}
+
+function NoteRow({ note, onOpen }: { note: Note; onOpen: () => void }) {
+  return (
     <button
       type="button"
       onClick={onOpen}
-      className={classNames(
-        "grid w-full min-w-0 grid-cols-1 items-start gap-3 rounded-lg border px-4 py-3 text-left transition hover:border-slate-300 hover:shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:grid-cols-[minmax(0,1fr)_90px_90px_auto] lg:grid-cols-[minmax(0,1fr)_110px_110px_90px]",
-        selected
-          ? "cv-note-selected border-blue-700 bg-blue-50 text-slate-950 shadow-sm"
-          : "border-slate-200 bg-white text-slate-950",
-      )}
+      className="group flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-3 text-left transition hover:border-line-strong"
     >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          className={classNames(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border text-[10px] font-bold uppercase",
-            selected
-              ? "border-blue-200 bg-white text-blue-700"
-              : "border-rose-200 bg-rose-50 text-rose-600",
-          )}
-        >
-          {note.fileType}
+      <FileBadge type={note.fileType} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-sm font-medium">{note.title}</span>
+          {note.saved ? <Bookmark className="h-3 w-3 shrink-0 fill-current text-ink-soft" /> : null}
         </span>
-        <div className="min-w-0">
-          <h4 className="truncate text-sm font-semibold">{note.title}</h4>
-          <p
-            className={classNames(
-              "mt-1 truncate text-xs font-medium",
-              "text-slate-500",
-            )}
-          >
-            Sem {note.semester} · {note.subject} · {note.unit}
-          </p>
-          <div className="mt-2 hidden flex-wrap gap-1.5 sm:flex">
-            {note.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className={classNames(
-                  "rounded-md px-2 py-0.5 text-[10px] font-semibold",
-                  selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
-                )}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+        <span className="mt-0.5 block truncate text-xs text-ink-faint">
+          {note.subject} · Sem {note.semester} · {note.unit}
+        </span>
+      </span>
+      <span className="hidden shrink-0 font-mono text-xs text-ink-faint sm:block">{note.courseCode}</span>
+      <span className="flex shrink-0 items-center gap-1 font-mono text-xs text-ink-faint">
+        <Star className="h-3 w-3" />
+        {note.rating ? note.rating.toFixed(1) : "—"}
+      </span>
+      <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-faint opacity-0 transition group-hover:opacity-100" />
+    </button>
+  );
+}
 
-      <div
-        className={classNames(
-          "hidden items-center gap-1 text-xs font-semibold md:flex",
-          "text-slate-600",
-        )}
-      >
-        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-        {note.rating ? note.rating.toFixed(1) : "New"}
+function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex flex-col rounded-lg border border-line bg-surface p-4 text-left transition hover:border-line-strong"
+    >
+      <div className="flex w-full items-start justify-between gap-3">
+        <FileBadge type={note.fileType} />
+        <span className="font-mono text-xs text-ink-faint">{note.courseCode}</span>
       </div>
-      <div
-        className={classNames(
-          "hidden items-center gap-1 text-xs font-semibold md:flex",
-          "text-slate-600",
-        )}
-      >
-        <Download className="h-3.5 w-3.5" />
-        {formatCount(note.downloads)}
-      </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end lg:gap-3">
-        <span
-          className={classNames(
-            "rounded-lg px-2.5 py-1 text-xs font-semibold",
-            selected ? "bg-white text-blue-700" : "bg-slate-100 text-slate-600",
-          )}
-        >
-          {note.courseCode}
+      <h3 className="mt-4 line-clamp-2 text-sm font-semibold">{note.title}</h3>
+      <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-faint">{note.topic}</p>
+      <div className="mt-4 flex w-full items-center justify-between border-t border-line pt-3 font-mono text-xs text-ink-faint">
+        <span className="flex items-center gap-1">
+          <Star className="h-3 w-3" />
+          {note.rating ? note.rating.toFixed(1) : "—"}
         </span>
-        <span
-          className={classNames(
-            "hidden text-xs font-semibold xl:inline",
-            "text-slate-400",
-          )}
-        >
-          {note.uploadDate}
-        </span>
-        <span className="p-1 text-slate-300 transition">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="12" cy="5" r="1"></circle>
-            <circle cx="12" cy="19" r="1"></circle>
-          </svg>
+        <span className="flex items-center gap-1">
+          <Download className="h-3 w-3" />
+          {formatCount(note.downloads)}
         </span>
       </div>
     </button>
   );
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  detail,
-  tone,
+function ProfileView({
+  uploads,
+  savedCount,
+  totalDownloads,
+  averageRating,
+  onOpenNote,
+  onUpload,
 }: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  detail: string;
-  tone: string;
+  uploads: Note[];
+  savedCount: number;
+  totalDownloads: number;
+  averageRating: number;
+  onOpenNote: (id: string) => void;
+  onUpload: () => void;
 }) {
-  return (
-    <div className="widget-card rounded-lg p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div
-          className={classNames(
-            "flex h-10 w-10 items-center justify-center rounded-md border",
-            tone,
-          )}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        <ArrowUpRight className="h-4 w-4 text-slate-300" />
-      </div>
-      <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        {label}
-      </p>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
-        <p className="max-w-32 text-right text-xs font-medium leading-5 text-slate-500">{detail}</p>
-      </div>
-    </div>
-  );
-}
-
-/* PROGRESS BAR COMPONENT */
-function ProgressItem({
-  label,
-  percentage,
-  color,
-}: {
-  label: string;
-  percentage: number;
-  color: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center justify-between text-[10px] font-bold mb-1">
-        <span className="text-slate-800 truncate max-w-[80%]">{label}</span>
-        <span className="text-slate-500">{percentage}%</span>
-      </div>
-      <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-        <div
-          className={classNames("h-full rounded-full", color)}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* CIRCULAR PROGRESS RING GAUGES */
-function CircularGauge({
-  percentage,
-  color,
-  size,
-}: {
-  percentage: number;
-  color: string;
-  size: number;
-}) {
-  const strokeWidth = 5;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const stats: Array<[string, string]> = [
+    ["Uploads", String(uploads.length)],
+    ["Saved", String(savedCount)],
+    ["Downloads", formatCount(totalDownloads)],
+    ["Avg rating", averageRating.toFixed(1)],
+  ];
 
   return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} className="transform -rotate-90">
-        {/* Background circle */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="transparent"
-          stroke="var(--cv-muted-surface, #e2e8f0)"
-          strokeWidth={strokeWidth}
-        />
-        {/* Colored progress circle */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="transparent"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className="absolute text-[10px] font-extrabold text-slate-800">{percentage}%</span>
-    </div>
-  );
-}
-
-/* UPLOAD DIALOG */
-function UploadDialog({
-  draft,
-  onDraftChange,
-  onClose,
-  onSubmit,
-}: {
-  draft: UploadDraft;
-  onDraftChange: (draft: UploadDraft) => void;
-  onClose: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-}) {
-  function updateField<K extends keyof UploadDraft>(key: K, value: UploadDraft[K]) {
-    onDraftChange({ ...draft, [key]: value });
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <form
-        onSubmit={onSubmit}
-        className="cv-dialog-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-slate-100 bg-white shadow-2xl"
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+    <div className="space-y-8">
+      <section className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="flex items-center gap-4">
+          <Avatar name={currentUser.name} size="lg" />
           <div>
-            <h2 className="text-base font-extrabold text-slate-800">Upload academic note</h2>
-            <p className="mt-1 text-xs text-slate-400 font-semibold">
-              Auto-publishes into the local prototype workspace.
-            </p>
+            <h2 className="text-lg font-semibold tracking-tight">{currentUser.name}</h2>
+            <p className="mt-0.5 text-sm text-ink-faint">{currentUser.email}</p>
+            <p className="mt-0.5 font-mono text-xs text-ink-faint">{currentUser.role}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onUpload}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85"
+          >
+            <Upload className="h-4 w-4" />
+            Upload
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
+        {stats.map(([label, value]) => (
+          <div key={label} className="bg-surface p-4 sm:p-5">
+            <p className="font-mono text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="mt-1 text-xs font-medium text-ink-faint">{label}</p>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <div className="pb-3">
+          <SectionLabel>Your contributions</SectionLabel>
+        </div>
+        {uploads.length ? (
+          <div className="space-y-2">
+            {uploads.map((note) => (
+              <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-line-strong px-5 py-14 text-center">
+            <p className="text-sm font-medium">No uploads yet</p>
+            <p className="mt-1 text-sm text-ink-faint">Share your first resource with your class.</p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function DetailDrawer({
+  note,
+  onClose,
+  onToggleSaved,
+}: {
+  note: Note;
+  onClose: () => void;
+  onToggleSaved: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/25">
+      <button type="button" className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close detail" />
+      <aside className="relative flex h-full w-full max-w-lg flex-col border-l border-line bg-surface shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <FileBadge type={note.fileType} />
+            <div>
+              <p className="font-mono text-sm font-medium">{note.courseCode}</p>
+              <p className="text-xs text-ink-faint">{note.subject}</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper hover:text-ink"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-6">
+          <h2 className="text-xl font-semibold tracking-tight">{note.title}</h2>
+          <p className="mt-3 text-sm leading-6 text-ink-soft">{note.summary}</p>
+
+          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">
+            {(
+              [
+                ["Rating", note.rating ? note.rating.toFixed(1) : "—"],
+                ["Downloads", formatCount(note.downloads)],
+                ["Size", note.fileSize],
+                ["Pages", note.pages ? String(note.pages) : "—"],
+              ] as Array<[string, string]>
+            ).map(([label, value]) => (
+              <div key={label} className="bg-surface p-3.5">
+                <p className="font-mono text-base font-semibold">{value}</p>
+                <p className="mt-0.5 text-[11px] text-ink-faint">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex items-center gap-3 rounded-lg border border-line bg-paper p-3.5">
+            <Avatar name={note.uploader} size="sm" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{note.uploader}</p>
+              <p className="truncate text-xs text-ink-faint">
+                {note.uploaderRole} · {note.uploadDate}
+              </p>
+            </div>
+          </div>
+
+          {note.tags.length ? (
+            <div className="mt-6">
+              <SectionLabel>Tags</SectionLabel>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {note.tags.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-ink-soft"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 border-t border-line p-4">
+          <button
+            type="button"
+            onClick={onToggleSaved}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+          >
+            <Bookmark className={cx("h-4 w-4", note.saved && "fill-current")} />
+            {note.saved ? "Saved" : "Save"}
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85"
+          >
+            <Download className="h-4 w-4" />
+            Download
+          </button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function UploadDialog({
+  draft,
+  onDraftChange,
+  onSubmit,
+  onClose,
+}: {
+  draft: UploadDraft;
+  onDraftChange: (draft: UploadDraft) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onClose: () => void;
+}) {
+  function update<K extends keyof UploadDraft>(key: K, value: UploadDraft[K]) {
+    onDraftChange({ ...draft, [key]: value });
+  }
+
+  const inputClasses =
+    "h-9 rounded-md border border-line bg-surface px-3 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+      <form
+        onSubmit={onSubmit}
+        className="w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight">Upload resource</h2>
+            <p className="mt-0.5 text-sm text-ink-faint">Add metadata before the file enters review.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper hover:text-ink"
             aria-label="Close upload dialog"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-800 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="grid gap-4 p-5 sm:grid-cols-2">
-          <Field label="Title" className="sm:col-span-2">
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+            Title
             <input
+              required
               value={draft.title}
-              onChange={(event) => updateField("title", event.target.value)}
-              placeholder="e.g. Compiler Design Unit 3 Notes"
-              className="form-field"
+              onChange={(event) => update("title", event.target.value)}
+              placeholder="DBMS – Unit 3 Notes"
+              className={inputClasses}
             />
-          </Field>
-          <Field label="Subject">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Subject
             <input
               value={draft.subject}
-              onChange={(event) => updateField("subject", event.target.value)}
-              placeholder="Computer Science"
-              className="form-field"
+              onChange={(event) => update("subject", event.target.value)}
+              className={inputClasses}
             />
-          </Field>
-          <Field label="Course code">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Course code
             <input
               value={draft.courseCode}
-              onChange={(event) => updateField("courseCode", event.target.value)}
-              placeholder="CS352"
-              className="form-field uppercase"
+              onChange={(event) => update("courseCode", event.target.value)}
+              placeholder="CS302"
+              className={inputClasses}
             />
-          </Field>
-          <Field label="Semester">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Semester
             <select
               value={draft.semester}
-              onChange={(event) => updateField("semester", event.target.value)}
-              className="form-field"
+              onChange={(event) => update("semester", event.target.value)}
+              className={cx(inputClasses, "appearance-none")}
             >
               {["1", "2", "3", "4", "5", "6", "7", "8"].map((item) => (
                 <option key={item} value={item}>
@@ -1767,325 +1023,66 @@ function UploadDialog({
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Unit">
-            <input
-              value={draft.unit}
-              onChange={(event) => updateField("unit", event.target.value)}
-              placeholder="Unit 2"
-              className="form-field"
-            />
-          </Field>
-          <Field label="File type">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            File type
             <select
               value={draft.fileType}
-              onChange={(event) => updateField("fileType", event.target.value as FileType)}
-              className="form-field"
+              onChange={(event) => update("fileType", event.target.value as FileType)}
+              className={cx(inputClasses, "appearance-none")}
             >
-              {(["PDF", "DOCX", "PPTX", "ZIP"] satisfies FileType[]).map((item) => (
+              {["PDF", "DOCX", "PPTX", "ZIP"].map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="File">
-            <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-200 px-3 text-xs font-semibold text-slate-500 hover:border-[#1d4ed8]/40 hover:text-slate-800 transition">
-              <Upload className="h-4 w-4" />
-              <span className="truncate">{draft.fileName || "Choose file"}</span>
-              <input
-                type="file"
-                className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  updateField("fileName", file?.name ?? "");
-                }}
-              />
-            </label>
-          </Field>
-          <Field label="Tags" className="sm:col-span-2">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Unit
+            <input
+              value={draft.unit}
+              onChange={(event) => update("unit", event.target.value)}
+              placeholder="Unit 3"
+              className={inputClasses}
+            />
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium">
+            Tags
             <input
               value={draft.tags}
-              onChange={(event) => updateField("tags", event.target.value)}
-              placeholder="comma separated: pyq, unit 3, numericals"
-              className="form-field"
+              onChange={(event) => update("tags", event.target.value)}
+              placeholder="DBMS, SQL, PYQ"
+              className={inputClasses}
             />
-          </Field>
-          <Field label="Summary" className="sm:col-span-2">
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+            Description
             <textarea
               value={draft.summary}
-              onChange={(event) => updateField("summary", event.target.value)}
-              placeholder="Short description students will see in the detail panel"
-              className="form-field min-h-24 resize-y py-3"
+              onChange={(event) => update("summary", event.target.value)}
+              rows={3}
+              className="resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint"
             />
-          </Field>
+          </label>
         </div>
 
-        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 p-5 sm:flex-row sm:justify-end">
+        <div className="flex justify-end gap-2 border-t border-line p-4">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            className="inline-flex h-9 items-center rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-xs font-bold text-white hover:bg-slate-800 transition"
+            className="inline-flex h-9 items-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85"
           >
-            <Check className="h-4 w-4" />
-            Publish upload
+            Submit upload
           </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-/* FIELD WRAPPER */
-function Field({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <label className={classNames("block", className)}>
-      <span className="mb-1.5 block text-xs font-bold text-slate-500">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-/* TOAST */
-function ToastMessage({ toast }: { toast: Toast }) {
-  return (
-    <div className="cv-toast-panel fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-lg border border-slate-100 bg-white p-4 shadow-2xl">
-      <div className="flex gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1d4ed8] border border-blue-100">
-          <Check className="h-4 w-4" />
-        </div>
-        <div>
-          <p className="text-xs font-extrabold text-slate-800">{toast.title}</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-slate-400 font-semibold">
-            {toast.detail}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* PROFILE VIEW COMPONENT */
-function ProfileView({
-  notes,
-  savedCount,
-  uploadCount,
-  totalDownloads,
-  averageRating,
-  onOpenNote,
-  onUploadOpen,
-}: {
-  notes: Note[];
-  savedCount: number;
-  uploadCount: number;
-  totalDownloads: number;
-  averageRating: number;
-  onOpenNote: (id: string) => void;
-  onUploadOpen: () => void;
-}) {
-  const [profileName, setProfileName] = useState(currentUser.name);
-  const [profileMajor, setProfileMajor] = useState("Computer Science & Engineering");
-  const [profileSemester, setProfileSemester] = useState("5");
-  const [profileEmail, setProfileEmail] = useState("arjun.mehta@university.edu");
-  const [isSaved, setIsSaved] = useState(false);
-
-  // Get user's uploads
-  const userUploads = useMemo(() => {
-    return notes.filter((note) => note.ownerId === "current-user" || note.ownerId === currentUser.id);
-  }, [notes]);
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
-  };
-
-  return (
-    <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_2fr]">
-      {/* LEFT COLUMN: USER DETAILS */}
-      <div className="flex flex-col gap-6">
-        <div className="widget-card p-6 flex flex-col items-center text-center">
-          <div className="relative h-28 w-28 border-4 border-[var(--cv-border)] bg-[var(--cv-border)] overflow-hidden mb-4">
-            <img
-              src="/avatar_arjun.png"
-              alt="User avatar"
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <h2 className="text-2xl font-black uppercase tracking-tight">{profileName}</h2>
-          <p className="text-xs font-black uppercase text-[#E03C31] mt-1">{profileMajor}</p>
-          
-          <div className="w-full mt-6 border-t-2 border-[var(--cv-border)] pt-4 flex flex-col gap-2.5 text-xs text-left">
-            <div className="flex justify-between">
-              <span className="font-bold text-stone-500 uppercase">ROLE</span>
-              <span className="font-black">STUDENT CONTRIBUTOR</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-stone-500 uppercase">SEMESTER</span>
-              <span className="font-black">SEM {profileSemester}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-stone-500 uppercase">STUDENT ID</span>
-              <span className="font-black">CSE-2024-104</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-stone-500 uppercase">INDEX RATING</span>
-              <span className="font-black text-green-600">VERIFIED INDEXER</span>
-            </div>
-          </div>
-        </div>
-
-        {/* PROFILE EDIT FORM */}
-        <div className="widget-card p-6">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8] block mb-3">01 / PROFILE SETTINGS</span>
-          <form onSubmit={handleSave} className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="p-name" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">NAME</label>
-              <input
-                type="text"
-                id="p-name"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                className="form-field text-xs font-bold"
-              />
-            </div>
-            <div>
-              <label htmlFor="p-email" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">EMAIL</label>
-              <input
-                type="email"
-                id="p-email"
-                value={profileEmail}
-                onChange={(e) => setProfileEmail(e.target.value)}
-                className="form-field text-xs font-bold"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="p-sem" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">SEMESTER</label>
-                <select
-                  id="p-sem"
-                  value={profileSemester}
-                  onChange={(e) => setProfileSemester(e.target.value)}
-                  className="form-field text-xs font-bold"
-                >
-                  {["1", "2", "3", "4", "5", "6", "7", "8"].map((sem) => (
-                    <option key={sem} value={sem}>Sem {sem}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="p-major" className="text-[10px] font-black uppercase tracking-wider block mb-1.5">MAJOR</label>
-                <input
-                  type="text"
-                  id="p-major"
-                  value={profileMajor}
-                  onChange={(e) => setProfileMajor(e.target.value)}
-                  className="form-field text-xs font-bold"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="cv-primary-btn w-full h-10 mt-2 text-xs font-bold tracking-widest text-[#F5F4EF]"
-            >
-              {isSaved ? "SETTINGS SAVED" : "SAVE SETTINGS"}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: STATS & MY UPLOADS */}
-      <div className="flex flex-col gap-6">
-        
-        {/* STATS ROW */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="widget-card p-5">
-            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">UPLOADS</span>
-            <p className="text-4xl font-black mt-2">{userUploads.length}</p>
-            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Conceded files</p>
-          </div>
-          <div className="widget-card p-5">
-            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">DOWNLOADS</span>
-            <p className="text-4xl font-black mt-2">{formatCount(totalDownloads)}</p>
-            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Mock traffic</p>
-          </div>
-          <div className="widget-card p-5">
-            <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider font-bold">AVG RATING</span>
-            <p className="text-4xl font-black mt-2">{averageRating.toFixed(1)}</p>
-            <p className="text-[10px] font-semibold text-stone-500 mt-1 uppercase">Cohort reviews</p>
-          </div>
-        </div>
-
-        {/* MY UPLOADS LIST */}
-        <div className="widget-card p-6 flex-1 flex flex-col">
-          <div className="flex items-center justify-between border-b-2 border-[var(--cv-border)] pb-4 mb-4">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#1D4ED8]">02 / PERSONAL VAULT CONTRIBUTIONS</span>
-              <h3 className="text-lg font-black uppercase mt-1">My Uploaded Resources</h3>
-            </div>
-            <button
-              onClick={onUploadOpen}
-              className="cv-primary-btn px-4 py-2 text-xs font-bold tracking-widest text-[#F5F4EF]"
-            >
-              UPLOAD NEW
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto max-h-[360px] pr-1 space-y-3">
-            {userUploads.length > 0 ? (
-              userUploads.map((note) => (
-                <div
-                  key={note.id}
-                  className="flex items-center justify-between border-2 border-[var(--cv-border)] p-3 hover:bg-[var(--cv-muted-surface)]/20 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#E03C31] text-white px-2 py-0.5 text-[8px] font-black tracking-widest uppercase">
-                        {note.fileType}
-                      </span>
-                      <span className="text-[9px] font-bold text-stone-500 uppercase tracking-widest">
-                        {note.courseCode} · Sem {note.semester}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-black truncate mt-1.5 uppercase tracking-wide">{note.title}</h4>
-                    <p className="text-[9px] font-bold text-[#E03C31] mt-0.5 uppercase tracking-widest">
-                      {note.subject} · {note.unit}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => onOpenNote(note.id)}
-                      className="border-2 border-[var(--cv-border)] px-3 py-1.5 text-[10px] font-bold hover:bg-[var(--cv-border)] hover:text-[var(--cv-card)] transition-colors uppercase tracking-wider"
-                    >
-                      VIEW
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-12 text-xs font-bold text-stone-400 uppercase tracking-widest">
-                You have not uploaded any resources yet.
-              </div>
-            )}
-          </div>
-        </div>
-
-      </div>
     </div>
   );
 }

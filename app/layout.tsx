@@ -5,10 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ClassVault",
-  description: "A student notes-sharing workspace for academic resources.",
-  icons: {
-    icon: "/logo_badge.png",
-  },
+  description: "A shared library of notes, PYQs, and study resources for your class.",
 };
 
 export default function RootLayout({
@@ -17,11 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }
