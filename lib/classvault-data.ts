@@ -1,3 +1,6 @@
+// Seed data only — consumed by prisma/seed.ts. The app reads everything
+// through /api/* routes; do not import this from client components.
+
 export type FileType = "PDF" | "DOCX" | "PPTX" | "ZIP";
 
 export type Note = {
@@ -23,45 +26,12 @@ export type Note = {
   pages?: number;
 };
 
-export type UploadDraft = {
-  title: string;
-  subject: string;
-  semester: string;
-  courseCode: string;
-  unit: string;
-  fileType: FileType;
-  tags: string;
-  summary: string;
-  fileName: string;
-};
-
 export const currentUser = {
   id: "current-user",
   name: "Arjun Mehta",
   role: "Student",
   email: "arjun.mehta@classvault.edu",
 };
-
-export const emptyUploadDraft: UploadDraft = {
-  title: "",
-  subject: "",
-  semester: "5",
-  courseCode: "",
-  unit: "",
-  fileType: "PDF",
-  tags: "",
-  summary: "",
-  fileName: "",
-};
-
-export function initialsOf(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
 
 export const initialNotes: Note[] = [
   {

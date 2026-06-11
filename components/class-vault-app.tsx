@@ -21,16 +21,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
-  currentUser,
-  emptyUploadDraft,
-  initialNotes,
-  initialsOf,
-  type FileType,
-  type Note,
-  type UploadDraft,
-} from "@/lib/classvault-data";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import type { ApiError, ApiNote, ApiUser, MetaResponse, NotesResponse } from "@/lib/api-types";
+import { formatBytes, formatCount, formatDate, initialsOf } from "@/lib/format";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
 type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile";
@@ -40,6 +40,28 @@ type StudyTask = {
   id: string;
   title: string;
   done: boolean;
+};
+
+type UploadDraft = {
+  title: string;
+  subject: string;
+  semester: string;
+  courseCode: string;
+  unit: string;
+  tags: string;
+  description: string;
+  file: File | null;
+};
+
+const emptyDraft: UploadDraft = {
+  title: "",
+  subject: "",
+  semester: "5",
+  courseCode: "",
+  unit: "",
+  tags: "",
+  description: "",
+  file: null,
 };
 
 const navItems: Array<{ id: ActiveView; label: string; icon: LucideIcon }> = [
@@ -68,125 +90,204 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function formatCount(value: number) {
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
-  return String(value);
+async function readError(response: Response) {
+  try {
+    const body = (await response.json()) as ApiError;
+    return body.error?.message ?? `Request failed (${response.status})`;
+  } catch {
+    return `Request failed (${response.status})`;
+  }
 }
 
 export function ClassVaultApp() {
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [me, setMe] = useState<ApiUser | null>(null);
+  const [meta, setMeta] = useState<MetaResponse | null>(null);
+  const [notes, setNotes] = useState<ApiNote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
   const [query, setQuery] = useState("");
   const [semester, setSemester] = useState("All");
   const [subject, setSubject] = useState("All");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("list");
-  const [openNoteId, setOpenNoteId] = useState<string | null>(null);
+  const [openNote, setOpenNote] = useState<ApiNote | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [uploadDraft, setUploadDraft] = useState<UploadDraft>(emptyUploadDraft);
   const [tasks, setTasks] = useState<StudyTask[]>(initialStudyTasks);
   const [newTask, setNewTask] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const refetchCounter = useRef(0);
+  const [refetchTick, setRefetchTick] = useState(0);
 
-  const savedCount = notes.filter((note) => note.saved).length;
-  const myUploads = notes.filter((note) => note.ownerId === "current-user");
-  const totalDownloads = notes.reduce((sum, note) => sum + note.downloads, 0);
-  const averageRating = notes.length
-    ? notes.reduce((sum, note) => sum + note.rating, 0) / notes.length
-    : 0;
+  const refreshMeta = useCallback(async () => {
+    try {
+      const response = await fetch("/api/meta");
+      if (response.ok) setMeta((await response.json()) as MetaResponse);
+    } catch {
+      // non-fatal; stats refresh on next successful call
+    }
+  }, []);
 
-  const semesters = useMemo(
-    () => ["All", ...Array.from(new Set(notes.map((note) => note.semester))).sort((a, b) => Number(a) - Number(b))],
-    [notes],
-  );
-  const subjects = useMemo(
-    () => ["All", ...Array.from(new Set(notes.map((note) => note.subject))).sort()],
-    [notes],
-  );
+  useEffect(() => {
+    const timer = window.setTimeout(async () => {
+      void refreshMeta();
+      try {
+        const response = await fetch("/api/me");
+        if (response.ok) setMe((await response.json()) as ApiUser);
+      } catch {
+        // profile chrome degrades gracefully without a user
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [refreshMeta]);
 
-  const filteredNotes = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+  // Server-side filtering: every filter/view change becomes /api/notes params.
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    if (activeView !== "dashboard") {
+      if (query.trim()) params.set("q", query.trim());
+      if (semester !== "All") params.set("semester", semester);
+      if (subject !== "All") params.set("subject", subject);
+    }
+    if (activeView === "saved") params.set("saved", "true");
+    if (activeView === "uploads" || activeView === "profile") params.set("owner", "me");
 
-    return notes.filter((note) => {
-      const viewMatch =
-        activeView === "saved"
-          ? note.saved
-          : activeView === "uploads"
-            ? note.ownerId === "current-user"
-            : true;
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/notes?${params}`, { signal: controller.signal });
+        if (!response.ok) throw new Error(await readError(response));
+        const data = (await response.json()) as NotesResponse;
+        setNotes(data.items);
+        setLoadError(null);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setLoadError(error instanceof Error ? error.message : "Failed to load resources.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, query ? 300 : 0);
 
-      const queryMatch = normalized
-        ? [note.title, note.subject, note.courseCode, note.unit, note.topic, ...note.tags]
-            .join(" ")
-            .toLowerCase()
-            .includes(normalized)
-        : true;
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [activeView, query, semester, subject, refetchTick]);
 
-      return (
-        viewMatch &&
-        queryMatch &&
-        (semester === "All" || note.semester === semester) &&
-        (subject === "All" || note.subject === subject)
-      );
-    });
-  }, [activeView, notes, query, semester, subject]);
-
-  const openNote = openNoteId ? notes.find((note) => note.id === openNoteId) ?? null : null;
+  const refetchNotes = useCallback(() => {
+    refetchCounter.current += 1;
+    setRefetchTick(refetchCounter.current);
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 3200);
+    const timer = window.setTimeout(() => setToast(null), 3500);
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  function toggleSaved(noteId: string) {
+  function patchNote(noteId: string, patch: Partial<ApiNote>) {
     setNotes((current) =>
-      current.map((note) => (note.id === noteId ? { ...note, saved: !note.saved } : note)),
+      current.map((note) => (note.id === noteId ? { ...note, ...patch } : note)),
     );
+    setOpenNote((current) => (current?.id === noteId ? { ...current, ...patch } : current));
   }
 
-  function resetFilters() {
-    setQuery("");
-    setSemester("All");
-    setSubject("All");
+  async function toggleSaved(note: ApiNote) {
+    const nextSaved = !note.savedByMe;
+    patchNote(note.id, { savedByMe: nextSaved });
+    try {
+      const response = await fetch(`/api/notes/${note.id}/save`, {
+        method: nextSaved ? "POST" : "DELETE",
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      void refreshMeta();
+      if (activeView === "saved") refetchNotes();
+    } catch (error) {
+      patchNote(note.id, { savedByMe: note.savedByMe });
+      setToast(error instanceof Error ? error.message : "Could not update saved state.");
+    }
   }
 
-  function submitUpload(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function rateNote(note: ApiNote, value: number) {
+    try {
+      const response = await fetch(`/api/notes/${note.id}/rating`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const result = (await response.json()) as {
+        ratingAverage: number;
+        ratingCount: number;
+        myRating: number;
+      };
+      patchNote(note.id, result);
+      void refreshMeta();
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not save rating.");
+    }
+  }
 
-    const title = uploadDraft.title.trim();
-    if (!title) return;
+  async function downloadNote(note: ApiNote) {
+    try {
+      const response = await fetch(`/api/notes/${note.id}/download`, { method: "POST" });
+      if (!response.ok) throw new Error(await readError(response));
+      const result = (await response.json()) as {
+        downloadUrl: string | null;
+        downloadCount: number;
+      };
+      patchNote(note.id, { downloadCount: result.downloadCount });
+      void refreshMeta();
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, "_blank");
+      } else {
+        setToast("Download recorded — seeded resource has no file attached.");
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not download.");
+    }
+  }
 
-    const tags = uploadDraft.tags
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+  async function submitUpload(draft: UploadDraft) {
+    if (!draft.file) {
+      setToast("Choose a file to upload.");
+      return false;
+    }
+    try {
+      const formData = new FormData();
+      formData.set("file", draft.file);
+      const uploadResponse = await fetch("/api/uploads", { method: "POST", body: formData });
+      if (!uploadResponse.ok) throw new Error(await readError(uploadResponse));
+      const { storageKey } = (await uploadResponse.json()) as { storageKey: string };
 
-    const note: Note = {
-      id: `note-${Date.now()}`,
-      title,
-      subject: uploadDraft.subject.trim() || "General",
-      semester: uploadDraft.semester,
-      courseCode: uploadDraft.courseCode.trim().toUpperCase() || "—",
-      unit: uploadDraft.unit.trim() || "Uploaded resource",
-      topic: tags[0] || uploadDraft.unit.trim() || "Student contribution",
-      uploader: currentUser.name,
-      uploaderRole: currentUser.role,
-      fileType: uploadDraft.fileType,
-      fileSize: "Pending",
-      uploadDate: "Just now",
-      rating: 0,
-      ratingsCount: 0,
-      downloads: 0,
-      tags,
-      summary: uploadDraft.summary.trim() || "New upload awaiting review.",
-      ownerId: "current-user",
-      saved: false,
-    };
+      const noteResponse = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: draft.title.trim(),
+          description: draft.description.trim(),
+          subject: draft.subject.trim() || "General",
+          semester: draft.semester,
+          courseCode: draft.courseCode.trim() || "MISC",
+          unit: draft.unit.trim(),
+          topic: "",
+          storageKey,
+          tags: draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        }),
+      });
+      if (!noteResponse.ok) throw new Error(await readError(noteResponse));
 
-    setNotes((current) => [note, ...current]);
-    setUploadDraft(emptyUploadDraft);
-    setUploadOpen(false);
-    setToast("Resource submitted for review");
+      setUploadOpen(false);
+      setToast("Resource published");
+      refetchNotes();
+      void refreshMeta();
+      return true;
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Upload failed.");
+      return false;
+    }
   }
 
   function submitTask(event: FormEvent<HTMLFormElement>) {
@@ -196,6 +297,9 @@ export function ClassVaultApp() {
     setTasks((current) => [...current, { id: `task-${Date.now()}`, title, done: false }]);
     setNewTask("");
   }
+
+  const stats = meta?.stats;
+  const savedBadge = stats?.savedCount ?? 0;
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -233,8 +337,8 @@ export function ClassVaultApp() {
             >
               <item.icon className="h-4 w-4" />
               {item.label}
-              {item.id === "saved" && savedCount > 0 ? (
-                <span className="ml-auto font-mono text-xs text-ink-faint">{savedCount}</span>
+              {item.id === "saved" && savedBadge > 0 ? (
+                <span className="ml-auto font-mono text-xs text-ink-faint">{savedBadge}</span>
               ) : null}
             </button>
           ))}
@@ -245,10 +349,10 @@ export function ClassVaultApp() {
           onClick={() => setActiveView("profile")}
           className="flex items-center gap-3 border-t border-line p-3.5 text-left transition hover:bg-paper"
         >
-          <Avatar name={currentUser.name} size="sm" />
+          <Avatar name={me?.name ?? "?"} size="sm" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-medium">{currentUser.name}</span>
-            <span className="block truncate text-xs text-ink-faint">{currentUser.email}</span>
+            <span className="block truncate text-sm font-medium">{me?.name ?? "Loading…"}</span>
+            <span className="block truncate text-xs text-ink-faint">{me?.email ?? ""}</span>
           </span>
         </button>
       </aside>
@@ -276,7 +380,10 @@ export function ClassVaultApp() {
           <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{viewTitles[activeView]}</h1>
             <div className="flex items-center gap-2">
-              <SearchCommandPalette notes={notes} onSelectNote={setOpenNoteId} />
+              <SearchCommandPalette
+                subjects={meta?.subjects ?? []}
+                onSelectNote={setOpenNote}
+              />
               <button
                 type="button"
                 onClick={() => setUploadOpen(true)}
@@ -291,10 +398,9 @@ export function ClassVaultApp() {
           {activeView === "dashboard" ? (
             <DashboardView
               notes={notes}
-              savedCount={savedCount}
-              uploadCount={myUploads.length}
-              totalDownloads={totalDownloads}
-              averageRating={averageRating}
+              loading={loading}
+              loadError={loadError}
+              stats={stats}
               tasks={tasks}
               newTask={newTask}
               onNewTaskChange={setNewTask}
@@ -305,16 +411,16 @@ export function ClassVaultApp() {
                 )
               }
               onRemoveTask={(id) => setTasks((current) => current.filter((task) => task.id !== id))}
-              onOpenNote={setOpenNoteId}
+              onOpenNote={setOpenNote}
               onGoToLibrary={() => setActiveView("library")}
             />
           ) : activeView === "profile" ? (
             <ProfileView
-              uploads={myUploads}
-              savedCount={savedCount}
-              totalDownloads={totalDownloads}
-              averageRating={averageRating}
-              onOpenNote={setOpenNoteId}
+              me={me}
+              uploads={notes}
+              loading={loading}
+              stats={stats}
+              onOpenNote={setOpenNote}
               onUpload={() => setUploadOpen(true)}
             />
           ) : (
@@ -323,20 +429,27 @@ export function ClassVaultApp() {
                 query={query}
                 onQueryChange={setQuery}
                 semester={semester}
-                semesters={semesters}
+                semesters={["All", ...(meta?.semesters ?? [])]}
                 onSemesterChange={setSemester}
                 subject={subject}
-                subjects={subjects}
+                subjects={["All", ...(meta?.subjects ?? [])]}
                 onSubjectChange={setSubject}
                 layoutMode={layoutMode}
                 onLayoutModeChange={setLayoutMode}
-                onReset={resetFilters}
-                count={filteredNotes.length}
+                onReset={() => {
+                  setQuery("");
+                  setSemester("All");
+                  setSubject("All");
+                }}
+                count={notes.length}
               />
               <NoteCollection
-                notes={filteredNotes}
+                notes={notes}
+                loading={loading}
+                loadError={loadError}
+                onRetry={refetchNotes}
                 layoutMode={layoutMode}
-                onOpenNote={setOpenNoteId}
+                onOpenNote={setOpenNote}
                 emptyHint={
                   activeView === "saved"
                     ? "Resources you bookmark will collect here."
@@ -353,22 +466,19 @@ export function ClassVaultApp() {
       {openNote ? (
         <DetailDrawer
           note={openNote}
-          onClose={() => setOpenNoteId(null)}
-          onToggleSaved={() => toggleSaved(openNote.id)}
+          onClose={() => setOpenNote(null)}
+          onToggleSaved={() => toggleSaved(openNote)}
+          onRate={(value) => rateNote(openNote, value)}
+          onDownload={() => downloadNote(openNote)}
         />
       ) : null}
 
       {uploadOpen ? (
-        <UploadDialog
-          draft={uploadDraft}
-          onDraftChange={setUploadDraft}
-          onSubmit={submitUpload}
-          onClose={() => setUploadOpen(false)}
-        />
+        <UploadDialog onSubmit={submitUpload} onClose={() => setUploadOpen(false)} />
       ) : null}
 
       {toast ? (
-        <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-md border border-line bg-ink px-4 py-2.5 text-sm font-medium text-surface shadow-lg lg:bottom-6">
+        <div className="fixed bottom-20 left-1/2 z-[95] w-max max-w-[90vw] -translate-x-1/2 rounded-md border border-line bg-ink px-4 py-2.5 text-sm font-medium text-surface shadow-lg lg:bottom-6">
           {toast}
         </div>
       ) : null}
@@ -408,12 +518,37 @@ function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
+function LoadingRows({ count = 4 }: { count?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="h-16 animate-pulse rounded-lg border border-line bg-surface" />
+      ))}
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center rounded-lg border border-dashed border-line-strong px-5 py-16 text-center">
+      <p className="text-sm font-medium">Could not load resources</p>
+      <p className="mt-1 text-sm text-ink-faint">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-4 inline-flex h-9 items-center rounded-md border border-line bg-surface px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
+
 function DashboardView({
   notes,
-  savedCount,
-  uploadCount,
-  totalDownloads,
-  averageRating,
+  loading,
+  loadError,
+  stats,
   tasks,
   newTask,
   onNewTaskChange,
@@ -423,25 +558,24 @@ function DashboardView({
   onOpenNote,
   onGoToLibrary,
 }: {
-  notes: Note[];
-  savedCount: number;
-  uploadCount: number;
-  totalDownloads: number;
-  averageRating: number;
+  notes: ApiNote[];
+  loading: boolean;
+  loadError: string | null;
+  stats: MetaResponse["stats"] | undefined;
   tasks: StudyTask[];
   newTask: string;
   onNewTaskChange: (value: string) => void;
   onSubmitTask: (event: FormEvent<HTMLFormElement>) => void;
   onToggleTask: (id: string) => void;
   onRemoveTask: (id: string) => void;
-  onOpenNote: (id: string) => void;
+  onOpenNote: (note: ApiNote) => void;
   onGoToLibrary: () => void;
 }) {
   const metrics: Array<[string, string]> = [
-    ["Resources", String(notes.length)],
-    ["Saved", String(savedCount)],
-    ["Your uploads", String(uploadCount)],
-    ["Downloads", formatCount(totalDownloads)],
+    ["Resources", stats ? String(stats.totalNotes) : "—"],
+    ["Saved", stats ? String(stats.savedCount) : "—"],
+    ["Your uploads", stats ? String(stats.uploadCount) : "—"],
+    ["Downloads", stats ? formatCount(stats.totalDownloads) : "—"],
   ];
 
   return (
@@ -468,11 +602,19 @@ function DashboardView({
               <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="space-y-2">
-            {notes.slice(0, 5).map((note) => (
-              <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
-            ))}
-          </div>
+          {loading ? (
+            <LoadingRows count={5} />
+          ) : loadError ? (
+            <p className="rounded-lg border border-dashed border-line-strong px-4 py-10 text-center text-sm text-ink-faint">
+              {loadError}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {notes.slice(0, 5).map((note) => (
+                <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
+              ))}
+            </div>
+          )}
         </section>
 
         <section>
@@ -541,7 +683,9 @@ function DashboardView({
               <p className="text-sm font-medium">Library rating</p>
               <Star className="h-4 w-4 text-ink-faint" />
             </div>
-            <p className="mt-3 font-mono text-2xl font-semibold">{averageRating.toFixed(1)}</p>
+            <p className="mt-3 font-mono text-2xl font-semibold">
+              {stats ? stats.ratingAverage.toFixed(1) : "—"}
+            </p>
             <p className="mt-1 text-xs text-ink-faint">average across all resources</p>
           </div>
         </section>
@@ -661,15 +805,24 @@ function FilterSelect({
 
 function NoteCollection({
   notes,
+  loading,
+  loadError,
+  onRetry,
   layoutMode,
   onOpenNote,
   emptyHint,
 }: {
-  notes: Note[];
+  notes: ApiNote[];
+  loading: boolean;
+  loadError: string | null;
+  onRetry: () => void;
   layoutMode: LayoutMode;
-  onOpenNote: (id: string) => void;
+  onOpenNote: (note: ApiNote) => void;
   emptyHint: string;
 }) {
+  if (loading) return <LoadingRows count={6} />;
+  if (loadError) return <ErrorState message={loadError} onRetry={onRetry} />;
+
   if (!notes.length) {
     return (
       <div className="flex flex-col items-center rounded-lg border border-dashed border-line-strong px-5 py-20 text-center">
@@ -684,7 +837,7 @@ function NoteCollection({
     return (
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {notes.map((note) => (
-          <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+          <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note)} />
         ))}
       </div>
     );
@@ -693,13 +846,13 @@ function NoteCollection({
   return (
     <div className="space-y-2">
       {notes.map((note) => (
-        <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+        <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
       ))}
     </div>
   );
 }
 
-function FileBadge({ type }: { type: FileType }) {
+function FileBadge({ type }: { type: ApiNote["fileType"] }) {
   return (
     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-paper font-mono text-[10px] font-semibold text-ink-soft">
       {type}
@@ -707,7 +860,7 @@ function FileBadge({ type }: { type: FileType }) {
   );
 }
 
-function NoteRow({ note, onOpen }: { note: Note; onOpen: () => void }) {
+function NoteRow({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -718,7 +871,9 @@ function NoteRow({ note, onOpen }: { note: Note; onOpen: () => void }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="truncate text-sm font-medium">{note.title}</span>
-          {note.saved ? <Bookmark className="h-3 w-3 shrink-0 fill-current text-ink-soft" /> : null}
+          {note.savedByMe ? (
+            <Bookmark className="h-3 w-3 shrink-0 fill-current text-ink-soft" />
+          ) : null}
         </span>
         <span className="mt-0.5 block truncate text-xs text-ink-faint">
           {note.subject} · Sem {note.semester} · {note.unit}
@@ -727,14 +882,14 @@ function NoteRow({ note, onOpen }: { note: Note; onOpen: () => void }) {
       <span className="hidden shrink-0 font-mono text-xs text-ink-faint sm:block">{note.courseCode}</span>
       <span className="flex shrink-0 items-center gap-1 font-mono text-xs text-ink-faint">
         <Star className="h-3 w-3" />
-        {note.rating ? note.rating.toFixed(1) : "—"}
+        {note.ratingCount ? note.ratingAverage.toFixed(1) : "—"}
       </span>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-faint opacity-0 transition group-hover:opacity-100" />
     </button>
   );
 }
 
-function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
+function NoteCard({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -750,11 +905,11 @@ function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
       <div className="mt-4 flex w-full items-center justify-between border-t border-line pt-3 font-mono text-xs text-ink-faint">
         <span className="flex items-center gap-1">
           <Star className="h-3 w-3" />
-          {note.rating ? note.rating.toFixed(1) : "—"}
+          {note.ratingCount ? note.ratingAverage.toFixed(1) : "—"}
         </span>
         <span className="flex items-center gap-1">
           <Download className="h-3 w-3" />
-          {formatCount(note.downloads)}
+          {formatCount(note.downloadCount)}
         </span>
       </div>
     </button>
@@ -762,36 +917,36 @@ function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
 }
 
 function ProfileView({
+  me,
   uploads,
-  savedCount,
-  totalDownloads,
-  averageRating,
+  loading,
+  stats,
   onOpenNote,
   onUpload,
 }: {
-  uploads: Note[];
-  savedCount: number;
-  totalDownloads: number;
-  averageRating: number;
-  onOpenNote: (id: string) => void;
+  me: ApiUser | null;
+  uploads: ApiNote[];
+  loading: boolean;
+  stats: MetaResponse["stats"] | undefined;
+  onOpenNote: (note: ApiNote) => void;
   onUpload: () => void;
 }) {
-  const stats: Array<[string, string]> = [
-    ["Uploads", String(uploads.length)],
-    ["Saved", String(savedCount)],
-    ["Downloads", formatCount(totalDownloads)],
-    ["Avg rating", averageRating.toFixed(1)],
+  const statItems: Array<[string, string]> = [
+    ["Uploads", stats ? String(stats.uploadCount) : "—"],
+    ["Saved", stats ? String(stats.savedCount) : "—"],
+    ["Downloads", stats ? formatCount(stats.totalDownloads) : "—"],
+    ["Avg rating", stats ? stats.ratingAverage.toFixed(1) : "—"],
   ];
 
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="flex items-center gap-4">
-          <Avatar name={currentUser.name} size="lg" />
+          <Avatar name={me?.name ?? "?"} size="lg" />
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">{currentUser.name}</h2>
-            <p className="mt-0.5 text-sm text-ink-faint">{currentUser.email}</p>
-            <p className="mt-0.5 font-mono text-xs text-ink-faint">{currentUser.role}</p>
+            <h2 className="text-lg font-semibold tracking-tight">{me?.name ?? "Loading…"}</h2>
+            <p className="mt-0.5 text-sm text-ink-faint">{me?.email ?? ""}</p>
+            <p className="mt-0.5 font-mono text-xs text-ink-faint">{me?.roleLabel ?? ""}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -814,7 +969,7 @@ function ProfileView({
       </section>
 
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
-        {stats.map(([label, value]) => (
+        {statItems.map(([label, value]) => (
           <div key={label} className="bg-surface p-4 sm:p-5">
             <p className="font-mono text-2xl font-semibold tracking-tight">{value}</p>
             <p className="mt-1 text-xs font-medium text-ink-faint">{label}</p>
@@ -826,10 +981,12 @@ function ProfileView({
         <div className="pb-3">
           <SectionLabel>Your contributions</SectionLabel>
         </div>
-        {uploads.length ? (
+        {loading ? (
+          <LoadingRows count={3} />
+        ) : uploads.length ? (
           <div className="space-y-2">
             {uploads.map((note) => (
-              <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note.id)} />
+              <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
             ))}
           </div>
         ) : (
@@ -847,11 +1004,17 @@ function DetailDrawer({
   note,
   onClose,
   onToggleSaved,
+  onRate,
+  onDownload,
 }: {
-  note: Note;
+  note: ApiNote;
   onClose: () => void;
   onToggleSaved: () => void;
+  onRate: (value: number) => void;
+  onDownload: () => void;
 }) {
+  const [hoverRating, setHoverRating] = useState(0);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/25">
       <button type="button" className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close detail" />
@@ -876,15 +1039,15 @@ function DetailDrawer({
 
         <div className="flex-1 overflow-y-auto px-5 py-6">
           <h2 className="text-xl font-semibold tracking-tight">{note.title}</h2>
-          <p className="mt-3 text-sm leading-6 text-ink-soft">{note.summary}</p>
+          <p className="mt-3 text-sm leading-6 text-ink-soft">{note.description}</p>
 
           <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">
             {(
               [
-                ["Rating", note.rating ? note.rating.toFixed(1) : "—"],
-                ["Downloads", formatCount(note.downloads)],
-                ["Size", note.fileSize],
-                ["Pages", note.pages ? String(note.pages) : "—"],
+                ["Rating", note.ratingCount ? note.ratingAverage.toFixed(1) : "—"],
+                ["Downloads", formatCount(note.downloadCount)],
+                ["Size", formatBytes(note.fileSizeBytes)],
+                ["Pages", note.pageCount ? String(note.pageCount) : "—"],
               ] as Array<[string, string]>
             ).map(([label, value]) => (
               <div key={label} className="bg-surface p-3.5">
@@ -895,12 +1058,52 @@ function DetailDrawer({
           </div>
 
           <div className="mt-6 flex items-center gap-3 rounded-lg border border-line bg-paper p-3.5">
-            <Avatar name={note.uploader} size="sm" />
+            <Avatar name={note.uploader.name} size="sm" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{note.uploader}</p>
+              <p className="truncate text-sm font-medium">{note.uploader.name}</p>
               <p className="truncate text-xs text-ink-faint">
-                {note.uploaderRole} · {note.uploadDate}
+                {note.uploader.roleLabel} · {formatDate(note.createdAt)}
               </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-line p-3.5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">
+                {note.myRating ? "Your rating" : "Rate this resource"}
+              </p>
+              <span className="font-mono text-xs text-ink-faint">
+                {note.ratingCount} rating{note.ratingCount === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div
+              className="mt-3 flex gap-1"
+              onMouseLeave={() => setHoverRating(0)}
+              role="radiogroup"
+              aria-label="Rate this resource from 1 to 5 stars"
+            >
+              {[1, 2, 3, 4, 5].map((value) => {
+                const active = value <= (hoverRating || note.myRating || 0);
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={note.myRating === value}
+                    aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                    onMouseEnter={() => setHoverRating(value)}
+                    onClick={() => onRate(value)}
+                    className="rounded p-0.5 transition hover:scale-110"
+                  >
+                    <Star
+                      className={cx(
+                        "h-5 w-5 transition",
+                        active ? "fill-current text-ink" : "text-line-strong",
+                      )}
+                    />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -927,11 +1130,12 @@ function DetailDrawer({
             onClick={onToggleSaved}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
           >
-            <Bookmark className={cx("h-4 w-4", note.saved && "fill-current")} />
-            {note.saved ? "Saved" : "Save"}
+            <Bookmark className={cx("h-4 w-4", note.savedByMe && "fill-current")} />
+            {note.savedByMe ? "Saved" : "Save"}
           </button>
           <button
             type="button"
+            onClick={onDownload}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85"
           >
             <Download className="h-4 w-4" />
@@ -944,18 +1148,25 @@ function DetailDrawer({
 }
 
 function UploadDialog({
-  draft,
-  onDraftChange,
   onSubmit,
   onClose,
 }: {
-  draft: UploadDraft;
-  onDraftChange: (draft: UploadDraft) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (draft: UploadDraft) => Promise<boolean>;
   onClose: () => void;
 }) {
+  const [draft, setDraft] = useState<UploadDraft>(emptyDraft);
+  const [submitting, setSubmitting] = useState(false);
+
   function update<K extends keyof UploadDraft>(key: K, value: UploadDraft[K]) {
-    onDraftChange({ ...draft, [key]: value });
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    const ok = await onSubmit(draft);
+    if (!ok) setSubmitting(false);
   }
 
   const inputClasses =
@@ -964,13 +1175,13 @@ function UploadDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
       <form
-        onSubmit={onSubmit}
-        className="w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-2xl"
+        onSubmit={handleSubmit}
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
             <h2 className="text-base font-semibold tracking-tight">Upload resource</h2>
-            <p className="mt-0.5 text-sm text-ink-faint">Add metadata before the file enters review.</p>
+            <p className="mt-0.5 text-sm text-ink-faint">PDF, DOCX, PPTX, or ZIP up to 25 MB.</p>
           </div>
           <button
             type="button"
@@ -984,9 +1195,21 @@ function UploadDialog({
 
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+            File
+            <input
+              required
+              type="file"
+              accept=".pdf,.docx,.pptx,.zip"
+              onChange={(event) => update("file", event.target.files?.[0] ?? null)}
+              className="rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-soft outline-none transition file:mr-3 file:rounded file:border-0 file:bg-ink file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface hover:border-line-strong"
+            />
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Title
             <input
               required
+              minLength={3}
+              maxLength={120}
               value={draft.title}
               onChange={(event) => update("title", event.target.value)}
               placeholder="DBMS – Unit 3 Notes"
@@ -996,6 +1219,7 @@ function UploadDialog({
           <label className="grid gap-1.5 text-sm font-medium">
             Subject
             <input
+              required
               value={draft.subject}
               onChange={(event) => update("subject", event.target.value)}
               className={inputClasses}
@@ -1004,6 +1228,7 @@ function UploadDialog({
           <label className="grid gap-1.5 text-sm font-medium">
             Course code
             <input
+              required
               value={draft.courseCode}
               onChange={(event) => update("courseCode", event.target.value)}
               placeholder="CS302"
@@ -1025,20 +1250,6 @@ function UploadDialog({
             </select>
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
-            File type
-            <select
-              value={draft.fileType}
-              onChange={(event) => update("fileType", event.target.value as FileType)}
-              className={cx(inputClasses, "appearance-none")}
-            >
-              {["PDF", "DOCX", "PPTX", "ZIP"].map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1.5 text-sm font-medium">
             Unit
             <input
               value={draft.unit}
@@ -1047,7 +1258,7 @@ function UploadDialog({
               className={inputClasses}
             />
           </label>
-          <label className="grid gap-1.5 text-sm font-medium">
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Tags
             <input
               value={draft.tags}
@@ -1059,8 +1270,8 @@ function UploadDialog({
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Description
             <textarea
-              value={draft.summary}
-              onChange={(event) => update("summary", event.target.value)}
+              value={draft.description}
+              onChange={(event) => update("description", event.target.value)}
               rows={3}
               className="resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint"
             />
@@ -1077,9 +1288,10 @@ function UploadDialog({
           </button>
           <button
             type="submit"
-            className="inline-flex h-9 items-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85"
+            disabled={submitting}
+            className="inline-flex h-9 items-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
           >
-            Submit upload
+            {submitting ? "Uploading…" : "Publish resource"}
           </button>
         </div>
       </form>

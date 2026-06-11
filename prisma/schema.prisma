@@ -1,0 +1,131 @@
+// ClassVault data model. SQLite has no native enums, so enum-like fields
+// (User.role, Note.status, Note.fileType) are strings validated with Zod
+// in lib/server/validation.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  role       String   @default("STUDENT")
+  department String?
+  semester   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  notes      Note[]
+  savedNotes SavedNote[]
+  ratings    Rating[]
+  downloads  DownloadEvent[]
+}
+
+model Note {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  subject       String
+  semester      String
+  courseCode    String
+  unit          String
+  topic         String
+  fileType      String
+  fileSizeBytes Int
+  pageCount     Int?
+  storageKey    String?
+  status        String   @default("PUBLISHED")
+  ratingAverage Float    @default(0)
+  ratingCount   Int      @default(0)
+  downloadCount Int      @default(0)
+  ownerId       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  owner     User            @relation(fields: [ownerId], references: [id])
+  tags      NoteTag[]
+  savedBy   SavedNote[]
+  ratings   Rating[]
+  downloads DownloadEvent[]
+
+  @@index([subject])
+  @@index([semester])
+  @@index([courseCode])
+  @@index([status])
+  @@index([ownerId])
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  notes NoteTag[]
+}
+
+model NoteTag {
+  noteId String
+  tagId  String
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([tagId])
+}
+
+model SavedNote {
+  userId    String
+  noteId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@id([userId, noteId])
+  @@index([userId])
+}
+
+model Rating {
+  userId    String
+  noteId    String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@id([userId, noteId])
+  @@index([noteId])
+}
+
+// Record of a raw file upload, written by /api/uploads before any Note
+// exists. POST /api/notes validates its storageKey against this table so the
+// browser cannot claim arbitrary keys or lie about size/type.
+model UploadedFile {
+  storageKey   String   @id
+  userId       String
+  mimeType     String
+  sizeBytes    Int
+  originalName String
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model DownloadEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  noteId    String
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  note Note  @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
