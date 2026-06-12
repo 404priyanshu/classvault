@@ -2,7 +2,7 @@
 
 A shared library of notes, previous-year questions, and study resources for your class. Browse, save, rate, and upload — without digging through group chats.
 
-Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
+Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, email OTP sign-up, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
 
 ## Setup
 
@@ -26,6 +26,12 @@ Google sign-in:
 3. Set `APP_ORIGIN`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` in `.env`.
 4. Set `ALLOWED_EMAIL_DOMAINS` for the campus beta, for example `classvault.edu`.
 
+Email OTP sign-up:
+
+1. Create a Resend API key, or install Resend from the Vercel Marketplace.
+2. Set `RESEND_API_KEY`, `EMAIL_FROM`, and a long random `EMAIL_OTP_SECRET`.
+3. In local development without Resend env vars, OTP emails are printed to the dev server console.
+
 Production defaults:
 
 - Host on Vercel.
@@ -42,6 +48,8 @@ Production defaults:
 | `POST /api/auth/sign-out`       | Destroy current app session                      |
 | `GET /api/auth/google/start`    | Start Google OAuth sign-in                       |
 | `GET /api/auth/google/callback` | Complete Google OAuth sign-in                    |
+| `POST /api/auth/email/start`    | Send an email OTP for account creation           |
+| `POST /api/auth/email/verify`   | Verify email OTP, create/link user, sign in      |
 | `GET /api/health`               | Liveness + note count                            |
 | `GET /api/health/deep`          | DB and S3 readiness check                        |
 | `GET /api/me`                   | Current signed-in user                           |
@@ -67,9 +75,10 @@ Production defaults:
 Architecture notes:
 
 - Business logic in `lib/server/notes.ts`; route handlers stay thin.
-- Auth uses HTTP-only app session cookies backed by the `Session` table. Password and Google sign-in both create the same `classvault_session` cookie.
+- Auth uses HTTP-only app session cookies backed by the `Session` table. Password, Google sign-in, and email OTP sign-up all create the same `classvault_session` cookie.
 - Google sign-in links by provider account ID, falls back to verified email linking, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
-- Password login remains for seeded/existing fallback users. New release access should use Google.
+- Email OTP sign-up stores only keyed hashes of short-lived codes, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
+- Password login remains for seeded/existing fallback users. New release access should use Google or email OTP.
 - New uploads are `PENDING`; only `PUBLISHED` notes appear in the public library.
 - Files are stored under `var/storage/` locally. With `AWS_S3_BUCKET` configured, browsers upload directly to AWS S3 and downloads use either `AWS_S3_PUBLIC_BASE_URL` or short-lived signed URLs.
 - Staff routes use `requireRole("ADMIN", "MODERATOR")`.

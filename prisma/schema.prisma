@@ -87,6 +87,22 @@ model OAuthAccount {
   @@index([userId])
 }
 
+// Short-lived email sign-up codes. Only a keyed HMAC of the six-digit code is
+// stored so database rows cannot be replayed as login credentials.
+model EmailVerificationCode {
+  id         String    @id @default(cuid())
+  email      String
+  name       String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
 model Note {
   id            String   @id @default(cuid())
   title         String

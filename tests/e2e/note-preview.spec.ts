@@ -69,9 +69,9 @@ test("clicking a PDF note opens a detail drawer with an inline preview", async (
   });
 
   await page.goto("/app");
-  await page.getByText("Uploaded PDF Notes", { exact: true }).click();
+  await page.getByRole("button", { name: "PDF CS302 Uploaded PDF Notes" }).click();
 
-  await expect(page.getByRole("heading", { name: "Uploaded PDF Notes" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Uploaded PDF Notes" })).toBeVisible();
   await expect(page.getByText("Preview", { exact: true })).toBeVisible();
   await expect(page.locator('iframe[title="Uploaded PDF Notes preview"]')).toBeVisible();
 });

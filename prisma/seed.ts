@@ -44,6 +44,7 @@ async function main() {
   await db.savedNote.deleteMany();
   await db.noteTag.deleteMany();
   await db.tag.deleteMany();
+  await db.emailVerificationCode.deleteMany();
   await db.uploadedFile.deleteMany();
   await db.note.deleteMany();
   await db.user.deleteMany();
