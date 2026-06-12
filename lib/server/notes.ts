@@ -1,8 +1,10 @@
-import type { Prisma } from "@/lib/generated/prisma/client";
+import { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiNote, FileType, NoteStatus } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
 import type { notesQuerySchema, createNoteSchema } from "@/lib/server/validation";
 import type { z } from "zod";
+
+const TRENDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 const noteInclude = (userId: string | null) =>
   ({
@@ -67,14 +69,54 @@ export function serializeNote(note: NoteWithRelations, userId: string | null): A
   };
 }
 
+// Multi-word queries hit the tsvector generated column (websearch semantics,
+// ranked); single words keep the insensitive substring match, which works
+// better for course codes like "CS302" and partial words.
+async function searchRankedIds(q: string) {
+  const rows = await db.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+    SELECT "id"
+    FROM "Note"
+    WHERE "searchVector" @@ websearch_to_tsquery('english', ${q})
+    ORDER BY ts_rank("searchVector", websearch_to_tsquery('english', ${q})) DESC
+    LIMIT 200
+  `);
+  return rows.map((row) => row.id);
+}
+
+// Notes ordered by downloads inside the trending window; cached lifetime
+// downloadCount breaks ties and covers windows with no recent activity.
+async function trendingIds(limit: number) {
+  const grouped = await db.downloadEvent.groupBy({
+    by: ["noteId"],
+    where: { createdAt: { gte: new Date(Date.now() - TRENDING_WINDOW_MS) } },
+    _count: { noteId: true },
+    orderBy: { _count: { noteId: "desc" } },
+    take: limit,
+  });
+  return grouped.map((row) => row.noteId);
+}
+
 export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId: string | null) {
   const ownerView = query.owner === "me" && userId;
   const where: Prisma.NoteWhereInput = ownerView
     ? { ownerId: userId, status: query.status ?? { not: "DELETED" } }
     : { status: "PUBLISHED" };
 
-  if (query.q) {
-    const match = { contains: query.q, mode: "insensitive" as const };
+  const q = query.q?.trim();
+  const useFts = Boolean(q && q.split(/\s+/).length >= 2);
+  let rankedIds: string[] = [];
+
+  if (q && useFts) {
+    rankedIds = await searchRankedIds(q);
+    const match = { contains: q, mode: "insensitive" as const };
+    // Rank-ordered tsvector hits, plus tag/code matches FTS cannot see.
+    where.OR = [
+      { id: { in: rankedIds } },
+      { courseCode: match },
+      { tags: { some: { tag: { name: match } } } },
+    ];
+  } else if (q) {
+    const match = { contains: q, mode: "insensitive" as const };
     where.OR = [
       { title: match },
       { description: match },
@@ -90,20 +132,32 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
   if (query.tag) where.tags = { some: { tag: { name: query.tag } } };
   if (query.saved === "true" && userId) where.savedBy = { some: { userId } };
 
+  const trending = query.sort === "trending" && !q;
+  const trendingOrder = trending ? await trendingIds(query.limit) : [];
+
   const notes = await db.note.findMany({
     where,
     include: noteInclude(userId),
-    orderBy: { createdAt: "desc" },
+    orderBy: trending ? { downloadCount: "desc" } : { createdAt: "desc" },
     take: query.limit + 1,
-    ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+    ...(query.cursor && !useFts ? { cursor: { id: query.cursor }, skip: 1 } : {}),
   });
 
   const hasMore = notes.length > query.limit;
-  const items = (hasMore ? notes.slice(0, query.limit) : notes) as NoteWithRelations[];
+  let items = (hasMore ? notes.slice(0, query.limit) : notes) as NoteWithRelations[];
+
+  // Re-apply the externally computed orderings findMany cannot express.
+  if (useFts || trendingOrder.length) {
+    const order = new Map((useFts ? rankedIds : trendingOrder).map((id, index) => [id, index]));
+    items = [...items].sort(
+      (a, b) => (order.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (order.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
 
   return {
     items: items.map((note) => serializeNote(note, userId)),
-    nextCursor: hasMore ? items[items.length - 1].id : null,
+    // Rank-based orderings cannot resume from an id cursor; cap them at one page.
+    nextCursor: hasMore && !useFts ? items[items.length - 1].id : null,
   };
 }
 

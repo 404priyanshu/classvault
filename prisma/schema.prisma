@@ -110,6 +110,9 @@ model Note {
   ownerId       String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  /// Generated column (see note_search_vector migration); kept as Unsupported
+  /// so Prisma preserves it without trying to manage its value.
+  searchVector  Unsupported("tsvector")?
 
   owner     User            @relation(fields: [ownerId], references: [id])
   tags      NoteTag[]
@@ -238,4 +241,5 @@ model DownloadEvent {
   note Note  @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@index([noteId])
+  @@index([noteId, createdAt])
 }

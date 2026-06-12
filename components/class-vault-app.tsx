@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Star,
   Trash2,
+  TrendingUp,
   Upload,
   User,
   X,
@@ -130,6 +131,7 @@ export function ClassVaultApp() {
   const [me, setMe] = useState<ApiUser | null>(null);
   const [meta, setMeta] = useState<MetaResponse | null>(null);
   const [notes, setNotes] = useState<ApiNote[]>([]);
+  const [trendingNotes, setTrendingNotes] = useState<ApiNote[]>([]);
   const [adminNotes, setAdminNotes] = useState<ApiNote[]>([]);
   const [adminReports, setAdminReports] = useState<AdminReport[]>([]);
   const [adminLoading, setAdminLoading] = useState(false);
@@ -169,6 +171,14 @@ export function ClassVaultApp() {
         if (response.ok) setMe((await response.json()) as ApiUser);
       } catch {
         // profile chrome degrades gracefully without a user
+      }
+      try {
+        const response = await fetch("/api/notes?sort=trending&limit=4");
+        if (response.ok) {
+          setTrendingNotes(((await response.json()) as NotesResponse).items);
+        }
+      } catch {
+        // trending strip simply stays hidden
       }
     }, 0);
     return () => window.clearTimeout(timer);
@@ -548,6 +558,7 @@ export function ClassVaultApp() {
           {currentView === "dashboard" ? (
             <DashboardView
               notes={notes}
+              trendingNotes={trendingNotes}
               loading={loading}
               loadError={loadError}
               stats={stats}
@@ -709,6 +720,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 
 function DashboardView({
   notes,
+  trendingNotes,
   loading,
   loadError,
   stats,
@@ -722,6 +734,7 @@ function DashboardView({
   onGoToLibrary,
 }: {
   notes: ApiNote[];
+  trendingNotes: ApiNote[];
   loading: boolean;
   loadError: string | null;
   stats: MetaResponse["stats"] | undefined;
@@ -751,6 +764,20 @@ function DashboardView({
           </div>
         ))}
       </section>
+
+      {trendingNotes.length ? (
+        <section>
+          <div className="flex items-center gap-2 pb-3">
+            <TrendingUp className="h-3.5 w-3.5 text-ink-faint" />
+            <SectionLabel>Trending this week</SectionLabel>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {trendingNotes.map((note) => (
+              <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note)} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
         <section>

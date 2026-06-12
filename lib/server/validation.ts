@@ -22,6 +22,7 @@ export const notesQuerySchema = z.object({
   owner: z.literal("me").optional(),
   saved: z.literal("true").optional(),
   status: z.enum(NOTE_STATUSES).optional(),
+  sort: z.enum(["recent", "trending"]).default("recent"),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().optional(),
 });
