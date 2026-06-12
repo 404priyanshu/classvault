@@ -68,7 +68,7 @@ type UploadTargetResponse = {
   storageKey: string;
   uploadUrl: string;
   method: "PUT" | "POST";
-  provider: "R2" | "LOCAL";
+  provider: "S3" | "LOCAL";
   expiresIn: number | null;
   fileType: ApiNote["fileType"];
   fileSizeBytes: number;
@@ -373,14 +373,14 @@ export function ClassVaultApp() {
       if (!presignResponse.ok) throw new Error(await readError(presignResponse));
       const target = (await presignResponse.json()) as UploadTargetResponse;
 
-      if (target.provider === "R2" && target.method === "PUT") {
+      if (target.provider === "S3" && target.method === "PUT") {
         const directUpload = await fetch(target.uploadUrl, {
           method: "PUT",
           headers: { "Content-Type": draft.file.type },
           body: draft.file,
         });
         if (!directUpload.ok) {
-          throw new Error("Could not upload file to storage. Check the R2 bucket CORS settings.");
+          throw new Error("Could not upload file to storage. Check the S3 bucket CORS settings.");
         }
         storageKey = target.storageKey;
       } else {
@@ -1465,6 +1465,8 @@ function DetailDrawer({
             ))}
           </div>
 
+          <NotePreview note={note} />
+
           <div className="mt-6 flex items-center gap-3 rounded-lg border border-line bg-paper p-3.5">
             <Avatar name={note.uploader.name} size="sm" />
             <div className="min-w-0">
@@ -1571,6 +1573,67 @@ function DetailDrawer({
   );
 }
 
+function NotePreview({ note }: { note: ApiNote }) {
+  const previewUrl = `/api/notes/${note.id}/file?disposition=inline`;
+
+  if (!note.hasFile) {
+    return (
+      <div className="mt-6 rounded-lg border border-dashed border-line-strong bg-paper px-4 py-8 text-center">
+        <FileText className="mx-auto h-5 w-5 text-ink-faint" />
+        <p className="mt-3 text-sm font-medium">No file preview</p>
+        <p className="mt-1 text-sm text-ink-faint">This resource does not have an uploaded file attached.</p>
+      </div>
+    );
+  }
+
+  if (note.fileType !== "PDF") {
+    return (
+      <div className="mt-6 rounded-lg border border-line bg-paper p-4">
+        <div className="flex items-center gap-3">
+          <FileBadge type={note.fileType} />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Preview unavailable</p>
+            <p className="mt-0.5 text-xs text-ink-faint">
+              {note.fileType} files can be opened or downloaded from the file actions.
+            </p>
+          </div>
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+          >
+            Open
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <section className="mt-6 overflow-hidden rounded-lg border border-line bg-paper">
+      <div className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
+        <SectionLabel>Preview</SectionLabel>
+        <a
+          href={previewUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-xs font-medium text-ink-soft transition hover:text-ink"
+        >
+          Open
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </a>
+      </div>
+      <iframe
+        title={`${note.title} preview`}
+        src={previewUrl}
+        className="h-80 w-full bg-surface"
+      />
+    </section>
+  );
+}
+
 function UploadDialog({
   onSubmit,
   onClose,
@@ -1580,6 +1643,17 @@ function UploadDialog({
 }) {
   const [draft, setDraft] = useState<UploadDraft>(emptyDraft);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Escape" || submitting) return;
+      event.preventDefault();
+      onClose();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, submitting]);
 
   function update<K extends keyof UploadDraft>(key: K, value: UploadDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));

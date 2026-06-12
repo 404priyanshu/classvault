@@ -2,7 +2,7 @@
 
 A shared library of notes, previous-year questions, and study resources for your class. Browse, save, rate, and upload — without digging through group chats.
 
-Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, reviewed uploads, staff moderation, reports, and local/R2-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
+Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
 
 ## Setup
 
@@ -30,7 +30,7 @@ Production defaults:
 
 - Host on Vercel.
 - Use Neon Postgres for `DATABASE_URL`; use local Postgres for development.
-- Use Cloudflare R2 for `R2_*` direct uploads and signed downloads.
+- Use AWS S3 for direct uploads and signed downloads.
 - Set `ADMIN_EMAILS` before first sign-in to bootstrap admins.
 - Authorized Google redirect URI: `${APP_ORIGIN}/api/auth/google/callback`.
 
@@ -43,7 +43,7 @@ Production defaults:
 | `GET /api/auth/google/start`    | Start Google OAuth sign-in                       |
 | `GET /api/auth/google/callback` | Complete Google OAuth sign-in                    |
 | `GET /api/health`               | Liveness + note count                            |
-| `GET /api/health/deep`          | DB and R2 readiness check                        |
+| `GET /api/health/deep`          | DB and S3 readiness check                        |
 | `GET /api/me`                   | Current signed-in user                           |
 | `PATCH /api/me`                 | Update profile name, department, semester        |
 | `GET /api/meta`                 | Filter options + dashboard stats                 |
@@ -53,8 +53,8 @@ Production defaults:
 | `POST/DELETE /api/notes/:id/save`   | Save / unsave                                |
 | `POST /api/notes/:id/rating`    | Rate 1–5 (upsert, returns fresh aggregates)      |
 | `POST /api/notes/:id/download`  | Record download, returns download URL            |
-| `GET /api/notes/:id/file`       | Stream the stored file                           |
-| `POST /api/uploads/presign`     | Create R2 upload target, or local upload fallback|
+| `GET /api/notes/:id/file`       | Stream, download, or inline-preview stored file  |
+| `POST /api/uploads/presign`     | Create S3 upload target, or local upload fallback|
 | `POST /api/uploads`             | Local multipart upload fallback                  |
 | `GET /api/admin/notes`          | Staff moderation queue                           |
 | `POST /api/admin/notes/:id/approve` | Publish pending note                         |
@@ -71,7 +71,7 @@ Architecture notes:
 - Google sign-in links by provider account ID, falls back to verified email linking, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
 - Password login remains for seeded/existing fallback users. New release access should use Google.
 - New uploads are `PENDING`; only `PUBLISHED` notes appear in the public library.
-- Files are stored under `var/storage/` locally. With `R2_*` configured, browsers upload directly to Cloudflare R2 and downloads use either `R2_PUBLIC_BASE_URL` or short-lived signed URLs.
+- Files are stored under `var/storage/` locally. With `AWS_S3_BUCKET` configured, browsers upload directly to AWS S3 and downloads use either `AWS_S3_PUBLIC_BASE_URL` or short-lived signed URLs.
 - Staff routes use `requireRole("ADMIN", "MODERATOR")`.
 - Ratings/downloads are event rows plus cached aggregates on `Note`; seeded aggregates fold into live averages.
 - Abuse-sensitive APIs have DB-backed rate limits for sign-in, upload, note creation, download, rating, and reports.
@@ -102,4 +102,4 @@ pnpm test:e2e
 pnpm build
 ```
 
-Then deploy a Vercel preview, open `/sign-in`, confirm Google starts with the expected redirect URI, upload a resource, approve/reject it from the Review queue, and confirm `/api/health/deep` reports database healthy and R2 reachable when R2 is configured.
+Then deploy a Vercel preview, open `/sign-in`, confirm Google starts with the expected redirect URI, upload a resource, approve/reject it from the Review queue, and confirm `/api/health/deep` reports database healthy and S3 reachable when S3 is configured.

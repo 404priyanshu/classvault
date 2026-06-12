@@ -41,7 +41,7 @@ Use this stack unless you have a specific reason not to:
 - Backend runtime: Next.js Route Handlers under `app/api`.
 - Database: PostgreSQL.
 - ORM: Prisma.
-- File storage: S3-compatible object storage such as Cloudflare R2, AWS S3, Supabase Storage, or Vercel Blob.
+- File storage: AWS S3 for release uploads, with local filesystem fallback in development.
 - Validation: Zod.
 - Authentication: Auth.js, Clerk, or custom session auth.
 
@@ -50,7 +50,7 @@ Reasoning:
 - The app is already Next.js, so Route Handlers avoid adding a separate backend server too early.
 - PostgreSQL handles search, relational data, counters, and future moderation workflows well.
 - Prisma gives you migrations, typed models, and a beginner-friendly schema file.
-- S3-compatible storage keeps uploaded files out of the database.
+- S3 keeps uploaded files out of the database.
 
 ## 3. Target Data Model
 

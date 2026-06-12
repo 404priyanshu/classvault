@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       mimeType: input.mimeType,
     });
 
-    if (target.provider === "R2") {
+    if (target.provider === "S3") {
       await db.uploadedFile.create({
         data: {
           storageKey: target.storageKey,
