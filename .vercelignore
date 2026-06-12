@@ -1,0 +1,12 @@
+.codegraph
+.env*
+.next
+.vercel
+coverage
+node_modules
+playwright-report
+prisma/dev.db*
+test-results
+var
+*.tsbuildinfo
+.DS_Store
