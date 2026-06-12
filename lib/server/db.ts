@@ -7,7 +7,13 @@ function createClient() {
     throw new Error("DATABASE_URL is required.");
   }
   const adapter = new PrismaPg({ connectionString });
-  return new PrismaClient({ adapter });
+  // Generous transaction limits: Neon's free tier suspends compute when idle
+  // and takes a few seconds to wake, which overruns Prisma's 2s default and
+  // fails the first transaction after idle with P2028.
+  return new PrismaClient({
+    adapter,
+    transactionOptions: { maxWait: 15_000, timeout: 20_000 },
+  });
 }
 
 // Reuse one client across dev hot reloads to avoid exhausting connections.

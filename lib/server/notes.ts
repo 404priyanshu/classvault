@@ -74,14 +74,15 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
     : { status: "PUBLISHED" };
 
   if (query.q) {
+    const match = { contains: query.q, mode: "insensitive" as const };
     where.OR = [
-      { title: { contains: query.q } },
-      { description: { contains: query.q } },
-      { subject: { contains: query.q } },
-      { topic: { contains: query.q } },
-      { courseCode: { contains: query.q } },
-      { unit: { contains: query.q } },
-      { tags: { some: { tag: { name: { contains: query.q } } } } },
+      { title: match },
+      { description: match },
+      { subject: match },
+      { topic: match },
+      { courseCode: match },
+      { unit: match },
+      { tags: { some: { tag: { name: match } } } },
     ];
   }
   if (query.subject) where.subject = query.subject;
