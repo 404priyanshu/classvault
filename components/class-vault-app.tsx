@@ -922,7 +922,7 @@ function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "lg" }) {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
+    <p className="min-w-0 truncate font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
       {children}
     </p>
   );
@@ -1097,7 +1097,7 @@ function DashboardView({
   const greeting = me?.name ? `Good evening, ${me.name.split(" ")[0]}.` : "Welcome back.";
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="min-w-0 space-y-8 pb-12">
       {/* Greeting Header */}
       <div className="space-y-1">
         <h2 className="text-2xl font-semibold tracking-tight text-ink">{greeting}</h2>
@@ -1105,13 +1105,13 @@ function DashboardView({
       </div>
 
       {/* College Vault Status */}
-      <div className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        <div className="flex items-start gap-3.5">
+      <div className="flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="flex min-w-0 items-start gap-3.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <GraduationCap className="h-5 w-5" />
           </span>
-          <div className="space-y-1">
-            <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
+          <div className="min-w-0 space-y-1">
+            <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
               <h3 className="text-sm font-semibold text-ink">
                 {isVerified ? `Verified: ${collegeName}` : "Unlock your College Vault"}
               </h3>
@@ -1141,7 +1141,7 @@ function DashboardView({
       </div>
 
       {/* Primary Action Grid */}
-      <section className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
+      <section className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
         {[
           { label: "Generate AI Roadmap", desc: "Build custom subject study plans", icon: Compass, action: onGoToRoadmaps },
           { label: "Add Resource", desc: "Ingest notes, link YouTube, websites", icon: PlusCircle, action: onGoToAddResource },
@@ -1156,24 +1156,24 @@ function DashboardView({
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-paper border border-line text-ink-soft group-hover:text-accent transition">
               <card.icon className="h-4.5 w-4.5" />
             </span>
-            <h4 className="mt-3.5 text-xs font-bold text-ink">{card.label}</h4>
-            <p className="mt-1 text-[11px] text-ink-faint leading-normal">{card.desc}</p>
+            <h4 className="mt-3.5 min-w-0 text-xs font-bold text-ink">{card.label}</h4>
+            <p className="mt-1 min-w-0 text-[11px] leading-normal text-ink-faint">{card.desc}</p>
           </button>
         ))}
       </section>
 
       {/* Main Grid: Today's Plan & Study Rooms */}
-      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[1.6fr_1fr]">
         
         {/* Left column: Plan & Saved */}
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {/* Today's Study Plan */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+          <section className="min-w-0 space-y-3">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <SectionLabel>Today&apos;s Study Plan</SectionLabel>
               <button
                 onClick={onGoToRoadmaps}
-                className="text-xs font-semibold text-accent hover:underline"
+                className="shrink-0 text-xs font-semibold text-accent hover:underline"
               >
                 Go to Roadmaps
               </button>
@@ -1182,7 +1182,7 @@ function DashboardView({
             <div className="min-w-0 rounded-lg border border-line bg-surface">
               <div className="divide-y divide-line">
                 {tasks.map((task) => (
-                  <div key={task.id} className="group flex items-center gap-3 px-3.5 py-2.5">
+                  <div key={task.id} className="group flex min-w-0 items-center gap-3 px-3.5 py-2.5">
                     <button
                       type="button"
                       onClick={() => onToggleTask(task.id)}
@@ -1204,7 +1204,7 @@ function DashboardView({
                     <button
                       type="button"
                       onClick={() => onRemoveTask(task.id)}
-                      className="text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
+                      className="shrink-0 text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1244,12 +1244,12 @@ function DashboardView({
           </section>
 
           {/* Recently Saved Resources */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+          <section className="min-w-0 space-y-3">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <SectionLabel>Saved Resources</SectionLabel>
               <button
                 onClick={onGoToLibrary}
-                className="text-xs font-semibold text-ink-soft hover:text-ink"
+                className="shrink-0 text-xs font-semibold text-ink-soft hover:text-ink"
               >
                 Browse all
               </button>
@@ -1261,7 +1261,7 @@ function DashboardView({
                 Your study vault is empty. Save notes, links, and PYQs to start organizing.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 {notes.slice(0, 3).map((note) => (
                   <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
                 ))}
@@ -1271,33 +1271,33 @@ function DashboardView({
         </div>
 
         {/* Right column: Active Study Rooms & Quick Stats */}
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {/* Study Rooms Feed */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
+          <section className="min-w-0 space-y-3">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <SectionLabel>Active Study Rooms</SectionLabel>
               <button
                 onClick={onGoToStudyRooms}
-                className="text-xs font-semibold text-accent hover:underline"
+                className="shrink-0 text-xs font-semibold text-accent hover:underline"
               >
                 Join room
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               {[
                 { name: "DBMS Exam Sprint", count: 18, timer: "25m focus", type: "College-only" },
                 { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public" },
                 { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public" },
               ].map((room) => (
-                <div key={room.name} className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-3.5 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-semibold text-ink leading-none">{room.name}</h4>
+                <div key={room.name} className="flex min-w-0 flex-col gap-3 rounded-lg border border-line bg-surface p-3.5 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <h4 className="min-w-0 text-xs font-semibold leading-none text-ink">{room.name}</h4>
                       <span className="inline-flex items-center rounded border border-line bg-paper px-1 py-0.5 text-[9px] font-bold text-ink-soft uppercase leading-none">
                         {room.type}
                       </span>
                     </div>
-                    <p className="text-[10px] text-ink-soft leading-none">
+                    <p className="truncate text-[10px] leading-none text-ink-soft">
                       {room.count} studying • {room.timer}
                     </p>
                   </div>
@@ -1313,7 +1313,7 @@ function DashboardView({
           </section>
 
           {/* Study Metrics */}
-          <section className="space-y-3">
+          <section className="min-w-0 space-y-3">
             <SectionLabel>Study metrics</SectionLabel>
             <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
               <div className="rounded-lg border border-line bg-surface p-4 text-center">
@@ -3383,7 +3383,7 @@ function NoteCollection({
 
   if (layoutMode === "grid") {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {notes.map((note) => (
           <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note)} />
         ))}
@@ -3392,7 +3392,7 @@ function NoteCollection({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       {notes.map((note) => (
         <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
       ))}
@@ -3430,12 +3430,12 @@ function NoteRow({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className="group flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-3 text-left transition hover:border-line-strong"
+      className="group flex min-w-0 w-full items-center gap-2.5 rounded-lg border border-line bg-surface p-3 text-left transition hover:border-line-strong sm:gap-3"
     >
       <FileBadge type={note.fileType} />
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-medium">{note.title}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate text-sm font-medium">{note.title}</span>
           <StatusBadge status={note.status} />
           {note.savedByMe ? (
             <Bookmark className="h-3 w-3 shrink-0 fill-current text-ink-soft" />
@@ -3446,11 +3446,11 @@ function NoteRow({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
         </span>
       </span>
       <span className="hidden shrink-0 font-mono text-xs text-ink-faint sm:block">{note.courseCode}</span>
-      <span className="flex shrink-0 items-center gap-1 font-mono text-xs text-ink-faint">
+      <span className="flex shrink-0 items-center gap-1 font-mono text-[11px] text-ink-faint sm:text-xs">
         <Star className="h-3 w-3" />
         {note.ratingCount ? note.ratingAverage.toFixed(1) : "—"}
       </span>
-      <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-faint opacity-0 transition group-hover:opacity-100" />
+      <ArrowUpRight className="hidden h-4 w-4 shrink-0 text-ink-faint opacity-0 transition group-hover:opacity-100 sm:block" />
     </button>
   );
 }
