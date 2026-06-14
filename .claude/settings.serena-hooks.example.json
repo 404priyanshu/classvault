@@ -1,0 +1,16 @@
+{
+  "note": "Optional example only. Copy selected hooks into .claude/settings.local.json after reviewing Claude Code hook behavior. This file does not auto-approve Serena edits.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__serena__replace_symbol_body|mcp__serena__insert_after_symbol|mcp__serena__insert_before_symbol",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf 'Review Serena symbolic edit before approving.\\n'"
+          }
+        ]
+      }
+    ]
+  }
+}

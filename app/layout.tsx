@@ -5,7 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ClassVault — AI Study Roadmaps for College Notes, PYQs and Resources",
-  description: "ClassVault helps students organize notes, PYQs, PDFs, YouTube links, and college resources into AI-powered study roadmaps, revision plans, and study rooms.",
+  description:
+    "ClassVault helps students organize notes, PYQs, PDFs, YouTube links, and college resources into AI-powered study roadmaps, revision plans, and study rooms.",
 };
 
 export default function RootLayout({

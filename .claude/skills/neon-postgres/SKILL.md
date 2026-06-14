@@ -62,10 +62,10 @@ Before starting setup, inspect the user's codebase and environment:
 
 ### Self-Driving Setup With Neon's CLI or MCP Server
 
-Offer to inspect existing connected Neon projects or create new ones using the Neon CLI or MCP server. If neither is set up yet, run init with the `--agent` flag. Use `npx -y` to skip the package install prompt. Auth is handled automatically. If the user is not logged in, it opens their browser for OAuth and waits for completion before proceeding.
+Offer to inspect existing connected Neon projects or create new ones using the Neon CLI or MCP server. If neither is set up yet, run init with the `--agent` flag. Use `pnpm dlx` for one-off package execution. Auth is handled automatically. If the user is not logged in, it opens their browser for OAuth and waits for completion before proceeding.
 
 ```bash
-npx -y neonctl@latest init --agent <agent-name>
+pnpm dlx neonctl@latest init --agent <agent-name>
 ```
 
 Supported `--agent` values: `cursor`, `copilot`, `claude`, `claude-desktop`, `codex`, `opencode`, `cline`, `gemini-cli`, `goose`, `zed`.
@@ -75,8 +75,8 @@ This installs the Neon extension (for Cursor/VS Code) or MCP server (for other a
 If `init` is not suitable, the individual steps can be run non-interactively:
 
 - **Extension:** `cursor --install-extension databricks.neon-local-connect`
-- **MCP server:** `npx -y add-mcp https://mcp.neon.tech/mcp -g -n Neon -y -a <agent-name>`
-- **Agent skill:** `npx skills add neondatabase/agent-skills --skill neon-postgres --agent <agent-name> -y`
+- **MCP server:** `pnpm dlx add-mcp https://mcp.neon.tech/mcp -g -n Neon -y -a <agent-name>`
+- **Agent skill:** `pnpm dlx skills add neondatabase/agent-skills --skill neon-postgres --agent <agent-name> -y`
 
 For full CLI installation options, see https://neon.com/docs/reference/cli-install.md
 
@@ -135,7 +135,7 @@ Link: https://neon.com/docs/reference/javascript-sdk.md
 
 ## Developer Tools
 
-Use this for local development enablement with `npx -y neonctl@latest init --agent <agent-name>`, VSCode extension setup, and Neon MCP server configuration.
+Use this for local development enablement with `pnpm dlx neonctl@latest init --agent <agent-name>`, VSCode extension setup, and Neon MCP server configuration.
 
 | Tool             | URL                                             |
 | ---------------- | ----------------------------------------------- |
@@ -201,7 +201,7 @@ https://neon.com/docs/ai/skills/neon-postgres-branches/SKILL.md
 If this skill is not installed you can use the following command to install it:
 
 ```bash
-npx skills add neondatabase/agent-skills --skill neon-postgres-branches
+pnpm dlx skills add neondatabase/agent-skills --skill neon-postgres-branches
 ```
 
 ## Autoscaling

@@ -28,8 +28,8 @@ export default function TermsPage() {
           that is unlawful, harassing, or violates academic-integrity rules.
         </li>
         <li>
-          Uploads enter a moderation queue and are published only after review. Moderators may reject,
-          hide, or remove content that breaks these rules.
+          Uploads enter a moderation queue and are published only after review. Moderators may
+          reject, hide, or remove content that breaks these rules.
         </li>
         <li>
           You keep ownership of what you upload and grant ClassVault permission to store and display
@@ -40,15 +40,15 @@ export default function TermsPage() {
       <LegalHeading>Acceptable use</LegalHeading>
       <p>
         Do not abuse the service: no scraping, no circumventing rate limits, no attempts to access
-        other users&rsquo; data, and no uploading of malicious files. Report resources that break the
-        rules using the in-app report action.
+        other users&rsquo; data, and no uploading of malicious files. Report resources that break
+        the rules using the in-app report action.
       </p>
 
       <LegalHeading>Availability and disclaimer</LegalHeading>
       <p>
         ClassVault is provided &ldquo;as is&rdquo; without warranties. We do not guarantee the
-        accuracy of user-contributed material or uninterrupted availability, and we are not liable for
-        academic outcomes arising from use of the resources.
+        accuracy of user-contributed material or uninterrupted availability, and we are not liable
+        for academic outcomes arising from use of the resources.
       </p>
 
       <LegalHeading>Changes</LegalHeading>

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": ".claude/context/repomix-output.xml",
+    "style": "xml",
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "showLineNumbers": false,
+    "topFilesLength": 20
+  },
+  "ignore": {
+    "useGitignore": true,
+    "customPatterns": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build",
+      ".next",
+      "out",
+      "coverage",
+      ".turbo",
+      ".cache",
+      "vendor",
+      "target",
+      "artifacts",
+      "cache",
+      "typechain-types",
+      "broadcast",
+      ".venv",
+      "venv",
+      "**/__pycache__/**",
+      ".pnpm-store",
+      ".vercel",
+      ".codegraph",
+      ".serena",
+      "test-results",
+      "playwright-report",
+      "tsconfig.tsbuildinfo",
+      "lib/generated",
+      "lib/generated/prisma",
+      "var",
+      ".claude/context",
+      ".claude/backups"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
