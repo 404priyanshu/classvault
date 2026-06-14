@@ -48,6 +48,7 @@ type AppShellContextValue = {
   authChecked: boolean;
   meta: MetaResponse | null;
   stats: MetaResponse["stats"] | undefined;
+  refreshMe: () => Promise<void>;
   refreshMeta: () => Promise<void>;
   requireAuth: <T>(fn: () => T) => T | undefined;
   openAuthPrompt: () => void;
@@ -87,6 +88,17 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
 
   const openAuthPrompt = useCallback(() => setAuthPromptOpen(true), []);
 
+  const refreshMe = useCallback(async () => {
+    try {
+      const response = await fetch("/api/me");
+      if (response.ok) setMe((await response.json()) as ApiUser);
+    } catch {
+      // chrome degrades gracefully without a user
+    } finally {
+      setAuthChecked(true);
+    }
+  }, []);
+
   const refreshMeta = useCallback(async () => {
     try {
       const response = await fetch("/api/meta");
@@ -100,17 +112,10 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const timer = window.setTimeout(async () => {
       void refreshMeta();
-      try {
-        const response = await fetch("/api/me");
-        if (response.ok) setMe((await response.json()) as ApiUser);
-      } catch {
-        // chrome degrades gracefully without a user
-      } finally {
-        setAuthChecked(true);
-      }
+      void refreshMe();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [refreshMeta]);
+  }, [refreshMe, refreshMeta]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -401,6 +406,7 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
       authChecked,
       meta,
       stats: meta?.stats,
+      refreshMe,
       refreshMeta,
       requireAuth,
       openAuthPrompt,
@@ -418,6 +424,7 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
       me,
       authChecked,
       meta,
+      refreshMe,
       refreshMeta,
       requireAuth,
       openAuthPrompt,

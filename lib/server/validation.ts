@@ -81,6 +81,16 @@ export const profileUpdateSchema = z
     }
   });
 
+export const collegeVerificationStartSchema = z.object({
+  collegeName: z.string().trim().min(2).max(120),
+  collegeEmail: z.string().trim().max(254).pipe(z.email()),
+});
+
+export const collegeVerificationVerifySchema = z.object({
+  collegeEmail: z.string().trim().max(254).pipe(z.email()),
+  code: z.string().trim().regex(/^\d{6}$/, "Enter the six-digit code."),
+});
+
 export const reportSchema = z.object({
   noteId: z.string().trim().min(1),
   reason: z.string().trim().min(3).max(120),

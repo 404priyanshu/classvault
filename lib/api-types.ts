@@ -14,6 +14,10 @@ export type ApiUser = {
   semester: string | null;
   age: number | null;
   subjectPreferences: string[];
+  collegeName: string | null;
+  collegeEmail: string | null;
+  collegeVerifiedAt: string | null;
+  isCollegeVerified: boolean;
   hasCompletedOnboarding: boolean;
   roleLabel: string;
 };

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  collegeVerificationStartSchema,
+  collegeVerificationVerifySchema,
   createNoteSchema,
   notesQuerySchema,
   profileUpdateSchema,
@@ -87,6 +89,51 @@ describe("profileUpdateSchema", () => {
         age: "19",
         subjectPreferences: [],
         completeOnboarding: true,
+      }),
+    ).toThrow();
+  });
+});
+
+describe("college verification schemas", () => {
+  it("accepts college name, email, and six-digit code", () => {
+    expect(
+      collegeVerificationStartSchema.parse({
+        collegeName: "ClassVault University",
+        collegeEmail: "Student@ClassVault.edu ",
+      }),
+    ).toMatchObject({
+      collegeName: "ClassVault University",
+      collegeEmail: "Student@ClassVault.edu",
+    });
+
+    expect(
+      collegeVerificationVerifySchema.parse({
+        collegeEmail: "student@classvault.edu",
+        code: "123456",
+      }),
+    ).toMatchObject({
+      collegeEmail: "student@classvault.edu",
+      code: "123456",
+    });
+  });
+
+  it("rejects invalid college verification inputs", () => {
+    expect(() =>
+      collegeVerificationStartSchema.parse({
+        collegeName: "C",
+        collegeEmail: "not-an-email",
+      }),
+    ).toThrow();
+    expect(() =>
+      collegeVerificationVerifySchema.parse({
+        collegeEmail: "student@classvault.edu",
+        code: "12345",
+      }),
+    ).toThrow();
+    expect(() =>
+      collegeVerificationVerifySchema.parse({
+        collegeEmail: "student@classvault.edu",
+        code: "abcdef",
       }),
     ).toThrow();
   });

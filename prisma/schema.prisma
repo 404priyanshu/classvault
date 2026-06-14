@@ -46,6 +46,9 @@ model User {
   semester     String?
   age          Int?
   subjectPreferences String[] @default([])
+  collegeName  String?
+  collegeEmail String?
+  collegeVerifiedAt DateTime?
   onboardingCompletedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -56,6 +59,7 @@ model User {
   downloads  DownloadEvent[]
   sessions   Session[]
   oauthAccounts OAuthAccount[]
+  collegeVerificationCodes CollegeVerificationCode[]
   moderationEvents ModerationEvent[]
   reports Report[] @relation("ReporterReports")
   resolvedReports Report[] @relation("ResolverReports")
@@ -102,6 +106,24 @@ model EmailVerificationCode {
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
 
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model CollegeVerificationCode {
+  id          String    @id @default(cuid())
+  userId      String
+  collegeName String
+  email       String
+  codeHash    String
+  attempts    Int       @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([email])
   @@index([expiresAt])
 }

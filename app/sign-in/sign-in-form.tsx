@@ -7,7 +7,6 @@ import {
   LogIn,
   Mail,
   Search,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import {

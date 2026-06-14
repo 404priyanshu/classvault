@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { isAllowedCampusEmail, roleForEmail } from "@/lib/server/auth";
+import { collegeOtpHtml, isAllowedCollegeEmail } from "@/lib/server/college-verification";
 import {
   emailOtpMatches,
   generateEmailOtpCode,
@@ -87,6 +88,23 @@ describe("campus auth policy", () => {
 
     expect(roleForEmail("admin@classvault.edu")).toBe("ADMIN");
     expect(roleForEmail("mod@classvault.edu", "MODERATOR")).toBe("MODERATOR");
+  });
+});
+
+describe("college verification policy", () => {
+  it("allows only supported college email suffixes", () => {
+    expect(isAllowedCollegeEmail("student@classvault.edu")).toBe(true);
+    expect(isAllowedCollegeEmail("student@iit.ac.in")).toBe(true);
+    expect(isAllowedCollegeEmail("student@college.edu.in")).toBe(true);
+    expect(isAllowedCollegeEmail("student@gmail.com")).toBe(false);
+    expect(isAllowedCollegeEmail("student@college.edu.evil")).toBe(false);
+  });
+
+  it("escapes college name in verification email HTML", () => {
+    const html = collegeOtpHtml("123456", "<ClassVault & Co>");
+
+    expect(html).toContain("&lt;ClassVault &amp; Co&gt;");
+    expect(html).not.toContain("<ClassVault & Co>");
   });
 });
 

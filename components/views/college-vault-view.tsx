@@ -3,33 +3,33 @@
 import { useState, type FormEvent } from "react";
 import { ShieldCheck } from "lucide-react";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
+import type { ApiError } from "@/lib/api-types";
+
+async function apiErrorMessage(response: Response, fallback: string) {
+  try {
+    const body = (await response.json()) as ApiError;
+    return body.error?.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export function CollegeVaultView() {
-  const { me } = useAppShell();
-  const [collegeName, setCollegeName] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("classvault_onboarding_college") ?? "";
-    }
-    return "";
-  });
-  const [collegeEmail, setCollegeEmail] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("classvault_college_email") ?? "";
-    }
-    return "";
-  });
+  const { me, refreshMe, openAuthPrompt, setToast } = useAppShell();
+  const [collegeName, setCollegeName] = useState(me?.collegeName ?? "");
+  const [collegeEmail, setCollegeEmail] = useState(me?.collegeEmail ?? "");
   const [otpCode, setOtpCode] = useState("");
-  const [status, setStatus] = useState<"unverified" | "sent" | "verified">(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("classvault_college_verified") === "true" ? "verified" : "unverified";
-    }
-    return "unverified";
-  });
+  const [status, setStatus] = useState<"unverified" | "sent">("unverified");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const verified = Boolean(me?.isCollegeVerified);
 
-  function handleSendCode(e: FormEvent) {
+  async function handleSendCode(e: FormEvent) {
     e.preventDefault();
+    if (!me) {
+      openAuthPrompt();
+      return;
+    }
     const normalizedEmail = collegeEmail.trim().toLowerCase();
     if (
       !normalizedEmail.endsWith(".edu") &&
@@ -41,41 +41,76 @@ export function CollegeVaultView() {
     }
     setLoading(true);
     setError(null);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch("/api/me/college-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collegeName, collegeEmail }),
+      });
+      if (!response.ok) {
+        setError(await apiErrorMessage(response, `Could not send code (${response.status})`));
+        return;
+      }
       setStatus("sent");
       setOtpCode("");
-    }, 700);
+      setToast("Verification code sent");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleVerifyCode(e: FormEvent) {
+  async function handleVerifyCode(e: FormEvent) {
     e.preventDefault();
-    if (otpCode !== "123456") {
-      setError("Incorrect verification code. Use 123456 for the demo.");
+    if (!me) {
+      openAuthPrompt();
       return;
     }
     setLoading(true);
     setError(null);
-    setTimeout(() => {
-      setLoading(false);
-      setStatus("verified");
-      if (typeof window !== "undefined") {
-        localStorage.setItem("classvault_college_verified", "true");
-        localStorage.setItem("classvault_onboarding_college", collegeName);
-        localStorage.setItem("classvault_college_email", collegeEmail);
+    try {
+      const response = await fetch("/api/me/college-verification", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collegeEmail, code: otpCode }),
+      });
+      if (!response.ok) {
+        setError(await apiErrorMessage(response, `Could not verify code (${response.status})`));
+        return;
       }
-    }, 600);
+      await refreshMe();
+      setStatus("unverified");
+      setToast("College email verified");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleReset() {
-    setStatus("unverified");
-    setCollegeName("");
-    setCollegeEmail("");
+  async function handleReset() {
+    if (!me) {
+      openAuthPrompt();
+      return;
+    }
+    setLoading(true);
     setError(null);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("classvault_college_verified");
-      localStorage.removeItem("classvault_college_email");
-      localStorage.removeItem("classvault_onboarding_college");
+    try {
+      const response = await fetch("/api/me/college-verification", { method: "DELETE" });
+      if (!response.ok) {
+        setError(await apiErrorMessage(response, `Could not disconnect (${response.status})`));
+        return;
+      }
+      await refreshMe();
+      setStatus("unverified");
+      setCollegeName("");
+      setCollegeEmail("");
+      setToast("College verification disconnected");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -85,7 +120,7 @@ export function CollegeVaultView() {
         Use your official college email address to unlock private college resources, semester groups, verified notes, and classmate focus sessions.
       </p>
 
-      {status === "verified" ? (
+      {verified ? (
         <div className="rounded-xl border border-line bg-surface p-6 text-center space-y-4 shadow-sm">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
             <ShieldCheck className="h-6 w-6" />
@@ -93,11 +128,11 @@ export function CollegeVaultView() {
           <div className="space-y-1">
             <h3 className="text-base font-semibold text-ink">Verified Student Access</h3>
             <p className="text-xs text-ink-soft">
-              Successfully linked with <span className="font-semibold text-ink">{collegeEmail}</span>
+              Successfully linked with <span className="font-semibold text-ink">{me?.collegeEmail}</span>
             </p>
-            <p className="text-xs text-ink-faint">College: {collegeName}</p>
+            <p className="text-xs text-ink-faint">College: {me?.collegeName}</p>
           </div>
-        <div className="mx-auto grid max-w-md gap-3 border-t border-line pt-4 text-left text-xs sm:grid-cols-2 sm:gap-4">
+          <div className="mx-auto grid max-w-md gap-3 border-t border-line pt-4 text-left text-xs sm:grid-cols-2 sm:gap-4">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Private college notes</span>
@@ -118,10 +153,12 @@ export function CollegeVaultView() {
           <button
             type="button"
             onClick={handleReset}
+            disabled={loading}
             className="inline-flex h-8 items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink"
           >
-            Disconnect verification
+            {loading ? "Disconnecting..." : "Disconnect verification"}
           </button>
+          {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
         </div>
       ) : (
         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
@@ -150,7 +187,7 @@ export function CollegeVaultView() {
                     className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   />
                   <span className="block mt-1 text-[10px] text-ink-faint">
-                    Accepted endings: .edu, .edu.in, .ac.in, or official college domains.
+                    Accepted endings: .edu, .edu.in, or .ac.in.
                   </span>
                 </label>
               </div>
@@ -160,7 +197,7 @@ export function CollegeVaultView() {
                 disabled={loading}
                 className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60"
               >
-                {loading ? "Sending link..." : "Send verification code"}
+                {loading ? "Sending code..." : "Send verification code"}
               </button>
             </form>
           )}
@@ -169,7 +206,7 @@ export function CollegeVaultView() {
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <div className="space-y-3">
                 <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 p-2.5 rounded">
-                  Simulation mode: We sent a simulated verification code. Enter <span className="font-bold">123456</span> to complete verification.
+                  We sent a verification code to <span className="font-bold">{collegeEmail}</span>. Enter it to complete verification.
                 </p>
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Verification Code</span>
@@ -179,7 +216,7 @@ export function CollegeVaultView() {
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
+                    placeholder="000000"
                     className="mt-1 h-11 w-full rounded-md border border-line bg-paper px-3 text-center font-mono text-base tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
                   />
                 </label>

@@ -2,16 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  BookOpen,
-  Compass,
-  GraduationCap,
-  Plus,
-  PlusCircle,
-  ShieldCheck,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { BookOpen, Compass, GraduationCap, Plus, PlusCircle, ShieldCheck, Trash2, Users } from "lucide-react";
 import type { ApiNote } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
@@ -104,8 +95,8 @@ export function DashboardView() {
     };
   }, []);
 
-  const isVerified = Boolean(me);
-  const collegeName = me?.email.split("@")[1] ?? "your college";
+  const isVerified = Boolean(me?.isCollegeVerified);
+  const collegeName = me?.collegeName ?? "your college";
 
   const greeting = me?.name ? `Good evening, ${me.name.split(" ")[0]}.` : "Welcome back.";
 

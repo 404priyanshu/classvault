@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
-  useMemo,
   useState,
   type CSSProperties,
   type FormEvent,
@@ -118,9 +117,10 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
   const [subjectPreferences, setSubjectPreferences] = useState<string[]>(
     initialUser?.subjectPreferences ?? [],
   );
-  
+
   // Custom onboarding states (stored locally to match schema requirements without DB changes)
   const [collegeName, setCollegeName] = useState(() => {
+    if (initialUser?.collegeName) return initialUser.collegeName;
     if (typeof window !== "undefined") {
       return localStorage.getItem("classvault_onboarding_college") ?? "";
     }
@@ -132,17 +132,21 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     }
     return "";
   });
-  const [collegeEmail, setCollegeEmail] = useState("");
+  const [collegeEmail, setCollegeEmail] = useState(initialUser?.collegeEmail ?? "");
   const [collegeOtpCode, setCollegeOtpCode] = useState("");
-  const [collegeVerifyStep, setCollegeVerifyStep] = useState<"ask" | "verify" | "success">("ask");
+  const [collegeVerifyStep, setCollegeVerifyStep] = useState<"ask" | "verify" | "success">(
+    initialUser?.isCollegeVerified ? "success" : "ask",
+  );
 
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(
+    initialUser?.isCollegeVerified ? "College email verified successfully." : null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const activeIndex = stepOrder.indexOf(step);
   const progress = ((activeIndex + 1) / stepOrder.length) * 100;
-  
+
   const profileReady =
     name.trim().length >= 2 &&
     semester &&
@@ -150,19 +154,6 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     Number(age) <= 80 &&
     Number.isInteger(Number(age)) &&
     collegeName.trim().length >= 2;
-
-  const selectedCount = subjectPreferences.length;
-
-  const stepLabels = useMemo(
-    () => [
-      ["Account", currentUser ? "Done" : "Email"],
-      ["Verify", currentUser ? "Done" : "Code"],
-      ["Basics", "Profile"],
-      ["Subjects", `${selectedCount}/8`],
-      ["College", "Vault Access"],
-    ],
-    [currentUser, selectedCount],
-  );
 
   function hydrateUser(user: ApiUser) {
     setCurrentUser(user);
@@ -173,6 +164,8 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     setSemester(user.semester ?? "");
     setAge(user.age ? String(user.age) : "");
     setSubjectPreferences(user.subjectPreferences);
+    if (user.collegeName) setCollegeName(user.collegeName);
+    if (user.collegeEmail) setCollegeEmail(user.collegeEmail);
   }
 
   async function handleOtpRequest(event: FormEvent<HTMLFormElement>) {
@@ -229,8 +222,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     }
   }
 
-  // Completes the onboarding flow and sends patch request
-  async function completeOnboardingAction(verified = false) {
+  async function completeOnboardingAction() {
     if (!currentUser) {
       setError("Verify your email before setting up your profile.");
       setStep("account");
@@ -248,10 +240,6 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("classvault_onboarding_college", collegeName);
       localStorage.setItem("classvault_onboarding_exam_goal", examGoal);
-      if (verified) {
-        localStorage.setItem("classvault_college_email", collegeEmail);
-        localStorage.setItem("classvault_college_verified", "true");
-      }
     }
 
     try {
@@ -281,32 +269,63 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
 
   async function handleCollegeVerifyStart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!collegeEmail.endsWith(".edu") && !collegeEmail.endsWith(".edu.in") && !collegeEmail.endsWith(".ac.in")) {
-      setError("Email must end with .edu, .edu.in, or .ac.in to unlock private college vaults.");
+    if (!currentUser) {
+      setError("Verify your account email before verifying your college email.");
+      setStep("account");
       return;
     }
     setSubmitting(true);
     setError(null);
-    setTimeout(() => {
-      setSubmitting(false);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/me/college-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collegeName, collegeEmail }),
+      });
+      if (!response.ok) {
+        setError(await apiErrorMessage(response, `Could not send code (${response.status})`));
+        return;
+      }
       setCollegeVerifyStep("verify");
-      setMessage("Simulated OTP sent to your college email (Enter 123456 to verify).");
-    }, 800);
+      setCollegeOtpCode("");
+      setMessage("We sent a six-digit code to your college email.");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleCollegeVerifyComplete(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (collegeOtpCode !== "123456") {
-      setError("Incorrect verification code. Use 123456 for the simulation.");
+    if (!currentUser) {
+      setError("Verify your account email before verifying your college email.");
+      setStep("account");
       return;
     }
     setSubmitting(true);
     setError(null);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      const response = await fetch("/api/me/college-verification", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collegeEmail, code: collegeOtpCode }),
+      });
+      if (!response.ok) {
+        setError(await apiErrorMessage(response, `Could not verify code (${response.status})`));
+        return;
+      }
+      const user = (await response.json()) as ApiUser;
+      hydrateUser(user);
       setCollegeVerifyStep("success");
+      setCollegeOtpCode("");
       setMessage("College email verified successfully!");
-    }, 600);
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function toggleSubject(subject: string) {
@@ -361,7 +380,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
           <div className="rounded-lg border border-line bg-paper/50 p-4 space-y-2">
             <h4 className="text-xs font-semibold text-ink">College verification</h4>
             <p className="text-xs text-ink-soft leading-relaxed">
-              After signup, verify your college email to unlock your private college vault. Supported college emails include `.edu`, `.edu.in`, `.ac.in`, or official college domains.
+              After signup, verify your college email to unlock your private college vault. Supported college emails end with `.edu`, `.edu.in`, or `.ac.in`.
             </p>
           </div>
         </section>
@@ -681,7 +700,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                       maxLength={6}
                       value={collegeOtpCode}
                       onChange={(event) => setCollegeOtpCode(event.target.value.replace(/\D/g, ""))}
-                      placeholder="123456"
+                      placeholder="000000"
                       className="mt-1 h-12 w-full rounded-md border border-line bg-paper text-center font-mono text-lg tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
                     />
                   </label>
@@ -705,7 +724,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                   <p className="text-sm font-semibold text-emerald-800">{message}</p>
                   <button
                     type="button"
-                    onClick={() => completeOnboardingAction(true)}
+                    onClick={() => completeOnboardingAction()}
                     className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85"
                   >
                     Go to workspace
@@ -717,7 +736,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                 <div className="flex flex-col gap-2 pt-2 border-t border-line">
                   <button
                     type="button"
-                    onClick={() => completeOnboardingAction(false)}
+                    onClick={() => completeOnboardingAction()}
                     className="inline-flex h-10 w-full items-center justify-center rounded-md bg-paper border border-line text-sm font-semibold text-ink transition hover:bg-surface hover:border-line-strong"
                   >
                     Skip for now

@@ -10,6 +10,9 @@ type SerializableUser = {
   semester: string | null;
   age: number | null;
   subjectPreferences: string[];
+  collegeName: string | null;
+  collegeEmail: string | null;
+  collegeVerifiedAt: Date | null;
   onboardingCompletedAt: Date | null;
 };
 
@@ -27,6 +30,10 @@ export function serializeUser(user: SerializableUser): ApiUser {
     semester: user.semester,
     age: user.age,
     subjectPreferences: user.subjectPreferences,
+    collegeName: user.collegeName,
+    collegeEmail: user.collegeEmail,
+    collegeVerifiedAt: user.collegeVerifiedAt?.toISOString() ?? null,
+    isCollegeVerified: Boolean(user.collegeVerifiedAt),
     hasCompletedOnboarding: hasCompletedOnboarding(user),
     roleLabel: roleLabelOf(user),
   };
