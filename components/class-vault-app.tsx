@@ -1603,6 +1603,269 @@ const PREVIEW_ROADMAP: RoadmapDay[] = [
   },
 ];
 
+function roadmapCompletedCount(day: RoadmapDay) {
+  return day.done.filter(Boolean).length;
+}
+
+function roadmapProgress(day: RoadmapDay) {
+  if (!day.done.length) return 0;
+  return Math.round((roadmapCompletedCount(day) / day.done.length) * 100);
+}
+
+function roadmapChartHeight(count: number) {
+  if (count <= 3) return 270;
+  if (count <= 5) return 410;
+  return 570;
+}
+
+function roadmapPillStyle(index: number, count: number) {
+  const colWidth = 100 / count;
+  return {
+    left: `${index * colWidth + 1}%`,
+    top: `${index * 76 + 18}px`,
+    width: `${colWidth - 2}%`,
+    animationDelay: `${index * 80}ms`,
+  };
+}
+
+function roadmapPathData(count: number) {
+  const centers = Array.from({ length: count }, (_, index) => {
+    const colWidth = 100 / count;
+    const left = index * colWidth + 1;
+    const width = colWidth - 2;
+    return {
+      x: (left + width / 2) * 10,
+      y: index * 76 + 64,
+    };
+  });
+
+  if (!centers.length) return "";
+  return centers.slice(1).reduce((path, point, index) => {
+    const previous = centers[index];
+    const midX = previous.x + (point.x - previous.x) / 2;
+    return `${path} C ${midX} ${previous.y}, ${midX} ${point.y}, ${point.x} ${point.y}`;
+  }, `M ${centers[0].x} ${centers[0].y}`);
+}
+
+function RoadmapTimelineChart({
+  days,
+  activeIndex,
+  hoveredIndex,
+  onSelect,
+  onHover,
+  includeClassroomMaterials = false,
+}: {
+  days: RoadmapDay[];
+  activeIndex: number;
+  hoveredIndex: number | null;
+  onSelect: (index: number) => void;
+  onHover: (index: number | null) => void;
+  includeClassroomMaterials?: boolean;
+}) {
+  const totalTasks = days.reduce((sum, day) => sum + day.done.length, 0);
+  const completedTasks = days.reduce((sum, day) => sum + roadmapCompletedCount(day), 0);
+  const totalResources = days.reduce((sum, day) => sum + day.resources.length, 0);
+  const activeDay = days[activeIndex] ?? days[0];
+  const chartHeight = roadmapChartHeight(days.length);
+
+  return (
+    <>
+      <div className="mb-5 flex flex-col gap-4 border-b border-line pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+            <Sparkles className="h-3 w-3 text-accent" />
+            Journey highlights
+          </span>
+          <h3 className="mt-2 text-xl font-bold tracking-tight text-ink">Timeline</h3>
+          <p className="mt-1 text-xs leading-5 text-ink-soft">
+            {activeDay ? `Now viewing Day ${activeDay.day}: ${activeDay.title}` : "Select a day to inspect its plan."}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 sm:w-auto">
+          {[
+            { label: "Sessions", value: String(days.length), icon: Clock },
+            { label: "Tasks", value: `${completedTasks}/${totalTasks}`, icon: CheckCircle2 },
+            { label: "Sources", value: String(totalResources), icon: BookOpenCheck },
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-line bg-paper px-2.5 py-2">
+              <div className="flex items-center gap-1.5 text-ink">
+                <item.icon className="h-3.5 w-3.5 text-accent" />
+                <span className="font-mono text-sm font-bold">{item.value}</span>
+              </div>
+              <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-wider text-ink-faint">
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:hidden">
+        {days.map((day, index) => {
+          const isActive = activeIndex === index;
+          const progress = roadmapProgress(day);
+          return (
+            <button
+              key={day.day}
+              type="button"
+              onClick={() => onSelect(index)}
+              className={cx(
+                "min-w-0 rounded-xl border p-3 text-left transition",
+                isActive
+                  ? "border-accent bg-accent-soft shadow-[inset_0_0_0_1px_rgba(99,91,255,0.12)]"
+                  : "border-line bg-paper hover:border-line-strong",
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-md bg-surface px-2 py-1 font-mono text-[10px] font-bold uppercase text-ink-soft">
+                  Day {day.day}
+                </span>
+                <span className="rounded-md bg-surface px-2 py-1 font-mono text-[10px] font-bold text-success">
+                  {progress}% done
+                </span>
+              </div>
+              <h4 className="mt-3 break-words text-sm font-bold leading-snug text-ink">{day.title}</h4>
+              <p className="mt-1 text-xs leading-5 text-ink-soft">{day.topic}</p>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+                <span className="rounded-md border border-line bg-surface px-2 py-1">{day.resources.length} sources</span>
+                <span className="rounded-md border border-line bg-surface px-2 py-1">{day.tasks.length} tasks</span>
+                <span className="rounded-md border border-line bg-surface px-2 py-1">{day.pyqs.length} pyqs</span>
+              </div>
+              <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-line">
+                <span
+                  className="block h-full rounded-full bg-accent transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block">
+        <div className="-mx-2 overflow-x-auto px-2 pb-4">
+          <div
+            className="relative min-w-[820px] overflow-hidden rounded-xl border border-line bg-paper/70 p-4"
+            style={{ height: `${chartHeight}px` }}
+          >
+            <svg
+              className="absolute inset-0 h-full w-full pointer-events-none"
+              viewBox={`0 0 1000 ${chartHeight}`}
+              preserveAspectRatio="none"
+            >
+              <path
+                d={roadmapPathData(days.length)}
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="2.4"
+                className="animate-roadmap-path opacity-45"
+              />
+            </svg>
+
+            <div
+              className="absolute inset-0 grid pointer-events-none"
+              style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+            >
+              {days.map((day, index) => (
+                <div
+                  key={day.day}
+                  className={cx("h-full border-dashed border-line", index < days.length - 1 && "border-r")}
+                />
+              ))}
+            </div>
+
+            <div className="absolute right-4 top-4 rounded-lg border border-line bg-surface/90 px-3 py-2 text-right shadow-sm">
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">
+                Active focus
+              </span>
+              <span className="mt-0.5 block max-w-[240px] break-words text-xs font-bold leading-snug text-ink">
+                {activeDay?.title}
+              </span>
+            </div>
+
+            {days.map((day, index) => {
+              const isHovered = hoveredIndex === index;
+              const isActive = activeIndex === index;
+              const progress = roadmapProgress(day);
+              return (
+                <button
+                  key={day.day}
+                  type="button"
+                  onMouseEnter={() => onHover(index)}
+                  onMouseLeave={() => onHover(null)}
+                  onClick={() => onSelect(index)}
+                  style={roadmapPillStyle(index, days.length)}
+                  className={cx(
+                    "absolute z-20 flex h-[92px] min-w-0 flex-col justify-center rounded-xl px-3 text-left text-xs font-semibold shadow-md transition-all duration-300 animate-pill-cascade",
+                    isActive
+                      ? "border border-accent bg-surface text-ink ring-4 ring-accent-soft"
+                      : isHovered
+                        ? "bg-ink-soft text-surface"
+                        : "bg-ink text-surface",
+                  )}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[10px] uppercase opacity-80">Day {day.day}</span>
+                    <span className="font-mono text-[10px] opacity-80">{progress}%</span>
+                  </span>
+                  <span className="mt-1 line-clamp-3 break-words text-[11px] leading-tight">{day.title}</span>
+                  <span className={cx("mt-2 h-1 overflow-hidden rounded-full", isActive ? "bg-line" : "bg-white/25")}>
+                    <span
+                      className={cx("block h-full rounded-full transition-all", isActive ? "bg-accent" : "bg-surface")}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-5">
+          {days.map((day, index) => {
+            const isActive = activeIndex === index;
+            return (
+              <button
+                key={day.day}
+                type="button"
+                onClick={() => onSelect(index)}
+                className={cx(
+                  "min-w-0 rounded-lg border p-3 text-left transition",
+                  isActive ? "border-accent bg-accent-soft" : "border-line bg-paper hover:border-line-strong",
+                )}
+              >
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+                  Day {day.day}
+                </span>
+                <h4 className="mt-1 break-words text-xs font-bold leading-snug text-ink">{day.title}</h4>
+                <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-ink-soft">{day.topic}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-lg border border-line bg-paper px-3 py-2">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Sequencing</span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">Prerequisites flow left to right.</span>
+          </div>
+          <div className="rounded-lg border border-line bg-paper px-3 py-2">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Evidence</span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">{totalResources} resources mapped into sessions.</span>
+          </div>
+          <div className="rounded-lg border border-line bg-paper px-3 py-2">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Mode</span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
+              {includeClassroomMaterials ? "Classroom materials included." : "Preview sandbox with sample sources."}
+            </span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function AIRoadmapsView() {
   const [subject, setSubject] = useState("");
   const [days, setDays] = useState(5);
@@ -1637,95 +1900,6 @@ function AIRoadmapsView() {
         return { ...day, done: newDone };
       })
     );
-  }
-
-  function getTooltipStyle(i: number, n: number) {
-    const pos = getPillStyle(i, n);
-    const topVal = parseInt(pos.top) + (i === 0 ? 55 : -125);
-    const style: React.CSSProperties = {
-      top: `${topVal}px`,
-      width: "240px",
-    };
-    if (i >= n - 2) {
-      const leftInt = parseFloat(pos.left);
-      const widthInt = parseFloat(pos.width);
-      const rightPercent = 100 - (leftInt + widthInt);
-      style.right = `${rightPercent}%`;
-      style.left = "auto";
-    } else {
-      style.left = pos.left;
-    }
-    return style;
-  }
-
-  function renderBezierPath(n: number) {
-    const centers: { x: number; y: number }[] = [];
-    if (n === 5) {
-      centers.push({ x: 100, y: 37 });
-      centers.push({ x: 300, y: 82 });
-      centers.push({ x: 500, y: 127 });
-      centers.push({ x: 800, y: 172 });
-      centers.push({ x: 900, y: 222 });
-    } else if (n === 3) {
-      centers.push({ x: 166.5, y: 37 });
-      centers.push({ x: 499.5, y: 87 });
-      centers.push({ x: 832.5, y: 137 });
-    } else {
-      for (let i = 0; i < n; i++) {
-        let left = 0;
-        let width = 0;
-        let top = 0;
-        const colWidth = 100 / n;
-        if (i === n - 2) {
-          left = (i * colWidth) + 2;
-          width = (colWidth * 2) - 4;
-          top = (i * 45) + 15;
-        } else if (i === n - 1) {
-          left = (i * colWidth) + 2;
-          width = colWidth - 4;
-          top = (i * 45) + 20;
-        } else {
-          left = (i * colWidth) + 2;
-          width = colWidth - 4;
-          top = (i * 45) + 15;
-        }
-        const midX = (left + width / 2) * 10;
-        const midY = top + 22;
-        centers.push({ x: midX, y: midY });
-      }
-    }
-
-    let dString = "";
-    if (centers.length > 0) {
-      dString = `M ${centers[0].x} ${centers[0].y}`;
-      for (let i = 1; i < centers.length; i++) {
-        const p0 = centers[i - 1];
-        const p1 = centers[i];
-        const cp1x = p0.x + (p1.x - p0.x) / 2;
-        const cp1y = p0.y;
-        const cp2x = p0.x + (p1.x - p0.x) / 2;
-        const cp2y = p1.y;
-        dString += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
-      }
-    }
-
-    return (
-      <path
-        d={dString}
-        fill="none"
-        stroke="var(--accent)"
-        strokeWidth="2.2"
-        className="animate-roadmap-path opacity-40"
-      />
-    );
-  }
-
-  function getPillStyle(i: number, n: number) {
-    const colWidth = 100 / n;
-    const left = `${(i * colWidth) + 2}%`;
-    const width = `${colWidth - 4}%`;
-    const top = `${(i * 45) + 15}px`;
-    return { left, width, top };
   }
 
   function handleGenerate(e: FormEvent) {
@@ -1816,9 +1990,9 @@ function AIRoadmapsView() {
       </div>
 
       {!roadmap && (
-        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-12">
+        <div className="min-w-0 space-y-6">
           {/* Left Column: Form Configuration */}
-          <div className="min-w-0 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5 lg:col-span-5">
+          <div className="min-w-0 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">
               Configure Study Plan
             </h3>
@@ -1926,7 +2100,7 @@ function AIRoadmapsView() {
           </div>
 
           {/* Right Column: Live Interactive Sandbox Preview */}
-          <div className="min-w-0 space-y-4 lg:col-span-7">
+          <div className="min-w-0 space-y-4">
             <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent animate-pulse">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
@@ -1939,145 +2113,13 @@ function AIRoadmapsView() {
 
             {/* Sandbox Gantt Chart Timeline Card */}
             <div className="relative min-w-0 select-none overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
-              <div className="mb-6 flex items-start justify-between gap-3 border-b border-line pb-4">
-                <div>
-                  <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
-                  <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
-                </div>
-                <div className="flex shrink-0 flex-col items-end">
-                  <span className="font-mono text-2xl font-light text-ink/80 leading-none">
-                    0{previewRoadmap.length}/
-                  </span>
-                  <div className="flex items-center gap-2 mt-2.5">
-                    <span className="text-[9px] uppercase font-bold text-ink-faint">Tools</span>
-                    <div className="flex gap-1.5">
-                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Notion">
-                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M4.46 3h15.08c1.07 0 1.96.86 2.01 1.93l.42 13.9c.03.95-.59 1.79-1.51 1.97l-15.08.3c-1.07.02-1.99-.81-2.02-1.89l-.45-13.91c-.03-.96.67-1.93 1.55-2.3zm1.94 2.8v11.85h3.04l3.87-5.8v5.8h2.76V5.8h-3.04l-3.87 5.8V5.8H6.4zm8.68 2.1c.33 0 .6-.27.6-.6s-.27-.6-.6-.6-.6.27-.6.6.27.6.6.6z"/>
-                        </svg>
-                      </div>
-                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Figma">
-                        <svg className="h-3 w-3" viewBox="0 0 384 512" fill="currentColor">
-                          <path d="M120 412c-44.2 0-80-35.8-80-80s35.8-80 80-80h80v80c0 44.2-35.8 80-80 80zM120 0c44.2 0 80 35.8 80 80v80H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm0 160h80v160H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm160-80c0 44.2-35.8 80-80 80h-80V80c0-44.2 35.8-80 80-80s80 35.8 80 80zm0 160c0 44.2-35.8 80-80 80h-80v-160h80c44.2 0 80 35.8 80 80z" />
-                        </svg>
-                      </div>
-                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="AI Assistant">
-                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-1.813-5.096L2.091 14.09 7.187 12.28 9 7.187l1.813 5.093 5.096 1.81-5.096 1.813z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Scrollable Timeline Graphic & Day Indices */}
-              <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-5 sm:px-5">
-                <div className="min-w-[580px] lg:min-w-0 relative">
-                  {/* Gantt Timeline graphic with bezier curves */}
-                  <div className="relative border-b border-line pb-6 mb-6 h-[260px]">
-                    {/* SVG connection path */}
-                    <svg className="absolute inset-0 w-full h-[260px] pointer-events-none" viewBox="0 0 1000 260" preserveAspectRatio="none">
-                      {renderBezierPath(5)}
-                    </svg>
-
-                    {/* Dashed vertical lines dividing columns */}
-                    <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
-                      {Array.from({ length: 5 }).map((_, idx) => (
-                        <div 
-                          key={idx} 
-                          className={cx(
-                            "h-full border-dashed border-line",
-                            idx < 4 ? "border-r" : ""
-                          )} 
-                        />
-                      ))}
-                    </div>
-
-                    {/* Day Pills rendering cascade */}
-                    {previewRoadmap.map((day, dIdx) => {
-                      const pos = getPillStyle(dIdx, 5);
-                      const isHovered = hoveredPreviewDay === dIdx;
-                      const isActive = activePreviewDay === dIdx;
-                      return (
-                        <div
-                          key={day.day}
-                          onMouseEnter={() => setHoveredPreviewDay(dIdx)}
-                          onMouseLeave={() => setHoveredPreviewDay(null)}
-                          onClick={() => setActivePreviewDay(dIdx)}
-                          style={{
-                            left: pos.left,
-                            width: pos.width,
-                            top: pos.top,
-                            animationDelay: `${dIdx * 80}ms`,
-                          }}
-                          className={cx(
-                            "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
-                            isActive
-                              ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
-                              : isHovered 
-                                ? "bg-ink-soft text-surface scale-[1.01] z-25" 
-                                : "bg-ink text-surface z-20"
-                          )}
-                        >
-                          <span className="truncate pr-2">Day {day.day}</span>
-                          <span className="text-[10px] opacity-75 font-mono shrink-0">
-                            {day.done.filter(Boolean).length}/{day.done.length}
-                          </span>
-                        </div>
-                      );
-                    })}
-
-                    {/* Tooltip Card for hovered preview day */}
-                    {hoveredPreviewDay !== null && (
-                      <div
-                        style={getTooltipStyle(hoveredPreviewDay, 5)}
-                        className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
-                            Day {previewRoadmap[hoveredPreviewDay].day} Focus
-                          </span>
-                          <span className="text-[10px] font-mono font-bold text-success">
-                            {Math.round((previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length / previewRoadmap[hoveredPreviewDay].done.length) * 100)}% Done
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-ink leading-snug">
-                          {previewRoadmap[hoveredPreviewDay].title}
-                        </h4>
-                        <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
-                          {previewRoadmap[hoveredPreviewDay].topic}
-                        </p>
-                        <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
-                          <span>📚 {previewRoadmap[hoveredPreviewDay].resources.length} Resources</span>
-                          <span>✓ {previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length}/{previewRoadmap[hoveredPreviewDay].done.length} Tasks</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Day indices at base of dashed lines */}
-                  <div className="grid text-center mb-6" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
-                    {previewRoadmap.map((day, dIdx) => (
-                      <button 
-                        key={day.day} 
-                        onClick={() => setActivePreviewDay(dIdx)}
-                        className={cx(
-                          "px-1.5 flex flex-col items-center border-t pt-2.5 transition-colors duration-300 outline-none",
-                          activePreviewDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
-                        )}
-                      >
-                        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
-                          Day {day.day}
-                        </span>
-                        <span className="text-[11px] font-bold mt-1 leading-tight line-clamp-2 text-center max-w-[120px]">
-                          {day.title}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <RoadmapTimelineChart
+                days={previewRoadmap}
+                activeIndex={activePreviewDay}
+                hoveredIndex={hoveredPreviewDay}
+                onSelect={setActivePreviewDay}
+                onHover={setHoveredPreviewDay}
+              />
 
               {/* Active Day Detail Panel for Preview */}
               <div className="mt-6 space-y-4 border-t border-line pt-5">
@@ -2180,154 +2222,14 @@ function AIRoadmapsView() {
 
           {/* Visual Gantt Chart Timeline Card (Desktop-scrollable, responsive) */}
           <div className="relative min-w-0 overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-6">
-            {/* Header section identical to the image mockup */}
-            <div className="mb-6 flex items-start justify-between gap-3 border-b border-line pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
-                <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
-              </div>
-              <div className="flex shrink-0 flex-col items-end">
-                <span className="font-mono text-2xl font-light text-ink/80 leading-none">0{roadmap.length}/</span>
-                <div className="flex items-center gap-2 mt-2.5">
-                  <span className="text-[9px] uppercase font-bold text-ink-faint">Tools</span>
-                  <div className="flex gap-1.5">
-                    {/* Notion SVG icon */}
-                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Notion">
-                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M4.46 3h15.08c1.07 0 1.96.86 2.01 1.93l.42 13.9c.03.95-.59 1.79-1.51 1.97l-15.08.3c-1.07.02-1.99-.81-2.02-1.89l-.45-13.91c-.03-.96.67-1.93 1.55-2.3zm1.94 2.8v11.85h3.04l3.87-5.8v5.8h2.76V5.8h-3.04l-3.87 5.8V5.8H6.4zm8.68 2.1c.33 0 .6-.27.6-.6s-.27-.6-.6-.6-.6.27-.6.6.27.6.6.6z"/>
-                      </svg>
-                    </div>
-                    {/* Figma SVG icon */}
-                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Figma">
-                      <svg className="h-3 w-3" viewBox="0 0 384 512" fill="currentColor">
-                        <path d="M120 412c-44.2 0-80-35.8-80-80s35.8-80 80-80h80v80c0 44.2-35.8 80-80 80zM120 0c44.2 0 80 35.8 80 80v80H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm0 160h80v160H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm160-80c0 44.2-35.8 80-80 80h-80V80c0-44.2 35.8-80 80-80s80 35.8 80 80zm0 160c0 44.2-35.8 80-80 80h-80v-160h80c44.2 0 80 35.8 80 80z" />
-                      </svg>
-                    </div>
-                    {/* ChatGPT Sparkle icon */}
-                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="AI Assistant">
-                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-1.813-5.096L2.091 14.09 7.187 12.28 9 7.187l1.813 5.093 5.096 1.81-5.096 1.813z" />
-                      </svg>
-                    </div>
-                    {/* Page Document icon */}
-                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Classroom Materials">
-                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Scrollable Timeline Graphic & Day Indices */}
-            <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
-              <div className="min-w-[580px] lg:min-w-0 relative">
-
-            {/* Gantt Timeline Graphic */}
-            <div className={cx("relative border-b border-line pb-6 mb-6", roadmap.length === 3 ? "h-[160px]" : roadmap.length === 5 ? "h-[260px]" : "h-[360px]")}>
-              {/* SVG connection path */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 1000 ${roadmap.length === 3 ? 160 : roadmap.length === 5 ? 260 : 360}`} preserveAspectRatio="none">
-                {renderBezierPath(roadmap.length)}
-              </svg>
-
-              {/* Dashed vertical lines dividing columns */}
-              <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
-                {Array.from({ length: roadmap.length }).map((_, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cx(
-                      "h-full border-dashed border-line",
-                      idx < roadmap.length - 1 ? "border-r" : ""
-                    )} 
-                  />
-                ))}
-              </div>
-
-              {/* Day Pills rendering cascade */}
-              {roadmap.map((day, dIdx) => {
-                const pos = getPillStyle(dIdx, roadmap.length);
-                const isHovered = hoveredDay === dIdx;
-                const isActive = activeDay === dIdx;
-                return (
-                  <div
-                    key={day.day}
-                    onMouseEnter={() => setHoveredDay(dIdx)}
-                    onMouseLeave={() => setHoveredDay(null)}
-                    onClick={() => setActiveDay(dIdx)}
-                    style={{
-                      left: pos.left,
-                      width: pos.width,
-                      top: pos.top,
-                      animationDelay: `${dIdx * 80}ms`,
-                    }}
-                    className={cx(
-                      "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
-                      isActive
-                        ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
-                        : isHovered 
-                          ? "bg-ink-soft text-surface scale-[1.01] z-25" 
-                          : "bg-ink text-surface z-20"
-                    )}
-                  >
-                    <span className="truncate pr-2">Day {day.day}</span>
-                    <span className="text-[10px] opacity-75 font-mono shrink-0">
-                      {day.done.filter(Boolean).length}/{day.done.length}
-                    </span>
-                  </div>
-                );
-              })}
-
-              {/* Tooltip Card for hovered day */}
-              {hoveredDay !== null && (
-                <div
-                  style={getTooltipStyle(hoveredDay, roadmap.length)}
-                  className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
-                      Day {roadmap[hoveredDay].day} Focus
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-success">
-                      {Math.round((roadmap[hoveredDay].done.filter(Boolean).length / roadmap[hoveredDay].done.length) * 100)}% Done
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-ink leading-snug">
-                    {roadmap[hoveredDay].title}
-                  </h4>
-                  <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
-                    {roadmap[hoveredDay].topic}
-                  </p>
-                  <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
-                    <span>📚 {roadmap[hoveredDay].resources.length} Resources</span>
-                    <span>✓ {roadmap[hoveredDay].done.filter(Boolean).length}/{roadmap[hoveredDay].done.length} Tasks</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Day indices and clear wrapping titles at base of dashed lines */}
-            <div className="grid text-center mb-8" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
-              {roadmap.map((day, dIdx) => (
-                <button 
-                  key={day.day} 
-                  onClick={() => setActiveDay(dIdx)}
-                  className={cx(
-                    "px-2 flex flex-col items-center border-t pt-3 transition-colors duration-300 outline-none",
-                    activeDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
-                  )}
-                >
-                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
-                    Day {day.day}
-                  </span>
-                  <span className="text-xs font-bold mt-1 leading-tight line-clamp-2 max-w-[140px] text-center">
-                    {day.title}
-                  </span>
-                </button>
-              ))}
-            </div>
-              </div>
-            </div>
+            <RoadmapTimelineChart
+              days={roadmap}
+              activeIndex={activeDay}
+              hoveredIndex={hoveredDay}
+              onSelect={setActiveDay}
+              onHover={setHoveredDay}
+              includeClassroomMaterials
+            />
 
             {/* Detailed Active Day Panel */}
             <div className="mt-6 space-y-4 border-t border-line pt-6">
