@@ -105,12 +105,7 @@ export function DashboardView() {
   }, []);
 
   const isVerified = Boolean(me);
-  const [collegeName] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("classvault_onboarding_college") ?? "your college";
-    }
-    return "your college";
-  });
+  const collegeName = me?.email.split("@")[1] ?? "your college";
 
   const greeting = me?.name ? `Good evening, ${me.name.split(" ")[0]}.` : "Welcome back.";
 
