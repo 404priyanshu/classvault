@@ -16,6 +16,8 @@ DATABASE_URL=
 APP_ORIGIN=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+EMAIL_PROVIDER=
+AWS_SES_REGION=
 RESEND_API_KEY=
 EMAIL_FROM=
 EMAIL_OTP_SECRET=
@@ -36,7 +38,10 @@ AWS_S3_PUBLIC_BASE_URL=
 1. Create the Google OAuth web client and add `${APP_ORIGIN}/api/auth/google/callback`.
 2. Create the Neon database and set the pooled connection string as `DATABASE_URL`.
 3. Create the S3 bucket, IAM access policy, and CORS policy allowing browser `PUT` uploads from `APP_ORIGIN`.
-4. Create a Resend API key and set `RESEND_API_KEY`, `EMAIL_FROM`, and `EMAIL_OTP_SECRET`.
+4. Configure email OTP delivery (see **Email OTP (Resend)** below for the recommended path).
+   - Resend (recommended): set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `EMAIL_FROM` to an address on a **verified domain**.
+   - AWS SES (alternative): verify `EMAIL_FROM`, set `EMAIL_PROVIDER=ses`, set `AWS_SES_REGION`, attach an `ses:SendEmail` IAM policy, and request SES production access before inviting unverified recipients.
+   - Always set a long random `EMAIL_OTP_SECRET` in production.
 5. Set `ALLOWED_EMAIL_DOMAINS` to the campus domain list.
 6. Set at least one `ADMIN_EMAILS` value before the first admin signs in.
 7. Run release gates locally:
@@ -52,6 +57,45 @@ pnpm build
 8. Deploy a Vercel preview.
 9. Run database migrations against the preview database.
 10. Open `/api/health/deep` on the preview and confirm the database check passes and S3 is reachable when configured.
+
+## Email OTP (Resend)
+
+The production deployment sends OTP through Resend from a verified subdomain of
+`404priyanshu.dev`. Replicate as follows.
+
+1. **Verify a sending subdomain, not a public mailbox.** Resend (and every
+   reputable provider) refuses public mailboxes like `@gmail.com` — you can only
+   send from a domain you verify. Add a subdomain such as `mail.<yourdomain>` at
+   [resend.com/domains](https://resend.com/domains); a subdomain keeps sending
+   reputation isolated from the apex used by any website.
+2. **Add the DNS records** Resend shows (DKIM + SPF + a bounce MX) at your DNS
+   host. Email records (TXT/MX on the subdomain) do not collide with a website's
+   apex `A`/`CNAME` records. Wait for status `verified`.
+3. **Set the Vercel env (Production):**
+   ```bash
+   EMAIL_PROVIDER=resend
+   RESEND_API_KEY=re_...
+   EMAIL_FROM=ClassVault <noreply@mail.<yourdomain>>
+   EMAIL_OTP_SECRET=<long random string>
+   ```
+   `EMAIL_FROM` must use the **verified subdomain**. The apex (`@<yourdomain>`)
+   is a separate identity — sending from it returns `403 domain is not verified`.
+4. **Redeploy** so functions pick up the env, then verify:
+   ```bash
+   curl -s -X POST https://<app>/api/auth/email/start \
+     -H 'content-type: application/json' \
+     -d '{"name":"Test","email":"someone@gmail.com"}'
+   # expect {"ok":true,...}; 502 EMAIL_DELIVERY_FAILED means the sender/domain is wrong
+   ```
+   Confirm the verified domain and check sends directly with
+   `curl https://api.resend.com/domains -H "Authorization: Bearer $RESEND_API_KEY"`.
+5. Until a domain is verified, `onboarding@resend.dev` works for local testing
+   but only delivers to the Resend account owner's own email.
+
+**Deploy gotcha:** `vercel redeploy <url>` re-runs *that specific deployment's
+source*. Targeting an old deployment rolls production back (e.g. to a build
+missing newer routes). Always redeploy the newest `Ready` deployment, or push to
+`main` to build from latest. Env changes only take effect after a redeploy.
 
 ## Preview Smoke Test
 
