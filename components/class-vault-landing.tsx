@@ -37,7 +37,7 @@ function Wordmark() {
 
 export function ClassVaultLanding() {
   return (
-    <div className="landing-theme min-h-screen bg-paper text-ink selection:bg-accent selection:text-surface">
+    <div className="landing-theme min-h-screen bg-paper text-ink selection:bg-accent selection:text-surface overflow-x-hidden">
       <header className="sticky top-0 z-50 border-b border-line bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
           <Wordmark />
@@ -88,7 +88,7 @@ export function ClassVaultLanding() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
           <span className="font-medium text-ink-soft">ClassVault</span>
-          <div className="flex gap-5">
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
             <a href="#features" className="transition hover:text-ink">
               Features
             </a>

@@ -1938,7 +1938,7 @@ function AIRoadmapsView() {
             </div>
 
             {/* Sandbox Gantt Chart Timeline Card */}
-            <div className="relative border border-line bg-surface rounded-xl p-5 shadow-sm overflow-x-auto select-none">
+            <div className="relative border border-line bg-surface rounded-xl p-5 shadow-sm overflow-hidden select-none">
               <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
                 <div>
                   <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
@@ -1971,107 +1971,112 @@ function AIRoadmapsView() {
                 </div>
               </div>
 
-              {/* Gantt Timeline graphic with bezier curves */}
-              <div className="relative border-b border-line pb-6 mb-6 h-[260px]">
-                {/* SVG connection path */}
-                <svg className="absolute inset-0 w-full h-[260px] pointer-events-none" viewBox="0 0 1000 260" preserveAspectRatio="none">
-                  {renderBezierPath(5)}
-                </svg>
+              {/* Scrollable Timeline Graphic & Day Indices */}
+              <div className="overflow-x-auto pb-4 -mx-5 px-5 scrollbar-thin">
+                <div className="min-w-[580px] lg:min-w-0 relative">
+                  {/* Gantt Timeline graphic with bezier curves */}
+                  <div className="relative border-b border-line pb-6 mb-6 h-[260px]">
+                    {/* SVG connection path */}
+                    <svg className="absolute inset-0 w-full h-[260px] pointer-events-none" viewBox="0 0 1000 260" preserveAspectRatio="none">
+                      {renderBezierPath(5)}
+                    </svg>
 
-                {/* Dashed vertical lines dividing columns */}
-                <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <div 
-                      key={idx} 
-                      className={cx(
-                        "h-full border-dashed border-line",
-                        idx < 4 ? "border-r" : ""
-                      )} 
-                    />
-                  ))}
-                </div>
-
-                {/* Day Pills rendering cascade */}
-                {previewRoadmap.map((day, dIdx) => {
-                  const pos = getPillStyle(dIdx, 5);
-                  const isHovered = hoveredPreviewDay === dIdx;
-                  const isActive = activePreviewDay === dIdx;
-                  return (
-                    <div
-                      key={day.day}
-                      onMouseEnter={() => setHoveredPreviewDay(dIdx)}
-                      onMouseLeave={() => setHoveredPreviewDay(null)}
-                      onClick={() => setActivePreviewDay(dIdx)}
-                      style={{
-                        left: pos.left,
-                        width: pos.width,
-                        top: pos.top,
-                        animationDelay: `${dIdx * 80}ms`,
-                      }}
-                      className={cx(
-                        "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
-                        isActive
-                          ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
-                          : isHovered 
-                            ? "bg-ink-soft text-surface scale-[1.01] z-25" 
-                            : "bg-ink text-surface z-20"
-                      )}
-                    >
-                      <span className="truncate pr-2">Day {day.day}</span>
-                      <span className="text-[10px] opacity-75 font-mono shrink-0">
-                        {day.done.filter(Boolean).length}/{day.done.length}
-                      </span>
+                    {/* Dashed vertical lines dividing columns */}
+                    <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <div 
+                          key={idx} 
+                          className={cx(
+                            "h-full border-dashed border-line",
+                            idx < 4 ? "border-r" : ""
+                          )} 
+                        />
+                      ))}
                     </div>
-                  );
-                })}
 
-                {/* Tooltip Card for hovered preview day */}
-                {hoveredPreviewDay !== null && (
-                  <div
-                    style={getTooltipStyle(hoveredPreviewDay, 5)}
-                    className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
-                        Day {previewRoadmap[hoveredPreviewDay].day} Focus
-                      </span>
-                      <span className="text-[10px] font-mono font-bold text-success">
-                        {Math.round((previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length / previewRoadmap[hoveredPreviewDay].done.length) * 100)}% Done
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-ink leading-snug">
-                      {previewRoadmap[hoveredPreviewDay].title}
-                    </h4>
-                    <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
-                      {previewRoadmap[hoveredPreviewDay].topic}
-                    </p>
-                    <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
-                      <span>📚 {previewRoadmap[hoveredPreviewDay].resources.length} Resources</span>
-                      <span>✓ {previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length}/{previewRoadmap[hoveredPreviewDay].done.length} Tasks</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                    {/* Day Pills rendering cascade */}
+                    {previewRoadmap.map((day, dIdx) => {
+                      const pos = getPillStyle(dIdx, 5);
+                      const isHovered = hoveredPreviewDay === dIdx;
+                      const isActive = activePreviewDay === dIdx;
+                      return (
+                        <div
+                          key={day.day}
+                          onMouseEnter={() => setHoveredPreviewDay(dIdx)}
+                          onMouseLeave={() => setHoveredPreviewDay(null)}
+                          onClick={() => setActivePreviewDay(dIdx)}
+                          style={{
+                            left: pos.left,
+                            width: pos.width,
+                            top: pos.top,
+                            animationDelay: `${dIdx * 80}ms`,
+                          }}
+                          className={cx(
+                            "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
+                            isActive
+                              ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
+                              : isHovered 
+                                ? "bg-ink-soft text-surface scale-[1.01] z-25" 
+                                : "bg-ink text-surface z-20"
+                          )}
+                        >
+                          <span className="truncate pr-2">Day {day.day}</span>
+                          <span className="text-[10px] opacity-75 font-mono shrink-0">
+                            {day.done.filter(Boolean).length}/{day.done.length}
+                          </span>
+                        </div>
+                      );
+                    })}
 
-              {/* Day indices at base of dashed lines */}
-              <div className="grid text-center mb-6" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
-                {previewRoadmap.map((day, dIdx) => (
-                  <button 
-                    key={day.day} 
-                    onClick={() => setActivePreviewDay(dIdx)}
-                    className={cx(
-                      "px-1.5 flex flex-col items-center border-t pt-2.5 transition-colors duration-300 outline-none",
-                      activePreviewDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
+                    {/* Tooltip Card for hovered preview day */}
+                    {hoveredPreviewDay !== null && (
+                      <div
+                        style={getTooltipStyle(hoveredPreviewDay, 5)}
+                        className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+                            Day {previewRoadmap[hoveredPreviewDay].day} Focus
+                          </span>
+                          <span className="text-[10px] font-mono font-bold text-success">
+                            {Math.round((previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length / previewRoadmap[hoveredPreviewDay].done.length) * 100)}% Done
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-ink leading-snug">
+                          {previewRoadmap[hoveredPreviewDay].title}
+                        </h4>
+                        <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
+                          {previewRoadmap[hoveredPreviewDay].topic}
+                        </p>
+                        <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
+                          <span>📚 {previewRoadmap[hoveredPreviewDay].resources.length} Resources</span>
+                          <span>✓ {previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length}/{previewRoadmap[hoveredPreviewDay].done.length} Tasks</span>
+                        </div>
+                      </div>
                     )}
-                  >
-                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
-                      Day {day.day}
-                    </span>
-                    <span className="text-[11px] font-bold mt-1 leading-tight line-clamp-2 text-center max-w-[120px]">
-                      {day.title}
-                    </span>
-                  </button>
-                ))}
+                  </div>
+
+                  {/* Day indices at base of dashed lines */}
+                  <div className="grid text-center mb-6" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
+                    {previewRoadmap.map((day, dIdx) => (
+                      <button 
+                        key={day.day} 
+                        onClick={() => setActivePreviewDay(dIdx)}
+                        className={cx(
+                          "px-1.5 flex flex-col items-center border-t pt-2.5 transition-colors duration-300 outline-none",
+                          activePreviewDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
+                        )}
+                      >
+                        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
+                          Day {day.day}
+                        </span>
+                        <span className="text-[11px] font-bold mt-1 leading-tight line-clamp-2 text-center max-w-[120px]">
+                          {day.title}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Active Day Detail Panel for Preview */}
@@ -2174,7 +2179,7 @@ function AIRoadmapsView() {
           </div>
 
           {/* Visual Gantt Chart Timeline Card (Desktop-scrollable, responsive) */}
-          <div className="relative border border-line bg-surface rounded-xl p-6 shadow-sm overflow-x-auto min-w-full">
+          <div className="relative border border-line bg-surface rounded-xl p-6 shadow-sm overflow-hidden">
             {/* Header section identical to the image mockup */}
             <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
               <div>
@@ -2214,6 +2219,10 @@ function AIRoadmapsView() {
                 </div>
               </div>
             </div>
+
+            {/* Scrollable Timeline Graphic & Day Indices */}
+            <div className="overflow-x-auto pb-4 -mx-6 px-6 scrollbar-thin">
+              <div className="min-w-[580px] lg:min-w-0 relative">
 
             {/* Gantt Timeline Graphic */}
             <div className={cx("relative border-b border-line pb-6 mb-6", roadmap.length === 3 ? "h-[160px]" : roadmap.length === 5 ? "h-[260px]" : "h-[360px]")}>
@@ -2316,6 +2325,8 @@ function AIRoadmapsView() {
                   </span>
                 </button>
               ))}
+            </div>
+              </div>
             </div>
 
             {/* Detailed Active Day Panel */}
@@ -3916,30 +3927,30 @@ function DetailDrawer({
         </div>
 
         {isPublished ? (
-          <div className="grid grid-cols-3 gap-2 border-t border-line p-4">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 border-t border-line p-4">
             <button
               type="button"
               onClick={onToggleSaved}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-line text-xs sm:text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink px-1 sm:px-2"
             >
               <Bookmark className={cx("h-4 w-4", note.savedByMe && "fill-current")} />
-              {note.savedByMe ? "Saved" : "Save"}
+              <span className="truncate">{note.savedByMe ? "Saved" : "Save"}</span>
             </button>
             <button
               type="button"
               onClick={onReport}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-line text-xs sm:text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink px-1 sm:px-2"
             >
               <Flag className="h-4 w-4" />
-              Report
+              <span className="truncate">Report</span>
             </button>
             <button
               type="button"
               onClick={onDownload}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85"
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-ink text-xs sm:text-sm font-medium text-surface transition hover:bg-ink/85 px-1 sm:px-2"
             >
               <Download className="h-4 w-4" />
-              Download
+              <span className="truncate">Download</span>
             </button>
           </div>
         ) : (

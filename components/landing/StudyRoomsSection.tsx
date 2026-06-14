@@ -56,7 +56,7 @@ export function StudyRoomsSection() {
             </p>
 
             {/* Bullet features */}
-            <div className="mt-8 grid gap-4 grid-cols-2">
+            <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2">
               {[
                 { title: "College-only rooms", desc: "Private rooms for your classmates." },
                 { title: "Cross-college subject rooms", desc: "Sync with anyone studying DBMS or CN." },
