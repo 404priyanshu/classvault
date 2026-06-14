@@ -134,7 +134,7 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
       <AnimatePresence>
         {open ? (
           <motion.div
-            className="fixed inset-0 z-[90] flex items-start justify-center bg-black/25 px-4 py-20 backdrop-blur-[2px] sm:py-28"
+            className="fixed inset-0 z-[90] flex items-start justify-center bg-black/25 px-3 py-4 backdrop-blur-[2px] sm:px-4 sm:py-28"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -147,7 +147,7 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
               role="dialog"
               aria-modal="true"
               aria-label="Search resources"
-              className="w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-[0_24px_60px_rgba(0,0,0,0.14),0_4px_18px_rgba(0,0,0,0.06)]"
+              className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-[0_24px_60px_rgba(0,0,0,0.14),0_4px_18px_rgba(0,0,0,0.06)]"
               initial={{ opacity: 0, scale: 0.97, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 6 }}
@@ -197,7 +197,7 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
                 </div>
               ) : null}
 
-              <div className="max-h-[50vh] overflow-y-auto p-2">
+              <div className="max-h-[min(50vh,420px)] overflow-y-auto p-2">
                 {results.length ? (
                   <div className="space-y-0.5">
                     {results.map((note, index) => (

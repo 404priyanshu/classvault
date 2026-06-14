@@ -657,7 +657,7 @@ export function ClassVaultApp() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       {/* Mobile header */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-surface px-4 lg:hidden">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center justify-between border-b border-line bg-surface px-4 pt-[env(safe-area-inset-top)] lg:hidden">
         <Wordmark />
         <button
           type="button"
@@ -729,7 +729,7 @@ export function ClassVaultApp() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface px-2 py-1.5 lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface px-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 lg:hidden">
         {mobileNavItems.map((item) => (
           <button
             key={item.id}
@@ -746,7 +746,7 @@ export function ClassVaultApp() {
         ))}
       </nav>
 
-      <main className="px-4 pb-24 pt-20 sm:px-6 lg:ml-56 lg:px-10 lg:pb-12 lg:pt-8">
+      <main className="px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))] sm:px-6 lg:ml-56 lg:px-10 lg:pb-12 lg:pt-8">
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{viewTitles[currentView]}</h1>
@@ -993,14 +993,14 @@ function AuthPromptDialog({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/25 p-4">
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
       <button
         type="button"
         className="absolute inset-0 cursor-default"
         onClick={onClose}
         aria-label="Close sign-in prompt"
       />
-      <section className="relative w-full max-w-md rounded-lg border border-line bg-surface shadow-2xl transition duration-200">
+      <section className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl transition duration-200">
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase text-ink-faint">
@@ -1105,13 +1105,13 @@ function DashboardView({
       </div>
 
       {/* College Vault Status */}
-      <div className="rounded-xl border border-line bg-surface p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex items-start gap-3.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <GraduationCap className="h-5 w-5" />
           </span>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
               <h3 className="text-sm font-semibold text-ink">
                 {isVerified ? `Verified: ${collegeName}` : "Unlock your College Vault"}
               </h3>
@@ -1133,7 +1133,7 @@ function DashboardView({
           <button
             type="button"
             onClick={onGoToVerify}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-accent px-4 text-xs font-semibold text-surface transition hover:bg-accent-hover"
+            className="inline-flex h-9 w-full items-center justify-center rounded-md bg-accent px-4 text-xs font-semibold text-surface transition hover:bg-accent-hover sm:w-auto"
           >
             Verify college email
           </button>
@@ -1141,7 +1141,7 @@ function DashboardView({
       </div>
 
       {/* Primary Action Grid */}
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
         {[
           { label: "Generate AI Roadmap", desc: "Build custom subject study plans", icon: Compass, action: onGoToRoadmaps },
           { label: "Add Resource", desc: "Ingest notes, link YouTube, websites", icon: PlusCircle, action: onGoToAddResource },
@@ -1151,7 +1151,7 @@ function DashboardView({
           <button
             key={card.label}
             onClick={card.action}
-            className="flex flex-col text-left p-4 rounded-xl border border-line bg-surface hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition group"
+            className="group flex min-w-0 flex-col rounded-xl border border-line bg-surface p-4 text-left transition hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-paper border border-line text-ink-soft group-hover:text-accent transition">
               <card.icon className="h-4.5 w-4.5" />
@@ -1169,7 +1169,7 @@ function DashboardView({
         <div className="space-y-8">
           {/* Today's Study Plan */}
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <SectionLabel>Today&apos;s Study Plan</SectionLabel>
               <button
                 onClick={onGoToRoadmaps}
@@ -1179,7 +1179,7 @@ function DashboardView({
               </button>
             </div>
             
-            <div className="rounded-lg border border-line bg-surface">
+            <div className="min-w-0 rounded-lg border border-line bg-surface">
               <div className="divide-y divide-line">
                 {tasks.map((task) => (
                   <div key={task.id} className="group flex items-center gap-3 px-3.5 py-2.5">
@@ -1225,7 +1225,7 @@ function DashboardView({
                 ) : null}
               </div>
               {tasks.length > 0 && (
-                <form onSubmit={onSubmitTask} className="flex gap-2 border-t border-line p-2">
+                <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line p-2">
                   <input
                     value={newTask}
                     onChange={(event) => onNewTaskChange(event.target.value)}
@@ -1245,7 +1245,7 @@ function DashboardView({
 
           {/* Recently Saved Resources */}
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <SectionLabel>Saved Resources</SectionLabel>
               <button
                 onClick={onGoToLibrary}
@@ -1289,7 +1289,7 @@ function DashboardView({
                 { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public" },
                 { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public" },
               ].map((room) => (
-                <div key={room.name} className="flex items-center justify-between p-3.5 rounded-lg border border-line bg-surface">
+                <div key={room.name} className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-3.5 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="text-xs font-semibold text-ink leading-none">{room.name}</h4>
@@ -1303,7 +1303,7 @@ function DashboardView({
                   </div>
                   <button
                     onClick={onGoToStudyRooms}
-                    className="inline-flex h-7 items-center justify-center rounded bg-ink px-3 text-[10px] font-bold text-surface hover:bg-ink/85"
+                    className="inline-flex h-8 w-full items-center justify-center rounded bg-ink px-3 text-[10px] font-bold text-surface hover:bg-ink/85 min-[420px]:h-7 min-[420px]:w-auto"
                   >
                     Join
                   </button>
@@ -1315,7 +1315,7 @@ function DashboardView({
           {/* Study Metrics */}
           <section className="space-y-3">
             <SectionLabel>Study metrics</SectionLabel>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
               <div className="rounded-lg border border-line bg-surface p-4 text-center">
                 <span className="block text-xl font-bold text-ink">{stats?.totalNotes ?? "0"}</span>
                 <span className="block text-[10px] text-ink-soft font-semibold mt-1">Saved files</span>
@@ -1432,7 +1432,7 @@ function CollegeVaultView({ me }: { me: ApiUser | null }) {
             </p>
             <p className="text-xs text-ink-faint">College: {collegeName}</p>
           </div>
-          <div className="border-t border-line pt-4 grid grid-cols-2 gap-4 text-left text-xs max-w-md mx-auto">
+        <div className="mx-auto grid max-w-md gap-3 border-t border-line pt-4 text-left text-xs sm:grid-cols-2 sm:gap-4">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Private college notes</span>
@@ -1816,15 +1816,15 @@ function AIRoadmapsView() {
       </div>
 
       {!roadmap && (
-        <div className="grid gap-6 lg:grid-cols-12 items-start">
+        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-12">
           {/* Left Column: Form Configuration */}
-          <div className="lg:col-span-5 rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <div className="min-w-0 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5 lg:col-span-5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">
               Configure Study Plan
             </h3>
             <form onSubmit={handleGenerate} className="space-y-4">
               <div className="grid gap-4">
-                <label className="block">
+                <label className="block min-w-0">
                   <span className="text-xs font-bold text-ink-soft">Study Subject</span>
                   <input
                     type="text"
@@ -1832,16 +1832,16 @@ function AIRoadmapsView() {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="e.g. Computer Networks, DBMS, Operating Systems"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   />
                 </label>
 
-                <label className="block">
+                <label className="block min-w-0">
                   <span className="text-xs font-bold text-ink-soft">Target Duration</span>
                   <select
                     value={days}
                     onChange={(e) => setDays(Number(e.target.value))}
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   >
                     <option value={3}>3 Days (Exam Sprint)</option>
                     <option value={5}>5 Days (Recommended)</option>
@@ -1849,16 +1849,16 @@ function AIRoadmapsView() {
                   </select>
                 </label>
 
-                <label className="block">
+                <label className="block min-w-0">
                   <span className="text-xs font-bold text-ink-soft">Current Level</span>
-                  <div className="mt-1 flex gap-1 rounded-lg border border-line bg-paper p-1">
+                  <div className="mt-1 flex min-w-0 gap-1 rounded-lg border border-line bg-paper p-1">
                     {["Beginner", "Okay", "Strong"].map((lvl) => (
                       <button
                         key={lvl}
                         type="button"
                         onClick={() => setLevel(lvl)}
                         className={cx(
-                          "flex-1 py-1 rounded text-xs font-bold transition",
+                          "min-w-0 flex-1 rounded py-1 text-xs font-bold transition",
                           level === lvl ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
                         )}
                       >
@@ -1868,7 +1868,7 @@ function AIRoadmapsView() {
                   </div>
                 </label>
 
-                <label className="block">
+                <label className="block min-w-0">
                   <span className="text-xs font-bold text-ink-soft">Study Goal</span>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {[
@@ -1882,7 +1882,7 @@ function AIRoadmapsView() {
                         type="button"
                         onClick={() => setGoal(gl)}
                         className={cx(
-                          "px-3 py-1.5 rounded-lg border text-xs font-semibold transition",
+                          "rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
                           goal === gl ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
                         )}
                       >
@@ -1926,8 +1926,8 @@ function AIRoadmapsView() {
           </div>
 
           {/* Right Column: Live Interactive Sandbox Preview */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="min-w-0 space-y-4 lg:col-span-7">
+            <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent animate-pulse">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
                 Interactive Preview
@@ -1938,13 +1938,13 @@ function AIRoadmapsView() {
             </div>
 
             {/* Sandbox Gantt Chart Timeline Card */}
-            <div className="relative border border-line bg-surface rounded-xl p-5 shadow-sm overflow-hidden select-none">
-              <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
+            <div className="relative min-w-0 select-none overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+              <div className="mb-6 flex items-start justify-between gap-3 border-b border-line pb-4">
                 <div>
                   <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
                   <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex shrink-0 flex-col items-end">
                   <span className="font-mono text-2xl font-light text-ink/80 leading-none">
                     0{previewRoadmap.length}/
                   </span>
@@ -1972,7 +1972,7 @@ function AIRoadmapsView() {
               </div>
 
               {/* Scrollable Timeline Graphic & Day Indices */}
-              <div className="overflow-x-auto pb-4 -mx-5 px-5 scrollbar-thin">
+              <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-5 sm:px-5">
                 <div className="min-w-[580px] lg:min-w-0 relative">
                   {/* Gantt Timeline graphic with bezier curves */}
                   <div className="relative border-b border-line pb-6 mb-6 h-[260px]">
@@ -2080,17 +2080,17 @@ function AIRoadmapsView() {
               </div>
 
               {/* Active Day Detail Panel for Preview */}
-              <div className="mt-6 border-t border-line pt-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+              <div className="mt-6 space-y-4 border-t border-line pt-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
                     <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
                       Day {previewRoadmap[activePreviewDay].day} Focus
                     </span>
-                    <h4 className="text-sm font-bold text-ink">
+                    <h4 className="min-w-0 text-sm font-bold text-ink">
                       {previewRoadmap[activePreviewDay].title}
                     </h4>
                   </div>
-                  <span className="text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
+                  <span className="w-fit text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
                     {Math.round((previewRoadmap[activePreviewDay].done.filter(Boolean).length / previewRoadmap[activePreviewDay].done.length) * 100)}% Complete
                   </span>
                 </div>
@@ -2158,7 +2158,7 @@ function AIRoadmapsView() {
 
       {roadmap && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between border-b border-line pb-4">
+          <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint">
                 Generated Plan
@@ -2172,21 +2172,21 @@ function AIRoadmapsView() {
             </div>
             <button
               onClick={() => setRoadmap(null)}
-              className="text-xs font-semibold text-ink-soft hover:text-ink border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+              className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-paper hover:text-ink sm:w-auto"
             >
               Configure new plan
             </button>
           </div>
 
           {/* Visual Gantt Chart Timeline Card (Desktop-scrollable, responsive) */}
-          <div className="relative border border-line bg-surface rounded-xl p-6 shadow-sm overflow-hidden">
+          <div className="relative min-w-0 overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-6">
             {/* Header section identical to the image mockup */}
-            <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
+            <div className="mb-6 flex items-start justify-between gap-3 border-b border-line pb-4">
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
                 <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
               </div>
-              <div className="flex flex-col items-end">
+              <div className="flex shrink-0 flex-col items-end">
                 <span className="font-mono text-2xl font-light text-ink/80 leading-none">0{roadmap.length}/</span>
                 <div className="flex items-center gap-2 mt-2.5">
                   <span className="text-[9px] uppercase font-bold text-ink-faint">Tools</span>
@@ -2221,7 +2221,7 @@ function AIRoadmapsView() {
             </div>
 
             {/* Scrollable Timeline Graphic & Day Indices */}
-            <div className="overflow-x-auto pb-4 -mx-6 px-6 scrollbar-thin">
+            <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
               <div className="min-w-[580px] lg:min-w-0 relative">
 
             {/* Gantt Timeline Graphic */}
@@ -2330,24 +2330,24 @@ function AIRoadmapsView() {
             </div>
 
             {/* Detailed Active Day Panel */}
-            <div className="mt-6 border-t border-line pt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <div className="mt-6 space-y-4 border-t border-line pt-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
                   <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
                     Day {roadmap[activeDay].day} Focus
                   </span>
-                  <h4 className="text-sm font-bold text-ink">
+                  <h4 className="min-w-0 text-sm font-bold text-ink">
                     {roadmap[activeDay].title}
                   </h4>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="grid gap-2 min-[420px]:flex min-[420px]:items-center min-[420px]:gap-3">
                   <button
                     onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
-                    className="text-[10px] font-extrabold uppercase tracking-wide text-accent bg-accent-soft hover:bg-accent hover:text-surface px-3 py-1.5 rounded-lg border border-accent/20 transition"
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-accent transition hover:bg-accent hover:text-surface"
                   >
                     Take Practice Quiz
                   </button>
-                  <span className="text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
+                  <span className="inline-flex h-8 items-center justify-center rounded bg-success/10 px-2 py-0.5 font-mono text-xs font-bold text-success">
                     {Math.round((roadmap[activeDay].done.filter(Boolean).length / roadmap[activeDay].done.length) * 100)}% Complete
                   </span>
                 </div>
@@ -2415,8 +2415,8 @@ function AIRoadmapsView() {
 
       {/* Mock Quiz dialog modal */}
       {showQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-md p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-line pb-2.5">
               <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">AI Practice Quiz</h4>
               <button onClick={() => setShowQuiz(null)} className="text-ink-faint hover:text-ink">
@@ -2434,7 +2434,7 @@ function AIRoadmapsView() {
                 ].map((item, idx) => (
                   <div key={idx} className="space-y-1.5 border border-line p-3 rounded-lg bg-paper">
                     <p className="text-xs font-bold text-ink">{item.q}</p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-2 min-[380px]:grid-cols-2">
                       {item.o.map((opt, oIdx) => (
                         <button
                           key={oIdx}
@@ -2520,7 +2520,7 @@ function ExamModeView() {
                 />
               </label>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Days Remaining</span>
                   <select
@@ -2570,7 +2570,7 @@ function ExamModeView() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-between border-b border-line pb-4">
+          <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wider">
                 Exam Mode Active
@@ -2581,7 +2581,7 @@ function ExamModeView() {
             </div>
             <button
               onClick={() => setPlanGenerated(false)}
-              className="text-xs font-semibold text-ink border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+              className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-paper sm:w-auto"
             >
               Reset Plan
             </button>
@@ -2798,11 +2798,11 @@ function StudyRoomsView() {
 
       {!activeRoom ? (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Available Rooms</h3>
             <button
               onClick={() => setCreateOpen(true)}
-              className="inline-flex h-8 items-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
+              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85 min-[420px]:h-8 min-[420px]:w-auto"
             >
               Create study room
             </button>
@@ -2843,8 +2843,8 @@ function StudyRoomsView() {
         </div>
       ) : (
         /* Active session view */
-        <div className="rounded-xl border border-line bg-surface p-6 shadow-sm max-w-2xl mx-auto space-y-6">
-          <div className="flex items-center justify-between border-b border-line pb-4">
+        <div className="mx-auto max-w-2xl space-y-6 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-3 border-b border-line pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent leading-none">
                 Silent Session
@@ -2857,20 +2857,20 @@ function StudyRoomsView() {
                 setActiveRoom(null);
                 setTimerRunning(false);
               }}
-              className="text-xs font-semibold text-red-600 hover:text-red-700 border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+              className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-paper hover:text-red-700 min-[420px]:w-auto"
             >
               Leave Session
             </button>
           </div>
 
-          <div className="text-center py-6 space-y-4">
-            <div className="font-mono text-5xl font-bold tracking-tight text-ink">
+          <div className="space-y-4 py-6 text-center">
+            <div className="font-mono text-4xl font-bold tracking-tight text-ink sm:text-5xl">
               {formatTimer(timeLeft)}
             </div>
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-col justify-center gap-3 min-[380px]:flex-row">
               <button
                 onClick={() => setTimerRunning(!timerRunning)}
-                className="inline-flex h-9 items-center justify-center rounded bg-ink px-6 text-xs font-bold text-surface hover:bg-ink/85 transition"
+                className="inline-flex h-9 w-full items-center justify-center rounded bg-ink px-6 text-xs font-bold text-surface transition hover:bg-ink/85 min-[380px]:w-auto"
               >
                 {timerRunning ? "Pause Timer" : "Start Focus"}
               </button>
@@ -2879,7 +2879,7 @@ function StudyRoomsView() {
                   setTimerRunning(false);
                   setTimeLeft(activeRoom.timerVal * 60);
                 }}
-                className="inline-flex h-9 items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft hover:bg-surface hover:text-ink transition"
+                className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink min-[380px]:w-auto"
               >
                 Reset
               </button>
@@ -2925,8 +2925,8 @@ function StudyRoomsView() {
 
       {/* Complete session modal details */}
       {completedSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-6 text-center shadow-2xl">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <Check className="h-6 w-6" />
             </div>
@@ -2957,8 +2957,8 @@ function StudyRoomsView() {
 
       {/* Room Creation dialog modal */}
       {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
-          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-md p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-line pb-2.5">
               <h3 className="text-sm font-bold text-ink">Create study room</h3>
               <button onClick={() => setCreateOpen(false)} className="text-ink-faint hover:text-ink">
@@ -2992,7 +2992,7 @@ function StudyRoomsView() {
                   />
                 </label>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="text-xs font-bold text-ink-soft">Timer Mode</span>
                     <select
@@ -3210,7 +3210,7 @@ function AddResourceView({ onUpload }: { onUpload: () => void }) {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-emerald-100 flex gap-2">
+          <div className="flex flex-col gap-2 border-t border-emerald-100 pt-3 min-[380px]:flex-row">
             <button
               onClick={() => {
                 alert("Simulated: Added to day 3 roadmap!");
@@ -3219,7 +3219,7 @@ function AddResourceView({ onUpload }: { onUpload: () => void }) {
                 setLinkTitle("");
                 setLinkSubject("");
               }}
-              className="h-8 rounded bg-ink px-4 text-xs font-bold text-surface hover:bg-ink/85 transition"
+              className="h-8 rounded bg-ink px-4 text-xs font-bold text-surface transition hover:bg-ink/85"
             >
               Add to roadmap
             </button>
@@ -3231,7 +3231,7 @@ function AddResourceView({ onUpload }: { onUpload: () => void }) {
                 setLinkTitle("");
                 setLinkSubject("");
               }}
-              className="h-8 rounded border border-line bg-paper px-3 text-xs font-semibold text-ink-soft hover:bg-surface hover:text-ink transition"
+              className="h-8 rounded border border-line bg-paper px-3 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink"
             >
               Generate summary
             </button>
@@ -3272,7 +3272,7 @@ function FilterBar({
   const filtersActive = query !== "" || semester !== "All" || subject !== "All";
 
   return (
-    <div className="flex flex-col gap-2 pb-4 sm:flex-row sm:flex-wrap sm:items-center">
+    <div className="flex min-w-0 flex-col gap-2 pb-4 sm:flex-row sm:flex-wrap sm:items-center">
       <label className="relative min-w-0 flex-1 sm:max-w-64">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
         <input
@@ -3293,7 +3293,7 @@ function FilterBar({
           Clear
         </button>
       ) : null}
-      <div className="flex items-center gap-3 sm:ml-auto">
+      <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-start">
         <span className="font-mono text-xs text-ink-faint">{count} results</span>
         <div className="inline-flex rounded-md border border-line bg-surface p-0.5">
           {(
@@ -3333,7 +3333,7 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="relative">
+    <label className="relative min-w-0">
       <span className="sr-only">{label}</span>
       <select
         value={value}
@@ -3538,19 +3538,19 @@ function ProfileView({
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <Avatar name={avatarName} size="lg" />
-          <div>
+          <div className="min-w-0">
             <h2 className="text-lg font-semibold tracking-tight">{displayName}</h2>
-            <p className="mt-0.5 text-sm text-ink-faint">{displayEmail}</p>
+            <p className="mt-0.5 truncate text-sm text-ink-faint">{displayEmail}</p>
             <p className="mt-0.5 font-mono text-xs text-ink-faint">{me?.roleLabel ?? ""}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
           <button
             type="button"
             onClick={onUpload}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85"
           >
             <Upload className="h-4 w-4" />
             Upload
@@ -3559,7 +3559,7 @@ function ProfileView({
             <button
               type="button"
               onClick={onSignOut}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
             >
               <LogOut className="h-4 w-4" />
               Sign out
@@ -3567,7 +3567,7 @@ function ProfileView({
           ) : (
             <Link
               href="/sign-in"
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
             >
               <User className="h-4 w-4" />
               Sign in
@@ -3827,7 +3827,7 @@ function DetailDrawer({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-6">
+        <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-5 sm:py-6">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold tracking-tight">{note.title}</h2>
             <StatusBadge status={note.status} />
@@ -3857,7 +3857,7 @@ function DetailDrawer({
 
           <NotePreview note={note} />
 
-          <div className="mt-6 flex items-center gap-3 rounded-lg border border-line bg-paper p-3.5">
+          <div className="mt-6 flex min-w-0 items-center gap-3 rounded-lg border border-line bg-paper p-3.5">
             <Avatar name={note.uploader.name} size="sm" />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{note.uploader.name}</p>
@@ -3927,7 +3927,7 @@ function DetailDrawer({
         </div>
 
         {isPublished ? (
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 border-t border-line p-4">
+          <div className="grid grid-cols-3 gap-1.5 border-t border-line p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:gap-2 sm:p-4">
             <button
               type="button"
               onClick={onToggleSaved}
@@ -4066,10 +4066,10 @@ function UploadDialog({
     "h-9 rounded-md border border-line bg-surface px-3 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
       <form
         onSubmit={handleSubmit}
-        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl"
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
@@ -4171,18 +4171,18 @@ function UploadDialog({
           </label>
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-line p-4">
+        <div className="grid gap-2 border-t border-line p-4 sm:flex sm:justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 items-center rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex h-9 items-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
           >
             {submitting ? "Uploading..." : "Submit for review"}
           </button>
