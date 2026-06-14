@@ -306,6 +306,58 @@ textarea:disabled {
   box-shadow: 0 18px 48px rgba(28, 25, 23, 0.08);
 }
 
+/* AI Roadmap Animations */
+@keyframes roadmap-path-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-roadmap-path {
+  stroke-dasharray: 6 4;
+  animation: roadmap-path-flow 1.5s linear infinite;
+}
+
+@keyframes check-pop {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.animate-check-pop {
+  animation: check-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-tooltip {
+  animation: tooltip-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pill-cascade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pill-cascade {
+  animation: pill-cascade 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

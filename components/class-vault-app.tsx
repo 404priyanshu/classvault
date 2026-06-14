@@ -1555,6 +1555,54 @@ type RoadmapDay = {
   done: boolean[];
 };
 
+const PREVIEW_ROADMAP: RoadmapDay[] = [
+  {
+    day: 1,
+    title: "Foundations & Layering Paradigms",
+    topic: "Introduction to layered protocols, TCP/IP stack vs OSI model, packet switching basics, and performance metrics (delay, loss).",
+    resources: ["Introduction to Layers & Protocols.pdf", "Computer Networks: System Approach (Slides)", "Network Architecture 101 (YouTube)"],
+    tasks: ["Read Layering paradigms slide deck", "Explain propagation vs transmission delay differences", "Summarize peer-to-peer vs client-server models"],
+    pyqs: ["State differences between OSI and TCP/IP protocol architectures (2024, 2022 repeats)", "Calculate throughput for a multi-hop link (2023 exam)"],
+    done: [true, false, false, false, false],
+  },
+  {
+    day: 2,
+    title: "Link Layer & Media Access Control",
+    topic: "Error detection (parity, CRC), sliding window protocols, multiple access protocols (CSMA/CD, CSMA/CA), Ethernet, and switching.",
+    resources: ["Sliding Window Protocols Visual Guide.pdf", "CRC Error Detection Solver", "CSMA/CD Collision Resolution Note"],
+    tasks: ["Attempt 5 practice questions on CRC generation and validation", "Verify sliding window sequence numbers", "Understand MAC vs IP address resolutions"],
+    pyqs: ["Describe sliding window flow control protocols (2023, 2021 repeat)", "Show how switch learns MAC addresses dynamically (2022 exam)"],
+    done: [true, true, false, false, false],
+  },
+  {
+    day: 3,
+    title: "Routing Algorithms & Subnetting",
+    topic: "IP addressing, CIDR subnetting, Distance Vector vs Link State routing, packet forwarding mechanics, and NAT mappings.",
+    resources: ["IP Subnetting Cheat Sheet.pdf", "Dijkstra Routing Visualizer", "NAT Port Mapping Handout"],
+    tasks: ["Solve subnetting allocation problems for 4 networks", "Trace Dijkstra shortest path computation", "Compare IPv4 and IPv6 headers side-by-side"],
+    pyqs: ["Given an IP block, partition it into 4 subnets (2024, 2023 repeat)", "Explain link-state routing vs distance-vector routing (2023 exam)"],
+    done: [false, false, false, false, false],
+  },
+  {
+    day: 4,
+    title: "Transport Protocols & Congestion Control",
+    topic: "TCP 3-way handshake, connection release, flow control, congestion window phases (Slow Start, Congestion Avoidance, Fast Recovery).",
+    resources: ["TCP Congestion Control note.pdf", "Connection Handshake Trace", "UDP vs TCP Header Comparison"],
+    tasks: ["Graph TCP window sizing during packet drops", "Understand TCP Retransmission Timeout calculation", "Review UDP sockets architecture"],
+    pyqs: ["Discuss TCP congestion window phase shifts on duplicate ACKs (2023, 2021 repeat)", "Explain why UDP is preferred for real-time video (2022 exam)"],
+    done: [false, false, false, false, false],
+  },
+  {
+    day: 5,
+    title: "Application Layer & Security Principles",
+    topic: "DNS resolution stages, HTTP/1.1 vs HTTP/2 multiplexing, SMTP email delivery, symmetric/asymmetric cryptography (RSA), SSL/TLS handshakes.",
+    resources: ["DNS Resolution Walkthrough.pdf", "Web Server protocols cheat sheet", "Intro to RSA & Cryptography"],
+    tasks: ["Trace a recursive DNS resolution path", "Review TLS cipher suite negotiations", "Revise public key encryption mathematical steps"],
+    pyqs: ["Explain the TLS handshake procedure (2024 repeat)", "Differentiate symmetric key vs asymmetric key cryptography (2023 exam)"],
+    done: [false, false, false, false, false],
+  },
+];
+
 function AIRoadmapsView() {
   const [subject, setSubject] = useState("");
   const [days, setDays] = useState(5);
@@ -1571,38 +1619,112 @@ function AIRoadmapsView() {
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  
+  // Active Selected Day States
+  const [activeDay, setActiveDay] = useState(0);
+  const [activePreviewDay, setActivePreviewDay] = useState(0);
+  
+  // Interactive Preview State
+  const [previewRoadmap, setPreviewRoadmap] = useState<RoadmapDay[]>(PREVIEW_ROADMAP);
+  const [hoveredPreviewDay, setHoveredPreviewDay] = useState<number | null>(null);
 
-  function getPillStyle(i: number, n: number) {
-    let left = "";
-    let width = "";
-    let top = "";
-    
-    if (n === 5) {
-      if (i === 0) { left = "2%"; width = "16%"; top = "15px"; }
-      else if (i === 1) { left = "22%"; width = "16%"; top = "60px"; }
-      else if (i === 2) { left = "42%"; width = "16%"; top = "105px"; }
-      else if (i === 3) { left = "62%"; width = "36%"; top = "150px"; }
-      else if (i === 4) { left = "82%"; width = "16%"; top = "200px"; }
-    } else if (n === 3) {
-      if (i === 0) { left = "2%"; width = "29.3%"; top = "15px"; }
-      else if (i === 1) { left = "35.3%"; width = "29.3%"; top = "65px"; }
-      else if (i === 2) { left = "68.6%"; width = "29.3%"; top = "115px"; }
+  function togglePreviewTaskCheckbox(dayIdx: number, taskIdx: number) {
+    setPreviewRoadmap((current) =>
+      current.map((day, dIdx) => {
+        if (dIdx !== dayIdx) return day;
+        const newDone = [...day.done];
+        newDone[taskIdx] = !newDone[taskIdx];
+        return { ...day, done: newDone };
+      })
+    );
+  }
+
+  function getTooltipStyle(i: number, n: number) {
+    const pos = getPillStyle(i, n);
+    const topVal = parseInt(pos.top) + (i === 0 ? 55 : -125);
+    const style: React.CSSProperties = {
+      top: `${topVal}px`,
+      width: "240px",
+    };
+    if (i >= n - 2) {
+      const leftInt = parseFloat(pos.left);
+      const widthInt = parseFloat(pos.width);
+      const rightPercent = 100 - (leftInt + widthInt);
+      style.right = `${rightPercent}%`;
+      style.left = "auto";
     } else {
-      const colWidth = 100 / n;
-      if (i === n - 2) {
-        left = `${(i * colWidth) + 2}%`;
-        width = `${(colWidth * 2) - 4}%`;
-        top = `${(i * 45) + 15}px`;
-      } else if (i === n - 1) {
-        left = `${(i * colWidth) + 2}%`;
-        width = `${colWidth - 4}%`;
-        top = `${(i * 45) + 20}px`;
-      } else {
-        left = `${(i * colWidth) + 2}%`;
-        width = `${colWidth - 4}%`;
-        top = `${(i * 45) + 15}px`;
+      style.left = pos.left;
+    }
+    return style;
+  }
+
+  function renderBezierPath(n: number) {
+    const centers: { x: number; y: number }[] = [];
+    if (n === 5) {
+      centers.push({ x: 100, y: 37 });
+      centers.push({ x: 300, y: 82 });
+      centers.push({ x: 500, y: 127 });
+      centers.push({ x: 800, y: 172 });
+      centers.push({ x: 900, y: 222 });
+    } else if (n === 3) {
+      centers.push({ x: 166.5, y: 37 });
+      centers.push({ x: 499.5, y: 87 });
+      centers.push({ x: 832.5, y: 137 });
+    } else {
+      for (let i = 0; i < n; i++) {
+        let left = 0;
+        let width = 0;
+        let top = 0;
+        const colWidth = 100 / n;
+        if (i === n - 2) {
+          left = (i * colWidth) + 2;
+          width = (colWidth * 2) - 4;
+          top = (i * 45) + 15;
+        } else if (i === n - 1) {
+          left = (i * colWidth) + 2;
+          width = colWidth - 4;
+          top = (i * 45) + 20;
+        } else {
+          left = (i * colWidth) + 2;
+          width = colWidth - 4;
+          top = (i * 45) + 15;
+        }
+        const midX = (left + width / 2) * 10;
+        const midY = top + 22;
+        centers.push({ x: midX, y: midY });
       }
     }
+
+    let dString = "";
+    if (centers.length > 0) {
+      dString = `M ${centers[0].x} ${centers[0].y}`;
+      for (let i = 1; i < centers.length; i++) {
+        const p0 = centers[i - 1];
+        const p1 = centers[i];
+        const cp1x = p0.x + (p1.x - p0.x) / 2;
+        const cp1y = p0.y;
+        const cp2x = p0.x + (p1.x - p0.x) / 2;
+        const cp2y = p1.y;
+        dString += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+      }
+    }
+
+    return (
+      <path
+        d={dString}
+        fill="none"
+        stroke="var(--accent)"
+        strokeWidth="2.2"
+        className="animate-roadmap-path opacity-40"
+      />
+    );
+  }
+
+  function getPillStyle(i: number, n: number) {
+    const colWidth = 100 / n;
+    const left = `${(i * colWidth) + 2}%`;
+    const width = `${colWidth - 4}%`;
+    const top = `${(i * 45) + 15}px`;
     return { left, width, top };
   }
 
@@ -1661,6 +1783,7 @@ function AIRoadmapsView() {
         },
       ];
       setRoadmap(generatedRoadmap.slice(0, days));
+      setActiveDay(0);
     }, 1200);
   }
 
@@ -1693,108 +1816,338 @@ function AIRoadmapsView() {
       </div>
 
       {!roadmap && (
-        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <form onSubmit={handleGenerate} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block sm:col-span-2">
-                <span className="text-xs font-bold text-ink-soft">Study Subject</span>
-                <input
-                  type="text"
-                  required
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g. Computer Networks, DBMS, Operating Systems"
-                  className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
-                />
-              </label>
+        <div className="grid gap-6 lg:grid-cols-12 items-start">
+          {/* Left Column: Form Configuration */}
+          <div className="lg:col-span-5 rounded-xl border border-line bg-surface p-5 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">
+              Configure Study Plan
+            </h3>
+            <form onSubmit={handleGenerate} className="space-y-4">
+              <div className="grid gap-4">
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Study Subject</span>
+                  <input
+                    type="text"
+                    required
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="e.g. Computer Networks, DBMS, Operating Systems"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
 
-              <label className="block">
-                <span className="text-xs font-bold text-ink-soft">Target Duration</span>
-                <select
-                  value={days}
-                  onChange={(e) => setDays(Number(e.target.value))}
-                  className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
-                >
-                  <option value={3}>3 Days (Exam Sprint)</option>
-                  <option value={5}>5 Days (Recommended)</option>
-                  <option value={7}>7 Days (Deep Learning)</option>
-                </select>
-              </label>
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Target Duration</span>
+                  <select
+                    value={days}
+                    onChange={(e) => setDays(Number(e.target.value))}
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  >
+                    <option value={3}>3 Days (Exam Sprint)</option>
+                    <option value={5}>5 Days (Recommended)</option>
+                    <option value={7}>7 Days (Deep Learning)</option>
+                  </select>
+                </label>
 
-              <label className="block">
-                <span className="text-xs font-bold text-ink-soft">Current Level</span>
-                <div className="mt-1 flex gap-1 rounded-lg border border-line bg-paper p-1">
-                  {["Beginner", "Okay", "Strong"].map((lvl) => (
-                    <button
-                      key={lvl}
-                      type="button"
-                      onClick={() => setLevel(lvl)}
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Current Level</span>
+                  <div className="mt-1 flex gap-1 rounded-lg border border-line bg-paper p-1">
+                    {["Beginner", "Okay", "Strong"].map((lvl) => (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => setLevel(lvl)}
+                        className={cx(
+                          "flex-1 py-1 rounded text-xs font-bold transition",
+                          level === lvl ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
+                        )}
+                      >
+                        {lvl}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Study Goal</span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {[
+                      "Pass quickly",
+                      "Score high",
+                      "Deep understanding",
+                      "Interview prep",
+                    ].map((gl) => (
+                      <button
+                        key={gl}
+                        type="button"
+                        onClick={() => setGoal(gl)}
+                        className={cx(
+                          "px-3 py-1.5 rounded-lg border text-xs font-semibold transition",
+                          goal === gl ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
+                        )}
+                      >
+                        {gl}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+
+                <div className="space-y-2.5 pt-2">
+                  <span className="text-xs font-bold text-ink-soft block">Ingestion Source Materials</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {[
+                      { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
+                      { label: "Use community resources", val: useCommunity, set: setUseCommunity },
+                      { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
+                      { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
+                    ].map((toggle) => (
+                      <label key={toggle.label} className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-ink-soft hover:text-ink">
+                        <input
+                          type="checkbox"
+                          checked={toggle.val}
+                          onChange={(e) => toggle.set(e.target.checked)}
+                          className="rounded border-line text-accent focus:ring-accent"
+                        />
+                        <span>{toggle.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={generating || !subject.trim()}
+                className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60 pt-1"
+              >
+                {generating ? "Parsing materials & compiling roadmap..." : "Generate AI Roadmap"}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Column: Live Interactive Sandbox Preview */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
+                Interactive Preview
+              </span>
+              <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider">
+                Demo: Computer Networks (5 Days)
+              </span>
+            </div>
+
+            {/* Sandbox Gantt Chart Timeline Card */}
+            <div className="relative border border-line bg-surface rounded-xl p-5 shadow-sm overflow-x-auto select-none">
+              <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
+                  <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="font-mono text-2xl font-light text-ink/80 leading-none">
+                    0{previewRoadmap.length}/
+                  </span>
+                  <div className="flex items-center gap-2 mt-2.5">
+                    <span className="text-[9px] uppercase font-bold text-ink-faint">Tools</span>
+                    <div className="flex gap-1.5">
+                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Notion">
+                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4.46 3h15.08c1.07 0 1.96.86 2.01 1.93l.42 13.9c.03.95-.59 1.79-1.51 1.97l-15.08.3c-1.07.02-1.99-.81-2.02-1.89l-.45-13.91c-.03-.96.67-1.93 1.55-2.3zm1.94 2.8v11.85h3.04l3.87-5.8v5.8h2.76V5.8h-3.04l-3.87 5.8V5.8H6.4zm8.68 2.1c.33 0 .6-.27.6-.6s-.27-.6-.6-.6-.6.27-.6.6.27.6.6.6z"/>
+                        </svg>
+                      </div>
+                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Figma">
+                        <svg className="h-3 w-3" viewBox="0 0 384 512" fill="currentColor">
+                          <path d="M120 412c-44.2 0-80-35.8-80-80s35.8-80 80-80h80v80c0 44.2-35.8 80-80 80zM120 0c44.2 0 80 35.8 80 80v80H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm0 160h80v160H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm160-80c0 44.2-35.8 80-80 80h-80V80c0-44.2 35.8-80 80-80s80 35.8 80 80zm0 160c0 44.2-35.8 80-80 80h-80v-160h80c44.2 0 80 35.8 80 80z" />
+                        </svg>
+                      </div>
+                      <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="AI Assistant">
+                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-1.813-5.096L2.091 14.09 7.187 12.28 9 7.187l1.813 5.093 5.096 1.81-5.096 1.813z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Gantt Timeline graphic with bezier curves */}
+              <div className="relative border-b border-line pb-6 mb-6 h-[260px] min-w-[640px]">
+                {/* SVG connection path */}
+                <svg className="absolute inset-0 w-full h-[260px] pointer-events-none" viewBox="0 0 1000 260" preserveAspectRatio="none">
+                  {renderBezierPath(5)}
+                </svg>
+
+                {/* Dashed vertical lines dividing columns */}
+                <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div 
+                      key={idx} 
                       className={cx(
-                        "flex-1 py-1 rounded text-xs font-bold transition",
-                        level === lvl ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
-                      )}
-                    >
-                      {lvl}
-                    </button>
+                        "h-full border-dashed border-line",
+                        idx < 4 ? "border-r" : ""
+                      )} 
+                    />
                   ))}
                 </div>
-              </label>
 
-              <label className="block sm:col-span-2">
-                <span className="text-xs font-bold text-ink-soft">Study Goal</span>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {[
-                    "Pass quickly",
-                    "Score high",
-                    "Deep understanding",
-                    "Interview prep",
-                  ].map((gl) => (
-                    <button
-                      key={gl}
-                      type="button"
-                      onClick={() => setGoal(gl)}
+                {/* Day Pills rendering cascade */}
+                {previewRoadmap.map((day, dIdx) => {
+                  const pos = getPillStyle(dIdx, 5);
+                  const isHovered = hoveredPreviewDay === dIdx;
+                  const isActive = activePreviewDay === dIdx;
+                  return (
+                    <div
+                      key={day.day}
+                      onMouseEnter={() => setHoveredPreviewDay(dIdx)}
+                      onMouseLeave={() => setHoveredPreviewDay(null)}
+                      onClick={() => setActivePreviewDay(dIdx)}
+                      style={{
+                        left: pos.left,
+                        width: pos.width,
+                        top: pos.top,
+                        animationDelay: `${dIdx * 80}ms`,
+                      }}
                       className={cx(
-                        "px-3 py-1.5 rounded-lg border text-xs font-semibold transition",
-                        goal === gl ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
+                        "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
+                        isActive
+                          ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
+                          : isHovered 
+                            ? "bg-ink-soft text-surface scale-[1.01] z-25" 
+                            : "bg-ink text-surface z-20"
                       )}
                     >
-                      {gl}
-                    </button>
-                  ))}
-                </div>
-              </label>
+                      <span className="truncate pr-2">Day {day.day}</span>
+                      <span className="text-[10px] opacity-75 font-mono shrink-0">
+                        {day.done.filter(Boolean).length}/{day.done.length}
+                      </span>
+                    </div>
+                  );
+                })}
 
-              <div className="sm:col-span-2 space-y-2.5 pt-2">
-                <span className="text-xs font-bold text-ink-soft block">Ingestion Source Materials</span>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
-                    { label: "Use community resources", val: useCommunity, set: setUseCommunity },
-                    { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
-                    { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
-                  ].map((toggle) => (
-                    <label key={toggle.label} className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-ink-soft hover:text-ink">
-                      <input
-                        type="checkbox"
-                        checked={toggle.val}
-                        onChange={(e) => toggle.set(e.target.checked)}
-                        className="rounded border-line text-accent focus:ring-accent"
-                      />
-                      <span>{toggle.label}</span>
-                    </label>
-                  ))}
+                {/* Tooltip Card for hovered preview day */}
+                {hoveredPreviewDay !== null && (
+                  <div
+                    style={getTooltipStyle(hoveredPreviewDay, 5)}
+                    className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+                        Day {previewRoadmap[hoveredPreviewDay].day} Focus
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-success">
+                        {Math.round((previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length / previewRoadmap[hoveredPreviewDay].done.length) * 100)}% Done
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-ink leading-snug">
+                      {previewRoadmap[hoveredPreviewDay].title}
+                    </h4>
+                    <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
+                      {previewRoadmap[hoveredPreviewDay].topic}
+                    </p>
+                    <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
+                      <span>📚 {previewRoadmap[hoveredPreviewDay].resources.length} Resources</span>
+                      <span>✓ {previewRoadmap[hoveredPreviewDay].done.filter(Boolean).length}/{previewRoadmap[hoveredPreviewDay].done.length} Tasks</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Day indices at base of dashed lines */}
+              <div className="grid text-center mb-6 min-w-[640px]" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
+                {previewRoadmap.map((day, dIdx) => (
+                  <button 
+                    key={day.day} 
+                    onClick={() => setActivePreviewDay(dIdx)}
+                    className={cx(
+                      "px-1.5 flex flex-col items-center border-t pt-2.5 transition-colors duration-300 outline-none",
+                      activePreviewDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
+                    )}
+                  >
+                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
+                      Day {day.day}
+                    </span>
+                    <span className="text-[11px] font-bold mt-1 leading-tight line-clamp-2 text-center max-w-[120px]">
+                      {day.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Active Day Detail Panel for Preview */}
+              <div className="mt-6 border-t border-line pt-5 space-y-4 min-w-[640px]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
+                      Day {previewRoadmap[activePreviewDay].day} Focus
+                    </span>
+                    <h4 className="text-sm font-bold text-ink">
+                      {previewRoadmap[activePreviewDay].title}
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
+                    {Math.round((previewRoadmap[activePreviewDay].done.filter(Boolean).length / previewRoadmap[activePreviewDay].done.length) * 100)}% Complete
+                  </span>
+                </div>
+                
+                <p className="text-xs text-ink-soft leading-relaxed bg-paper p-3 rounded-lg border border-line">
+                  <span className="font-semibold text-ink block text-[10px] uppercase tracking-wider mb-0.5">Focus Topic</span>
+                  {previewRoadmap[activePreviewDay].topic}
+                </p>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Left Column: Tasks */}
+                  <div className="space-y-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Tasks Checklist</span>
+                    <div className="space-y-2.5">
+                      {[...previewRoadmap[activePreviewDay].tasks, ...previewRoadmap[activePreviewDay].pyqs].map((task, tIdx) => (
+                        <div key={tIdx} className="flex items-start gap-3 group bg-surface hover:bg-paper p-2 rounded-lg border border-line/40 transition-colors">
+                          <button
+                            onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
+                            className={cx(
+                              "flex h-4 w-4 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
+                              previewRoadmap[activePreviewDay].done[tIdx] 
+                                ? "border-success bg-success text-surface animate-check-pop" 
+                                : "border-line-strong hover:border-accent hover:bg-accent-soft"
+                            )}
+                          >
+                            {previewRoadmap[activePreviewDay].done[tIdx] ? <span className="text-[9px] font-black">✓</span> : null}
+                          </button>
+                          <span 
+                            className={cx(
+                              "text-xs font-medium leading-relaxed transition-colors",
+                              previewRoadmap[activePreviewDay].done[tIdx] 
+                                ? "text-ink-faint line-through" 
+                                : "text-ink-soft group-hover:text-ink"
+                            )}
+                          >
+                            {task}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Ingested Materials */}
+                  <div className="space-y-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Ingested Materials</span>
+                    <div className="space-y-2">
+                      {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
+                        <div 
+                          key={rIdx} 
+                          className="flex items-center gap-2.5 text-xs text-ink-soft bg-paper p-2.5 rounded-lg border border-line truncate"
+                          title={res}
+                        >
+                          <span className="text-base">📄</span>
+                          <span className="truncate font-medium">{res}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={generating || !subject.trim()}
-              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60 pt-1"
-            >
-              {generating ? "Parsing materials & compiling roadmap..." : "Generate AI Roadmap"}
-            </button>
-          </form>
+          </div>
         </div>
       )}
 
@@ -1864,6 +2217,11 @@ function AIRoadmapsView() {
 
             {/* Gantt Timeline Graphic */}
             <div className={cx("relative border-b border-line pb-6 mb-6", roadmap.length === 3 ? "h-[160px]" : roadmap.length === 5 ? "h-[260px]" : "h-[360px]")}>
+              {/* SVG connection path */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 1000 ${roadmap.length === 3 ? 160 : roadmap.length === 5 ? 260 : 360}`} preserveAspectRatio="none">
+                {renderBezierPath(roadmap.length)}
+              </svg>
+
               {/* Dashed vertical lines dividing columns */}
               <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
                 {Array.from({ length: roadmap.length }).map((_, idx) => (
@@ -1881,115 +2239,164 @@ function AIRoadmapsView() {
               {roadmap.map((day, dIdx) => {
                 const pos = getPillStyle(dIdx, roadmap.length);
                 const isHovered = hoveredDay === dIdx;
+                const isActive = activeDay === dIdx;
                 return (
                   <div
                     key={day.day}
                     onMouseEnter={() => setHoveredDay(dIdx)}
                     onMouseLeave={() => setHoveredDay(null)}
+                    onClick={() => setActiveDay(dIdx)}
                     style={{
                       left: pos.left,
                       width: pos.width,
                       top: pos.top,
+                      animationDelay: `${dIdx * 80}ms`,
                     }}
                     className={cx(
-                      "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none",
-                      isHovered 
-                        ? "bg-accent scale-[1.02] text-surface ring-4 ring-accent-soft z-30" 
-                        : "bg-ink text-surface hover:bg-accent hover:scale-[1.01] z-20"
+                      "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none animate-pill-cascade",
+                      isActive
+                        ? "bg-accent text-surface ring-4 ring-accent-soft scale-[1.03] z-30"
+                        : isHovered 
+                          ? "bg-ink-soft text-surface scale-[1.01] z-25" 
+                          : "bg-ink text-surface z-20"
                     )}
                   >
-                    <span className="truncate pr-2">Day {day.day}: {day.title}</span>
+                    <span className="truncate pr-2">Day {day.day}</span>
                     <span className="text-[10px] opacity-75 font-mono shrink-0">
                       {day.done.filter(Boolean).length}/{day.done.length}
                     </span>
                   </div>
                 );
               })}
+
+              {/* Tooltip Card for hovered day */}
+              {hoveredDay !== null && (
+                <div
+                  style={getTooltipStyle(hoveredDay, roadmap.length)}
+                  className="absolute z-40 bg-surface border border-line-strong p-3.5 rounded-xl shadow-xl animate-tooltip pointer-events-none"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+                      Day {roadmap[hoveredDay].day} Focus
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-success">
+                      {Math.round((roadmap[hoveredDay].done.filter(Boolean).length / roadmap[hoveredDay].done.length) * 100)}% Done
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-ink leading-snug">
+                    {roadmap[hoveredDay].title}
+                  </h4>
+                  <p className="text-[10px] text-ink-soft mt-1 leading-normal line-clamp-2">
+                    {roadmap[hoveredDay].topic}
+                  </p>
+                  <div className="mt-2 pt-2 border-t border-line flex items-center justify-between text-[9px] text-ink-faint">
+                    <span>📚 {roadmap[hoveredDay].resources.length} Resources</span>
+                    <span>✓ {roadmap[hoveredDay].done.filter(Boolean).length}/{roadmap[hoveredDay].done.length} Tasks</span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Day indices at base of dashed lines */}
-            <div className="grid text-center text-[10px] font-mono text-ink-faint tracking-wider mb-8" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
-              {roadmap.map((day) => (
-                <div key={day.day}>Day {day.day}</div>
+            {/* Day indices and clear wrapping titles at base of dashed lines */}
+            <div className="grid text-center mb-8" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
+              {roadmap.map((day, dIdx) => (
+                <button 
+                  key={day.day} 
+                  onClick={() => setActiveDay(dIdx)}
+                  className={cx(
+                    "px-2 flex flex-col items-center border-t pt-3 transition-colors duration-300 outline-none",
+                    activeDay === dIdx ? "border-accent text-accent font-bold" : "border-line text-ink hover:text-accent"
+                  )}
+                >
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-faint">
+                    Day {day.day}
+                  </span>
+                  <span className="text-xs font-bold mt-1 leading-tight line-clamp-2 max-w-[140px] text-center">
+                    {day.title}
+                  </span>
+                </button>
               ))}
             </div>
 
-            {/* Subtask Lists for each Day Column */}
-            <div className="grid gap-6 pt-6 border-t border-line grid-cols-1 md:grid-flow-col md:auto-cols-fr">
-              {roadmap.map((day, dIdx) => {
-                const isHovered = hoveredDay === dIdx;
-                return (
-                  <div 
-                    key={day.day} 
-                    onMouseEnter={() => setHoveredDay(dIdx)}
-                    onMouseLeave={() => setHoveredDay(null)}
-                    className={cx(
-                      "space-y-4 p-4 rounded-xl border transition-all duration-300",
-                      isHovered 
-                        ? "border-accent bg-accent-soft/5 shadow-sm translate-y-[-2px]" 
-                        : "border-transparent bg-transparent"
-                    )}
+            {/* Detailed Active Day Panel */}
+            <div className="mt-6 border-t border-line pt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
+                    Day {roadmap[activeDay].day} Focus
+                  </span>
+                  <h4 className="text-sm font-bold text-ink">
+                    {roadmap[activeDay].title}
+                  </h4>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
+                    className="text-[10px] font-extrabold uppercase tracking-wide text-accent bg-accent-soft hover:bg-accent hover:text-surface px-3 py-1.5 rounded-lg border border-accent/20 transition"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint">
-                        Day {day.day} Tasks
-                      </span>
-                      <button
-                        onClick={() => handleTriggerQuiz(day.title)}
-                        className="text-[9px] font-extrabold uppercase tracking-wide text-accent hover:underline"
-                      >
-                        Quiz
-                      </button>
-                    </div>
+                    Take Practice Quiz
+                  </button>
+                  <span className="text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
+                    {Math.round((roadmap[activeDay].done.filter(Boolean).length / roadmap[activeDay].done.length) * 100)}% Complete
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-xs text-ink-soft leading-relaxed bg-paper p-3 rounded-lg border border-line">
+                <span className="font-semibold text-ink block text-[10px] uppercase tracking-wider mb-0.5">Focus Topic</span>
+                {roadmap[activeDay].topic}
+              </p>
 
-                    <div className="space-y-3">
-                      {[...day.tasks, ...day.pyqs].map((task, tIdx) => (
-                        <div key={tIdx} className="flex items-start gap-2.5 group">
-                          <button
-                            onClick={() => toggleTaskCheckbox(dIdx, tIdx)}
-                            className={cx(
-                              "flex h-3.5 w-3.5 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
-                              day.done[tIdx] 
-                                ? "border-success bg-success text-surface" 
-                                : "border-line-strong hover:border-accent hover:bg-accent-soft"
-                            )}
-                          >
-                            {day.done[tIdx] ? <span className="text-[8px] font-black">✓</span> : null}
-                          </button>
-                          <span 
-                            className={cx(
-                              "text-[11px] font-medium leading-relaxed transition-colors",
-                              day.done[tIdx] 
-                                ? "text-ink-faint line-through" 
-                                : "text-ink-soft group-hover:text-ink"
-                            )}
-                          >
-                            {task}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-3 border-t border-line/50 space-y-1.5">
-                      <span className="text-[9px] font-bold text-ink-faint uppercase tracking-wider block">
-                        Ingested Materials:
-                      </span>
-                      <div className="space-y-1">
-                        {day.resources.map((res, rIdx) => (
-                          <div 
-                            key={rIdx} 
-                            className="text-[10px] text-ink-soft truncate flex items-center gap-1.5" 
-                            title={res}
-                          >
-                            <span className="text-accent">📄</span>
-                            <span className="truncate">{res}</span>
-                          </div>
-                        ))}
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Left Column: Tasks */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Tasks Checklist</span>
+                  <div className="space-y-2.5">
+                    {[...roadmap[activeDay].tasks, ...roadmap[activeDay].pyqs].map((task, tIdx) => (
+                      <div key={tIdx} className="flex items-start gap-3 group bg-surface hover:bg-paper p-2 rounded-lg border border-line/40 transition-colors">
+                        <button
+                          onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
+                          className={cx(
+                            "flex h-4 w-4 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
+                            roadmap[activeDay].done[tIdx] 
+                              ? "border-success bg-success text-surface animate-check-pop" 
+                              : "border-line-strong hover:border-accent hover:bg-accent-soft"
+                          )}
+                        >
+                          {roadmap[activeDay].done[tIdx] ? <span className="text-[9px] font-black">✓</span> : null}
+                        </button>
+                        <span 
+                          className={cx(
+                            "text-xs font-medium leading-relaxed transition-colors",
+                            roadmap[activeDay].done[tIdx] 
+                              ? "text-ink-faint line-through" 
+                              : "text-ink-soft group-hover:text-ink"
+                          )}
+                        >
+                          {task}
+                        </span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+
+                {/* Right Column: Ingested Materials */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Ingested Materials</span>
+                  <div className="space-y-2">
+                    {roadmap[activeDay].resources.map((res, rIdx) => (
+                      <div 
+                        key={rIdx} 
+                        className="flex items-center gap-2.5 text-xs text-ink-soft bg-paper p-2.5 rounded-lg border border-line truncate"
+                        title={res}
+                      >
+                        <span className="text-base">📄</span>
+                        <span className="truncate font-medium">{res}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
