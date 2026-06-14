@@ -60,9 +60,9 @@ export function StudyRoomsView() {
   const [completedSession, setCompletedSession] = useState(false);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof window.setInterval> | undefined;
     if (timerRunning && timeLeft > 0) {
-      timer = setInterval(() => {
+      timer = window.setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setTimerRunning(false);
@@ -73,7 +73,9 @@ export function StudyRoomsView() {
         });
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer !== undefined) window.clearInterval(timer);
+    };
   }, [timerRunning, timeLeft]);
 
   function handleJoinRoom(room: RoomDetails) {
