@@ -325,7 +325,7 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
           patchNote(note.id, { downloadCount: result.downloadCount });
           void refreshMeta();
           if (result.downloadUrl) {
-            window.open(result.downloadUrl, "_blank");
+            window.open(result.downloadUrl, "_blank", "noopener,noreferrer");
           } else {
             setToast("Download recorded — seeded resource has no file attached.");
           }
