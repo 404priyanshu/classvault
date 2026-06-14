@@ -1,6 +1,12 @@
 import { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiNote, FileType, NoteStatus } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
+import {
+  computeRatingAggregate,
+  isFullTextQuery,
+  orderByIds,
+  roundToTenth,
+} from "@/lib/server/note-logic";
 import type { notesQuerySchema, createNoteSchema } from "@/lib/server/validation";
 import type { z } from "zod";
 
@@ -103,7 +109,7 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
     : { status: "PUBLISHED" };
 
   const q = query.q?.trim();
-  const useFts = Boolean(q && q.split(/\s+/).length >= 2);
+  const useFts = isFullTextQuery(q);
   let rankedIds: string[] = [];
 
   if (q && useFts) {
@@ -148,10 +154,7 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
 
   // Re-apply the externally computed orderings findMany cannot express.
   if (useFts || trendingOrder.length) {
-    const order = new Map((useFts ? rankedIds : trendingOrder).map((id, index) => [id, index]));
-    items = [...items].sort(
-      (a, b) => (order.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (order.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-    );
+    items = orderByIds(items, useFts ? rankedIds : trendingOrder);
   }
 
   return {
@@ -229,19 +232,13 @@ export async function rateNote(noteId: string, userId: string, value: number) {
     const note = await tx.note.findFirst({ where: { id: noteId, status: "PUBLISHED" } });
     if (!note) return null;
 
-    // Seeded notes carry aggregate counts without per-user Rating rows.
-    // Derive the immutable seed portion from the cached aggregate minus the
-    // live rows, then fold live ratings back in after the upsert.
+    // Snapshot live rows before the write; the pure helper folds the seed
+    // aggregate (cached totals minus these) back in afterward.
     const liveBefore = await tx.rating.aggregate({
       where: { noteId },
       _sum: { value: true },
       _count: true,
     });
-    const seedCount = Math.max(0, note.ratingCount - liveBefore._count);
-    const seedSum = Math.max(
-      0,
-      note.ratingAverage * note.ratingCount - (liveBefore._sum.value ?? 0),
-    );
 
     await tx.rating.upsert({
       where: { userId_noteId: { userId, noteId } },
@@ -255,9 +252,14 @@ export async function rateNote(noteId: string, userId: string, value: number) {
       _count: true,
     });
 
-    const ratingCount = seedCount + liveAfter._count;
-    const ratingAverage =
-      ratingCount > 0 ? (seedSum + (liveAfter._sum.value ?? 0)) / ratingCount : 0;
+    const { ratingAverage, ratingCount } = computeRatingAggregate({
+      cachedAverage: note.ratingAverage,
+      cachedCount: note.ratingCount,
+      liveCountBefore: liveBefore._count,
+      liveSumBefore: liveBefore._sum.value ?? 0,
+      liveCountAfter: liveAfter._count,
+      liveSumAfter: liveAfter._sum.value ?? 0,
+    });
 
     const updated = await tx.note.update({
       where: { id: noteId },
@@ -265,7 +267,7 @@ export async function rateNote(noteId: string, userId: string, value: number) {
     });
 
     return {
-      ratingAverage: Math.round(updated.ratingAverage * 10) / 10,
+      ratingAverage: roundToTenth(updated.ratingAverage),
       ratingCount: updated.ratingCount,
       myRating: value,
     };
