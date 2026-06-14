@@ -1972,7 +1972,7 @@ function AIRoadmapsView() {
               </div>
 
               {/* Gantt Timeline graphic with bezier curves */}
-              <div className="relative border-b border-line pb-6 mb-6 h-[260px] min-w-[640px]">
+              <div className="relative border-b border-line pb-6 mb-6 h-[260px]">
                 {/* SVG connection path */}
                 <svg className="absolute inset-0 w-full h-[260px] pointer-events-none" viewBox="0 0 1000 260" preserveAspectRatio="none">
                   {renderBezierPath(5)}
@@ -2054,7 +2054,7 @@ function AIRoadmapsView() {
               </div>
 
               {/* Day indices at base of dashed lines */}
-              <div className="grid text-center mb-6 min-w-[640px]" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
+              <div className="grid text-center mb-6" style={{ gridTemplateColumns: `repeat(5, minmax(0, 1fr))` }}>
                 {previewRoadmap.map((day, dIdx) => (
                   <button 
                     key={day.day} 
@@ -2075,7 +2075,7 @@ function AIRoadmapsView() {
               </div>
 
               {/* Active Day Detail Panel for Preview */}
-              <div className="mt-6 border-t border-line pt-5 space-y-4 min-w-[640px]">
+              <div className="mt-6 border-t border-line pt-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
