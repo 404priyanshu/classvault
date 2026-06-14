@@ -14,14 +14,34 @@
   --line-strong: #d6d3d1;
 }
 
+.landing-theme {
+  --paper: #FAFAF7;
+  --paper-warm: #F8F7F3;
+  --surface: #ffffff;
+  --ink: #171717;
+  --ink-soft: #6B6B6B;
+  --ink-faint: #9A9A9A;
+  --line: #E5E5E5;
+  --line-strong: #CCCCCC;
+  --accent: #635BFF;
+  --accent-soft: rgba(99, 91, 255, 0.08);
+  --accent-hover: #5148E5;
+  --success: #22C55E;
+}
+
 @theme {
   --color-paper: var(--paper);
+  --color-paper-warm: var(--paper-warm);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
