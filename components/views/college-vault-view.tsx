@@ -75,6 +75,7 @@ export function CollegeVaultView() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("classvault_college_verified");
       localStorage.removeItem("classvault_college_email");
+      localStorage.removeItem("classvault_onboarding_college");
     }
   }
 
