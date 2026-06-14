@@ -235,6 +235,12 @@ export function ClassVaultLanding() {
             <a href="#how-it-works" className="transition hover:text-ink">
               How it works
             </a>
+            <Link href="/privacy" className="transition hover:text-ink">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition hover:text-ink">
+              Terms
+            </Link>
             <Link href="/app" className="transition hover:text-ink">
               Open app
             </Link>

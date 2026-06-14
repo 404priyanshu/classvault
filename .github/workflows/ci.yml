@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Placeholder values so steps that read env at module load can run. No real
+    # services are contacted during lint/test/build.
+    env:
+      DATABASE_URL: postgresql://user:pass@localhost:5432/db
+      APP_ORIGIN: http://localhost:3000
+      EMAIL_OTP_SECRET: ci-build-placeholder-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Validate Prisma schema
+        run: pnpm prisma validate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
