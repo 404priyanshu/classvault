@@ -8,10 +8,13 @@ import { ALLOWED_MIME_TYPES, createNoteSchema, notesQuerySchema } from "@/lib/se
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
     const query = notesQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
+    const user =
+      query.owner === "me" || query.saved === "true"
+        ? await requireCurrentUser()
+        : await getCurrentUser();
     const result = await listNotes(query, user?.id ?? null);
     return NextResponse.json(result);
   } catch (error) {

@@ -47,6 +47,7 @@ import { SearchCommandPalette } from "@/components/search-command-palette";
 type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile" | "review";
 type LayoutMode = "list" | "grid";
 type ModerationAction = "approve" | "reject" | "hide" | "restore";
+const AUTH_BANNER_SESSION_KEY = "classvault_auth_banner_dismissed";
 
 type StudyTask = {
   id: string;
@@ -118,6 +119,8 @@ function statusLabel(status: ApiNote["status"]) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
+class AuthRequiredError extends Error {}
+
 async function readError(response: Response) {
   try {
     const body = (await response.json()) as ApiError;
@@ -137,6 +140,9 @@ export function ClassVaultApp() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authBannerDismissed, setAuthBannerDismissed] = useState(false);
 
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
   const [query, setQuery] = useState("");
@@ -153,6 +159,14 @@ export function ClassVaultApp() {
   const canModerate = me?.role === "ADMIN" || me?.role === "MODERATOR";
   const visibleNavItems = navItems.filter((item) => item.id !== "review" || canModerate);
   const currentView = activeView === "review" && !canModerate ? "dashboard" : activeView;
+  const showAuthBanner = authChecked && !me && !authBannerDismissed;
+  const profileDisplayName = me?.name ?? (authChecked ? "Preview mode" : "Loading...");
+  const profileDisplayEmail = me?.email ?? (authChecked ? "Sign in to save and upload" : "");
+  const profileAvatarName = me?.name ?? (authChecked ? "Guest" : "?");
+
+  const openAuthPrompt = useCallback(() => {
+    setAuthPromptOpen(true);
+  }, []);
 
   const refreshMeta = useCallback(async () => {
     try {
@@ -171,6 +185,8 @@ export function ClassVaultApp() {
         if (response.ok) setMe((await response.json()) as ApiUser);
       } catch {
         // profile chrome degrades gracefully without a user
+      } finally {
+        setAuthChecked(true);
       }
       try {
         const response = await fetch("/api/notes?sort=trending&limit=4");
@@ -183,6 +199,17 @@ export function ClassVaultApp() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [refreshMeta]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setAuthBannerDismissed(sessionStorage.getItem(AUTH_BANNER_SESSION_KEY) === "true");
+      } catch {
+        // Ignore
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Load tasks from localStorage on mount. Deferred so the initial render uses
   // the default list (avoids hydration mismatch) and setState is not called
@@ -226,6 +253,12 @@ export function ClassVaultApp() {
       setLoading(true);
       try {
         const response = await fetch(`/api/notes?${params}`, { signal: controller.signal });
+        if (response.status === 401) {
+          openAuthPrompt();
+          setNotes([]);
+          setLoadError(null);
+          return;
+        }
         if (!response.ok) throw new Error(await readError(response));
         const data = (await response.json()) as NotesResponse;
         setNotes(data.items);
@@ -243,11 +276,37 @@ export function ClassVaultApp() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [currentView, query, semester, subject, refetchTick]);
+  }, [currentView, openAuthPrompt, query, semester, subject, refetchTick]);
 
   const refetchNotes = useCallback(() => {
     refetchCounter.current += 1;
     setRefetchTick(refetchCounter.current);
+  }, []);
+
+  const requireAuth = useCallback(<T,>(fn: () => T) => {
+    if (!me) {
+      openAuthPrompt();
+      return undefined;
+    }
+    return fn();
+  }, [me, openAuthPrompt]);
+
+  const assertResponseOk = useCallback(async (response: Response) => {
+    if (response.ok) return;
+    if (response.status === 401) {
+      openAuthPrompt();
+      throw new AuthRequiredError();
+    }
+    throw new Error(await readError(response));
+  }, [openAuthPrompt]);
+
+  const dismissAuthBanner = useCallback(() => {
+    setAuthBannerDismissed(true);
+    try {
+      sessionStorage.setItem(AUTH_BANNER_SESSION_KEY, "true");
+    } catch {
+      // Ignore
+    }
   }, []);
 
   const refreshAdminQueue = useCallback(async () => {
@@ -258,18 +317,19 @@ export function ClassVaultApp() {
         fetch("/api/admin/notes?status=PENDING"),
         fetch("/api/admin/reports"),
       ]);
-      if (!notesResponse.ok) throw new Error(await readError(notesResponse));
-      if (!reportsResponse.ok) throw new Error(await readError(reportsResponse));
+      await assertResponseOk(notesResponse);
+      await assertResponseOk(reportsResponse);
       const notesBody = (await notesResponse.json()) as { items: ApiNote[] };
       const reportsBody = (await reportsResponse.json()) as { items: AdminReport[] };
       setAdminNotes(notesBody.items);
       setAdminReports(reportsBody.items);
     } catch (error) {
+      if (error instanceof AuthRequiredError) return;
       setToast(error instanceof Error ? error.message : "Could not load review queue.");
     } finally {
       setAdminLoading(false);
     }
-  }, [canModerate]);
+  }, [assertResponseOk, canModerate]);
 
   useEffect(() => {
     if (currentView !== "review") return;
@@ -280,25 +340,31 @@ export function ClassVaultApp() {
   async function signOut() {
     try {
       const response = await fetch("/api/auth/sign-out", { method: "POST" });
-      if (!response.ok) throw new Error(await readError(response));
+      await assertResponseOk(response);
       // Full navigation so the cleared cookie applies everywhere.
       window.location.href = "/sign-in";
     } catch (error) {
+      if (error instanceof AuthRequiredError) return;
       setToast(error instanceof Error ? error.message : "Sign out failed.");
     }
   }
 
   async function saveProfile(input: { name: string; department: string | null; semester: string | null }) {
+    if (!me) {
+      openAuthPrompt();
+      return;
+    }
     try {
       const response = await fetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
-      if (!response.ok) throw new Error(await readError(response));
+      await assertResponseOk(response);
       setMe((await response.json()) as ApiUser);
       setToast("Profile updated");
     } catch (error) {
+      if (error instanceof AuthRequiredError) return;
       setToast(error instanceof Error ? error.message : "Could not update profile.");
     }
   }
@@ -323,78 +389,94 @@ export function ClassVaultApp() {
   }
 
   async function toggleSaved(note: ApiNote) {
-    const nextSaved = !note.savedByMe;
-    patchNote(note.id, { savedByMe: nextSaved });
-    try {
-      const response = await fetch(`/api/notes/${note.id}/save`, {
-        method: nextSaved ? "POST" : "DELETE",
-      });
-      if (!response.ok) throw new Error(await readError(response));
-      void refreshMeta();
-      if (currentView === "saved") refetchNotes();
-    } catch (error) {
-      patchNote(note.id, { savedByMe: note.savedByMe });
-      setToast(error instanceof Error ? error.message : "Could not update saved state.");
-    }
+    return requireAuth(async () => {
+      const nextSaved = !note.savedByMe;
+      patchNote(note.id, { savedByMe: nextSaved });
+      try {
+        const response = await fetch(`/api/notes/${note.id}/save`, {
+          method: nextSaved ? "POST" : "DELETE",
+        });
+        await assertResponseOk(response);
+        void refreshMeta();
+        if (currentView === "saved") refetchNotes();
+      } catch (error) {
+        patchNote(note.id, { savedByMe: note.savedByMe });
+        if (error instanceof AuthRequiredError) return;
+        setToast(error instanceof Error ? error.message : "Could not update saved state.");
+      }
+    });
   }
 
   async function rateNote(note: ApiNote, value: number) {
-    try {
-      const response = await fetch(`/api/notes/${note.id}/rating`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value }),
-      });
-      if (!response.ok) throw new Error(await readError(response));
-      const result = (await response.json()) as {
-        ratingAverage: number;
-        ratingCount: number;
-        myRating: number;
-      };
-      patchNote(note.id, result);
-      void refreshMeta();
-    } catch (error) {
-      setToast(error instanceof Error ? error.message : "Could not save rating.");
-    }
+    return requireAuth(async () => {
+      try {
+        const response = await fetch(`/api/notes/${note.id}/rating`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value }),
+        });
+        await assertResponseOk(response);
+        const result = (await response.json()) as {
+          ratingAverage: number;
+          ratingCount: number;
+          myRating: number;
+        };
+        patchNote(note.id, result);
+        void refreshMeta();
+      } catch (error) {
+        if (error instanceof AuthRequiredError) return;
+        setToast(error instanceof Error ? error.message : "Could not save rating.");
+      }
+    });
   }
 
   async function downloadNote(note: ApiNote) {
-    try {
-      const response = await fetch(`/api/notes/${note.id}/download`, { method: "POST" });
-      if (!response.ok) throw new Error(await readError(response));
-      const result = (await response.json()) as {
-        downloadUrl: string | null;
-        downloadCount: number;
-      };
-      patchNote(note.id, { downloadCount: result.downloadCount });
-      void refreshMeta();
-      if (result.downloadUrl) {
-        window.open(result.downloadUrl, "_blank");
-      } else {
-        setToast("Download recorded — seeded resource has no file attached.");
+    return requireAuth(async () => {
+      try {
+        const response = await fetch(`/api/notes/${note.id}/download`, { method: "POST" });
+        await assertResponseOk(response);
+        const result = (await response.json()) as {
+          downloadUrl: string | null;
+          downloadCount: number;
+        };
+        patchNote(note.id, { downloadCount: result.downloadCount });
+        void refreshMeta();
+        if (result.downloadUrl) {
+          window.open(result.downloadUrl, "_blank");
+        } else {
+          setToast("Download recorded — seeded resource has no file attached.");
+        }
+      } catch (error) {
+        if (error instanceof AuthRequiredError) return;
+        setToast(error instanceof Error ? error.message : "Could not download.");
       }
-    } catch (error) {
-      setToast(error instanceof Error ? error.message : "Could not download.");
-    }
+    });
   }
 
   async function reportNote(note: ApiNote) {
-    const reason = window.prompt("What should moderators review?")?.trim();
-    if (!reason) return;
-    try {
-      const response = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ noteId: note.id, reason }),
-      });
-      if (!response.ok) throw new Error(await readError(response));
-      setToast("Report sent to moderators");
-    } catch (error) {
-      setToast(error instanceof Error ? error.message : "Could not send report.");
-    }
+    return requireAuth(async () => {
+      const reason = window.prompt("What should moderators review?")?.trim();
+      if (!reason) return;
+      try {
+        const response = await fetch("/api/reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ noteId: note.id, reason }),
+        });
+        await assertResponseOk(response);
+        setToast("Report sent to moderators");
+      } catch (error) {
+        if (error instanceof AuthRequiredError) return;
+        setToast(error instanceof Error ? error.message : "Could not send report.");
+      }
+    });
   }
 
   async function submitUpload(draft: UploadDraft) {
+    if (!me) {
+      openAuthPrompt();
+      return false;
+    }
     if (!draft.file) {
       setToast("Choose a file to upload.");
       return false;
@@ -420,7 +502,7 @@ export function ClassVaultApp() {
           sizeBytes: draft.file.size,
         }),
       });
-      if (!presignResponse.ok) throw new Error(await readError(presignResponse));
+      await assertResponseOk(presignResponse);
       const target = (await presignResponse.json()) as UploadTargetResponse;
 
       if (target.provider === "S3" && target.method === "PUT") {
@@ -437,7 +519,7 @@ export function ClassVaultApp() {
         const formData = new FormData();
         formData.set("file", draft.file);
         const uploadResponse = await fetch("/api/uploads", { method: "POST", body: formData });
-        if (!uploadResponse.ok) throw new Error(await readError(uploadResponse));
+        await assertResponseOk(uploadResponse);
         storageKey = ((await uploadResponse.json()) as { storageKey: string }).storageKey;
       }
 
@@ -456,7 +538,7 @@ export function ClassVaultApp() {
           tags: draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
         }),
       });
-      if (!noteResponse.ok) throw new Error(await readError(noteResponse));
+      await assertResponseOk(noteResponse);
 
       setUploadOpen(false);
       setToast("Resource submitted for review");
@@ -464,6 +546,7 @@ export function ClassVaultApp() {
       void refreshMeta();
       return true;
     } catch (error) {
+      if (error instanceof AuthRequiredError) return false;
       setToast(error instanceof Error ? error.message : "Upload failed.");
       return false;
     }
@@ -492,12 +575,13 @@ export function ClassVaultApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason }),
       });
-      if (!response.ok) throw new Error(await readError(response));
+      await assertResponseOk(response);
       setToast(action === "approve" || action === "restore" ? "Resource published" : "Resource updated");
       void refreshAdminQueue();
       refetchNotes();
       void refreshMeta();
     } catch (error) {
+      if (error instanceof AuthRequiredError) return;
       setToast(error instanceof Error ? error.message : "Moderation failed.");
     }
   }
@@ -512,7 +596,7 @@ export function ClassVaultApp() {
         <Wordmark />
         <button
           type="button"
-          onClick={() => setUploadOpen(true)}
+          onClick={() => requireAuth(() => setUploadOpen(true))}
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-ink px-3 text-sm font-medium text-surface"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -553,10 +637,10 @@ export function ClassVaultApp() {
           onClick={() => setActiveView("profile")}
           className="flex items-center gap-3 border-t border-line p-3.5 text-left transition hover:bg-paper"
         >
-          <Avatar name={me?.name ?? "?"} size="sm" />
+          <Avatar name={profileAvatarName} size="sm" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-medium">{me?.name ?? "Loading…"}</span>
-            <span className="block truncate text-xs text-ink-faint">{me?.email ?? ""}</span>
+            <span className="block truncate text-sm font-medium">{profileDisplayName}</span>
+            <span className="block truncate text-xs text-ink-faint">{profileDisplayEmail}</span>
           </span>
         </button>
       </aside>
@@ -590,7 +674,7 @@ export function ClassVaultApp() {
               />
               <button
                 type="button"
-                onClick={() => setUploadOpen(true)}
+                onClick={() => requireAuth(() => setUploadOpen(true))}
                 className="hidden h-9 shrink-0 items-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 sm:inline-flex"
               >
                 <Plus className="h-4 w-4" />
@@ -598,6 +682,7 @@ export function ClassVaultApp() {
               </button>
             </div>
           </div>
+          {showAuthBanner ? <AuthPreviewBanner onDismiss={dismissAuthBanner} /> : null}
 
           {currentView === "dashboard" ? (
             <DashboardView
@@ -623,11 +708,12 @@ export function ClassVaultApp() {
             <ProfileView
               key={me?.id ?? "guest"}
               me={me}
+              authChecked={authChecked}
               uploads={notes}
               loading={loading}
               stats={stats}
               onOpenNote={setOpenNote}
-              onUpload={() => setUploadOpen(true)}
+              onUpload={() => requireAuth(() => setUploadOpen(true))}
               onSignOut={signOut}
               onSaveProfile={saveProfile}
             />
@@ -699,6 +785,10 @@ export function ClassVaultApp() {
         />
       ) : null}
 
+      {authPromptOpen ? (
+        <AuthPromptDialog onClose={() => setAuthPromptOpen(false)} />
+      ) : null}
+
       {toast ? (
         <div className="fixed bottom-20 left-1/2 z-[95] w-max max-w-[90vw] -translate-x-1/2 rounded-md border border-line bg-ink px-4 py-2.5 text-sm font-medium text-surface shadow-lg lg:bottom-6">
           {toast}
@@ -762,6 +852,94 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       >
         Retry
       </button>
+    </div>
+  );
+}
+
+function AuthPreviewBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="mb-6 flex flex-col gap-3 rounded-lg border border-line bg-surface p-3 transition hover:border-line-strong sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm leading-6 text-ink-soft">
+        Preview mode is on. Sign in to save, rate, download, upload, and personalize resources.
+      </p>
+      <div className="flex shrink-0 items-center gap-2">
+        <Link
+          href="/sign-in"
+          className="inline-flex h-8 items-center rounded-md bg-ink px-3 text-sm font-medium text-surface transition hover:-translate-y-0.5 hover:bg-ink/85"
+        >
+          Sign in
+        </Link>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper hover:text-ink"
+          aria-label="Dismiss sign-in prompt"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AuthPromptDialog({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      onClose();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/25 p-4">
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        onClick={onClose}
+        aria-label="Close sign-in prompt"
+      />
+      <section className="relative w-full max-w-md rounded-lg border border-line bg-surface shadow-2xl transition duration-200">
+        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+          <div>
+            <p className="font-mono text-[11px] font-semibold uppercase text-ink-faint">
+              Account required
+            </p>
+            <h2 className="mt-2 text-lg font-semibold tracking-tight">Sign in to continue</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper hover:text-ink"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="px-5 py-5">
+          <p className="text-sm leading-6 text-ink-soft">
+            You can keep browsing resources in preview mode. Sign in when you want to save,
+            rate, download, upload, or manage your profile.
+          </p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <Link
+              href="/sign-in"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:-translate-y-0.5 hover:bg-ink/85"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/sign-up"
+              className="inline-flex h-10 items-center justify-center rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:-translate-y-0.5 hover:border-line-strong hover:text-ink"
+            >
+              Create account
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -1177,6 +1355,7 @@ function NoteCard({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
 
 function ProfileView({
   me,
+  authChecked,
   uploads,
   loading,
   stats,
@@ -1186,6 +1365,7 @@ function ProfileView({
   onSaveProfile,
 }: {
   me: ApiUser | null;
+  authChecked: boolean;
   uploads: ApiNote[];
   loading: boolean;
   stats: MetaResponse["stats"] | undefined;
@@ -1204,6 +1384,9 @@ function ProfileView({
     ["Downloads", stats ? formatCount(stats.totalDownloads) : "—"],
     ["Avg rating", stats ? stats.ratingAverage.toFixed(1) : "—"],
   ];
+  const displayName = me?.name ?? (authChecked ? "Guest preview" : "Loading...");
+  const displayEmail = me?.email ?? (authChecked ? "Sign in to manage your profile" : "");
+  const avatarName = me?.name ?? (authChecked ? "Guest" : "?");
 
   async function submitProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1224,10 +1407,10 @@ function ProfileView({
     <div className="space-y-8">
       <section className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="flex items-center gap-4">
-          <Avatar name={me?.name ?? "?"} size="lg" />
+          <Avatar name={avatarName} size="lg" />
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">{me?.name ?? "Loading…"}</h2>
-            <p className="mt-0.5 text-sm text-ink-faint">{me?.email ?? ""}</p>
+            <h2 className="text-lg font-semibold tracking-tight">{displayName}</h2>
+            <p className="mt-0.5 text-sm text-ink-faint">{displayEmail}</p>
             <p className="mt-0.5 font-mono text-xs text-ink-faint">{me?.roleLabel ?? ""}</p>
           </div>
         </div>
