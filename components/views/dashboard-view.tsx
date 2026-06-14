@@ -104,13 +104,8 @@ export function DashboardView() {
     };
   }, []);
 
-  const [isVerified, setIsVerified] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("classvault_college_verified") === "true";
-    }
-    return false;
-  });
-  const [collegeName, setCollegeName] = useState(() => {
+  const isVerified = Boolean(me);
+  const [collegeName] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("classvault_onboarding_college") ?? "your college";
     }
