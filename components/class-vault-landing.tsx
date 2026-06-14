@@ -10,7 +10,7 @@ import { FeatureGrid } from "./landing/FeatureGrid";
 import { HowItWorksSection } from "./landing/HowItWorksSection";
 import { FinalCTA } from "./landing/FinalCTA";
 
-function StudyVaultLogo() {
+function ClassVaultLogo() {
   return (
     <svg
       viewBox="0 0 32 32"
@@ -28,9 +28,9 @@ function StudyVaultLogo() {
 
 function Wordmark() {
   return (
-    <Link href="/" className="flex items-center gap-2" aria-label="StudyVault home">
-      <StudyVaultLogo />
-      <span className="font-serif font-semibold tracking-tight text-lg text-ink">StudyVault</span>
+    <Link href="/" className="flex items-center gap-2" aria-label="ClassVault home">
+      <ClassVaultLogo />
+      <span className="font-serif font-semibold tracking-tight text-lg text-ink">ClassVault</span>
     </Link>
   );
 }
@@ -87,7 +87,7 @@ export function ClassVaultLanding() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
-          <span className="font-medium text-ink-soft">StudyVault</span>
+          <span className="font-medium text-ink-soft">ClassVault</span>
           <div className="flex gap-5">
             <a href="#features" className="transition hover:text-ink">
               Features

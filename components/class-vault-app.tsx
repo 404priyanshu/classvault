@@ -7,7 +7,6 @@ import {
   ChevronDown,
   Download,
   FileText,
-  Flag,
   Grid2X2,
   LayoutDashboard,
   List,
@@ -22,6 +21,20 @@ import {
   Upload,
   User,
   X,
+  Compass,
+  Flame,
+  Users,
+  PlusCircle,
+  GraduationCap,
+  Sparkles,
+  Link2,
+  Clock,
+  Play,
+  CheckCircle2,
+  Settings,
+  BookOpenCheck,
+  Flag,
+  Check,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,7 +57,18 @@ import type {
 import { formatBytes, formatCount, formatDate, initialsOf } from "@/lib/format";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
-type ActiveView = "dashboard" | "library" | "saved" | "uploads" | "profile" | "review";
+type ActiveView =
+  | "dashboard"
+  | "library"
+  | "saved"
+  | "uploads"
+  | "profile"
+  | "review"
+  | "roadmaps"
+  | "exam-mode"
+  | "study-rooms"
+  | "college-vault"
+  | "add-resource";
 type LayoutMode = "list" | "grid";
 type ModerationAction = "approve" | "reject" | "hide" | "restore";
 const AUTH_BANNER_SESSION_KEY = "classvault_auth_banner_dismissed";
@@ -87,22 +111,18 @@ const emptyDraft: UploadDraft = {
   file: null,
 };
 
-const navItems: Array<{ id: ActiveView; label: string; icon: LucideIcon }> = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "library", label: "Library", icon: BookOpen },
-  { id: "saved", label: "Saved", icon: Bookmark },
-  { id: "uploads", label: "Uploads", icon: Upload },
-  { id: "profile", label: "Profile", icon: User },
-  { id: "review", label: "Review", icon: FileText },
-];
-
 const viewTitles: Record<ActiveView, string> = {
   dashboard: "Dashboard",
   library: "Library",
   saved: "Saved",
   uploads: "Your uploads",
-  profile: "Profile",
+  profile: "Settings",
   review: "Review queue",
+  roadmaps: "AI Study Roadmaps",
+  "exam-mode": "Exam Mode",
+  "study-rooms": "Silent Study Rooms",
+  "college-vault": "College Vault Verification",
+  "add-resource": "Add Resource",
 };
 
 const initialStudyTasks: StudyTask[] = [
@@ -157,7 +177,52 @@ export function ClassVaultApp() {
   const refetchCounter = useRef(0);
   const [refetchTick, setRefetchTick] = useState(0);
   const canModerate = me?.role === "ADMIN" || me?.role === "MODERATOR";
-  const visibleNavItems = navItems.filter((item) => item.id !== "review" || canModerate);
+  const navSections: Array<{
+    label: string;
+    items: Array<{ id: ActiveView; label: string; icon: LucideIcon }>;
+  }> = [
+    {
+      label: "Study",
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { id: "roadmaps", label: "AI Roadmaps", icon: Compass },
+        { id: "exam-mode", label: "Exam Mode", icon: Flame },
+        { id: "study-rooms", label: "Study Rooms", icon: Users },
+      ],
+    },
+    {
+      label: "Resources",
+      items: [
+        { id: "library", label: "Library", icon: BookOpen },
+        { id: "saved", label: "Saved", icon: Bookmark },
+        { id: "add-resource", label: "Add Resource", icon: PlusCircle },
+      ],
+    },
+    {
+      label: "Community",
+      items: [
+        { id: "college-vault", label: "College Vault", icon: GraduationCap },
+      ],
+    },
+  ];
+
+  if (canModerate) {
+    navSections.push({
+      label: "Admin",
+      items: [
+        { id: "review", label: "Review queue", icon: FileText },
+      ],
+    });
+  }
+
+  const mobileNavItems: Array<{ id: ActiveView; label: string; icon: LucideIcon }> = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "roadmaps", label: "Roadmaps", icon: Compass },
+    { id: "library", label: "Library", icon: BookOpen },
+    { id: "study-rooms", label: "Rooms", icon: Users },
+    { id: "profile", label: "Settings", icon: Settings },
+  ];
+
   const currentView = activeView === "review" && !canModerate ? "dashboard" : activeView;
   const showAuthBanner = authChecked && !me && !authBannerDismissed;
   const profileDisplayName = me?.name ?? (authChecked ? "Preview mode" : "Loading...");
@@ -610,50 +675,68 @@ export function ClassVaultApp() {
           <Wordmark />
         </div>
 
-        <nav className="flex-1 space-y-0.5 p-2.5">
-          {visibleNavItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveView(item.id)}
-              className={cx(
-                "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition",
-                currentView === item.id
-                  ? "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]"
-                  : "text-ink-soft hover:bg-paper hover:text-ink",
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-              {item.id === "saved" && savedBadge > 0 ? (
-                <span className="ml-auto font-mono text-xs text-ink-faint">{savedBadge}</span>
-              ) : null}
-            </button>
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-4">
+          {navSections.map((section) => (
+            <div key={section.label} className="space-y-1">
+              <p className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+                {section.label}
+              </p>
+              <nav className="space-y-0.5">
+                {section.items.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (item.id === "add-resource") {
+                        setActiveView("add-resource");
+                      } else {
+                        setActiveView(item.id);
+                      }
+                    }}
+                    className={cx(
+                      "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition",
+                      currentView === item.id
+                        ? "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]"
+                        : "text-ink-soft hover:bg-paper hover:text-ink",
+                    )}
+                  >
+                    <item.icon className="h-3.5 w-3.5" />
+                    {item.label}
+                    {item.id === "saved" && savedBadge > 0 ? (
+                      <span className="ml-auto font-mono text-[10px] text-ink-faint bg-paper border border-line px-1 rounded">{savedBadge}</span>
+                    ) : null}
+                  </button>
+                ))}
+              </nav>
+            </div>
           ))}
-        </nav>
+        </div>
 
         <button
           type="button"
           onClick={() => setActiveView("profile")}
-          className="flex items-center gap-3 border-t border-line p-3.5 text-left transition hover:bg-paper"
+          className={cx(
+            "flex items-center gap-3 border-t border-line p-3 text-left transition hover:bg-paper",
+            currentView === "profile" ? "bg-paper" : ""
+          )}
         >
           <Avatar name={profileAvatarName} size="sm" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-medium">{profileDisplayName}</span>
-            <span className="block truncate text-xs text-ink-faint">{profileDisplayEmail}</span>
+            <span className="block truncate text-xs font-bold text-ink">{profileDisplayName}</span>
+            <span className="block truncate text-[10px] text-ink-faint">{profileDisplayEmail}</span>
           </span>
         </button>
       </aside>
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface px-2 py-1.5 lg:hidden">
-        {visibleNavItems.map((item) => (
+        {mobileNavItems.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setActiveView(item.id)}
             className={cx(
-              "flex min-w-14 flex-1 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-medium",
+              "flex min-w-14 flex-1 flex-col items-center gap-1 rounded-md px-1 py-1 text-[10px] font-semibold",
               currentView === item.id ? "text-ink" : "text-ink-faint",
             )}
           >
@@ -686,6 +769,7 @@ export function ClassVaultApp() {
 
           {currentView === "dashboard" ? (
             <DashboardView
+              me={me}
               notes={notes}
               trendingNotes={trendingNotes}
               loading={loading}
@@ -703,7 +787,21 @@ export function ClassVaultApp() {
               onRemoveTask={(id) => setTasks((current) => current.filter((task) => task.id !== id))}
               onOpenNote={setOpenNote}
               onGoToLibrary={() => setActiveView("library")}
+              onGoToRoadmaps={() => setActiveView("roadmaps")}
+              onGoToStudyRooms={() => setActiveView("study-rooms")}
+              onGoToVerify={() => setActiveView("college-vault")}
+              onGoToAddResource={() => setActiveView("add-resource")}
             />
+          ) : currentView === "roadmaps" ? (
+            <AIRoadmapsView />
+          ) : currentView === "exam-mode" ? (
+            <ExamModeView />
+          ) : currentView === "study-rooms" ? (
+            <StudyRoomsView />
+          ) : currentView === "college-vault" ? (
+            <CollegeVaultView me={me} />
+          ) : currentView === "add-resource" ? (
+            <AddResourceView onUpload={() => requireAuth(() => setUploadOpen(true))} />
           ) : currentView === "profile" ? (
             <ProfileView
               key={me?.id ?? "guest"}
@@ -945,6 +1043,7 @@ function AuthPromptDialog({ onClose }: { onClose: () => void }) {
 }
 
 function DashboardView({
+  me,
   notes,
   trendingNotes,
   loading,
@@ -958,7 +1057,12 @@ function DashboardView({
   onRemoveTask,
   onOpenNote,
   onGoToLibrary,
+  onGoToRoadmaps,
+  onGoToStudyRooms,
+  onGoToVerify,
+  onGoToAddResource,
 }: {
+  me: ApiUser | null;
   notes: ApiNote[];
   trendingNotes: ApiNote[];
   loading: boolean;
@@ -972,140 +1076,1750 @@ function DashboardView({
   onRemoveTask: (id: string) => void;
   onOpenNote: (note: ApiNote) => void;
   onGoToLibrary: () => void;
+  onGoToRoadmaps: () => void;
+  onGoToStudyRooms: () => void;
+  onGoToVerify: () => void;
+  onGoToAddResource: () => void;
 }) {
-  const metrics: Array<[string, string]> = [
-    ["Resources", stats ? String(stats.totalNotes) : "—"],
-    ["Saved", stats ? String(stats.savedCount) : "—"],
-    ["Your uploads", stats ? String(stats.uploadCount) : "—"],
-    ["Downloads", stats ? formatCount(stats.totalDownloads) : "—"],
-  ];
+  const [isVerified, setIsVerified] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_college_verified") === "true";
+    }
+    return false;
+  });
+  const [collegeName, setCollegeName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_onboarding_college") ?? "your college";
+    }
+    return "your college";
+  });
+
+  const greeting = me?.name ? `Good evening, ${me.name.split(" ")[0]}.` : "Welcome back.";
 
   return (
-    <div className="space-y-8">
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
-        {metrics.map(([label, value]) => (
-          <div key={label} className="bg-surface p-4 sm:p-5">
-            <p className="font-mono text-2xl font-semibold tracking-tight">{value}</p>
-            <p className="mt-1 text-xs font-medium text-ink-faint">{label}</p>
+    <div className="space-y-8 pb-12">
+      {/* Greeting Header */}
+      <div className="space-y-1">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">{greeting}</h2>
+        <p className="text-sm text-ink-soft">Ready to continue your study roadmap?</p>
+      </div>
+
+      {/* College Vault Status */}
+      <div className="rounded-xl border border-line bg-surface p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <GraduationCap className="h-5 w-5" />
+          </span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-ink">
+                {isVerified ? `Verified: ${collegeName}` : "Unlock your College Vault"}
+              </h3>
+              {isVerified && (
+                <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                  <ShieldCheck className="h-3 w-3" />
+                  Verified student
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-ink-soft">
+              {isVerified
+                ? "You have full access to verified campus notes, semester groups, and private study rooms."
+                : "Verify your official student email address to access private course groups, notes, and classmate study rooms."}
+            </p>
           </div>
+        </div>
+        {!isVerified && (
+          <button
+            type="button"
+            onClick={onGoToVerify}
+            className="inline-flex h-9 items-center justify-center rounded-md bg-accent px-4 text-xs font-semibold text-surface transition hover:bg-accent-hover"
+          >
+            Verify college email
+          </button>
+        )}
+      </div>
+
+      {/* Primary Action Grid */}
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {[
+          { label: "Generate AI Roadmap", desc: "Build custom subject study plans", icon: Compass, action: onGoToRoadmaps },
+          { label: "Add Resource", desc: "Ingest notes, link YouTube, websites", icon: PlusCircle, action: onGoToAddResource },
+          { label: "Browse Notes", desc: "Search subject course library", icon: BookOpen, action: onGoToLibrary },
+          { label: "Join Study Room", desc: "Study silently alongside peers", icon: Users, action: onGoToStudyRooms },
+        ].map((card) => (
+          <button
+            key={card.label}
+            onClick={card.action}
+            className="flex flex-col text-left p-4 rounded-xl border border-line bg-surface hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition group"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-paper border border-line text-ink-soft group-hover:text-accent transition">
+              <card.icon className="h-4.5 w-4.5" />
+            </span>
+            <h4 className="mt-3.5 text-xs font-bold text-ink">{card.label}</h4>
+            <p className="mt-1 text-[11px] text-ink-faint leading-normal">{card.desc}</p>
+          </button>
         ))}
       </section>
 
-      {trendingNotes.length ? (
-        <section>
-          <div className="flex items-center gap-2 pb-3">
-            <TrendingUp className="h-3.5 w-3.5 text-ink-faint" />
-            <SectionLabel>Trending this week</SectionLabel>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {trendingNotes.map((note) => (
-              <NoteCard key={note.id} note={note} onOpen={() => onOpenNote(note)} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
-        <section>
-          <div className="flex items-center justify-between pb-3">
-            <SectionLabel>Recent resources</SectionLabel>
-            <button
-              type="button"
-              onClick={onGoToLibrary}
-              className="flex items-center gap-1 text-xs font-medium text-ink-soft transition hover:text-ink"
-            >
-              View library
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          {loading ? (
-            <LoadingRows count={5} />
-          ) : loadError ? (
-            <p className="rounded-lg border border-dashed border-line-strong px-4 py-10 text-center text-sm text-ink-faint">
-              {loadError}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {notes.slice(0, 5).map((note) => (
-                <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
-              ))}
+      {/* Main Grid: Today's Plan & Study Rooms */}
+      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+        
+        {/* Left column: Plan & Saved */}
+        <div className="space-y-8">
+          {/* Today's Study Plan */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Today&apos;s Study Plan</SectionLabel>
+              <button
+                onClick={onGoToRoadmaps}
+                className="text-xs font-semibold text-accent hover:underline"
+              >
+                Go to Roadmaps
+              </button>
             </div>
-          )}
-        </section>
-
-        <section>
-          <div className="flex items-center justify-between pb-3">
-            <SectionLabel>Study tasks</SectionLabel>
-            <span className="font-mono text-xs text-ink-faint">
-              {tasks.filter((task) => !task.done).length} open
-            </span>
-          </div>
-          <div className="rounded-lg border border-line bg-surface">
-            <div className="divide-y divide-line">
-              {tasks.map((task) => (
-                <div key={task.id} className="group flex items-center gap-3 px-3.5 py-2.5">
+            
+            <div className="rounded-lg border border-line bg-surface">
+              <div className="divide-y divide-line">
+                {tasks.map((task) => (
+                  <div key={task.id} className="group flex items-center gap-3 px-3.5 py-2.5">
+                    <button
+                      type="button"
+                      onClick={() => onToggleTask(task.id)}
+                      className={cx(
+                        "flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-md border transition",
+                        task.done ? "border-accent bg-accent text-surface" : "border-line-strong hover:border-ink",
+                      )}
+                    >
+                      {task.done ? <span className="text-[10px]">✓</span> : null}
+                    </button>
+                    <span
+                      className={cx(
+                        "min-w-0 flex-1 truncate text-xs font-medium",
+                        task.done ? "text-ink-faint line-through" : "text-ink",
+                      )}
+                    >
+                      {task.title}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveTask(task.id)}
+                      className="text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {!tasks.length ? (
+                  <div className="px-3.5 py-10 text-center space-y-3">
+                    <p className="text-xs text-ink-soft">
+                      No roadmap yet. Generate a study plan from your notes, PYQs, and saved resources.
+                    </p>
+                    <button
+                      onClick={onGoToRoadmaps}
+                      className="inline-flex h-8 items-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
+                    >
+                      Generate roadmap
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              {tasks.length > 0 && (
+                <form onSubmit={onSubmitTask} className="flex gap-2 border-t border-line p-2">
+                  <input
+                    value={newTask}
+                    onChange={(event) => onNewTaskChange(event.target.value)}
+                    placeholder="Add a custom task…"
+                    className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
+                  />
                   <button
-                    type="button"
-                    onClick={() => onToggleTask(task.id)}
-                    aria-label={task.done ? `Mark "${task.title}" not done` : `Mark "${task.title}" done`}
-                    className={cx(
-                      "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition",
-                      task.done ? "border-ink bg-ink" : "border-line-strong hover:border-ink",
-                    )}
+                    type="submit"
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
                   >
-                    {task.done ? <span className="h-1.5 w-1.5 rounded-full bg-surface" /> : null}
+                    <Plus className="h-4 w-4" />
                   </button>
-                  <span
-                    className={cx(
-                      "min-w-0 flex-1 truncate text-sm",
-                      task.done ? "text-ink-faint line-through" : "text-ink",
-                    )}
-                  >
-                    {task.title}
-                  </span>
+                </form>
+              )}
+            </div>
+          </section>
+
+          {/* Recently Saved Resources */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Saved Resources</SectionLabel>
+              <button
+                onClick={onGoToLibrary}
+                className="text-xs font-semibold text-ink-soft hover:text-ink"
+              >
+                Browse all
+              </button>
+            </div>
+            {loading ? (
+              <LoadingRows count={3} />
+            ) : notes.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-xs text-ink-faint">
+                Your study vault is empty. Save notes, links, and PYQs to start organizing.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {notes.slice(0, 3).map((note) => (
+                  <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Right column: Active Study Rooms & Quick Stats */}
+        <div className="space-y-8">
+          {/* Study Rooms Feed */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Active Study Rooms</SectionLabel>
+              <button
+                onClick={onGoToStudyRooms}
+                className="text-xs font-semibold text-accent hover:underline"
+              >
+                Join room
+              </button>
+            </div>
+            <div className="space-y-3">
+              {[
+                { name: "DBMS Exam Sprint", count: 18, timer: "25m focus", type: "College-only" },
+                { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public" },
+                { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public" },
+              ].map((room) => (
+                <div key={room.name} className="flex items-center justify-between p-3.5 rounded-lg border border-line bg-surface">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-semibold text-ink leading-none">{room.name}</h4>
+                      <span className="inline-flex items-center rounded border border-line bg-paper px-1 py-0.5 text-[9px] font-bold text-ink-soft uppercase leading-none">
+                        {room.type}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-ink-soft leading-none">
+                      {room.count} studying • {room.timer}
+                    </p>
+                  </div>
                   <button
-                    type="button"
-                    onClick={() => onRemoveTask(task.id)}
-                    className="text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
-                    aria-label={`Remove ${task.title}`}
+                    onClick={onGoToStudyRooms}
+                    className="inline-flex h-7 items-center justify-center rounded bg-ink px-3 text-[10px] font-bold text-surface hover:bg-ink/85"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    Join
                   </button>
                 </div>
               ))}
-              {!tasks.length ? (
-                <p className="px-3.5 py-6 text-center text-sm text-ink-faint">No open tasks.</p>
-              ) : null}
             </div>
-            <form onSubmit={onSubmitTask} className="flex gap-2 border-t border-line p-2.5">
-              <input
-                value={newTask}
-                onChange={(event) => onNewTaskChange(event.target.value)}
-                placeholder="Add a task…"
-                className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-sm outline-none transition placeholder:text-ink-faint focus:border-line-strong"
-              />
+          </section>
+
+          {/* Study Metrics */}
+          <section className="space-y-3">
+            <SectionLabel>Study metrics</SectionLabel>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-line bg-surface p-4 text-center">
+                <span className="block text-xl font-bold text-ink">{stats?.totalNotes ?? "0"}</span>
+                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Saved files</span>
+              </div>
+              <div className="rounded-lg border border-line bg-surface p-4 text-center">
+                <span className="block text-xl font-bold text-ink">{tasks.filter(t => t.done).length}</span>
+                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Tasks done</span>
+              </div>
+              <div className="rounded-lg border border-line bg-surface p-4 text-center">
+                <span className="block text-xl font-bold text-ink">1.2h</span>
+                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Focus hours</span>
+              </div>
+              <div className="rounded-lg border border-line bg-surface p-4 text-center">
+                <span className="block text-xl font-bold text-ink">3</span>
+                <span className="block text-[10px] text-ink-soft font-semibold mt-1">AI Roadmaps</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------
+// COLLEGE VAULT VERIFICATION VIEW
+// -----------------------------------------------------------------
+function CollegeVaultView({ me }: { me: ApiUser | null }) {
+  const [collegeName, setCollegeName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_onboarding_college") ?? "";
+    }
+    return "";
+  });
+  const [collegeEmail, setCollegeEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_college_email") ?? "";
+    }
+    return "";
+  });
+  const [otpCode, setOtpCode] = useState("");
+  const [status, setStatus] = useState<"unverified" | "sent" | "verified">(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_college_verified") === "true" ? "verified" : "unverified";
+    }
+    return "unverified";
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  function handleSendCode(e: FormEvent) {
+    e.preventDefault();
+    if (!collegeEmail.endsWith(".edu") && !collegeEmail.endsWith(".edu.in") && !collegeEmail.endsWith(".ac.in")) {
+      setError("Please use a valid official college email (e.g. .edu, .edu.in, .ac.in).");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      setLoading(false);
+      setStatus("sent");
+      setOtpCode("");
+    }, 700);
+  }
+
+  function handleVerifyCode(e: FormEvent) {
+    e.preventDefault();
+    if (otpCode !== "123456") {
+      setError("Incorrect verification code. Use 123456 for the demo.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      setLoading(false);
+      setStatus("verified");
+      if (typeof window !== "undefined") {
+        localStorage.setItem("classvault_college_verified", "true");
+        localStorage.setItem("classvault_onboarding_college", collegeName);
+        localStorage.setItem("classvault_college_email", collegeEmail);
+      }
+    }, 600);
+  }
+
+  function handleReset() {
+    setStatus("unverified");
+    setCollegeName("");
+    setCollegeEmail("");
+    setError(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("classvault_college_verified");
+      localStorage.removeItem("classvault_college_email");
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 pb-12">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Join your college vault.</h2>
+        <p className="text-sm text-ink-soft">
+          Use your official college email address to unlock private college resources, semester groups, verified notes, and classmate focus sessions.
+        </p>
+      </div>
+
+      {status === "verified" ? (
+        <div className="rounded-xl border border-line bg-surface p-6 text-center space-y-4 shadow-sm">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <ShieldCheck className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-ink">Verified Student Access</h3>
+            <p className="text-xs text-ink-soft">
+              Successfully linked with <span className="font-semibold text-ink">{collegeEmail}</span>
+            </p>
+            <p className="text-xs text-ink-faint">College: {collegeName}</p>
+          </div>
+          <div className="border-t border-line pt-4 grid grid-cols-2 gap-4 text-left text-xs max-w-md mx-auto">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Private college notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>College PYQ library</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Verified student badge</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Peer silent study rooms</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex h-8 items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink"
+          >
+            Disconnect verification
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          {status === "unverified" && (
+            <form onSubmit={handleSendCode} className="space-y-4">
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">College / University Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={collegeName}
+                    onChange={(e) => setCollegeName(e.target.value)}
+                    placeholder="e.g. Stanford University"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Official College Email Address</span>
+                  <input
+                    type="email"
+                    required
+                    value={collegeEmail}
+                    onChange={(e) => setCollegeEmail(e.target.value)}
+                    placeholder="you@college.edu or student@college.ac.in"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                  <span className="block mt-1 text-[10px] text-ink-faint">
+                    Accepted endings: .edu, .edu.in, .ac.in, or official college domains.
+                  </span>
+                </label>
+              </div>
+              {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
               <button
                 type="submit"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
-                aria-label="Add task"
+                disabled={loading}
+                className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60"
               >
-                <Plus className="h-4 w-4" />
+                {loading ? "Sending link..." : "Send verification code"}
+              </button>
+            </form>
+          )}
+
+          {status === "sent" && (
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 p-2.5 rounded">
+                  Simulation mode: We sent a simulated verification code. Enter <span className="font-bold">123456</span> to complete verification.
+                </p>
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Verification Code</span>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    className="mt-1 h-11 w-full rounded-md border border-line bg-paper px-3 text-center font-mono text-base tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+              </div>
+              {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60"
+              >
+                {loading ? "Verifying..." : "Verify code"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus("unverified")}
+                className="inline-flex h-9 w-full items-center justify-center text-xs font-semibold text-ink-soft transition hover:underline"
+              >
+                Change college details
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------
+// AI ROADMAPS VIEW
+// -----------------------------------------------------------------
+type RoadmapDay = {
+  day: number;
+  title: string;
+  topic: string;
+  resources: string[];
+  tasks: string[];
+  pyqs: string[];
+  done: boolean[];
+};
+
+function AIRoadmapsView() {
+  const [subject, setSubject] = useState("");
+  const [days, setDays] = useState(5);
+  const [level, setLevel] = useState("Beginner");
+  const [goal, setGoal] = useState("Score high");
+  const [usePersonal, setUsePersonal] = useState(true);
+  const [useCommunity, setUseCommunity] = useState(true);
+  const [usePYQ, setUsePYQ] = useState(true);
+  const [useVideo, setUseVideo] = useState(true);
+
+  const [generating, setGenerating] = useState(false);
+  const [roadmap, setRoadmap] = useState<RoadmapDay[] | null>(null);
+  const [showQuiz, setShowQuiz] = useState<string | null>(null);
+  const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+
+  function getPillStyle(i: number, n: number) {
+    let left = "";
+    let width = "";
+    let top = "";
+    
+    if (n === 5) {
+      if (i === 0) { left = "2%"; width = "16%"; top = "15px"; }
+      else if (i === 1) { left = "22%"; width = "16%"; top = "60px"; }
+      else if (i === 2) { left = "42%"; width = "16%"; top = "105px"; }
+      else if (i === 3) { left = "62%"; width = "36%"; top = "150px"; }
+      else if (i === 4) { left = "82%"; width = "16%"; top = "200px"; }
+    } else if (n === 3) {
+      if (i === 0) { left = "2%"; width = "29.3%"; top = "15px"; }
+      else if (i === 1) { left = "35.3%"; width = "29.3%"; top = "65px"; }
+      else if (i === 2) { left = "68.6%"; width = "29.3%"; top = "115px"; }
+    } else {
+      const colWidth = 100 / n;
+      if (i === n - 2) {
+        left = `${(i * colWidth) + 2}%`;
+        width = `${(colWidth * 2) - 4}%`;
+        top = `${(i * 45) + 15}px`;
+      } else if (i === n - 1) {
+        left = `${(i * colWidth) + 2}%`;
+        width = `${colWidth - 4}%`;
+        top = `${(i * 45) + 20}px`;
+      } else {
+        left = `${(i * colWidth) + 2}%`;
+        width = `${colWidth - 4}%`;
+        top = `${(i * 45) + 15}px`;
+      }
+    }
+    return { left, width, top };
+  }
+
+  function handleGenerate(e: FormEvent) {
+    e.preventDefault();
+    if (!subject.trim()) return;
+    setGenerating(true);
+    setTimeout(() => {
+      setGenerating(false);
+      // Simulated Roadmap Ingestion & Ingestion Details
+      const generatedRoadmap: RoadmapDay[] = [
+        {
+          day: 1,
+          title: "Foundations & Core Architecture",
+          topic: `${subject} Unit 1 basic concepts and architecture paradigms`,
+          resources: [`${subject} Chapter 1 slides.pdf`, "OSI vs TCP/IP Overview (YouTube)"],
+          tasks: ["Read unit 1 slides and summary notes", "Watch 10-minute overview animation"],
+          pyqs: ["Discuss layering advantages and drawbacks (2023, 2024 repeat)"],
+          done: [false, false, false],
+        },
+        {
+          day: 2,
+          title: "Mechanics & Addressing Structures",
+          topic: "Core algorithms, routing protocols, and addressing formats",
+          resources: ["Subnetting & Addressing Cheat Sheet.pdf", "Interactive Problems Set 1"],
+          tasks: ["Solve 10 practice subnetting / addressing equations", "Read routing algorithms guide"],
+          pyqs: ["State differences between Distance Vector & Link State (2022 repeat)"],
+          done: [false, false, false],
+        },
+        {
+          day: 3,
+          title: "Flow Control & Resource Allocation",
+          topic: "Congestion control, TCP windows, and scheduling strategies",
+          resources: ["Sliding Window Protocols Visual guide", "TCP Congestion Control note"],
+          tasks: ["Understand 3-way handshake and congestion window adjustments", "Attempt sample packet traces"],
+          pyqs: ["Describe slow start and congestion avoidance mechanisms (2021 repeat)"],
+          done: [false, false, false],
+        },
+        {
+          day: 4,
+          title: "Application layer & Advanced Integrations",
+          topic: "Symmetric key cryptography, DNS resolutions, and HTTP flows",
+          resources: ["Cryptography Intro PDF", "Web Server protocols cheat sheet"],
+          tasks: ["Revise public/private key algorithms", "Verify DNS resolver pipeline steps"],
+          pyqs: ["Explain security protocols in HTTP transport layer (2024 repeat)"],
+          done: [false, false, false],
+        },
+        {
+          day: 5,
+          title: "Consolidation & Final Practice Run",
+          topic: "Mock test review, full syllabus flashcards, and weak areas",
+          resources: ["Consolidated mock questionnaire", "Flashcards Deck"],
+          tasks: ["Attempt 1 complete mock review quiz", "Go through weakest 3 topics flashcard review"],
+          pyqs: ["Solve entire 2024 official branch exam paper"],
+          done: [false, false, false],
+        },
+      ];
+      setRoadmap(generatedRoadmap.slice(0, days));
+    }, 1200);
+  }
+
+  function toggleTaskCheckbox(dayIdx: number, taskIdx: number) {
+    if (!roadmap) return;
+    setRoadmap((current) => {
+      if (!current) return null;
+      return current.map((day, dIdx) => {
+        if (dIdx !== dayIdx) return day;
+        const newDone = [...day.done];
+        newDone[taskIdx] = !newDone[taskIdx];
+        return { ...day, done: newDone };
+      });
+    });
+  }
+
+  function handleTriggerQuiz(dayTitle: string) {
+    setShowQuiz(dayTitle);
+    setAnswers({});
+    setQuizScore(null);
+  }
+
+  return (
+    <div className="space-y-6 pb-12">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">AI Study Roadmaps</h2>
+        <p className="text-sm text-ink-soft">
+          Generate a customized subject study schedule using your files, community notes, and syllabus specifications.
+        </p>
+      </div>
+
+      {!roadmap && (
+        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block sm:col-span-2">
+                <span className="text-xs font-bold text-ink-soft">Study Subject</span>
+                <input
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g. Computer Networks, DBMS, Operating Systems"
+                  className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-bold text-ink-soft">Target Duration</span>
+                <select
+                  value={days}
+                  onChange={(e) => setDays(Number(e.target.value))}
+                  className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                >
+                  <option value={3}>3 Days (Exam Sprint)</option>
+                  <option value={5}>5 Days (Recommended)</option>
+                  <option value={7}>7 Days (Deep Learning)</option>
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-bold text-ink-soft">Current Level</span>
+                <div className="mt-1 flex gap-1 rounded-lg border border-line bg-paper p-1">
+                  {["Beginner", "Okay", "Strong"].map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => setLevel(lvl)}
+                      className={cx(
+                        "flex-1 py-1 rounded text-xs font-bold transition",
+                        level === lvl ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
+                      )}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+              </label>
+
+              <label className="block sm:col-span-2">
+                <span className="text-xs font-bold text-ink-soft">Study Goal</span>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {[
+                    "Pass quickly",
+                    "Score high",
+                    "Deep understanding",
+                    "Interview prep",
+                  ].map((gl) => (
+                    <button
+                      key={gl}
+                      type="button"
+                      onClick={() => setGoal(gl)}
+                      className={cx(
+                        "px-3 py-1.5 rounded-lg border text-xs font-semibold transition",
+                        goal === gl ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
+                      )}
+                    >
+                      {gl}
+                    </button>
+                  ))}
+                </div>
+              </label>
+
+              <div className="sm:col-span-2 space-y-2.5 pt-2">
+                <span className="text-xs font-bold text-ink-soft block">Ingestion Source Materials</span>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
+                    { label: "Use community resources", val: useCommunity, set: setUseCommunity },
+                    { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
+                    { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
+                  ].map((toggle) => (
+                    <label key={toggle.label} className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-ink-soft hover:text-ink">
+                      <input
+                        type="checkbox"
+                        checked={toggle.val}
+                        onChange={(e) => toggle.set(e.target.checked)}
+                        className="rounded border-line text-accent focus:ring-accent"
+                      />
+                      <span>{toggle.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={generating || !subject.trim()}
+              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60 pt-1"
+            >
+              {generating ? "Parsing materials & compiling roadmap..." : "Generate AI Roadmap"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {roadmap && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-line pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+                Generated Plan
+              </span>
+              <h3 className="text-lg font-bold text-ink">
+                {subject} — {days} Day Roadmap
+              </h3>
+              <p className="text-xs text-ink-soft mt-0.5">
+                Target: {goal} ({level}) • {roadmap.length} active sessions
+              </p>
+            </div>
+            <button
+              onClick={() => setRoadmap(null)}
+              className="text-xs font-semibold text-ink-soft hover:text-ink border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+            >
+              Configure new plan
+            </button>
+          </div>
+
+          {/* Visual Gantt Chart Timeline Card (Desktop-scrollable, responsive) */}
+          <div className="relative border border-line bg-surface rounded-xl p-6 shadow-sm overflow-x-auto min-w-full">
+            {/* Header section identical to the image mockup */}
+            <div className="flex justify-between items-start border-b border-line pb-4 mb-6">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-ink-faint font-semibold">Journey highlights</span>
+                <h3 className="text-xl font-bold tracking-tight text-ink mt-0.5">Timeline</h3>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="font-mono text-2xl font-light text-ink/80 leading-none">0{roadmap.length}/</span>
+                <div className="flex items-center gap-2 mt-2.5">
+                  <span className="text-[9px] uppercase font-bold text-ink-faint">Tools</span>
+                  <div className="flex gap-1.5">
+                    {/* Notion SVG icon */}
+                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Notion">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.46 3h15.08c1.07 0 1.96.86 2.01 1.93l.42 13.9c.03.95-.59 1.79-1.51 1.97l-15.08.3c-1.07.02-1.99-.81-2.02-1.89l-.45-13.91c-.03-.96.67-1.93 1.55-2.3zm1.94 2.8v11.85h3.04l3.87-5.8v5.8h2.76V5.8h-3.04l-3.87 5.8V5.8H6.4zm8.68 2.1c.33 0 .6-.27.6-.6s-.27-.6-.6-.6-.6.27-.6.6.27.6.6.6z"/>
+                      </svg>
+                    </div>
+                    {/* Figma SVG icon */}
+                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Figma">
+                      <svg className="h-3 w-3" viewBox="0 0 384 512" fill="currentColor">
+                        <path d="M120 412c-44.2 0-80-35.8-80-80s35.8-80 80-80h80v80c0 44.2-35.8 80-80 80zM120 0c44.2 0 80 35.8 80 80v80H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm0 160h80v160H120c-44.2 0-80-35.8-80-80s35.8-80 80-80zm160-80c0 44.2-35.8 80-80 80h-80V80c0-44.2 35.8-80 80-80s80 35.8 80 80zm0 160c0 44.2-35.8 80-80 80h-80v-160h80c44.2 0 80 35.8 80 80z" />
+                      </svg>
+                    </div>
+                    {/* ChatGPT Sparkle icon */}
+                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="AI Assistant">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-1.813-5.096L2.091 14.09 7.187 12.28 9 7.187l1.813 5.093 5.096 1.81-5.096 1.813z" />
+                      </svg>
+                    </div>
+                    {/* Page Document icon */}
+                    <div className="flex h-5 w-5 items-center justify-center rounded border border-line bg-paper text-ink" title="Classroom Materials">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Gantt Timeline Graphic */}
+            <div className={cx("relative border-b border-line pb-6 mb-6", roadmap.length === 3 ? "h-[160px]" : roadmap.length === 5 ? "h-[260px]" : "h-[360px]")}>
+              {/* Dashed vertical lines dividing columns */}
+              <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
+                {Array.from({ length: roadmap.length }).map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={cx(
+                      "h-full border-dashed border-line",
+                      idx < roadmap.length - 1 ? "border-r" : ""
+                    )} 
+                  />
+                ))}
+              </div>
+
+              {/* Day Pills rendering cascade */}
+              {roadmap.map((day, dIdx) => {
+                const pos = getPillStyle(dIdx, roadmap.length);
+                const isHovered = hoveredDay === dIdx;
+                return (
+                  <div
+                    key={day.day}
+                    onMouseEnter={() => setHoveredDay(dIdx)}
+                    onMouseLeave={() => setHoveredDay(null)}
+                    style={{
+                      left: pos.left,
+                      width: pos.width,
+                      top: pos.top,
+                    }}
+                    className={cx(
+                      "absolute h-[44px] rounded-[18px] flex items-center justify-between px-5 text-xs font-semibold shadow-md transition-all duration-300 cursor-pointer select-none",
+                      isHovered 
+                        ? "bg-accent scale-[1.02] text-surface ring-4 ring-accent-soft z-30" 
+                        : "bg-ink text-surface hover:bg-accent hover:scale-[1.01] z-20"
+                    )}
+                  >
+                    <span className="truncate pr-2">Day {day.day}: {day.title}</span>
+                    <span className="text-[10px] opacity-75 font-mono shrink-0">
+                      {day.done.filter(Boolean).length}/{day.done.length}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Day indices at base of dashed lines */}
+            <div className="grid text-center text-[10px] font-mono text-ink-faint tracking-wider mb-8" style={{ gridTemplateColumns: `repeat(${roadmap.length}, minmax(0, 1fr))` }}>
+              {roadmap.map((day) => (
+                <div key={day.day}>Day {day.day}</div>
+              ))}
+            </div>
+
+            {/* Subtask Lists for each Day Column */}
+            <div className="grid gap-6 pt-6 border-t border-line grid-cols-1 md:grid-flow-col md:auto-cols-fr">
+              {roadmap.map((day, dIdx) => {
+                const isHovered = hoveredDay === dIdx;
+                return (
+                  <div 
+                    key={day.day} 
+                    onMouseEnter={() => setHoveredDay(dIdx)}
+                    onMouseLeave={() => setHoveredDay(null)}
+                    className={cx(
+                      "space-y-4 p-4 rounded-xl border transition-all duration-300",
+                      isHovered 
+                        ? "border-accent bg-accent-soft/5 shadow-sm translate-y-[-2px]" 
+                        : "border-transparent bg-transparent"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+                        Day {day.day} Tasks
+                      </span>
+                      <button
+                        onClick={() => handleTriggerQuiz(day.title)}
+                        className="text-[9px] font-extrabold uppercase tracking-wide text-accent hover:underline"
+                      >
+                        Quiz
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {[...day.tasks, ...day.pyqs].map((task, tIdx) => (
+                        <div key={tIdx} className="flex items-start gap-2.5 group">
+                          <button
+                            onClick={() => toggleTaskCheckbox(dIdx, tIdx)}
+                            className={cx(
+                              "flex h-3.5 w-3.5 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
+                              day.done[tIdx] 
+                                ? "border-success bg-success text-surface" 
+                                : "border-line-strong hover:border-accent hover:bg-accent-soft"
+                            )}
+                          >
+                            {day.done[tIdx] ? <span className="text-[8px] font-black">✓</span> : null}
+                          </button>
+                          <span 
+                            className={cx(
+                              "text-[11px] font-medium leading-relaxed transition-colors",
+                              day.done[tIdx] 
+                                ? "text-ink-faint line-through" 
+                                : "text-ink-soft group-hover:text-ink"
+                            )}
+                          >
+                            {task}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-3 border-t border-line/50 space-y-1.5">
+                      <span className="text-[9px] font-bold text-ink-faint uppercase tracking-wider block">
+                        Ingested Materials:
+                      </span>
+                      <div className="space-y-1">
+                        {day.resources.map((res, rIdx) => (
+                          <div 
+                            key={rIdx} 
+                            className="text-[10px] text-ink-soft truncate flex items-center gap-1.5" 
+                            title={res}
+                          >
+                            <span className="text-accent">📄</span>
+                            <span className="truncate">{res}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mock Quiz dialog modal */}
+      {showQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-line pb-2.5">
+              <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">AI Practice Quiz</h4>
+              <button onClick={() => setShowQuiz(null)} className="text-ink-faint hover:text-ink">
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-ink leading-relaxed">
+                Test: {showQuiz}
+              </p>
+              <div className="space-y-2.5">
+                {[
+                  { q: "1. Which protocol provides reliable connection-oriented packet deliveries?", o: ["UDP", "TCP", "IP", "DNS"], a: 1 },
+                  { q: "2. What is the default size of an IPv4 address?", o: ["32 bits", "64 bits", "128 bits", "48 bits"], a: 0 },
+                ].map((item, idx) => (
+                  <div key={idx} className="space-y-1.5 border border-line p-3 rounded-lg bg-paper">
+                    <p className="text-xs font-bold text-ink">{item.q}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {item.o.map((opt, oIdx) => (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          onClick={() => setAnswers(prev => ({ ...prev, [idx]: oIdx }))}
+                          className={cx(
+                            "py-1.5 px-2 rounded border text-[11px] font-semibold transition text-left",
+                            answers[idx] === oIdx ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface hover:bg-paper"
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {quizScore !== null ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded text-center">
+                <p className="text-xs font-bold text-emerald-800">Quiz Completed! Score: {quizScore} / 2</p>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  let correct = 0;
+                  if (answers[0] === 1) correct++;
+                  if (answers[1] === 0) correct++;
+                  setQuizScore(correct);
+                }}
+                disabled={answers[0] === undefined || answers[1] === undefined}
+                className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 disabled:opacity-50"
+              >
+                Submit Answers
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------
+// EXAM MODE VIEW
+// -----------------------------------------------------------------
+function ExamModeView() {
+  const [subject, setSubject] = useState("");
+  const [examDays, setExamDays] = useState("3");
+  const [studyHours, setStudyHours] = useState("4");
+  const [weakTopics, setWeakTopics] = useState("");
+  const [planGenerated, setPlanGenerated] = useState(false);
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!subject.trim()) return;
+    setPlanGenerated(true);
+  }
+
+  return (
+    <div className="space-y-6 pb-12">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Exam Mode</h2>
+        <p className="text-sm text-ink-soft">
+          Exam is in 3 days? Shift to Exam Mode for an urgent, high-yield final prep checklist.
+        </p>
+      </div>
+
+      {!planGenerated ? (
+        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm max-w-xl">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-xs font-bold text-ink-soft">Exam Subject</span>
+                <input
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g. Operating Systems"
+                  className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Days Remaining</span>
+                  <select
+                    value={examDays}
+                    onChange={(e) => setExamDays(e.target.value)}
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  >
+                    <option value="1">1 Day (Crisis Mode)</option>
+                    <option value="2">2 Days</option>
+                    <option value="3">3 Days (Recommended)</option>
+                    <option value="5">5 Days</option>
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Study Hours / Day</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="16"
+                    value={studyHours}
+                    onChange={(e) => setStudyHours(e.target.value)}
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="text-xs font-bold text-ink-soft">Weak Topics (optional)</span>
+                <textarea
+                  value={weakTopics}
+                  onChange={(e) => setWeakTopics(e.target.value)}
+                  placeholder="e.g. Semaphores, Page replacement algorithms"
+                  className="mt-1 w-full rounded-md border border-line bg-paper p-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface h-20 resize-none"
+                />
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!subject.trim()}
+              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-amber-600 text-sm font-semibold text-surface transition hover:bg-amber-700 disabled:opacity-60"
+            >
+              Activate Exam Mode
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-line pb-4">
+            <div>
+              <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wider">
+                Exam Mode Active
+              </span>
+              <h3 className="text-lg font-bold text-ink mt-1">
+                {subject} Crash Plan — {examDays} Days Left
+              </h3>
+            </div>
+            <button
+              onClick={() => setPlanGenerated(false)}
+              className="text-xs font-semibold text-ink border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+            >
+              Reset Plan
+            </button>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            
+            {/* Must Study & Skip Columns */}
+            <div className="space-y-6">
+              {/* Must Study */}
+              <div className="rounded-xl border border-line bg-surface p-5 space-y-3 shadow-sm">
+                <div className="flex items-center gap-2 text-amber-700 font-bold">
+                  <Flame className="h-4 w-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider">Must Study (High-Yield)</h4>
+                </div>
+                <ul className="space-y-2">
+                  {[
+                    "1. Processes vs Threads & IPC protocols — 85% Exam Probability",
+                    "2. CPU Scheduling algorithms (FCFS, SJF, RR) — 80% Exam Probability",
+                    "3. Classical synchronization issues (Bounded Buffer, Semaphores) — 75% Exam Probability",
+                    "4. Paging, Virtual Memory & TLB caches — 70% Exam Probability",
+                  ].map((topic, i) => (
+                    <li key={i} className="text-xs text-ink font-semibold flex items-start gap-2.5">
+                      <span className="text-amber-500 font-bold">•</span>
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Can Skip */}
+              <div className="rounded-xl border border-line bg-surface p-5 space-y-3 shadow-sm opacity-85">
+                <div className="flex items-center gap-2 text-ink-soft font-bold">
+                  <Clock className="h-4 w-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider">Low Yield (Okay to Skip if low time)</h4>
+                </div>
+                <ul className="space-y-2 text-xs text-ink-soft">
+                  {[
+                    "1. OS Implementation histories and monolithic internals",
+                    "2. Disk scheduling optimization equations",
+                    "3. Secondary storage hardware interface mappings",
+                  ].map((skip, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{skip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Practice checklist */}
+            <div className="rounded-xl border border-line bg-surface p-5 space-y-4 shadow-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Practice Checkpoints</h4>
+              
+              <div className="space-y-3">
+                {[
+                  "Complete 12 repeated branch PYQs",
+                  "Revise 25 core OS Flashcards",
+                  "Attempt 1 Mock Exam Sprint Quiz",
+                  "Final revision of CPU scheduling Gantt charts",
+                ].map((practice, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      className="rounded border-line text-amber-600 focus:ring-amber-500 mt-0.5"
+                    />
+                    <span className="text-xs font-semibold text-ink-soft leading-normal">
+                      {practice}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-line pt-4 space-y-2">
+                <p className="text-[10px] text-ink-faint font-semibold">AI INSIGHT</p>
+                <p className="text-xs text-ink-soft leading-relaxed italic">
+                  &quot;Based on analyzed student logs, spending 45 mins drawing scheduling Gantt charts increases related question scores by 34%. Avoid studying Monolithic vs Microkernel internals in the final 24 hours.&quot;
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------
+// STUDY ROOMS VIEW
+// -----------------------------------------------------------------
+type RoomDetails = {
+  name: string;
+  subject: string;
+  count: number;
+  timer: string;
+  timerVal: number; // minutes
+  type: "College-only" | "Public";
+  goals: string[];
+};
+
+function StudyRoomsView() {
+  const [rooms, setRooms] = useState<RoomDetails[]>([
+    {
+      name: "DBMS Exam Sprint",
+      subject: "DBMS",
+      count: 18,
+      timer: "25:00 focus",
+      timerVal: 25,
+      type: "College-only",
+      goals: ["Finish Unit 2 Normal forms", "Solve PYQs", "Revise SQL joins"],
+    },
+    {
+      name: "CN Focus Room",
+      subject: "Computer Networks",
+      count: 9,
+      timer: "50:00 focus",
+      timerVal: 50,
+      type: "Public",
+      goals: ["Watch routing lecture", "Revise sliding window", "Draw OSI structure"],
+    },
+    {
+      name: "Silent Study",
+      subject: "General Study",
+      count: 32,
+      timer: "25:00 Pomodoro",
+      timerVal: 25,
+      type: "Public",
+      goals: ["Complete reading tasks", "Clean logs", "Write notes"],
+    },
+  ]);
+
+  const [activeRoom, setActiveRoom] = useState<RoomDetails | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+
+  // Creation form states
+  const [newRoomName, setNewRoomName] = useState("");
+  const [newSubject, setNewSubject] = useState("");
+  const [newType, setNewType] = useState<"College-only" | "Public">("Public");
+  const [newTimer, setNewTimer] = useState(25);
+  const [newGoals, setNewGoals] = useState("");
+
+  // Countdown timer states
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [completedSession, setCompletedSession] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (timerRunning && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            setCompletedSession(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [timerRunning, timeLeft]);
+
+  function handleJoinRoom(room: RoomDetails) {
+    setActiveRoom(room);
+    setTimeLeft(room.timerVal * 60);
+    setTimerRunning(false);
+    setCompletedSession(false);
+  }
+
+  function handleCreateRoom(e: FormEvent) {
+    e.preventDefault();
+    if (!newRoomName || !newSubject) return;
+
+    const created: RoomDetails = {
+      name: newRoomName,
+      subject: newSubject,
+      count: 1,
+      timer: `${newTimer}:00 Pomodoro`,
+      timerVal: newTimer,
+      type: newType,
+      goals: newGoals.split(",").map((g) => g.trim()).filter(Boolean),
+    };
+
+    setRooms((prev) => [created, ...prev]);
+    setCreateOpen(false);
+    
+    // Auto join
+    handleJoinRoom(created);
+    
+    // Reset form
+    setNewRoomName("");
+    setNewSubject("");
+    setNewType("Public");
+    setNewTimer(25);
+    setNewGoals("");
+  }
+
+  const formatTimer = (sec: number) => {
+    const mins = Math.floor(sec / 60);
+    const secs = sec % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="space-y-6 pb-12">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Study Rooms</h2>
+        <p className="text-sm text-ink-soft">
+          Silent focus rooms. Set your goals, start the Pomodoro timer, and stay accountable alongside classmates.
+        </p>
+      </div>
+
+      {!activeRoom ? (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Available Rooms</h3>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="inline-flex h-8 items-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
+            >
+              Create study room
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rooms.map((room) => (
+              <div key={room.name} className="flex flex-col justify-between p-5 rounded-xl border border-line bg-surface hover:shadow-md transition">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center rounded border border-line bg-paper px-1.5 py-0.5 text-[9px] font-bold text-ink-soft uppercase">
+                      {room.type}
+                    </span>
+                    <span className="text-[10px] text-ink-soft font-semibold">{room.count} studying</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-ink">{room.name}</h4>
+                    <p className="text-xs text-ink-soft font-semibold">{room.subject} • {room.timer}</p>
+                  </div>
+                  <div className="space-y-1 pt-1.5">
+                    <span className="text-[9px] font-bold uppercase text-ink-faint tracking-wider block">Goals</span>
+                    <ul className="space-y-1">
+                      {room.goals.map((g, i) => (
+                        <li key={i} className="text-xs text-ink-soft leading-normal font-medium truncate">• {g}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleJoinRoom(room)}
+                  className="mt-5 w-full h-8 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition"
+                >
+                  Join Room
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Active session view */
+        <div className="rounded-xl border border-line bg-surface p-6 shadow-sm max-w-2xl mx-auto space-y-6">
+          <div className="flex items-center justify-between border-b border-line pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-accent leading-none">
+                Silent Session
+              </span>
+              <h3 className="text-base font-bold text-ink mt-0.5">{activeRoom.name}</h3>
+              <p className="text-xs text-ink-soft font-semibold mt-0.5">{activeRoom.subject}</p>
+            </div>
+            <button
+              onClick={() => {
+                setActiveRoom(null);
+                setTimerRunning(false);
+              }}
+              className="text-xs font-semibold text-red-600 hover:text-red-700 border border-line px-3 py-1.5 rounded bg-surface hover:bg-paper"
+            >
+              Leave Session
+            </button>
+          </div>
+
+          <div className="text-center py-6 space-y-4">
+            <div className="font-mono text-5xl font-bold tracking-tight text-ink">
+              {formatTimer(timeLeft)}
+            </div>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => setTimerRunning(!timerRunning)}
+                className="inline-flex h-9 items-center justify-center rounded bg-ink px-6 text-xs font-bold text-surface hover:bg-ink/85 transition"
+              >
+                {timerRunning ? "Pause Timer" : "Start Focus"}
+              </button>
+              <button
+                onClick={() => {
+                  setTimerRunning(false);
+                  setTimeLeft(activeRoom.timerVal * 60);
+                }}
+                className="inline-flex h-9 items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft hover:bg-surface hover:text-ink transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 pt-4 border-t border-line">
+            {/* Goal checklist */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-faint">My Session Goals</h4>
+              <div className="space-y-2.5">
+                {activeRoom.goals.map((g, i) => (
+                  <label key={i} className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-ink-soft">
+                    <input type="checkbox" className="rounded border-line text-accent focus:ring-accent" />
+                    <span>{g}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Participants list */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Classmates Focusing</h4>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  { name: "Priyanshu (you)", initials: "PR" },
+                  { name: "Rohit", initials: "RO" },
+                  { name: "Shruti", initials: "SH" },
+                  { name: "Aarav", initials: "AA" },
+                ].map((user, i) => (
+                  <div key={i} className="flex items-center gap-2 border border-line bg-paper py-1.5 px-3 rounded-full text-xs font-semibold text-ink-soft">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-soft text-[9px] font-bold text-accent">
+                      {user.initials}
+                    </span>
+                    <span>{user.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complete session modal details */}
+      {completedSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <Check className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-ink">Focus Session Complete!</h3>
+              <p className="text-xs text-ink-soft">
+                You studied for <span className="font-bold text-ink">{activeRoom?.timerVal} minutes</span> in {activeRoom?.name}.
+              </p>
+            </div>
+            <div className="border-t border-line pt-3 text-left space-y-2">
+              <span className="text-[10px] font-bold text-ink-faint uppercase block">Suggested next action</span>
+              <p className="text-xs text-ink-soft">
+                Add your completed tasks to your AI Study Roadmap, and take a quick 5-min break.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setCompletedSession(false);
+                setActiveRoom(null);
+              }}
+              className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition"
+            >
+              Awesome
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Room Creation dialog modal */}
+      {createOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+          <div className="bg-surface rounded-xl border border-line shadow-2xl w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-line pb-2.5">
+              <h3 className="text-sm font-bold text-ink">Create study room</h3>
+              <button onClick={() => setCreateOpen(false)} className="text-ink-faint hover:text-ink">
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRoom} className="space-y-4">
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Room Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    placeholder="e.g. DBMS Exam Sprint"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Subject</span>
+                  <input
+                    type="text"
+                    required
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    placeholder="e.g. DBMS"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="block">
+                    <span className="text-xs font-bold text-ink-soft">Timer Mode</span>
+                    <select
+                      value={newTimer}
+                      onChange={(e) => setNewTimer(Number(e.target.value))}
+                      className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    >
+                      <option value={25}>25 / 5 (Pomodoro)</option>
+                      <option value={50}>50 / 10</option>
+                      <option value={15}>15m Sprint</option>
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="text-xs font-bold text-ink-soft">Visibility</span>
+                    <select
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value as "College-only" | "Public")}
+                      className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    >
+                      <option value="Public">Public Room</option>
+                      <option value="College-only">College-Only</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Room Goals (comma separated)</span>
+                  <input
+                    type="text"
+                    value={newGoals}
+                    onChange={(e) => setNewGoals(e.target.value)}
+                    placeholder="e.g. Solve 5 PYQs, Finish Normalization notes"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!newRoomName.trim() || !newSubject.trim()}
+                className="w-full h-10 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition mt-2 pt-1"
+              >
+                Create and Join Room
               </button>
             </form>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-          <div className="mt-6 rounded-lg border border-line bg-surface p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Library rating</p>
-              <Star className="h-4 w-4 text-ink-faint" />
-            </div>
-            <p className="mt-3 font-mono text-2xl font-semibold">
-              {stats ? stats.ratingAverage.toFixed(1) : "—"}
-            </p>
-            <p className="mt-1 text-xs text-ink-faint">average across all resources</p>
-          </div>
-        </section>
+// -----------------------------------------------------------------
+// ADD RESOURCE (INGESTION) VIEW
+// -----------------------------------------------------------------
+function AddResourceView({ onUpload }: { onUpload: () => void }) {
+  const [activeTab, setActiveTab] = useState<"file" | "link">("file");
+  const [pastedLink, setPastedLink] = useState("");
+  const [linkTitle, setLinkTitle] = useState("");
+  const [linkSubject, setLinkSubject] = useState("");
+  const [insights, setInsights] = useState<{
+    subject: string;
+    topic: string;
+    type: string;
+    action: string;
+  } | null>(null);
+
+  function handlePasteLinkSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!pastedLink.trim() || !linkTitle.trim()) return;
+    setInsights({
+      subject: linkSubject || "Computer Networks",
+      topic: "TCP Congestion Control & Flow Systems",
+      type: pastedLink.includes("youtube.com") || pastedLink.includes("youtu.be") ? "YouTube Lecture" : "Web Resource Link",
+      action: "Add to Day 3 study roadmap",
+    });
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 pb-12">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Add Resource</h2>
+        <p className="text-sm text-ink-soft">
+          Ingest new study materials. Upload your files or paste educational links to parse insights and feed your AI study roadmap.
+        </p>
       </div>
+
+      <div className="rounded-xl border border-line bg-surface p-5 shadow-sm space-y-5">
+        <div className="flex gap-1 rounded-lg border border-line bg-paper p-1">
+          <button
+            onClick={() => {
+              setActiveTab("file");
+              setInsights(null);
+            }}
+            className={cx(
+              "flex-1 py-1.5 rounded text-xs font-bold transition",
+              activeTab === "file" ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
+            )}
+          >
+            Upload File
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("link");
+              setInsights(null);
+            }}
+            className={cx(
+              "flex-1 py-1.5 rounded text-xs font-bold transition",
+              activeTab === "link" ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
+            )}
+          >
+            Paste Link
+          </button>
+        </div>
+
+        {activeTab === "file" && (
+          <div className="text-center py-8 border border-dashed border-line rounded-lg bg-paper flex flex-col items-center justify-center space-y-3">
+            <span className="text-3xl">📁</span>
+            <p className="text-xs text-ink-soft font-semibold">
+              PDF, Slides, Docx, or PYQ papers
+            </p>
+            <button
+              onClick={onUpload}
+              className="inline-flex h-8 items-center rounded bg-ink px-4 text-xs font-bold text-surface hover:bg-ink/85 transition"
+            >
+              Choose document file
+            </button>
+          </div>
+        )}
+
+        {activeTab === "link" && (
+          <form onSubmit={handlePasteLinkSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-xs font-bold text-ink-soft">Pasted URL Link</span>
+                <div className="mt-1 flex h-10 items-center gap-2 rounded-md border border-line bg-paper px-3 transition focus-within:border-line-strong focus-within:bg-surface">
+                  <Link2 className="h-4 w-4 text-ink-faint" />
+                  <input
+                    type="url"
+                    required
+                    value={pastedLink}
+                    onChange={(e) => setPastedLink(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=... or Drive URL"
+                    className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-faint"
+                  />
+                </div>
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Resource Title</span>
+                  <input
+                    type="text"
+                    required
+                    value={linkTitle}
+                    onChange={(e) => setLinkTitle(e.target.value)}
+                    placeholder="e.g. TCP Congestion Control Visualized"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-ink-soft">Subject Tag</span>
+                  <input
+                    type="text"
+                    value={linkSubject}
+                    onChange={(e) => setLinkSubject(e.target.value)}
+                    placeholder="e.g. Computer Networks"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!pastedLink.trim() || !linkTitle.trim()}
+              className="w-full h-10 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition pt-1"
+            >
+              Analyze and Ingest Link
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Analysis Insights Card */}
+      {insights && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-3 shadow-sm reveal-up">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider leading-none">
+              Resource captured. Insights ready.
+            </h4>
+            <span className="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-800 uppercase">
+              Parsed ok
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 pt-2 text-xs font-medium text-ink-soft">
+            <div>
+              <span className="text-[10px] text-ink-faint block">Detected Subject</span>
+              <span className="text-ink font-semibold">{insights.subject}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-ink-faint block">Topic Area</span>
+              <span className="text-ink font-semibold">{insights.topic}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-ink-faint block">Type</span>
+              <span className="text-ink font-semibold">{insights.type}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-ink-faint block">Suggested Action</span>
+              <span className="text-accent font-semibold">{insights.action}</span>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-emerald-100 flex gap-2">
+            <button
+              onClick={() => {
+                alert("Simulated: Added to day 3 roadmap!");
+                setInsights(null);
+                setPastedLink("");
+                setLinkTitle("");
+                setLinkSubject("");
+              }}
+              className="h-8 rounded bg-ink px-4 text-xs font-bold text-surface hover:bg-ink/85 transition"
+            >
+              Add to roadmap
+            </button>
+            <button
+              onClick={() => {
+                alert("Simulated: Generating summary notes...");
+                setInsights(null);
+                setPastedLink("");
+                setLinkTitle("");
+                setLinkSubject("");
+              }}
+              className="h-8 rounded border border-line bg-paper px-3 text-xs font-semibold text-ink-soft hover:bg-surface hover:text-ink transition"
+            >
+              Generate summary
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

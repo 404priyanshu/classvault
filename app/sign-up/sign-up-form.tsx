@@ -21,9 +21,9 @@ import {
 } from "react";
 import type { ApiError, ApiUser } from "@/lib/api-types";
 
-type SignupStep = "account" | "verify" | "basics" | "preferences";
+type SignupStep = "account" | "verify" | "basics" | "preferences" | "college";
 
-const stepOrder: SignupStep[] = ["account", "verify", "basics", "preferences"];
+const stepOrder: SignupStep[] = ["account", "verify", "basics", "preferences", "college"];
 const subjectOptions = [
   "Data Structures",
   "DBMS",
@@ -89,6 +89,22 @@ function AuthModeNav() {
   );
 }
 
+function ClassVaultLogo() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      className="h-6 w-6 text-ink"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 3C9.373 3 4 8.373 4 15v13h6V15c0-3.314 2.686-6 6-6s6 2.686 6 6v13h6V15c0-6.627-5.373-12-12-12z"
+      />
+      <circle cx="16" cy="18" r="3" />
+    </svg>
+  );
+}
+
 export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
   const [currentUser, setCurrentUser] = useState<ApiUser | null>(initialUser);
   const [step, setStep] = useState<SignupStep>(initialUser ? "basics" : "account");
@@ -102,13 +118,39 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
   const [subjectPreferences, setSubjectPreferences] = useState<string[]>(
     initialUser?.subjectPreferences ?? [],
   );
+  
+  // Custom onboarding states (stored locally to match schema requirements without DB changes)
+  const [collegeName, setCollegeName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_onboarding_college") ?? "";
+    }
+    return "";
+  });
+  const [examGoal, setExamGoal] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("classvault_onboarding_exam_goal") ?? "";
+    }
+    return "";
+  });
+  const [collegeEmail, setCollegeEmail] = useState("");
+  const [collegeOtpCode, setCollegeOtpCode] = useState("");
+  const [collegeVerifyStep, setCollegeVerifyStep] = useState<"ask" | "verify" | "success">("ask");
+
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const activeIndex = stepOrder.indexOf(step);
   const progress = ((activeIndex + 1) / stepOrder.length) * 100;
-  const profileReady = name.trim().length >= 2 && semester && Number(age) >= 13 && Number(age) <= 80 && Number.isInteger(Number(age));
+  
+  const profileReady =
+    name.trim().length >= 2 &&
+    semester &&
+    Number(age) >= 13 &&
+    Number(age) <= 80 &&
+    Number.isInteger(Number(age)) &&
+    collegeName.trim().length >= 2;
+
   const selectedCount = subjectPreferences.length;
 
   const stepLabels = useMemo(
@@ -117,6 +159,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
       ["Verify", currentUser ? "Done" : "Code"],
       ["Basics", "Profile"],
       ["Subjects", `${selectedCount}/8`],
+      ["College", "Vault Access"],
     ],
     [currentUser, selectedCount],
   );
@@ -149,7 +192,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
       }
       setOtpCode("");
       setStep("verify");
-      setMessage("We sent a six-digit code to your campus email.");
+      setMessage("We sent a six-digit code to your email.");
     } catch {
       setError("Network error. Try again.");
     } finally {
@@ -186,8 +229,8 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     }
   }
 
-  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // Completes the onboarding flow and sends patch request
+  async function completeOnboardingAction(verified = false) {
     if (!currentUser) {
       setError("Verify your email before setting up your profile.");
       setStep("account");
@@ -195,10 +238,22 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     }
     if (!subjectPreferences.length) {
       setError("Choose at least one subject preference.");
+      setStep("preferences");
       return;
     }
     setSubmitting(true);
     setError(null);
+
+    // Save custom local states
+    if (typeof window !== "undefined") {
+      localStorage.setItem("classvault_onboarding_college", collegeName);
+      localStorage.setItem("classvault_onboarding_exam_goal", examGoal);
+      if (verified) {
+        localStorage.setItem("classvault_college_email", collegeEmail);
+        localStorage.setItem("classvault_college_verified", "true");
+      }
+    }
+
     try {
       const response = await fetch("/api/me", {
         method: "PATCH",
@@ -224,6 +279,36 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
     }
   }
 
+  async function handleCollegeVerifyStart(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!collegeEmail.endsWith(".edu") && !collegeEmail.endsWith(".edu.in") && !collegeEmail.endsWith(".ac.in")) {
+      setError("Email must end with .edu, .edu.in, or .ac.in to unlock private college vaults.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    setTimeout(() => {
+      setSubmitting(false);
+      setCollegeVerifyStep("verify");
+      setMessage("Simulated OTP sent to your college email (Enter 123456 to verify).");
+    }, 800);
+  }
+
+  async function handleCollegeVerifyComplete(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (collegeOtpCode !== "123456") {
+      setError("Incorrect verification code. Use 123456 for the simulation.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    setTimeout(() => {
+      setSubmitting(false);
+      setCollegeVerifyStep("success");
+      setMessage("College email verified successfully!");
+    }, 600);
+  }
+
   function toggleSubject(subject: string) {
     setSubjectPreferences((current) => {
       if (current.includes(subject)) return current.filter((item) => item !== subject);
@@ -234,64 +319,70 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
 
   return (
     <main className="auth-stage flex min-h-screen items-center px-4 py-10 text-ink">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <section className="reveal-up max-w-lg">
-          <Link href="/" className="mb-8 inline-flex items-center gap-2" aria-label="ClassVault home">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink font-mono text-[11px] font-semibold text-surface">
-              CV
-            </span>
-            <span className="text-base font-semibold tracking-tight">ClassVault</span>
+      <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-2 lg:items-center">
+        
+        {/* Left Side: Brand & Benefits */}
+        <section className="reveal-up space-y-6 lg:max-w-xl">
+          <Link href="/" className="inline-flex items-center gap-2" aria-label="ClassVault home">
+            <ClassVaultLogo />
+            <span className="font-serif font-semibold tracking-tight text-lg text-ink">ClassVault</span>
           </Link>
+
+          <div className="space-y-3">
+            <h1 className="text-3xl font-semibold leading-tight sm:text-4xl text-ink">
+              Start your study vault.
+            </h1>
+            <p className="text-base text-ink-soft">
+              Save notes, links, PYQs, and generate AI roadmaps from your study material.
+            </p>
+          </div>
 
           <AuthModeNav />
 
-          <h1 className="mt-8 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
-            Build a vault that knows your semester.
-          </h1>
-          <p className="mt-5 text-base leading-7 text-ink-soft">
-            New students answer a few basics once. ClassVault uses them to tune filters, uploads,
-            and study recommendations around the subjects they actually care about.
-          </p>
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-ink-faint">
+              Why join?
+            </h3>
+            <ul className="space-y-3 text-sm text-ink-soft">
+              {[
+                "Save and organize resources",
+                "Generate AI study roadmaps",
+                "Find college notes and PYQs",
+                "Study with peers in focus rooms",
+              ].map((benefit) => (
+                <li key={benefit} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                  <span className="font-medium">{benefit}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <div className="mt-8 space-y-3">
-            {stepLabels.map(([title, caption], index) => (
-              <div key={title} className="flex items-center gap-3">
-                <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-md border text-xs font-semibold transition ${
-                    index <= activeIndex
-                      ? "border-ink bg-ink text-surface"
-                      : "border-line bg-surface text-ink-faint"
-                  }`}
-                >
-                  {index < activeIndex || (currentUser && index < 2) ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : (
-                    index + 1
-                  )}
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold">{title}</span>
-                  <span className="block text-xs text-ink-faint">{caption}</span>
-                </span>
-              </div>
-            ))}
+          <div className="rounded-lg border border-line bg-paper/50 p-4 space-y-2">
+            <h4 className="text-xs font-semibold text-ink">College verification</h4>
+            <p className="text-xs text-ink-soft leading-relaxed">
+              After signup, verify your college email to unlock your private college vault. Supported college emails include `.edu`, `.edu.in`, `.ac.in`, or official college domains.
+            </p>
           </div>
         </section>
 
-        <TiltPanel className="reveal-up rounded-lg border border-line bg-surface p-5 shadow-[0_30px_80px_rgba(28,25,23,0.14)] sm:p-6">
+        {/* Right Side: Onboarding Panel */}
+        <TiltPanel className="reveal-up rounded-lg border border-line bg-surface p-5 shadow-[0_20px_50px_rgba(28,25,23,0.08)] sm:p-6">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase text-ink-faint">
                 Guided signup
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+              <h2 className="mt-1 text-xl font-semibold tracking-tight">
                 {step === "account"
                   ? "Create your account"
                   : step === "verify"
                     ? "Verify your email"
                     : step === "basics"
                       ? "Tell us the basics"
-                      : "Choose subject preferences"}
+                      : step === "preferences"
+                        ? "Choose subject preferences"
+                        : "Unlock your college vault"}
               </h2>
             </div>
             <span className="rounded-md border border-line bg-paper p-2 text-ink-soft">
@@ -330,7 +421,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold text-ink-soft">Campus email</span>
+                <span className="text-xs font-semibold text-ink-soft">Email address</span>
                 <div className="mt-1 flex h-10 items-center gap-2 rounded-md border border-line bg-paper px-3 transition focus-within:border-line-strong focus-within:bg-surface">
                   <Mail className="h-4 w-4 text-ink-faint" />
                   <input
@@ -339,7 +430,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                     autoComplete="email"
                     value={requestEmail}
                     onChange={(event) => setRequestEmail(event.target.value)}
-                    placeholder="you@classvault.edu"
+                    placeholder="you@email.com"
                     className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-faint"
                   />
                 </div>
@@ -411,7 +502,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
               {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
-                  <span className="text-xs font-semibold text-ink-soft">Name</span>
+                  <span className="text-xs font-semibold text-ink-soft">Full name</span>
                   <input
                     type="text"
                     required
@@ -435,7 +526,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-semibold text-ink-soft">Semester</span>
+                  <span className="text-xs font-semibold text-ink-soft">Semester / Year</span>
                   <select
                     required
                     value={semester}
@@ -451,13 +542,35 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                   </select>
                 </label>
                 <label className="block sm:col-span-2">
-                  <span className="text-xs font-semibold text-ink-soft">Department or branch</span>
+                  <span className="text-xs font-semibold text-ink-soft">College / University Name</span>
                   <input
                     type="text"
+                    required
+                    value={collegeName}
+                    onChange={(event) => setCollegeName(event.target.value)}
+                    placeholder="e.g. Stanford University"
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="text-xs font-semibold text-ink-soft">Course / Branch</span>
+                  <input
+                    type="text"
+                    required
                     value={department}
                     onChange={(event) => setDepartment(event.target.value)}
                     maxLength={40}
-                    placeholder="CSE, ECE, Mechanical..."
+                    placeholder="e.g. Computer Science, Mechanical..."
+                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="text-xs font-semibold text-ink-soft">Exam date or goal (optional)</span>
+                  <input
+                    type="text"
+                    value={examGoal}
+                    onChange={(event) => setExamGoal(event.target.value)}
+                    placeholder="e.g. Finals in Dec, Pass DBMS, Score 9+ GPA"
                     className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   />
                 </label>
@@ -475,7 +588,17 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
           ) : null}
 
           {step === "preferences" ? (
-            <form onSubmit={handleProfileSubmit} className="space-y-5">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (subjectPreferences.length) {
+                  setError(null);
+                  setStep("college");
+                }
+              }}
+              className="space-y-5"
+            >
+              <p className="text-xs text-ink-soft font-medium">Select the subjects you are studying this semester:</p>
               <div className="flex flex-wrap gap-2">
                 {subjectOptions.map((subject) => {
                   const active = subjectPreferences.includes(subject);
@@ -508,14 +631,111 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting || !subjectPreferences.length}
+                  disabled={!subjectPreferences.length}
                   className="inline-flex h-10 flex-[1.4] items-center justify-center gap-2 rounded-md bg-ink text-sm font-semibold text-surface transition hover:-translate-y-0.5 hover:bg-ink/85 disabled:translate-y-0 disabled:opacity-60"
                 >
-                  {submitting ? "Saving..." : "Finish signup"}
+                  Continue
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </form>
+          ) : null}
+
+          {step === "college" ? (
+            <div className="space-y-5">
+              <p className="text-xs text-ink-soft leading-relaxed font-medium">
+                Verify your college email now to unlock your college vault, private notes, PYQs, and silent study rooms.
+              </p>
+
+              {collegeVerifyStep === "ask" && (
+                <form onSubmit={handleCollegeVerifyStart} className="space-y-4">
+                  <label className="block">
+                    <span className="text-xs font-semibold text-ink-soft">Official College Email</span>
+                    <input
+                      type="email"
+                      required
+                      value={collegeEmail}
+                      onChange={(event) => setCollegeEmail(event.target.value)}
+                      placeholder="name@college.edu or name@college.ac.in"
+                      className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    />
+                  </label>
+                  {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-semibold text-surface transition hover:-translate-y-0.5 hover:bg-accent-hover disabled:translate-y-0 disabled:opacity-60"
+                  >
+                    {submitting ? "Sending..." : "Verify college email"}
+                  </button>
+                </form>
+              )}
+
+              {collegeVerifyStep === "verify" && (
+                <form onSubmit={handleCollegeVerifyComplete} className="space-y-4">
+                  <label className="block">
+                    <span className="text-xs font-semibold text-ink-soft">Enter 6-digit Code</span>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={collegeOtpCode}
+                      onChange={(event) => setCollegeOtpCode(event.target.value.replace(/\D/g, ""))}
+                      placeholder="123456"
+                      className="mt-1 h-12 w-full rounded-md border border-line bg-paper text-center font-mono text-lg tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
+                    />
+                  </label>
+                  {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
+                  {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+                  <button
+                    type="submit"
+                    disabled={submitting || collegeOtpCode.length !== 6}
+                    className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-semibold text-surface transition hover:-translate-y-0.5 hover:bg-accent-hover disabled:translate-y-0 disabled:opacity-60"
+                  >
+                    Confirm Code
+                  </button>
+                </form>
+              )}
+
+              {collegeVerifyStep === "success" && (
+                <div className="space-y-4 py-4 text-center">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Check className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-semibold text-emerald-800">{message}</p>
+                  <button
+                    type="button"
+                    onClick={() => completeOnboardingAction(true)}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85"
+                  >
+                    Go to workspace
+                  </button>
+                </div>
+              )}
+
+              {collegeVerifyStep !== "success" && (
+                <div className="flex flex-col gap-2 pt-2 border-t border-line">
+                  <button
+                    type="button"
+                    onClick={() => completeOnboardingAction(false)}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-md bg-paper border border-line text-sm font-semibold text-ink transition hover:bg-surface hover:border-line-strong"
+                  >
+                    Skip for now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setMessage(null);
+                      setStep("preferences");
+                    }}
+                    className="inline-flex h-9 w-full items-center justify-center text-xs font-semibold text-ink-soft transition hover:text-ink"
+                  >
+                    Back to Subjects
+                  </button>
+                </div>
+              )}
+            </div>
           ) : null}
 
           <p className="mt-5 text-sm text-ink-faint">

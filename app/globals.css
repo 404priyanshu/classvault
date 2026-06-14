@@ -55,6 +55,7 @@ html {
   background: var(--paper);
   color: var(--ink);
   text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -142,15 +143,34 @@ textarea:disabled {
 .auth-stage {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(90deg, rgba(231, 229, 228, 0.72) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(231, 229, 228, 0.72) 1px, transparent 1px),
-    linear-gradient(135deg, #fafaf9 0%, #ffffff 48%, #eef7f3 100%);
-  background-size:
-    52px 52px,
-    52px 52px,
-    100% 100%;
-  animation: auth-grid-drift 18s linear infinite;
+  background-color: var(--paper);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 91, 255, 0.08) 0px, transparent 55%),
+    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.09) 0px, transparent 55%),
+    radial-gradient(at 50% 0%, rgba(14, 165, 233, 0.06) 0px, transparent 50%);
+}
+
+@keyframes auth-dots-pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes blob-float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-40px, 50px) scale(1.08);
+  }
+  100% {
+    transform: translate(20px, -30px) scale(0.95);
+  }
 }
 
 .auth-stage::before {
@@ -158,15 +178,30 @@ textarea:disabled {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(135deg, rgba(28, 25, 23, 0.08), transparent 32%),
-    linear-gradient(315deg, rgba(20, 184, 166, 0.13), transparent 34%);
-  mask-image: linear-gradient(#000, transparent 80%);
+  background-image: radial-gradient(rgba(28, 25, 23, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  opacity: 0.85;
+  animation: auth-dots-pulse 8s ease-in-out infinite alternate;
+}
+
+.auth-stage::after {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  background: radial-gradient(circle, rgba(99, 91, 255, 0.08) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: blob-float 20s ease-in-out infinite alternate;
 }
 
 .auth-stage > * {
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 .reveal-up {

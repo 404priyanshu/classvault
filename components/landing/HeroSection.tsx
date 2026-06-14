@@ -35,7 +35,7 @@ export function HeroSection() {
             </h1>
             
             <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
-              StudyVault collects your notes, PYQs, PDFs, YouTube links, and college resources — then uses AI to tell you what to study, in what order, and from which material.
+              ClassVault collects your notes, PYQs, PDFs, YouTube links, and college resources — then uses AI to tell you what to study, in what order, and from which material.
             </p>
             
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -85,7 +85,7 @@ export function HeroSection() {
                 </div>
                 <div className="flex items-center gap-1.5 rounded border border-line bg-surface px-3 py-1 font-mono text-[10px] text-ink-faint">
                   <Sparkles className="h-3 w-3 text-accent" />
-                  <span>studyvault.in/roadmap</span>
+                  <span>classvault.in/roadmap</span>
                 </div>
                 <div className="w-12" />
               </div>

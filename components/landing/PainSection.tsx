@@ -135,10 +135,10 @@ export function PainSection() {
           <div className="mt-8 w-full rounded-xl border border-line bg-surface p-6 text-center shadow-lg sm:p-8">
             <div className="inline-flex items-center gap-2 rounded bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-              The StudyVault Solution
+              The ClassVault Solution
             </div>
             <h3 className="mt-4 text-xl font-semibold text-ink sm:text-2xl">
-              StudyVault puts it all in one place — and turns it into a guided study plan.
+              ClassVault puts it all in one place — and turns it into a guided study plan.
             </h3>
             <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-ink-soft sm:text-sm">
               We compile personal uploads, shared links, YouTube playlists, and previous years&apos; question papers into a structured interface so you stop searching and start learning.

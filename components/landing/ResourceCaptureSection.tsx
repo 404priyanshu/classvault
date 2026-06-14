@@ -6,7 +6,7 @@ import { Link2, Plus, Sparkles, Loader2, FileSpreadsheet } from "lucide-react";
 export function ResourceCaptureSection() {
   const [urlInput, setUrlInput] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
-  const [loadingText, setLoadingText] = useState<string>("StudyVault is organizing it...");
+  const [loadingText, setLoadingText] = useState<string>("ClassVault is organizing it...");
   const [capturedResource, setCapturedResource] = useState<{
     subject: string;
     topic: string;
@@ -19,7 +19,7 @@ export function ResourceCaptureSection() {
     if (!urlInput.trim()) return;
 
     setStatus("loading");
-    setLoadingText("StudyVault is organizing it...");
+    setLoadingText("ClassVault is organizing it...");
 
     // Phase 1 loading text
     setTimeout(() => {
@@ -208,16 +208,16 @@ export function ResourceCaptureSection() {
             </div>
             
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Drop any link. StudyVault turns it into study material.
+              Drop any link. ClassVault turns it into study material.
             </h2>
             
             <p className="mt-4 text-sm leading-relaxed text-ink-soft sm:text-base">
-              Save YouTube lectures, PDFs, websites, articles, Drive links, and notes. StudyVault automatically indexes and tags them by subject, unit, topic, and learning goals so they drop straight into your revision pipeline.
+              Save YouTube lectures, PDFs, websites, articles, Drive links, and notes. ClassVault automatically indexes and tags them by subject, unit, topic, and learning goals so they drop straight into your revision pipeline.
             </p>
 
             <div className="mt-6 border-l-2 border-accent/25 pl-4 py-1">
               <span className="text-xs italic text-ink-soft">
-                “Added to your Study Vault. Saved to your learning flow. Vaulted into your roadmap. StudyVault is organizing it.”
+                “Added to your Class Vault. Saved to your learning flow. Vaulted into your roadmap. ClassVault is organizing it.”
               </span>
             </div>
           </div>
