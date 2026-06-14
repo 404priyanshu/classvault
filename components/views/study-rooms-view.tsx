@@ -60,7 +60,7 @@ export function StudyRoomsView() {
   const [completedSession, setCompletedSession] = useState(false);
 
   useEffect(() => {
-    let timer: ReturnType<typeof window.setInterval> | undefined;
+    let timer: number | undefined;
     if (timerRunning && timeLeft > 0) {
       timer = window.setInterval(() => {
         setTimeLeft((prev) => {
