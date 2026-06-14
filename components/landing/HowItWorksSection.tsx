@@ -13,7 +13,7 @@ export function HowItWorksSection() {
     {
       step: "02",
       icon: Tag,
-      title: "ClassVault organizes it",
+      title: "StudyVault organizes it",
       desc: "Our engine automatically tags resources by course code, unit, topic, semester, and urgency.",
     },
     {
@@ -41,7 +41,7 @@ export function HowItWorksSection() {
             Four steps to study clarity.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-ink-soft sm:text-base">
-            No steep learning curves. Drop your syllabus materials and let ClassVault layout the roadmap.
+            No steep learning curves. Drop your syllabus materials and let StudyVault layout the roadmap.
           </p>
         </div>
 

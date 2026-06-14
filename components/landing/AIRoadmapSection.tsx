@@ -60,7 +60,7 @@ export function AIRoadmapSection() {
             </h2>
             
             <p className="mt-4 text-sm leading-relaxed text-ink-soft sm:text-base">
-              Ask for a roadmap for any subject. ClassVault uses your saved resources, uploaded notes, community material, syllabus, and PYQs to generate a day-wise study plan.
+              Ask for a roadmap for any subject. StudyVault uses your saved resources, uploaded notes, community material, syllabus, and PYQs to generate a day-wise study plan.
             </p>
             
             <div className="mt-8 space-y-6">

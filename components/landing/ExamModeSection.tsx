@@ -24,7 +24,7 @@ export function ExamModeSection() {
               </h2>
               
               <p className="mt-4 text-sm leading-relaxed text-ink-soft sm:text-base">
-                No time to study the whole syllabus? Switch to Exam Mode. ClassVault sifts through your material, community uploads, and past papers to prioritize the highest-probability topics, repeated questions, and key summaries.
+                No time to study the whole syllabus? Switch to Exam Mode. StudyVault sifts through your material, community uploads, and past papers to prioritize the highest-probability topics, repeated questions, and key summaries.
               </p>
               
               <div className="mt-8 flex flex-wrap gap-3">

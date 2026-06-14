@@ -10,13 +10,27 @@ import { FeatureGrid } from "./landing/FeatureGrid";
 import { HowItWorksSection } from "./landing/HowItWorksSection";
 import { FinalCTA } from "./landing/FinalCTA";
 
+function StudyVaultLogo() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      className="h-6 w-6 text-ink"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 3C9.373 3 4 8.373 4 15v13h6V15c0-3.314 2.686-6 6-6s6 2.686 6 6v13h6V15c0-6.627-5.373-12-12-12z"
+      />
+      <circle cx="16" cy="18" r="3" />
+    </svg>
+  );
+}
+
 function Wordmark() {
   return (
-    <Link href="/" className="flex items-center gap-2" aria-label="ClassVault home">
-      <span className="flex h-6 w-6 items-center justify-center rounded bg-accent font-mono text-[10px] font-semibold text-surface">
-        CV
-      </span>
-      <span className="text-sm font-semibold tracking-tight">ClassVault</span>
+    <Link href="/" className="flex items-center gap-2" aria-label="StudyVault home">
+      <StudyVaultLogo />
+      <span className="font-serif font-semibold tracking-tight text-lg text-ink">StudyVault</span>
     </Link>
   );
 }
@@ -73,7 +87,7 @@ export function ClassVaultLanding() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
-          <span className="font-medium text-ink-soft">ClassVault</span>
+          <span className="font-medium text-ink-soft">StudyVault</span>
           <div className="flex gap-5">
             <a href="#features" className="transition hover:text-ink">
               Features

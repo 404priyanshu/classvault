@@ -6,12 +6,17 @@
 
 :root {
   --paper: #fafaf9;
+  --paper-warm: #fafaf9;
   --surface: #ffffff;
   --ink: #1c1917;
   --ink-soft: #57534e;
   --ink-faint: #a8a29e;
   --line: #e7e5e4;
   --line-strong: #d6d3d1;
+  --accent: #635BFF;
+  --accent-soft: rgba(99, 91, 255, 0.08);
+  --accent-hover: #5148E5;
+  --success: #22C55E;
 }
 
 .landing-theme {
