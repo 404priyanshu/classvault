@@ -1,12 +1,44 @@
-"use client";
+import { ArrowRight } from "lucide-react";
 
-import { MessageSquare, Folder, Play, FileText, ArrowRight } from "lucide-react";
+function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.753-1.464L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.023-5.116-2.887-6.983a9.782 9.782 0 00-6.979-2.898c-5.433 0-9.859 4.42-9.863 9.865-.001 1.838.503 3.626 1.458 5.187l-.955 3.486 3.578-.938zm11.367-7.632c-.3-.15-1.77-.875-2.04-.975-.27-.1-.47-.15-.67.15-.2.3-.77.975-.95 1.175-.17.2-.35.225-.65.075-.3-.15-1.26-.465-2.4-1.48-.88-.785-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.14-.135.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.67-1.625-.92-2.225-.24-.58-.48-.5-.67-.51-.18-.01-.38-.01-.58-.01-.2 0-.52.075-.8.375-.27.3-1.04 1.02-1.04 2.485s1.07 2.87 1.21 3.075c.15.2 2.1 3.2 5.08 4.49.71.3 1.27.5 1.7.63.72.225 1.37.195 1.88.12.57-.085 1.77-.72 2.01-1.415.24-.7.24-1.3 0-1.425-.07-.12-.27-.2-.57-.35z" />
+    </svg>
+  );
+}
+
+function GoogleDriveIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path d="M9.13 3.5h5.74L22.25 16.5h-5.74z" fill="#FFC107" />
+      <path d="M1.75 16.5l3.75-6.5h11.48l-3.75 6.5z" fill="#4CAF50" />
+      <path d="M5.5 10L9.13 3.5l7.38 13H12.75z" fill="#2196F3" />
+    </svg>
+  );
+}
+
+function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
+
+function TelegramIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.18l-2.05 9.68c-.15.68-.56.85-1.13.53l-3.13-2.3-1.51 1.45c-.17.17-.31.31-.63.31l.22-3.18 5.79-5.23c.25-.22-.05-.35-.39-.13l-7.16 4.5-3.08-.96c-.67-.21-.68-.67.14-.99l12.02-4.63c.56-.2 1.05.14.88.96z" />
+    </svg>
+  );
+}
 
 export function PainSection() {
   const sources = [
     {
       app: "WhatsApp",
-      icon: MessageSquare,
+      icon: WhatsAppIcon,
       color: "text-[#25D366]",
       bg: "bg-[#25D366]/5",
       border: "border-[#25D366]/15",
@@ -16,7 +48,7 @@ export function PainSection() {
     },
     {
       app: "Google Drive",
-      icon: Folder,
+      icon: GoogleDriveIcon,
       color: "text-[#34A853]",
       bg: "bg-[#34A853]/5",
       border: "border-[#34A853]/15",
@@ -26,7 +58,7 @@ export function PainSection() {
     },
     {
       app: "YouTube",
-      icon: Play,
+      icon: YoutubeIcon,
       color: "text-[#FF0000]",
       bg: "bg-[#FF0000]/5",
       border: "border-[#FF0000]/15",
@@ -36,7 +68,7 @@ export function PainSection() {
     },
     {
       app: "Telegram",
-      icon: FileText,
+      icon: TelegramIcon,
       color: "text-[#0088CC]",
       bg: "bg-[#0088CC]/5",
       border: "border-[#0088CC]/15",

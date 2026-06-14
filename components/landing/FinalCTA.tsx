@@ -33,7 +33,7 @@ export function FinalCTA() {
           </Link>
           <Link
             href="/app"
-            className="inline-flex h-11 items-center rounded-md border border-line bg-surface px-6 text-sm font-medium text-ink-soft hover:border-line-strong hover:text-ink transition-colors"
+            className="inline-flex h-11 items-center rounded-md border border-line-strong bg-surface px-6 text-sm font-medium text-ink hover:bg-paper-warm hover:border-ink/20 transition-colors"
           >
             Browse notes
           </Link>

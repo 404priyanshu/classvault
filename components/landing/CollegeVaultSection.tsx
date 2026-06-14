@@ -74,12 +74,11 @@ export function CollegeVaultSection() {
                     />
                     <CheckCircle className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-success" />
                   </div>
-                  <button
-                    disabled
-                    className="rounded bg-accent px-3 py-1.5 text-xs font-semibold text-surface"
+                  <div
+                    className="inline-flex items-center justify-center rounded bg-accent px-3 py-1.5 text-xs font-semibold text-surface cursor-default"
                   >
                     Verified
-                  </button>
+                  </div>
                 </div>
               </div>
 

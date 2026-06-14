@@ -48,7 +48,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href="/app"
-                className="inline-flex h-11 items-center rounded-md border border-line bg-surface px-5 text-sm font-medium text-ink-soft transition-colors hover:border-line-strong hover:text-ink"
+                className="inline-flex h-11 items-center rounded-md border border-line-strong bg-surface px-5 text-sm font-medium text-ink transition-colors hover:bg-paper-warm hover:border-ink/20"
               >
                 Browse notes
               </Link>

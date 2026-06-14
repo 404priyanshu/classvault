@@ -120,7 +120,7 @@ export function StudyRoomsSection() {
                   </button>
                   <button
                     onClick={handleResetTimer}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line bg-paper text-ink-soft hover:bg-line transition-colors"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line-strong bg-paper text-ink hover:bg-line transition-colors"
                     title="Reset"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />

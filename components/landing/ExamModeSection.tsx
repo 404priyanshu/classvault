@@ -36,7 +36,7 @@ export function ExamModeSection() {
                 </Link>
                 <Link
                   href="/app"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-md border border-line bg-surface px-4 text-sm font-medium text-ink-soft hover:border-line-strong hover:text-ink transition-colors"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink hover:bg-paper-warm hover:border-ink/20 transition-colors"
                 >
                   <RefreshCw className="h-3.5 w-3.5 text-ink-faint" />
                   Simulate Exam
