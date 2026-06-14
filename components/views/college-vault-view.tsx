@@ -30,7 +30,12 @@ export function CollegeVaultView() {
 
   function handleSendCode(e: FormEvent) {
     e.preventDefault();
-    if (!collegeEmail.endsWith(".edu") && !collegeEmail.endsWith(".edu.in") && !collegeEmail.endsWith(".ac.in")) {
+    const normalizedEmail = collegeEmail.trim().toLowerCase();
+    if (
+      !normalizedEmail.endsWith(".edu") &&
+      !normalizedEmail.endsWith(".edu.in") &&
+      !normalizedEmail.endsWith(".ac.in")
+    ) {
       setError("Please use a valid official college email (e.g. .edu, .edu.in, .ac.in).");
       return;
     }
