@@ -69,9 +69,49 @@ test("clicking a PDF note opens a detail drawer with an inline preview", async (
   });
 
   await page.goto("/app");
-  await page.getByRole("button", { name: "PDF CS302 Uploaded PDF Notes" }).click();
+  await page.getByRole("button", { name: /PDF Uploaded PDF Notes/ }).click();
 
   await expect(page.getByRole("heading", { level: 2, name: "Uploaded PDF Notes" })).toBeVisible();
   await expect(page.getByText("Preview", { exact: true })).toBeVisible();
   await expect(page.locator('iframe[title="Uploaded PDF Notes preview"]')).toBeVisible();
+});
+
+test("search palette opens a note in the shared detail drawer", async ({ page }) => {
+  await page.route("**/api/me", async (route) => {
+    await route.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { code: "UNAUTHORIZED", message: "Not signed in." } }),
+    });
+  });
+  await page.route("**/api/meta", async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(meta) });
+  });
+  await page.route("**/api/notes/note-pdf/file**", async (route) => {
+    await route.fulfill({
+      contentType: "application/pdf",
+      body: "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n%%EOF",
+    });
+  });
+  await page.route("**/api/notes**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname !== "/api/notes") {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ items: [pdfNote], nextCursor: null }),
+    });
+  });
+
+  await page.goto("/app");
+  await page.getByRole("button", { name: "Search resources" }).click();
+  const dialog = page.getByRole("dialog", { name: "Search resources" });
+  await expect(dialog).toBeVisible();
+  await page.getByPlaceholder("Search notes, PYQs, subjects...").fill("pdf");
+  await dialog.getByRole("button", { name: /Uploaded PDF Notes/ }).click();
+
+  await expect(page.getByRole("heading", { level: 2, name: "Uploaded PDF Notes" })).toBeVisible();
+  await expect(page.getByText("Preview", { exact: true })).toBeVisible();
 });

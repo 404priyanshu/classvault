@@ -2,20 +2,13 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { FileText, RefreshCw, Search } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ApiNote, NotesResponse } from "@/lib/api-types";
+import { useAppShell } from "@/components/app-shell/app-shell-context";
 
-type SearchCommandPaletteProps = {
-  subjects: string[];
-  onSelectNote: (note: ApiNote) => void;
-};
-
-export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPaletteProps) {
+export function SearchCommandPalette() {
+  const { meta, openNoteDetail } = useAppShell();
+  const subjects = meta?.subjects ?? [];
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -24,7 +17,6 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Live search against the API, debounced while typing.
   useEffect(() => {
     if (!open) return;
 
@@ -63,7 +55,7 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
 
   function selectResult(note: ApiNote) {
     setOpen(false);
-    onSelectNote(note);
+    openNoteDetail(note);
   }
 
   useEffect(() => {
@@ -125,9 +117,9 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
         aria-label="Search resources"
       >
         <Search className="h-4 w-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">Search resources…</span>
+        <span className="min-w-0 flex-1 truncate">Search resources...</span>
         <kbd className="hidden items-center gap-0.5 rounded border border-line bg-paper px-1.5 py-0.5 font-mono text-[11px] text-ink-faint sm:inline-flex">
-          ⌘K
+          Ctrl K
         </kbd>
       </button>
 
@@ -164,7 +156,7 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={handleInputKeyDown}
-                  placeholder="Search notes, PYQs, subjects…"
+                  placeholder="Search notes, PYQs, subjects..."
                   className="h-8 min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
                 />
                 <kbd className="rounded border border-line bg-paper px-1.5 py-0.5 font-mono text-[11px] text-ink-faint">
@@ -214,19 +206,23 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
                           <FileText className="h-4 w-4" />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-ink">{note.title}</span>
+                          <span className="block truncate text-sm font-medium text-ink">
+                            {note.title}
+                          </span>
                           <span className="block truncate text-xs text-ink-faint">
-                            {note.subject} · Sem {note.semester} · {note.courseCode}
+                            {note.subject} &middot; Sem {note.semester} &middot; {note.courseCode}
                           </span>
                         </span>
-                        <span className="shrink-0 font-mono text-[11px] text-ink-faint">{note.fileType}</span>
+                        <span className="shrink-0 font-mono text-[11px] text-ink-faint">
+                          {note.fileType}
+                        </span>
                       </button>
                     ))}
                   </div>
                 ) : (
                   <div className="rounded-md border border-line bg-paper px-4 py-10 text-center">
                     <p className="text-sm font-medium text-ink">
-                      {searching ? "Searching…" : "No matching resources"}
+                      {searching ? "Searching..." : "No matching resources"}
                     </p>
                     {!searching ? (
                       <p className="mt-1 text-xs text-ink-faint">
