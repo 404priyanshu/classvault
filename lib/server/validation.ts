@@ -3,6 +3,7 @@ import { z } from "zod";
 export const FILE_TYPES = ["PDF", "DOCX", "PPTX", "ZIP"] as const;
 export const USER_ROLES = ["STUDENT", "MODERATOR", "ADMIN"] as const;
 export const NOTE_STATUSES = ["PENDING", "PUBLISHED", "REJECTED", "HIDDEN", "DELETED"] as const;
+export const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 
 export const ALLOWED_MIME_TYPES: Record<string, (typeof FILE_TYPES)[number]> = {
   "application/pdf": "PDF",
@@ -31,7 +32,7 @@ export const createNoteSchema = z.object({
   title: z.string().trim().min(3).max(120),
   description: z.string().trim().max(2000).default(""),
   subject: z.string().trim().min(1).max(120),
-  semester: z.enum(["1", "2", "3", "4", "5", "6", "7", "8"]),
+  semester: z.enum(SEMESTERS),
   courseCode: z.string().trim().min(1).max(20),
   unit: z.string().trim().max(120).default(""),
   topic: z.string().trim().max(120).default(""),
@@ -43,11 +44,42 @@ export const ratingSchema = z.object({
   value: z.number().int().min(1).max(5),
 });
 
-export const profileUpdateSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-  department: z.string().trim().max(20).nullable().optional(),
-  semester: z.enum(["1", "2", "3", "4", "5", "6", "7", "8"]).nullable().optional(),
-});
+export const profileUpdateSchema = z
+  .object({
+    name: z.string().trim().min(2).max(80),
+    department: z.string().trim().max(40).nullable().optional(),
+    semester: z.enum(SEMESTERS).nullable().optional(),
+    age: z.coerce.number().int().min(13).max(80).nullable().optional(),
+    subjectPreferences: z
+      .array(z.string().trim().min(2).max(80))
+      .max(8)
+      .optional(),
+    completeOnboarding: z.boolean().optional(),
+  })
+  .superRefine((input, ctx) => {
+    if (!input.completeOnboarding) return;
+    if (!input.semester) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["semester"],
+        message: "Choose your semester.",
+      });
+    }
+    if (!input.age) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["age"],
+        message: "Enter your age.",
+      });
+    }
+    if (!input.subjectPreferences?.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["subjectPreferences"],
+        message: "Choose at least one subject preference.",
+      });
+    }
+  });
 
 export const reportSchema = z.object({
   noteId: z.string().trim().min(1),

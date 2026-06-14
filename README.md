@@ -28,15 +28,17 @@ Google sign-in:
 
 Email OTP sign-up:
 
-1. Create a Resend API key, or install Resend from the Vercel Marketplace.
-2. Set `RESEND_API_KEY`, `EMAIL_FROM`, and a long random `EMAIL_OTP_SECRET`.
-3. In local development without Resend env vars, OTP emails are printed to the dev server console.
+1. For AWS SES, verify `EMAIL_FROM`, set `EMAIL_PROVIDER=ses`, and set `AWS_SES_REGION`.
+2. For Resend, set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `EMAIL_FROM`.
+3. Set a long random `EMAIL_OTP_SECRET` in production.
+4. In local development without provider env vars, OTP emails are printed to the dev server console.
 
 Production defaults:
 
 - Host on Vercel.
 - Use Neon Postgres for `DATABASE_URL`; use local Postgres for development.
 - Use AWS S3 for direct uploads and signed downloads.
+- Use AWS SES or Resend for email OTP delivery. SES sandbox accounts can only send to verified recipients until production access is approved.
 - Set `ADMIN_EMAILS` before first sign-in to bootstrap admins.
 - Authorized Google redirect URI: `${APP_ORIGIN}/api/auth/google/callback`.
 

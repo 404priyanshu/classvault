@@ -80,3 +80,186 @@ textarea:disabled {
   border: 2px solid transparent;
   background-clip: content-box;
 }
+
+@keyframes auth-grid-drift {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      52px 34px,
+      0 0;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress-shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+.auth-stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(231, 229, 228, 0.72) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(231, 229, 228, 0.72) 1px, transparent 1px),
+    linear-gradient(135deg, #fafaf9 0%, #ffffff 48%, #eef7f3 100%);
+  background-size:
+    52px 52px,
+    52px 52px,
+    100% 100%;
+  animation: auth-grid-drift 18s linear infinite;
+}
+
+.auth-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(28, 25, 23, 0.08), transparent 32%),
+    linear-gradient(315deg, rgba(20, 184, 166, 0.13), transparent 34%);
+  mask-image: linear-gradient(#000, transparent 80%);
+}
+
+.auth-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reveal-up {
+  animation: reveal-up 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tilt-panel {
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  will-change: transform;
+}
+
+.tilt-panel:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 34px 90px rgba(28, 25, 23, 0.18);
+}
+
+.onboarding-progress {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--line);
+}
+
+.onboarding-progress-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1c1917, #0f766e, #ca8a04);
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.onboarding-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: progress-shine 1.4s ease-in-out infinite;
+}
+
+.subject-chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 0 12px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 650;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.subject-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.subject-chip-active {
+  border-color: rgba(15, 118, 110, 0.35);
+  background: #e6f5f1;
+  color: #134e4a;
+  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.12);
+}
+
+.landing-skew-card,
+.feature-tilt-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.landing-skew-card:hover {
+  transform: perspective(1100px) rotateX(1.8deg) rotateY(-2.8deg) translateY(-4px);
+  box-shadow: 0 26px 70px rgba(28, 25, 23, 0.12);
+}
+
+.landing-preview-row:hover {
+  transform: translateX(4px);
+  background: var(--paper);
+}
+
+.feature-tilt-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 48px rgba(28, 25, 23, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tilt-panel,
+  .landing-skew-card:hover,
+  .feature-tilt-card:hover,
+  .landing-preview-row:hover {
+    transform: none;
+  }
+}

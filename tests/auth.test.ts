@@ -6,10 +6,16 @@ import {
   hashEmailOtp,
   normalizeEmail,
 } from "@/lib/server/email-otp";
+import { isEmailDeliveryConfigured } from "@/lib/server/email";
 
 const originalAllowedDomains = process.env.ALLOWED_EMAIL_DOMAINS;
 const originalAdminEmails = process.env.ADMIN_EMAILS;
 const originalEmailOtpSecret = process.env.EMAIL_OTP_SECRET;
+const originalEmailProvider = process.env.EMAIL_PROVIDER;
+const originalEmailFrom = process.env.EMAIL_FROM;
+const originalResendApiKey = process.env.RESEND_API_KEY;
+const originalAwsSesRegion = process.env.AWS_SES_REGION;
+const originalAwsRegion = process.env.AWS_REGION;
 
 afterEach(() => {
   if (originalAllowedDomains === undefined) {
@@ -28,6 +34,36 @@ afterEach(() => {
     delete process.env.EMAIL_OTP_SECRET;
   } else {
     process.env.EMAIL_OTP_SECRET = originalEmailOtpSecret;
+  }
+
+  if (originalEmailProvider === undefined) {
+    delete process.env.EMAIL_PROVIDER;
+  } else {
+    process.env.EMAIL_PROVIDER = originalEmailProvider;
+  }
+
+  if (originalEmailFrom === undefined) {
+    delete process.env.EMAIL_FROM;
+  } else {
+    process.env.EMAIL_FROM = originalEmailFrom;
+  }
+
+  if (originalResendApiKey === undefined) {
+    delete process.env.RESEND_API_KEY;
+  } else {
+    process.env.RESEND_API_KEY = originalResendApiKey;
+  }
+
+  if (originalAwsSesRegion === undefined) {
+    delete process.env.AWS_SES_REGION;
+  } else {
+    process.env.AWS_SES_REGION = originalAwsSesRegion;
+  }
+
+  if (originalAwsRegion === undefined) {
+    delete process.env.AWS_REGION;
+  } else {
+    process.env.AWS_REGION = originalAwsRegion;
   }
 });
 
@@ -66,5 +102,24 @@ describe("email OTP helpers", () => {
 
   it("generates six-digit codes", () => {
     expect(generateEmailOtpCode()).toMatch(/^\d{6}$/);
+  });
+});
+
+describe("email delivery configuration", () => {
+  it("detects AWS SES configuration", () => {
+    process.env.EMAIL_PROVIDER = "ses";
+    process.env.EMAIL_FROM = "ClassVault <no-reply@classvault.edu>";
+    process.env.AWS_SES_REGION = "us-east-1";
+    delete process.env.RESEND_API_KEY;
+
+    expect(isEmailDeliveryConfigured()).toBe(true);
+  });
+
+  it("does not treat incomplete SES configuration as production-ready", () => {
+    process.env.EMAIL_PROVIDER = "ses";
+    delete process.env.EMAIL_FROM;
+    process.env.AWS_SES_REGION = "us-east-1";
+
+    expect(isEmailDeliveryConfigured()).toBe(false);
   });
 });

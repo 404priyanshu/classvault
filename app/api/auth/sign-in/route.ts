@@ -9,8 +9,8 @@ import {
 } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { handleRouteError, jsonError } from "@/lib/server/http";
-import { roleLabelOf } from "@/lib/server/notes";
 import { assertRateLimit, requestKey } from "@/lib/server/rate-limit";
+import { serializeUser } from "@/lib/server/users";
 
 const signInSchema = z.object({
   email: z.email().trim().max(254),
@@ -35,15 +35,7 @@ export async function POST(request: NextRequest) {
 
     const bootstrappedUser = await applyUserBootstrap(user);
     const { token, expiresAt } = await createSession(bootstrappedUser.id);
-    const response = NextResponse.json({
-      id: bootstrappedUser.id,
-      name: bootstrappedUser.name,
-      email: bootstrappedUser.email,
-      role: bootstrappedUser.role,
-      department: bootstrappedUser.department,
-      semester: bootstrappedUser.semester,
-      roleLabel: roleLabelOf(bootstrappedUser),
-    });
+    const response = NextResponse.json(serializeUser(bootstrappedUser));
     response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
     return response;
   } catch (error) {

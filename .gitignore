@@ -47,3 +47,7 @@ next-env.d.ts
 prisma/dev.db*
 lib/generated/
 var/
+
+# playwright output
+test-results/
+playwright-report/

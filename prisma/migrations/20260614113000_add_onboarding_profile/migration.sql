@@ -1,0 +1,4 @@
+ALTER TABLE "User"
+ADD COLUMN "age" INTEGER,
+ADD COLUMN "subjectPreferences" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN "onboardingCompletedAt" TIMESTAMP(3);

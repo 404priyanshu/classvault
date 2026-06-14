@@ -12,6 +12,9 @@ export type ApiUser = {
   role: UserRole;
   department: string | null;
   semester: string | null;
+  age: number | null;
+  subjectPreferences: string[];
+  hasCompletedOnboarding: boolean;
   roleLabel: string;
 };
 

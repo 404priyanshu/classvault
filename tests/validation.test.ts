@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createNoteSchema,
   notesQuerySchema,
+  profileUpdateSchema,
   ratingSchema,
   reportSchema,
 } from "@/lib/server/validation";
@@ -65,6 +66,29 @@ describe("ratingSchema", () => {
     expect(() => ratingSchema.parse({ value: 0 })).toThrow();
     expect(() => ratingSchema.parse({ value: 6 })).toThrow();
     expect(() => ratingSchema.parse({ value: 3.5 })).toThrow();
+  });
+});
+
+describe("profileUpdateSchema", () => {
+  it("requires onboarding essentials when completing signup", () => {
+    const parsed = profileUpdateSchema.parse({
+      name: "Arjun Mehta",
+      semester: "5",
+      age: "19",
+      subjectPreferences: ["DBMS", "Operating Systems"],
+      completeOnboarding: true,
+    });
+
+    expect(parsed.age).toBe(19);
+    expect(parsed.subjectPreferences).toEqual(["DBMS", "Operating Systems"]);
+    expect(() =>
+      profileUpdateSchema.parse({
+        name: "Arjun Mehta",
+        age: "19",
+        subjectPreferences: [],
+        completeOnboarding: true,
+      }),
+    ).toThrow();
   });
 });
 

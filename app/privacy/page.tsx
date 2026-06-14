@@ -22,7 +22,8 @@ export default function PrivacyPage() {
           we do not retain Google access or refresh tokens.
         </li>
         <li>
-          <strong>Profile data.</strong> Optional department and semester you add to your profile.
+          <strong>Profile data.</strong> Department, semester, age, and subject preferences you add
+          during signup or in your profile.
         </li>
         <li>
           <strong>Content you upload.</strong> Files and their metadata (title, subject, course code,

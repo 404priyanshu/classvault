@@ -184,6 +184,30 @@ export function ClassVaultApp() {
     return () => window.clearTimeout(timer);
   }, [refreshMeta]);
 
+  // Load tasks from localStorage on mount. Deferred so the initial render uses
+  // the default list (avoids hydration mismatch) and setState is not called
+  // synchronously inside the effect.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const savedTasks = localStorage.getItem("cv_study_tasks");
+        if (savedTasks) setTasks(JSON.parse(savedTasks) as StudyTask[]);
+      } catch {
+        // Ignore
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // Save tasks to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("cv_study_tasks", JSON.stringify(tasks));
+    } catch {
+      // Ignore
+    }
+  }, [tasks]);
+
   // Server-side filtering: every filter/view change becomes /api/notes params.
   useEffect(() => {
     if (currentView === "review") return;
@@ -289,6 +313,12 @@ export function ClassVaultApp() {
     setNotes((current) =>
       current.map((note) => (note.id === noteId ? { ...note, ...patch } : note)),
     );
+    setTrendingNotes((current) =>
+      current.map((note) => (note.id === noteId ? { ...note, ...patch } : note)),
+    );
+    setAdminNotes((current) =>
+      current.map((note) => (note.id === noteId ? { ...note, ...patch } : note)),
+    );
     setOpenNote((current) => (current?.id === noteId ? { ...current, ...patch } : current));
   }
 
@@ -369,6 +399,16 @@ export function ClassVaultApp() {
       setToast("Choose a file to upload.");
       return false;
     }
+    if (draft.file.size > 25 * 1024 * 1024) {
+      setToast("File is too large. Maximum size is 25 MB.");
+      return false;
+    }
+    const allowedExtensions = ["pdf", "docx", "pptx", "zip"];
+    const extension = draft.file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      setToast("Invalid file type. Only PDF, DOCX, PPTX, and ZIP files are allowed.");
+      return false;
+    }
     try {
       let storageKey: string;
       const presignResponse = await fetch("/api/uploads/presign", {
@@ -438,10 +478,14 @@ export function ClassVaultApp() {
   }
 
   async function moderateNote(note: ApiNote, action: ModerationAction) {
-    const reason =
-      action === "reject" || action === "hide"
-        ? window.prompt(action === "reject" ? "Reason for rejection" : "Reason for hiding") || ""
-        : "";
+    let reason = "";
+    if (action === "reject" || action === "hide") {
+      const promptResult = window.prompt(
+        action === "reject" ? "Reason for rejection" : "Reason for hiding",
+      );
+      if (promptResult === null) return;
+      reason = promptResult.trim();
+    }
     try {
       const response = await fetch(`/api/admin/notes/${note.id}/${action}`, {
         method: "POST",
@@ -648,7 +692,11 @@ export function ClassVaultApp() {
       ) : null}
 
       {uploadOpen ? (
-        <UploadDialog onSubmit={submitUpload} onClose={() => setUploadOpen(false)} />
+        <UploadDialog
+          onSubmit={submitUpload}
+          onClose={() => setUploadOpen(false)}
+          defaultSemester={me?.semester || "1"}
+        />
       ) : null}
 
       {toast ? (
@@ -1112,7 +1160,7 @@ function NoteCard({ note, onOpen }: { note: ApiNote; onOpen: () => void }) {
         </span>
       </div>
       <h3 className="mt-4 line-clamp-2 text-sm font-semibold">{note.title}</h3>
-      <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-faint">{note.topic}</p>
+      <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-faint">{note.topic || note.description}</p>
       <div className="mt-4 flex w-full items-center justify-between border-t border-line pt-3 font-mono text-xs text-ink-faint">
         <span className="flex items-center gap-1">
           <Star className="h-3 w-3" />
@@ -1233,7 +1281,7 @@ function ProfileView({
               value={department}
               onChange={(event) => setDepartment(event.target.value.toUpperCase())}
               disabled={!me || saving}
-              maxLength={20}
+              maxLength={40}
               placeholder="CSE"
               className={profileInputClasses}
             />
@@ -1664,11 +1712,16 @@ function NotePreview({ note }: { note: ApiNote }) {
 function UploadDialog({
   onSubmit,
   onClose,
+  defaultSemester = "1",
 }: {
   onSubmit: (draft: UploadDraft) => Promise<boolean>;
   onClose: () => void;
+  defaultSemester?: string;
 }) {
-  const [draft, setDraft] = useState<UploadDraft>(emptyDraft);
+  const [draft, setDraft] = useState<UploadDraft>(() => ({
+    ...emptyDraft,
+    semester: defaultSemester,
+  }));
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {

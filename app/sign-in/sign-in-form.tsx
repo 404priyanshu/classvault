@@ -1,11 +1,23 @@
 "use client";
 
-import { ArrowLeft, LogIn, Mail, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  CheckCircle2,
+  LogIn,
+  Mail,
+  Search,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
-import type { ApiError } from "@/lib/api-types";
-
-type SignupStep = "request" | "verify";
+import {
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
+import type { ApiError, ApiUser } from "@/lib/api-types";
 
 async function apiErrorMessage(response: Response, fallback: string) {
   try {
@@ -16,19 +28,57 @@ async function apiErrorMessage(response: Response, fallback: string) {
   }
 }
 
+function destinationFor(user: ApiUser) {
+  return user.hasCompletedOnboarding ? "/app" : "/sign-up";
+}
+
+function TiltPanel({ children, className = "" }: { children: ReactNode; className?: string }) {
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    event.currentTarget.style.setProperty("--rx", `${-y * 7}deg`);
+    event.currentTarget.style.setProperty("--ry", `${x * 9}deg`);
+  }
+
+  function resetTilt(event: PointerEvent<HTMLDivElement>) {
+    event.currentTarget.style.setProperty("--rx", "0deg");
+    event.currentTarget.style.setProperty("--ry", "0deg");
+  }
+
+  return (
+    <div
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetTilt}
+      style={{ "--rx": "0deg", "--ry": "0deg" } as CSSProperties}
+      className={`tilt-panel ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function AuthModeNav() {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface p-1">
+      <span className="inline-flex h-8 items-center rounded-md bg-ink px-3 text-sm font-medium text-surface">
+        Log in
+      </span>
+      <Link
+        href="/sign-up"
+        className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-ink-soft transition hover:text-ink"
+      >
+        Sign up
+      </Link>
+    </div>
+  );
+}
+
 export function SignInForm({ initialError }: { initialError: string | null }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError);
   const [submitting, setSubmitting] = useState(false);
-  const [signupStep, setSignupStep] = useState<SignupStep>("request");
-  const [signupName, setSignupName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [signupMessage, setSignupMessage] = useState<string | null>(null);
-  const [signupError, setSignupError] = useState<string | null>(null);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,8 +94,8 @@ export function SignInForm({ initialError }: { initialError: string | null }) {
         setError(await apiErrorMessage(response, `Sign-in failed (${response.status})`));
         return;
       }
-      // Full navigation so every request after this carries the session cookie.
-      window.location.href = "/app";
+      const user = (await response.json()) as ApiUser;
+      window.location.href = destinationFor(user);
     } catch {
       setError("Network error. Try again.");
     } finally {
@@ -53,211 +103,130 @@ export function SignInForm({ initialError }: { initialError: string | null }) {
     }
   }
 
-  async function handleOtpRequest(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSendingOtp(true);
-    setSignupError(null);
-    setSignupMessage(null);
-    try {
-      const response = await fetch("/api/auth/email/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: signupName, email: signupEmail }),
-      });
-      if (!response.ok) {
-        setSignupError(await apiErrorMessage(response, `Could not send code (${response.status})`));
-        return;
-      }
-      setOtpCode("");
-      setSignupStep("verify");
-      setSignupMessage("We sent a six-digit code to your email.");
-    } catch {
-      setSignupError("Network error. Try again.");
-    } finally {
-      setSendingOtp(false);
-    }
-  }
-
-  async function handleOtpVerify(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setVerifyingOtp(true);
-    setSignupError(null);
-    try {
-      const response = await fetch("/api/auth/email/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: signupEmail, code: otpCode }),
-      });
-      if (!response.ok) {
-        setSignupError(await apiErrorMessage(response, `Could not verify code (${response.status})`));
-        return;
-      }
-      window.location.href = "/app";
-    } catch {
-      setSignupError("Network error. Try again.");
-    } finally {
-      setVerifyingOtp(false);
-    }
-  }
-
-  function resetOtpRequest() {
-    setSignupStep("request");
-    setOtpCode("");
-    setSignupMessage(null);
-    setSignupError(null);
-  }
-
   return (
-    <main className="flex min-h-screen items-center justify-center bg-paper px-4 py-10">
-      <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 block text-center text-lg font-semibold tracking-tight">
-          ClassVault
-        </Link>
-        <div className="space-y-5 rounded-lg border border-line bg-surface p-6">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">Sign in</h1>
-            <p className="mt-1 text-sm text-ink-faint">
-              Use your campus account to access your library.
-            </p>
-          </div>
-          <Link
-            href="/api/auth/google/start"
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-line bg-paper text-sm font-medium text-ink transition hover:border-line-strong hover:bg-surface"
-          >
-            <LogIn className="h-4 w-4" />
-            Continue with Google
+    <main className="auth-stage flex min-h-screen items-center px-4 py-10 text-ink">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <section className="reveal-up max-w-xl">
+          <Link href="/" className="mb-8 inline-flex items-center gap-2" aria-label="ClassVault home">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink font-mono text-[11px] font-semibold text-surface">
+              CV
+            </span>
+            <span className="text-base font-semibold tracking-tight">ClassVault</span>
           </Link>
-          <div className="flex items-center gap-3">
+
+          <AuthModeNav />
+
+          <h1 className="mt-8 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
+            One calm doorway into your class library.
+          </h1>
+          <p className="mt-5 max-w-lg text-base leading-7 text-ink-soft">
+            Returning students sign in here. New students can authenticate first, then ClassVault
+            guides them through a short profile setup.
+          </p>
+
+          <div className="mt-8 grid max-w-lg gap-3 sm:grid-cols-3">
+            {[
+              ["01", "Authenticate"],
+              ["02", "Personalize"],
+              ["03", "Study"],
+            ].map(([index, label]) => (
+              <div key={index} className="rounded-lg border border-line bg-surface/80 p-3">
+                <span className="font-mono text-[11px] text-ink-faint">{index}</span>
+                <p className="mt-2 text-sm font-semibold">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <TiltPanel className="reveal-up rounded-lg border border-line bg-surface p-5 shadow-[0_30px_80px_rgba(28,25,23,0.14)] sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-[11px] font-semibold uppercase text-ink-faint">
+                Secure access
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in</h2>
+            </div>
+            <span className="rounded-md border border-line bg-paper p-2 text-ink-soft">
+              <BookOpenCheck className="h-5 w-5" />
+            </span>
+          </div>
+
+          <a
+            href="/api/auth/google/start"
+            className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-line bg-paper text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-surface hover:shadow-[0_12px_32px_rgba(28,25,23,0.09)]"
+          >
+            <LogIn className="h-4 w-4 transition group-hover:rotate-[-6deg]" />
+            Continue with Google
+          </a>
+
+          <div className="my-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-line" />
-            <span className="text-xs font-medium text-ink-faint">or</span>
+            <span className="text-xs font-semibold text-ink-faint">or use password</span>
             <span className="h-px flex-1 bg-line" />
           </div>
+
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <label className="block">
-              <span className="text-xs font-medium text-ink-soft">Email</span>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@classvault.edu"
-                className="mt-1 h-9 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong"
-              />
+              <span className="text-xs font-semibold text-ink-soft">Email</span>
+              <div className="mt-1 flex h-10 items-center gap-2 rounded-md border border-line bg-paper px-3 transition focus-within:border-line-strong focus-within:bg-surface">
+                <Mail className="h-4 w-4 text-ink-faint" />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@classvault.edu"
+                  className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-faint"
+                />
+              </div>
             </label>
             <label className="block">
-              <span className="text-xs font-medium text-ink-soft">Password</span>
+              <span className="text-xs font-semibold text-ink-soft">Password</span>
               <input
                 type="password"
                 required
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="mt-1 h-9 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong"
+                className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
               />
             </label>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-ink text-sm font-semibold text-surface transition hover:-translate-y-0.5 hover:bg-ink/85 disabled:translate-y-0 disabled:opacity-60"
             >
-              <LogIn className="h-4 w-4" />
               {submitting ? "Signing in..." : "Sign in"}
+              <ArrowRight className="h-4 w-4" />
             </button>
           </form>
 
-          <div className="border-t border-line pt-5">
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold">Create account with email</h2>
-              <p className="mt-1 text-xs text-ink-faint">
-                We will send a one-time code to verify your email.
-              </p>
+          <div className="mt-5 grid gap-2 rounded-lg border border-line bg-paper p-3 text-sm text-ink-soft">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+              New Google users continue into guided signup.
             </div>
-
-            {signupStep === "request" ? (
-              <form onSubmit={handleOtpRequest} className="space-y-4">
-                <label className="block">
-                  <span className="text-xs font-medium text-ink-soft">Full name</span>
-                  <input
-                    type="text"
-                    required
-                    autoComplete="name"
-                    value={signupName}
-                    onChange={(event) => setSignupName(event.target.value)}
-                    className="mt-1 h-9 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-medium text-ink-soft">Campus email</span>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={signupEmail}
-                    onChange={(event) => setSignupEmail(event.target.value)}
-                    placeholder="you@classvault.edu"
-                    className="mt-1 h-9 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong"
-                  />
-                </label>
-                {signupError ? <p className="text-sm text-red-600">{signupError}</p> : null}
-                <button
-                  type="submit"
-                  disabled={sendingOtp}
-                  className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-line bg-paper text-sm font-medium text-ink transition hover:border-line-strong hover:bg-surface disabled:opacity-60"
-                >
-                  <Mail className="h-4 w-4" />
-                  {sendingOtp ? "Sending code..." : "Send verification code"}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleOtpVerify} className="space-y-4">
-                <label className="block">
-                  <span className="text-xs font-medium text-ink-soft">Verification code</span>
-                  <input
-                    type="text"
-                    required
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    pattern="[0-9]*"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(event) =>
-                      setOtpCode(event.target.value.replace(/\D/g, "").slice(0, 6))
-                    }
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-center font-mono text-base outline-none transition focus:border-line-strong"
-                  />
-                </label>
-                {signupMessage ? <p className="text-sm text-green-700">{signupMessage}</p> : null}
-                {signupError ? <p className="text-sm text-red-600">{signupError}</p> : null}
-                <button
-                  type="submit"
-                  disabled={verifyingOtp || otpCode.length !== 6}
-                  className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  {verifyingOtp ? "Verifying..." : "Verify and sign in"}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetOtpRequest}
-                  className="inline-flex h-8 w-full items-center justify-center gap-2 rounded-md text-sm font-medium text-ink-soft transition hover:bg-paper hover:text-ink"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Use a different email
-                </button>
-              </form>
-            )}
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-amber-700" />
+              Preferences personalize subjects and semester filters.
+            </div>
           </div>
 
-          <p className="text-xs text-ink-faint">
-            Or{" "}
-            <Link href="/app" className="underline transition hover:text-ink">
-              browse the library as a guest
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
+            <Link href="/sign-up" className="font-semibold text-ink transition hover:text-ink-soft">
+              New here? Start signup
             </Link>
-            .
-          </p>
-        </div>
+            <Link
+              href="/app"
+              className="inline-flex items-center gap-1 text-ink-soft transition hover:text-ink"
+            >
+              <Search className="h-3.5 w-3.5" />
+              Browse as guest
+            </Link>
+          </div>
+        </TiltPanel>
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { FileText, Search } from "lucide-react";
+import { FileText, RefreshCw, Search } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -154,7 +154,11 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-                <Search className="h-4 w-4 shrink-0 text-ink-faint" />
+                {searching ? (
+                  <RefreshCw className="h-4 w-4 shrink-0 animate-spin text-ink-faint" />
+                ) : (
+                  <Search className="h-4 w-4 shrink-0 text-ink-faint" />
+                )}
                 <input
                   ref={inputRef}
                   value={query}
@@ -176,7 +180,10 @@ export function SearchCommandPalette({ subjects, onSelectNote }: SearchCommandPa
                       <button
                         key={filter}
                         type="button"
-                        onClick={() => setActiveFilter(selected ? null : filter)}
+                        onClick={() => {
+                          setActiveFilter(selected ? null : filter);
+                          inputRef.current?.focus();
+                        }}
                         className={
                           selected
                             ? "shrink-0 rounded-md border border-ink bg-ink px-2.5 py-1 text-xs font-medium text-surface"

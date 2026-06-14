@@ -9,6 +9,7 @@ import {
   GOOGLE_OAUTH_STATE_COOKIE,
   oauthStatesMatch,
 } from "@/lib/server/google-oauth";
+import { hasCompletedOnboarding } from "@/lib/server/users";
 
 export const runtime = "nodejs";
 
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
     const profile = await exchangeGoogleCodeForProfile(code, config);
     const user = await findOrCreateGoogleUser(profile);
     const { token, expiresAt } = await createSession(user.id);
-    const response = NextResponse.redirect(appRedirect(request, "/app"));
+    const response = NextResponse.redirect(
+      appRedirect(request, hasCompletedOnboarding(user) ? "/app" : "/sign-up"),
+    );
     response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
     response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, "", expiredGoogleOAuthStateCookieOptions());
     return response;

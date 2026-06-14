@@ -112,7 +112,7 @@ export function ClassVaultLanding() {
 
       <section className="border-y border-line bg-surface">
         <div className="mx-auto max-w-5xl px-5 py-16">
-          <div className="overflow-hidden rounded-lg border border-line shadow-[0_16px_40px_rgba(28,25,23,0.06)]">
+          <div className="landing-skew-card overflow-hidden rounded-lg border border-line shadow-[0_16px_40px_rgba(28,25,23,0.06)]">
             <div className="flex h-10 items-center gap-2 border-b border-line bg-paper px-4">
               <span className="h-2.5 w-2.5 rounded-full border border-line-strong" />
               <span className="h-2.5 w-2.5 rounded-full border border-line-strong" />
@@ -149,7 +149,7 @@ export function ClassVaultLanding() {
                   {previewRows.map(([title, course, type, rating]) => (
                     <div
                       key={title}
-                      className="flex items-center gap-3 rounded-lg border border-line p-3"
+                      className="landing-preview-row flex items-center gap-3 rounded-lg border border-line p-3"
                     >
                       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-line bg-paper font-mono text-[9px] font-semibold text-ink-soft">
                         {type}
@@ -178,7 +178,7 @@ export function ClassVaultLanding() {
         </h2>
         <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
           {features.map((feature) => (
-            <div key={feature.title} className="bg-surface p-6 sm:p-7">
+            <div key={feature.title} className="feature-tilt-card bg-surface p-6 sm:p-7">
               <feature.icon className="h-5 w-5 text-ink-soft" />
               <h3 className="mt-6 text-base font-semibold">{feature.title}</h3>
               <p className="mt-2 text-sm leading-6 text-ink-soft">{feature.body}</p>
@@ -197,7 +197,7 @@ export function ClassVaultLanding() {
           </h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {steps.map(([index, title, body]) => (
-              <div key={index} className="border-t border-line pt-5">
+              <div key={index} className="feature-tilt-card border-t border-line pt-5">
                 <p className="font-mono text-xs text-ink-faint">{index}</p>
                 <h3 className="mt-3 text-base font-semibold">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-soft">{body}</p>
