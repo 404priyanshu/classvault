@@ -135,6 +135,22 @@ export type AiNoteSuggestion = {
   tags: string[];
 };
 
+export type ExamPlanTopic = {
+  topic: string;
+  examProbability: number;
+  why: string;
+};
+
+export type AiExamPlanResponse = {
+  provider: AiProviderName;
+  model: string;
+  contextNoteCount: number;
+  mustStudy: ExamPlanTopic[];
+  canSkip: string[];
+  checkpoints: string[];
+  insight: string;
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

@@ -2,28 +2,83 @@
 
 import { useState, type FormEvent } from "react";
 import { Clock, Flame } from "lucide-react";
+import type { AiExamPlanResponse, ApiError } from "@/lib/api-types";
+import { cx } from "@/lib/cx";
+import { useAppShell } from "@/components/app-shell/app-shell-context";
+
+async function readError(response: Response) {
+  try {
+    const body = (await response.json()) as ApiError;
+    return body.error?.message ?? `Request failed (${response.status})`;
+  } catch {
+    return `Request failed (${response.status})`;
+  }
+}
 
 export function ExamModeView() {
+  const { me, openAuthPrompt } = useAppShell();
   const [subject, setSubject] = useState("");
   const [examDays, setExamDays] = useState("3");
   const [studyHours, setStudyHours] = useState("4");
   const [weakTopics, setWeakTopics] = useState("");
-  const [planGenerated, setPlanGenerated] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  const [plan, setPlan] = useState<AiExamPlanResponse | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
     if (!subject.trim()) return;
-    setPlanGenerated(true);
+    if (!me) {
+      openAuthPrompt();
+      return;
+    }
+    setGenerating(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/ai/exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          examDays: Number(examDays),
+          studyHoursPerDay: Number(studyHours),
+          weakTopics,
+        }),
+      });
+      if (response.status === 401) {
+        openAuthPrompt();
+        return;
+      }
+      if (!response.ok) throw new Error(await readError(response));
+      const result = (await response.json()) as AiExamPlanResponse;
+      setPlan(result);
+      setChecked(new Set());
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not generate exam plan.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function toggleCheckpoint(index: number) {
+    setChecked((current) => {
+      const next = new Set(current);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   }
 
   return (
     <div className="space-y-6 pb-12">
       <p className="text-sm text-ink-soft">
-        Exam is in 3 days? Shift to Exam Mode for an urgent, high-yield final prep checklist.
+        Exam coming up fast? Shift to Exam Mode for an urgent, high-yield final-prep plan.
       </p>
 
-      {!planGenerated ? (
-        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm max-w-xl">
+      {!plan ? (
+        <div className="max-w-xl rounded-xl border border-line bg-surface p-5 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
               <label className="block">
@@ -32,7 +87,7 @@ export function ExamModeView() {
                   type="text"
                   required
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={(event) => setSubject(event.target.value)}
                   placeholder="e.g. Operating Systems"
                   className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                 />
@@ -43,7 +98,7 @@ export function ExamModeView() {
                   <span className="text-xs font-bold text-ink-soft">Days Remaining</span>
                   <select
                     value={examDays}
-                    onChange={(e) => setExamDays(e.target.value)}
+                    onChange={(event) => setExamDays(event.target.value)}
                     className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   >
                     <option value="1">1 Day (Crisis Mode)</option>
@@ -60,7 +115,7 @@ export function ExamModeView() {
                     min="1"
                     max="16"
                     value={studyHours}
-                    onChange={(e) => setStudyHours(e.target.value)}
+                    onChange={(event) => setStudyHours(event.target.value)}
                     className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                   />
                 </label>
@@ -70,19 +125,21 @@ export function ExamModeView() {
                 <span className="text-xs font-bold text-ink-soft">Weak Topics (optional)</span>
                 <textarea
                   value={weakTopics}
-                  onChange={(e) => setWeakTopics(e.target.value)}
+                  onChange={(event) => setWeakTopics(event.target.value)}
                   placeholder="e.g. Semaphores, Page replacement algorithms"
-                  className="mt-1 w-full rounded-md border border-line bg-paper p-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface h-20 resize-none"
+                  className="mt-1 h-20 w-full resize-none rounded-md border border-line bg-paper p-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
                 />
               </label>
             </div>
 
+            {error ? <p className="text-xs text-red-600">{error}</p> : null}
+
             <button
               type="submit"
-              disabled={!subject.trim()}
+              disabled={!subject.trim() || generating}
               className="inline-flex h-10 w-full items-center justify-center rounded-md bg-amber-600 text-sm font-semibold text-surface transition hover:bg-amber-700 disabled:opacity-60"
             >
-              Activate Exam Mode
+              {generating ? "Building plan…" : "Activate Exam Mode"}
             </button>
           </form>
         </div>
@@ -90,15 +147,18 @@ export function ExamModeView() {
         <div className="space-y-6">
           <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
                 Exam Mode Active
               </span>
-              <h3 className="text-lg font-bold text-ink mt-1">
-                {subject} Crash Plan — {examDays} Days Left
+              <h3 className="mt-1 text-lg font-bold text-ink">
+                {subject} Crash Plan — {examDays} Day{examDays === "1" ? "" : "s"} Left
               </h3>
+              <p className="text-[11px] text-ink-faint">
+                {plan.contextNoteCount} ClassVault {plan.contextNoteCount === 1 ? "source" : "sources"} · {plan.model}
+              </p>
             </div>
             <button
-              onClick={() => setPlanGenerated(false)}
+              onClick={() => setPlan(null)}
               className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-paper sm:w-auto"
             >
               Reset Plan
@@ -106,79 +166,74 @@ export function ExamModeView() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-
-            {/* Must Study & Skip Columns */}
             <div className="space-y-6">
-              {/* Must Study */}
-              <div className="rounded-xl border border-line bg-surface p-5 space-y-3 shadow-sm">
-                <div className="flex items-center gap-2 text-amber-700 font-bold">
+              <div className="space-y-3 rounded-xl border border-line bg-surface p-5 shadow-sm">
+                <div className="flex items-center gap-2 font-bold text-amber-700">
                   <Flame className="h-4 w-4" />
                   <h4 className="text-xs font-bold uppercase tracking-wider">Must Study (High-Yield)</h4>
                 </div>
-                <ul className="space-y-2">
-                  {[
-                    "1. Processes vs Threads & IPC protocols — 85% Exam Probability",
-                    "2. CPU Scheduling algorithms (FCFS, SJF, RR) — 80% Exam Probability",
-                    "3. Classical synchronization issues (Bounded Buffer, Semaphores) — 75% Exam Probability",
-                    "4. Paging, Virtual Memory & TLB caches — 70% Exam Probability",
-                  ].map((topic, i) => (
-                    <li key={i} className="text-xs text-ink font-semibold flex items-start gap-2.5">
-                      <span className="text-amber-500 font-bold">•</span>
-                      <span>{topic}</span>
+                <ul className="space-y-2.5">
+                  {plan.mustStudy.map((item, index) => (
+                    <li key={index} className="flex items-start gap-2.5 text-xs">
+                      <span className="font-bold text-amber-500">•</span>
+                      <span className="min-w-0">
+                        <span className="font-semibold text-ink">{item.topic}</span>
+                        <span className="ml-1.5 font-mono text-[10px] font-bold text-amber-700">
+                          {item.examProbability}%
+                        </span>
+                        {item.why ? (
+                          <span className="block text-[11px] text-ink-faint">{item.why}</span>
+                        ) : null}
+                      </span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Can Skip */}
-              <div className="rounded-xl border border-line bg-surface p-5 space-y-3 shadow-sm opacity-85">
-                <div className="flex items-center gap-2 text-ink-soft font-bold">
-                  <Clock className="h-4 w-4" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider">Low Yield (Okay to Skip if low time)</h4>
+              {plan.canSkip.length ? (
+                <div className="space-y-3 rounded-xl border border-line bg-surface p-5 opacity-85 shadow-sm">
+                  <div className="flex items-center gap-2 font-bold text-ink-soft">
+                    <Clock className="h-4 w-4" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider">Low Yield (Okay to Skip)</h4>
+                  </div>
+                  <ul className="space-y-2 text-xs text-ink-soft">
+                    {plan.canSkip.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span>•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-2 text-xs text-ink-soft">
-                  {[
-                    "1. OS Implementation histories and monolithic internals",
-                    "2. Disk scheduling optimization equations",
-                    "3. Secondary storage hardware interface mappings",
-                  ].map((skip, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span>•</span>
-                      <span>{skip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              ) : null}
             </div>
 
-            {/* Practice checklist */}
-            <div className="rounded-xl border border-line bg-surface p-5 space-y-4 shadow-sm">
+            <div className="space-y-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
               <h4 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Practice Checkpoints</h4>
-
               <div className="space-y-3">
-                {[
-                  "Complete 12 repeated branch PYQs",
-                  "Revise 25 core OS Flashcards",
-                  "Attempt 1 Mock Exam Sprint Quiz",
-                  "Final revision of CPU scheduling Gantt charts",
-                ].map((practice, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
+                {plan.checkpoints.map((item, index) => (
+                  <label key={index} className="flex items-start gap-3">
                     <input
                       type="checkbox"
-                      className="rounded border-line text-amber-600 focus:ring-amber-500 mt-0.5"
+                      checked={checked.has(index)}
+                      onChange={() => toggleCheckpoint(index)}
+                      className="mt-0.5 rounded border-line text-amber-600 focus:ring-amber-500"
                     />
-                    <span className="text-xs font-semibold text-ink-soft leading-normal">
-                      {practice}
+                    <span
+                      className={cx(
+                        "text-xs font-semibold leading-normal",
+                        checked.has(index) ? "text-ink-faint line-through" : "text-ink-soft",
+                      )}
+                    >
+                      {item}
                     </span>
-                  </div>
+                  </label>
                 ))}
               </div>
 
-              <div className="border-t border-line pt-4 space-y-2">
-                <p className="text-[10px] text-ink-faint font-semibold">AI INSIGHT</p>
-                <p className="text-xs text-ink-soft leading-relaxed italic">
-                  &quot;Based on analyzed student logs, spending 45 mins drawing scheduling Gantt charts increases related question scores by 34%. Avoid studying Monolithic vs Microkernel internals in the final 24 hours.&quot;
-                </p>
+              <div className="space-y-2 border-t border-line pt-4">
+                <p className="text-[10px] font-semibold text-ink-faint">AI INSIGHT</p>
+                <p className="text-xs italic leading-relaxed text-ink-soft">{plan.insight}</p>
               </div>
             </div>
           </div>
