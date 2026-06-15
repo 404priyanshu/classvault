@@ -111,3 +111,16 @@ export const presignUploadSchema = z.object({
   mimeType: z.string().trim().min(1).max(200),
   sizeBytes: z.number().int().min(1).max(MAX_FILE_SIZE_BYTES),
 });
+
+export const createStudyTaskSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+});
+
+export const updateStudyTaskSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200).optional(),
+    done: z.boolean().optional(),
+  })
+  .refine((value) => value.title !== undefined || value.done !== undefined, {
+    message: "Provide a title or done state to update.",
+  });

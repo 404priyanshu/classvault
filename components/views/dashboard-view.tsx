@@ -3,22 +3,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Compass, GraduationCap, Plus, PlusCircle, ShieldCheck, Trash2, Users } from "lucide-react";
-import type { ApiNote } from "@/lib/api-types";
+import type { ApiNote, ApiStudyTask } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
-
-type StudyTask = {
-  id: string;
-  title: string;
-  done: boolean;
-};
-
-const initialStudyTasks: StudyTask[] = [
-  { id: "task-1", title: "Solve DBMS normal form numericals", done: false },
-  { id: "task-2", title: "Revise CPU scheduling Gantt charts", done: false },
-  { id: "task-3", title: "Read sliding window protocol details", done: true },
-];
 
 export function DashboardView() {
   const { me, stats, openNoteDetail } = useAppShell();
@@ -31,43 +19,74 @@ export function DashboardView() {
   const onGoToAddResource = () => router.push("/app/add-resource");
   const onOpenNote = openNoteDetail;
 
-  // Study tasks (dashboard-local; persisted to localStorage).
-  const [tasks, setTasks] = useState<StudyTask[]>(initialStudyTasks);
+  // Study tasks (server-backed; persisted per user via /api/me/tasks).
+  const [tasks, setTasks] = useState<ApiStudyTask[]>([]);
   const [newTask, setNewTask] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    if (!me?.id) return;
+    const controller = new AbortController();
+    (async () => {
       try {
-        const saved = localStorage.getItem("cv_study_tasks");
-        if (saved) setTasks(JSON.parse(saved) as StudyTask[]);
+        const response = await fetch("/api/me/tasks", { signal: controller.signal });
+        if (response.ok) {
+          setTasks(((await response.json()) as { items: ApiStudyTask[] }).items);
+        }
       } catch {
-        // Ignore
+        // Not signed in or offline: leave the list empty.
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("cv_study_tasks", JSON.stringify(tasks));
-    } catch {
-      // Ignore
-    }
-  }, [tasks]);
+    })();
+    return () => controller.abort();
+  }, [me?.id]);
 
   const onNewTaskChange = setNewTask;
-  function onSubmitTask(event: FormEvent<HTMLFormElement>) {
+  async function onSubmitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const title = newTask.trim();
     if (!title) return;
-    setTasks((current) => [...current, { id: `task-${Date.now()}`, title, done: false }]);
     setNewTask("");
+    try {
+      const response = await fetch("/api/me/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (response.ok) {
+        const task = (await response.json()) as ApiStudyTask;
+        setTasks((current) => [...current, task]);
+      } else {
+        setNewTask(title);
+      }
+    } catch {
+      setNewTask(title);
+    }
   }
-  function onToggleTask(id: string) {
-    setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+  async function onToggleTask(id: string) {
+    const target = tasks.find((task) => task.id === id);
+    if (!target) return;
+    const done = !target.done;
+    setTasks((current) => current.map((task) => (task.id === id ? { ...task, done } : task)));
+    try {
+      const response = await fetch(`/api/me/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done }),
+      });
+      if (!response.ok) throw new Error("toggle failed");
+    } catch {
+      // Revert the optimistic toggle on failure.
+      setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !done } : task)));
+    }
   }
-  function onRemoveTask(id: string) {
+  async function onRemoveTask(id: string) {
+    const snapshot = tasks;
     setTasks((current) => current.filter((task) => task.id !== id));
+    try {
+      const response = await fetch(`/api/me/tasks/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("delete failed");
+    } catch {
+      setTasks(snapshot);
+    }
   }
 
   // Recent notes for the "Saved Resources" strip.
@@ -228,22 +247,20 @@ export function DashboardView() {
                   </div>
                 ) : null}
               </div>
-              {tasks.length > 0 && (
-                <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line p-2">
-                  <input
-                    value={newTask}
-                    onChange={(event) => onNewTaskChange(event.target.value)}
-                    placeholder="Add a custom task…"
-                    className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
-                  />
-                  <button
-                    type="submit"
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </form>
-              )}
+              <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line p-2">
+                <input
+                  value={newTask}
+                  onChange={(event) => onNewTaskChange(event.target.value)}
+                  placeholder="Add a custom task…"
+                  className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </form>
             </div>
           </section>
 

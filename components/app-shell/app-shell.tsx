@@ -21,6 +21,7 @@ import { initialsOf } from "@/lib/format";
 import { AppShellProvider, useAppShell } from "@/components/app-shell/app-shell-context";
 import { AuthPreviewBanner } from "@/components/app-shell/chrome";
 import { SearchCommandPalette } from "@/components/app-shell/search-command-palette";
+import { NotificationsBell } from "@/components/app-shell/notifications-bell";
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
 type NavSection = { label: string; items: NavItem[] };
@@ -164,6 +165,7 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
             <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
               <SearchCommandPalette />
+              {me ? <NotificationsBell /> : null}
               <button
                 type="button"
                 onClick={openUpload}

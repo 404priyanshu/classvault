@@ -57,6 +57,8 @@ model User {
   savedNotes SavedNote[]
   ratings    Rating[]
   downloads  DownloadEvent[]
+  studyTasks StudyTask[]
+  notifications Notification[]
   sessions   Session[]
   oauthAccounts OAuthAccount[]
   collegeVerificationCodes CollegeVerificationCode[]
@@ -283,4 +285,33 @@ model DownloadEvent {
 
   @@index([noteId])
   @@index([noteId, createdAt])
+}
+
+// Personal study checklist shown on the dashboard. Per-user, no sharing.
+model StudyTask {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// In-app notification (e.g. note approved/rejected). payload is type-specific
+// JSON (noteId, noteTitle, reason, ...). readAt null = unread.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
 }
