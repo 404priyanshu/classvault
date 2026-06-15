@@ -66,6 +66,7 @@ model User {
   studyTasks StudyTask[]
   notifications Notification[]
   comments   Comment[]
+  collections Collection[]
   sessions   Session[]
   oauthAccounts OAuthAccount[]
   collegeVerificationCodes CollegeVerificationCode[]
@@ -172,6 +173,7 @@ model Note {
   moderationEvents ModerationEvent[]
   reports   Report[]
   comments  Comment[]
+  collections CollectionNote[]
 
   @@index([subject])
   @@index([semester])
@@ -343,4 +345,33 @@ model Comment {
 
   @@index([noteId, createdAt])
   @@index([parentId])
+}
+
+// A named, optionally shareable set of notes (e.g. an exam sprint).
+model Collection {
+  id        String   @id @default(cuid())
+  ownerId   String
+  title     String
+  slug      String   @unique
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  notes CollectionNote[]
+
+  @@index([ownerId])
+}
+
+model CollectionNote {
+  collectionId String
+  noteId       String
+  position     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  note       Note       @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, noteId])
+  @@index([noteId])
 }
