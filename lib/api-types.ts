@@ -48,6 +48,25 @@ export type ApiNote = {
   createdAt: string;
 };
 
+export type ApiStudyTask = {
+  id: string;
+  title: string;
+  done: boolean;
+};
+
+export type ApiNotification = {
+  id: string;
+  type: string;
+  payload: Record<string, unknown>;
+  read: boolean;
+  createdAt: string;
+};
+
+export type NotificationsResponse = {
+  items: ApiNotification[];
+  unreadCount: number;
+};
+
 export type AdminReport = {
   id: string;
   reason: string;
