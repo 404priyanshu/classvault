@@ -151,6 +151,25 @@ export type AiExamPlanResponse = {
   insight: string;
 };
 
+export type ApiCollectionSummary = {
+  id: string;
+  title: string;
+  slug: string;
+  isPublic: boolean;
+  noteCount: number;
+  ownedByMe: boolean;
+  createdAt: string;
+};
+
+export type ApiCollection = ApiCollectionSummary & {
+  owner: { id: string; name: string };
+  notes: ApiNote[];
+};
+
+export type CollectionsResponse = {
+  items: ApiCollectionSummary[];
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

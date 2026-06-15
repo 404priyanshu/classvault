@@ -197,3 +197,21 @@ export const aiExamPlanResponseSchema = z.object({
   checkpoints: z.array(z.string().trim().min(1).max(160)).min(1).max(8),
   insight: z.string().trim().min(1).max(400),
 });
+
+export const createCollectionSchema = z.object({
+  title: z.string().trim().min(2).max(80),
+  isPublic: z.boolean().default(false),
+});
+
+export const updateCollectionSchema = z
+  .object({
+    title: z.string().trim().min(2).max(80).optional(),
+    isPublic: z.boolean().optional(),
+  })
+  .refine((value) => value.title !== undefined || value.isPublic !== undefined, {
+    message: "Provide a title or visibility to update.",
+  });
+
+export const collectionNoteSchema = z.object({
+  noteId: z.string().trim().min(1),
+});

@@ -8,6 +8,7 @@ import {
   Compass,
   FileText,
   Flame,
+  FolderOpen,
   GraduationCap,
   LayoutDashboard,
   Plus,
@@ -42,6 +43,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/app/library", label: "Library", icon: BookOpen },
       { href: "/app/saved", label: "Saved", icon: Bookmark },
+      { href: "/app/collections", label: "Collections", icon: FolderOpen },
       { href: "/app/add-resource", label: "Add Resource", icon: PlusCircle },
     ],
   },
@@ -74,6 +76,7 @@ const VIEW_TITLES: Record<string, string> = {
   "/app/rooms": "Silent Study Rooms",
   "/app/library": "Library",
   "/app/saved": "Saved",
+  "/app/collections": "Collections",
   "/app/add-resource": "Add Resource",
   "/app/college-vault": "College Vault Verification",
   "/app/leaderboard": "Leaderboard",
