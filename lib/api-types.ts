@@ -96,6 +96,21 @@ export type AdminReport = {
   reporter: { id: string; name: string; email: string } | null;
 };
 
+export type ApiLeaderboardEntry = {
+  userId: string;
+  name: string;
+  roleLabel: string;
+  score: number;
+  publishedCount: number;
+  downloadsReceived: number;
+  avgRating: number;
+};
+
+export type LeaderboardResponse = {
+  entries: ApiLeaderboardEntry[];
+  me: (ApiLeaderboardEntry & { rank: number }) | null;
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

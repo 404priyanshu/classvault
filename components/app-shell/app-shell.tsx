@@ -13,6 +13,7 @@ import {
   Plus,
   PlusCircle,
   Settings,
+  Trophy,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Community",
     items: [
       { href: "/app/college-vault", label: "College Vault", icon: GraduationCap },
+      { href: "/app/leaderboard", label: "Leaderboard", icon: Trophy },
     ],
   },
 ];
@@ -74,6 +76,7 @@ const VIEW_TITLES: Record<string, string> = {
   "/app/saved": "Saved",
   "/app/add-resource": "Add Resource",
   "/app/college-vault": "College Vault Verification",
+  "/app/leaderboard": "Leaderboard",
   "/app/settings": "Settings",
 };
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { LogOut, Upload, User } from "lucide-react";
-import type { ApiNote } from "@/lib/api-types";
+import { LogOut, Trophy, Upload, User } from "lucide-react";
+import type { ApiNote, LeaderboardResponse } from "@/lib/api-types";
 import { formatCount } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
@@ -19,6 +19,7 @@ export function ProfileView() {
   // Notes owned by the current user.
   const [uploads, setUploads] = useState<ApiNote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reputation, setReputation] = useState<LeaderboardResponse["me"]>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -41,6 +42,21 @@ export function ProfileView() {
       controller.abort();
       window.clearTimeout(timer);
     };
+  }, [me]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const response = await fetch("/api/leaderboard", { signal: controller.signal });
+        if (response.ok) {
+          setReputation(((await response.json()) as LeaderboardResponse).me);
+        }
+      } catch {
+        // reputation card is optional; ignore failures
+      }
+    })();
+    return () => controller.abort();
   }, [me]);
 
   const [name, setName] = useState(me?.name ?? "");
@@ -174,6 +190,21 @@ export function ProfileView() {
           </div>
         ))}
       </section>
+
+      {reputation ? (
+        <section className="flex items-center gap-4 rounded-lg border border-line bg-surface p-4 sm:p-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <Trophy className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink">Reputation</p>
+            <p className="text-xs text-ink-soft">
+              Rank #{reputation.rank} · {reputation.publishedCount} published · {reputation.downloadsReceived} downloads
+            </p>
+          </div>
+          <span className="font-mono text-xl font-bold text-ink">{reputation.score}</span>
+        </section>
+      ) : null}
 
       <section>
         <div className="pb-3">
