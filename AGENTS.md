@@ -21,6 +21,7 @@ Avoid reading or packing `node_modules/`, `.next/`, `.git/`, `.codegraph/`, `.se
 - Dev server: `pnpm dev`
 - Lint: `pnpm lint`
 - Tests: `pnpm test`, `pnpm test:e2e`
+- Typecheck: `pnpm typecheck`
 - Build: `pnpm build`
 - Prisma checks: `pnpm prisma validate`, `pnpm prisma generate`
 - Claude helpers: `pnpm claude:doctor`, `pnpm claude:tokens`, `pnpm claude:pack -- <glob-or-path> [...]`
@@ -55,13 +56,13 @@ Before modifying code, state:
 - Prefer CodeGraph or Serena symbolic tools before broad reads.
 - Summarize long logs instead of pasting them.
 - Use Repomix only for selected packs/audits.
-- Use `.claude/skills/token-audit` or `bash scripts/claude-token-audit.sh` before large context work.
+- Use `bash scripts/claude-token-audit.sh` before large context work.
 - Compact or hand off with current goal, changed files, commands run, errors, risks, and next exact steps.
 
 ## Verification Expectations
 
 Run the narrowest relevant check after edits:
-- UI/API logic: `pnpm lint` and focused `pnpm test` where applicable.
+- UI/API logic: `pnpm lint`, `pnpm typecheck`, and focused `pnpm test` where applicable.
 - Prisma/schema work: `pnpm prisma validate` and relevant migration/seed checks.
 - E2E-sensitive flows: `pnpm test:e2e` when browser behavior changes.
 - Release-level changes: `pnpm lint`, `pnpm test`, `pnpm build`.

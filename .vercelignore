@@ -1,4 +1,8 @@
 .codegraph
+.agents
+.claude
+.serena
+.pnpm-store
 .env*
 .next
 .vercel

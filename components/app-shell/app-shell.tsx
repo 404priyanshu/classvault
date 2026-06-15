@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cx } from "@/lib/cx";
+import { initialsOf } from "@/lib/format";
 import { AppShellProvider, useAppShell } from "@/components/app-shell/app-shell-context";
 import { AuthPreviewBanner } from "@/components/app-shell/chrome";
 import { SearchCommandPalette } from "@/components/app-shell/search-command-palette";
@@ -77,16 +78,6 @@ const VIEW_TITLES: Record<string, string> = {
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
-}
-
-function initialsOf(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 }
 
 function ShellLayout({ children }: { children: React.ReactNode }) {

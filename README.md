@@ -2,7 +2,9 @@
 
 A shared library of notes, previous-year questions, and study resources for your class. Browse, save, rate, and upload — without digging through group chats.
 
-Next.js (App Router) frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, email OTP sign-up, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage. The original build plan lives in `docs/backend-build-guide.md`.
+Next.js App Router frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, email OTP sign-up, DB-backed college verification, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage.
+
+This project uses **pnpm only**. `package.json` enforces that during install.
 
 ## Setup
 
@@ -16,8 +18,15 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-- `/` — landing page (`components/class-vault-landing.tsx`)
-- `/app` — the app: dashboard, library, saved, uploads, profile, and moderator review queue (`components/class-vault-app.tsx`)
+- `/` — landing page
+- `/app` — redirects to `/app/dashboard`
+- `/app/dashboard` — study dashboard
+- `/app/library` and `/app/saved` — browsable note collections
+- `/app/add-resource` — file upload entry point
+- `/app/college-vault` — official college email verification
+- `/app/roadmaps`, `/app/exam`, `/app/rooms` — study tools
+- `/app/settings` — profile settings
+- `/app/review` — staff-only moderation queue
 
 Google sign-in:
 
@@ -56,6 +65,9 @@ Production defaults:
 | `GET /api/health/deep`          | DB and S3 readiness check                        |
 | `GET /api/me`                   | Current signed-in user                           |
 | `PATCH /api/me`                 | Update profile name, department, semester        |
+| `POST /api/me/college-verification` | Send official college email OTP              |
+| `PATCH /api/me/college-verification` | Verify college OTP and mark user verified    |
+| `DELETE /api/me/college-verification` | Disconnect college verification             |
 | `GET /api/meta`                 | Filter options + dashboard stats                 |
 | `GET /api/notes`                | List/search notes (`q`, `subject`, `semester`, `tag`, `saved`, `owner`, `limit`, `cursor`) |
 | `POST /api/notes`               | Create pending note metadata for an uploaded file|
@@ -85,7 +97,7 @@ Architecture notes:
 - Files are stored under `var/storage/` locally. With `AWS_S3_BUCKET` configured, browsers upload directly to AWS S3 and downloads use either `AWS_S3_PUBLIC_BASE_URL` or short-lived signed URLs.
 - Staff routes use `requireRole("ADMIN", "MODERATOR")`.
 - Ratings/downloads are event rows plus cached aggregates on `Note`; seeded aggregates fold into live averages.
-- Abuse-sensitive APIs have DB-backed rate limits for sign-in, upload, note creation, download, rating, and reports.
+- Abuse-sensitive APIs have DB-backed rate limits for sign-in, email OTP, college verification, upload, note creation, download, rating, and reports.
 
 ## Scripts
 
@@ -95,6 +107,7 @@ Architecture notes:
 | `pnpm build`     | Production build             |
 | `pnpm start`     | Serve production build       |
 | `pnpm lint`      | Run ESLint                   |
+| `pnpm typecheck` | Run TypeScript in strict mode |
 | `pnpm test`      | Run Vitest unit/integration tests |
 | `pnpm test:e2e`  | Run Playwright browser smoke tests |
 | `pnpm db:migrate`| Apply Prisma migrations      |
@@ -108,9 +121,18 @@ Run these before a campus beta deploy:
 ```bash
 pnpm prisma validate
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm build
 ```
 
 Then deploy a Vercel preview, open `/sign-in`, confirm Google starts with the expected redirect URI, upload a resource, approve/reject it from the Review queue, and confirm `/api/health/deep` reports database healthy and S3 reachable when S3 is configured.
+
+## Contributing
+
+See `CONTRIBUTING.md` for setup, checks, and pull request expectations. Report vulnerabilities privately using `SECURITY.md`.
+
+## License
+
+No open-source license has been selected yet. Choose and add a `LICENSE` file before making the repository public.

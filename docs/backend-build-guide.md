@@ -6,7 +6,7 @@ Current app state:
 
 - Framework: Next.js App Router.
 - Main app screen: `app/app/page.tsx`.
-- Main client component: `components/class-vault-app.tsx`.
+- App shell: `components/app-shell/app-shell.tsx`; routed app views live under `app/app/*` and `components/views/*`.
 - Static data source: `lib/classvault-data.ts`.
 - Current frontend behavior: browse notes, filter notes, save notes, rate notes, count downloads, upload a draft note, view current user data.
 

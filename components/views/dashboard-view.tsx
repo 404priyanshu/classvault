@@ -148,7 +148,7 @@ export function DashboardView() {
       <section className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
         {[
           { label: "Generate AI Roadmap", desc: "Build custom subject study plans", icon: Compass, action: onGoToRoadmaps },
-          { label: "Add Resource", desc: "Ingest notes, link YouTube, websites", icon: PlusCircle, action: onGoToAddResource },
+          { label: "Add Resource", desc: "Upload notes, slides, and PYQs", icon: PlusCircle, action: onGoToAddResource },
           { label: "Browse Notes", desc: "Search subject course library", icon: BookOpen, action: onGoToLibrary },
           { label: "Join Study Room", desc: "Study silently alongside peers", icon: Users, action: onGoToStudyRooms },
         ].map((card) => (

@@ -53,11 +53,16 @@ test-results/
 playwright-report/
 
 # Claude/agent local outputs
+.agents/
+.codegraph/
 CLAUDE.local.md
 .claude/context/
 .claude/backups/
 .claude/settings.local.json
+.env.claude-context.example
 .env.claude-context
 repomix-output.*
 selected-context.*
 .serena/
+.pnpm-store/
+skills-lock.json

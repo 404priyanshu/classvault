@@ -70,6 +70,7 @@ Setup:
 
 Verification:
 - `pnpm lint`
+- `pnpm typecheck`
 - `pnpm test`
 - `pnpm test:e2e`
 - `pnpm build`
@@ -86,4 +87,4 @@ Claude workflow helpers:
 - `pnpm claude:tokens`
 - `pnpm claude:pack -- <glob-or-path> [...]`
 
-No dedicated `typecheck` script was detected. Verify before running ad hoc TypeScript commands.
+Use `pnpm typecheck` for strict TypeScript checks.

@@ -49,6 +49,7 @@ AWS_S3_PUBLIC_BASE_URL=
 ```bash
 pnpm prisma validate
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm build

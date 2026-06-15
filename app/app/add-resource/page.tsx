@@ -3,7 +3,7 @@ import { AddResourceView } from "@/components/views/add-resource-view";
 
 export const metadata: Metadata = {
   title: "Add Resource · ClassVault",
-  description: "Ingest new study materials by uploading files or pasting educational links.",
+  description: "Upload study materials for moderator review.",
 };
 
 export default function AddResourcePage() {
