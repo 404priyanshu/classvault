@@ -8,7 +8,10 @@ const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite";
 const DEFAULT_OPENAI_MODEL = "gpt-5.5";
 const DEFAULT_TIMEOUT_MS = 20_000;
 const GEMINI_MAX_ATTEMPTS = 3;
-const RETRYABLE_STATUSES = new Set([429, 500, 503]);
+// Only retry transient *server* errors. A 429 is a rate/quota limit — retrying
+// it with a sub-second backoff just burns more of the same quota, so fail fast
+// and surface Google's quota message instead.
+const RETRYABLE_STATUSES = new Set([500, 503]);
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
