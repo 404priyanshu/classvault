@@ -102,12 +102,48 @@ export function parseJsonObject(text: string) {
   const trimmed = text.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
   const candidate = fenced?.[1]?.trim() ?? trimmed;
+
+  try {
+    return JSON.parse(candidate) as unknown;
+  } catch {
+    // Models occasionally append a second object or a short note after valid JSON.
+    // Parse the first complete object and let Zod enforce the actual schema later.
+  }
+
   const first = candidate.indexOf("{");
-  const last = candidate.lastIndexOf("}");
-  if (first < 0 || last < first) {
+  if (first < 0) {
     throw new AiProviderError("AI response did not contain a JSON object.");
   }
-  return JSON.parse(candidate.slice(first, last + 1)) as unknown;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = first; index < candidate.length; index += 1) {
+    const char = candidate[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = true;
+    } else if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return JSON.parse(candidate.slice(first, index + 1)) as unknown;
+      }
+    }
+  }
+
+  throw new AiProviderError("AI response did not contain a complete JSON object.");
 }
 
 function geminiText(body: unknown) {
@@ -133,6 +169,7 @@ async function callGemini(
         generationConfig: {
           temperature: input.temperature ?? 0.3,
           responseMimeType: "application/json",
+          responseJsonSchema: input.jsonSchema.schema,
         },
       }),
     },

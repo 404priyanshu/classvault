@@ -48,6 +48,13 @@ describe("AI provider helpers", () => {
     expect(parseJsonObject("```json\n{\"ok\":true}\n```")).toEqual({ ok: true });
   });
 
+  it("parses the first complete JSON object when a provider appends extra output", () => {
+    expect(parseJsonObject("{\"ok\":true}\n{\"ignored\":true}")).toEqual({ ok: true });
+    expect(parseJsonObject("Result:\n{\"ok\":\"brace } inside string\"}\nDone")).toEqual({
+      ok: "brace } inside string",
+    });
+  });
+
   it("fails clearly when no provider key is configured", async () => {
     delete process.env.GEMINI_API_KEY;
     delete process.env.OPENAI_API_KEY;
@@ -55,6 +62,30 @@ describe("AI provider helpers", () => {
     await expect(
       generateJsonWithAi({ systemPrompt: "x", userPrompt: "y", jsonSchema }),
     ).rejects.toBeInstanceOf(AiConfigurationError);
+  });
+
+  it("passes the JSON schema to Gemini", async () => {
+    process.env.GEMINI_API_KEY = "gemini-test";
+    delete process.env.OPENAI_API_KEY;
+
+    let requestBody: unknown;
+    const fetchImpl = async (_url: string | URL | Request, init?: RequestInit) => {
+      requestBody = JSON.parse(String(init?.body));
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: "{\"ok\":true}" }] } }],
+      });
+    };
+
+    const result = await generateJsonWithAi(
+      { systemPrompt: "x", userPrompt: "y", jsonSchema },
+      { fetchImpl: fetchImpl as typeof fetch },
+    );
+
+    const generationConfig = (requestBody as { generationConfig?: Record<string, unknown> })
+      .generationConfig;
+    expect(generationConfig?.responseMimeType).toBe("application/json");
+    expect(generationConfig?.responseJsonSchema).toEqual(jsonSchema.schema);
+    expect(result.json).toEqual({ ok: true });
   });
 
   it("falls back to OpenAI when Gemini fails", async () => {
