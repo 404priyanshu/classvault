@@ -174,3 +174,26 @@ export const aiNoteSuggestionResponseSchema = z.object({
   description: z.string().trim().min(1).max(600),
   tags: z.array(z.string().trim().min(1).max(40)).max(6).default([]),
 });
+
+export const aiExamPlanRequestSchema = z.object({
+  subject: z.string().trim().min(2).max(120),
+  examDays: z.coerce.number().int().min(1).max(14).default(3),
+  studyHoursPerDay: z.coerce.number().int().min(1).max(16).default(4),
+  weakTopics: z.string().trim().max(500).default(""),
+});
+
+export const aiExamPlanResponseSchema = z.object({
+  mustStudy: z
+    .array(
+      z.object({
+        topic: z.string().trim().min(2).max(160),
+        examProbability: z.coerce.number().int().min(0).max(100),
+        why: z.string().trim().max(200).default(""),
+      }),
+    )
+    .min(1)
+    .max(8),
+  canSkip: z.array(z.string().trim().min(1).max(160)).max(6).default([]),
+  checkpoints: z.array(z.string().trim().min(1).max(160)).min(1).max(8),
+  insight: z.string().trim().min(1).max(400),
+});
