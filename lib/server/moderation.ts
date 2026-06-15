@@ -2,6 +2,7 @@ import type { NoteStatus } from "@/lib/api-types";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { db } from "@/lib/server/db";
 import { serializeNote, type NoteWithRelations } from "@/lib/server/notes";
+import { createNotification } from "@/lib/server/notifications";
 
 const ADMIN_NOTE_INCLUDE = {
   owner: true,
@@ -59,6 +60,19 @@ export async function moderateNote({
     await tx.moderationEvent.create({
       data: { noteId, moderatorId, action, reason: reason || null },
     });
+
+    // Tell the uploader the verdict (skip self-moderation).
+    if ((action === "APPROVE" || action === "REJECT") && note.ownerId !== moderatorId) {
+      await createNotification(tx, {
+        userId: note.ownerId,
+        type: action === "APPROVE" ? "NOTE_APPROVED" : "NOTE_REJECTED",
+        payload: {
+          noteId: note.id,
+          noteTitle: note.title,
+          ...(action === "REJECT" ? { reason: note.rejectionReason } : {}),
+        },
+      });
+    }
 
     return serializeAdminNote(note);
   });
