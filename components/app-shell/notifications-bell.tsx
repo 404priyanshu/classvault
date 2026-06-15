@@ -20,6 +20,15 @@ function describe(n: ApiNotification): { title: string; detail: string } {
         detail: reason ? `"${noteTitle}": ${reason}` : `"${noteTitle}" was rejected.`,
       };
     }
+    case "COMMENT_NEW": {
+      const by = typeof n.payload.byName === "string" ? n.payload.byName : "Someone";
+      return { title: "New comment", detail: `${by} commented on "${noteTitle}".` };
+    }
+    case "COMMENT_REPLY": {
+      const by = typeof n.payload.byName === "string" ? n.payload.byName : "Someone";
+      const snippet = typeof n.payload.snippet === "string" ? n.payload.snippet : null;
+      return { title: "New reply", detail: snippet ? `${by}: ${snippet}` : `${by} replied to you.` };
+    }
     default:
       return { title: "Notification", detail: noteTitle };
   }

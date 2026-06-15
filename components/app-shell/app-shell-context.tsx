@@ -451,6 +451,8 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
           onRate={(value) => rateNote(openNote, value)}
           onDownload={() => downloadNote(openNote)}
           onReport={() => reportNote(openNote)}
+          currentUser={me ? { id: me.id, role: me.role } : null}
+          onAuthRequired={openAuthPrompt}
         />
       ) : null}
 

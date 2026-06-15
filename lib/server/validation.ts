@@ -116,6 +116,15 @@ export const createStudyTaskSchema = z.object({
   title: z.string().trim().min(1).max(200),
 });
 
+export const createCommentSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+  parentId: z.string().trim().min(1).optional(),
+});
+
+export const hideCommentSchema = z.object({
+  reason: z.string().trim().max(1000).optional(),
+});
+
 export const updateStudyTaskSchema = z
   .object({
     title: z.string().trim().min(1).max(200).optional(),

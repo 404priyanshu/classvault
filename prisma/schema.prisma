@@ -36,6 +36,12 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+  DELETED
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -59,6 +65,7 @@ model User {
   downloads  DownloadEvent[]
   studyTasks StudyTask[]
   notifications Notification[]
+  comments   Comment[]
   sessions   Session[]
   oauthAccounts OAuthAccount[]
   collegeVerificationCodes CollegeVerificationCode[]
@@ -164,6 +171,7 @@ model Note {
   downloads DownloadEvent[]
   moderationEvents ModerationEvent[]
   reports   Report[]
+  comments  Comment[]
 
   @@index([subject])
   @@index([semester])
@@ -314,4 +322,25 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt, createdAt])
+}
+
+// Comments / Q&A on a note. One level of replies (parentId points only at a
+// top-level comment). status: VISIBLE | HIDDEN (staff) | DELETED (author).
+model Comment {
+  id        String        @id @default(cuid())
+  noteId    String
+  authorId  String
+  parentId  String?
+  body      String
+  status    CommentStatus @default(VISIBLE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  note    Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([noteId, createdAt])
+  @@index([parentId])
 }

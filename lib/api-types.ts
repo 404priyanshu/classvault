@@ -54,6 +54,25 @@ export type ApiStudyTask = {
   done: boolean;
 };
 
+export type CommentStatus = "VISIBLE" | "HIDDEN" | "DELETED";
+
+export type ApiComment = {
+  id: string;
+  body: string;
+  deleted: boolean;
+  author: { id: string; name: string; roleLabel: string };
+  parentId: string | null;
+  ownedByMe: boolean;
+  canModerate: boolean;
+  createdAt: string;
+  replies: ApiComment[];
+};
+
+export type CommentsResponse = {
+  items: ApiComment[];
+  count: number;
+};
+
 export type ApiNotification = {
   id: string;
   type: string;
