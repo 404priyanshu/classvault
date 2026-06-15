@@ -163,7 +163,10 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof AiProviderError) {
       console.error(error.message);
-      return jsonError("AI_PROVIDER_FAILED", "AI generation failed. Try again in a moment.", 502);
+      // Surface the underlying provider error in non-production so the cause is
+      // visible without digging through server logs.
+      const detail = process.env.NODE_ENV !== "production" ? ` (${error.message})` : "";
+      return jsonError("AI_PROVIDER_FAILED", `AI generation failed. Try again in a moment.${detail}`, 502);
     }
     return handleRouteError(error);
   }
