@@ -130,6 +130,11 @@ export type AiRoadmapResponse = {
   days: ApiRoadmapDay[];
 };
 
+export type AiNoteSuggestion = {
+  description: string;
+  tags: string[];
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

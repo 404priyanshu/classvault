@@ -161,3 +161,16 @@ export const updateStudyTaskSchema = z
   .refine((value) => value.title !== undefined || value.done !== undefined, {
     message: "Provide a title or done state to update.",
   });
+
+export const aiNoteSuggestionRequestSchema = z.object({
+  title: z.string().trim().min(3).max(120),
+  subject: z.string().trim().min(1).max(120),
+  courseCode: z.string().trim().min(1).max(20),
+  unit: z.string().trim().max(120).default(""),
+  fileName: z.string().trim().max(240).default(""),
+});
+
+export const aiNoteSuggestionResponseSchema = z.object({
+  description: z.string().trim().min(1).max(600),
+  tags: z.array(z.string().trim().min(1).max(40)).max(6).default([]),
+});
