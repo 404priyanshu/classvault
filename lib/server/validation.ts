@@ -125,6 +125,34 @@ export const hideCommentSchema = z.object({
   reason: z.string().trim().max(1000).optional(),
 });
 
+export const aiRoadmapRequestSchema = z.object({
+  subject: z.string().trim().min(2).max(120),
+  days: z.coerce.number().int().min(1).max(7).default(5),
+  level: z.enum(["Beginner", "Okay", "Strong"]).default("Beginner"),
+  goal: z.enum(["Pass quickly", "Score high", "Deep understanding", "Interview prep"]).default("Score high"),
+  sources: z
+    .object({
+      personal: z.boolean().default(true),
+      community: z.boolean().default(true),
+      pyq: z.boolean().default(true),
+      video: z.boolean().default(true),
+    })
+    .default({ personal: true, community: true, pyq: true, video: true }),
+});
+
+export const aiRoadmapDaySchema = z.object({
+  day: z.coerce.number().int().min(1).max(14),
+  title: z.string().trim().min(3).max(80),
+  topic: z.string().trim().min(10).max(500),
+  resources: z.array(z.string().trim().min(1).max(140)).min(1).max(5),
+  tasks: z.array(z.string().trim().min(1).max(180)).min(2).max(5),
+  pyqs: z.array(z.string().trim().min(1).max(180)).min(1).max(4),
+});
+
+export const aiRoadmapResponseSchema = z.object({
+  days: z.array(aiRoadmapDaySchema).min(1).max(7),
+});
+
 export const updateStudyTaskSchema = z
   .object({
     title: z.string().trim().min(1).max(200).optional(),

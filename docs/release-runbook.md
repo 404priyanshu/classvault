@@ -29,9 +29,14 @@ AWS_SECRET_ACCESS_KEY=
 AWS_SESSION_TOKEN=
 AWS_S3_BUCKET=
 AWS_S3_PUBLIC_BASE_URL=
+GEMINI_API_KEY=
+AI_GEMINI_MODEL=
+OPENAI_API_KEY=
+AI_OPENAI_MODEL=
+AI_REQUEST_TIMEOUT_MS=
 ```
 
-`AWS_SESSION_TOKEN` and `AWS_S3_PUBLIC_BASE_URL` are optional. If the public base URL is empty, ClassVault redirects downloads to short-lived signed S3 URLs. `EMAIL_OTP_SECRET` must be a long random string in production.
+`AWS_SESSION_TOKEN`, `AWS_S3_PUBLIC_BASE_URL`, and `OPENAI_API_KEY` are optional. If the public base URL is empty, ClassVault redirects downloads to short-lived signed S3 URLs. `EMAIL_OTP_SECRET` must be a long random string in production. `GEMINI_API_KEY` enables AI roadmaps; `OPENAI_API_KEY` is used only as a fallback when configured.
 
 ## Deployment Checklist
 
@@ -44,7 +49,8 @@ AWS_S3_PUBLIC_BASE_URL=
    - Always set a long random `EMAIL_OTP_SECRET` in production.
 5. Set `ALLOWED_EMAIL_DOMAINS` to the campus domain list.
 6. Set at least one `ADMIN_EMAILS` value before the first admin signs in.
-7. Run release gates locally:
+7. Set `GEMINI_API_KEY` and optionally `OPENAI_API_KEY` for AI roadmap generation.
+8. Run release gates locally:
 
 ```bash
 pnpm prisma validate
@@ -55,9 +61,9 @@ pnpm test:e2e
 pnpm build
 ```
 
-8. Deploy a Vercel preview.
-9. Run database migrations against the preview database.
-10. Open `/api/health/deep` on the preview and confirm the database check passes and S3 is reachable when configured.
+9. Deploy a Vercel preview.
+10. Run database migrations against the preview database.
+11. Open `/api/health/deep` on the preview and confirm the database check passes and S3 is reachable when configured.
 
 ## Email OTP (Resend)
 

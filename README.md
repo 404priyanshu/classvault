@@ -42,12 +42,20 @@ Email OTP sign-up:
 3. Set a long random `EMAIL_OTP_SECRET` in production.
 4. In local development without provider env vars, OTP emails are printed to the dev server console.
 
+AI roadmap generation:
+
+1. Set `GEMINI_API_KEY` to use Gemini as the primary provider.
+2. Optionally set `OPENAI_API_KEY` as a fallback provider if Gemini fails.
+3. Override `AI_GEMINI_MODEL`, `AI_OPENAI_MODEL`, or `AI_REQUEST_TIMEOUT_MS` only when needed.
+4. Keep AI keys server-side only; never use `NEXT_PUBLIC_` for provider API keys.
+
 Production defaults:
 
 - Host on Vercel.
 - Use Neon Postgres for `DATABASE_URL`; use local Postgres for development.
 - Use AWS S3 for direct uploads and signed downloads.
 - Use AWS SES or Resend for email OTP delivery. SES sandbox accounts can only send to verified recipients until production access is approved.
+- Configure `GEMINI_API_KEY` and optionally `OPENAI_API_KEY` for AI roadmaps.
 - Set `ADMIN_EMAILS` before first sign-in to bootstrap admins.
 - Authorized Google redirect URI: `${APP_ORIGIN}/api/auth/google/callback`.
 
@@ -78,6 +86,7 @@ Production defaults:
 | `GET /api/notes/:id/file`       | Stream, download, or inline-preview stored file  |
 | `POST /api/uploads/presign`     | Create S3 upload target, or local upload fallback|
 | `POST /api/uploads`             | Local multipart upload fallback                  |
+| `POST /api/ai/roadmap`          | Generate an authenticated, rate-limited AI study roadmap |
 | `GET /api/admin/notes`          | Staff moderation queue                           |
 | `POST /api/admin/notes/:id/approve` | Publish pending note                         |
 | `POST /api/admin/notes/:id/reject`  | Reject pending note with reason              |

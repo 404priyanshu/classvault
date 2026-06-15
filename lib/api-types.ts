@@ -111,6 +111,25 @@ export type LeaderboardResponse = {
   me: (ApiLeaderboardEntry & { rank: number }) | null;
 };
 
+export type ApiRoadmapDay = {
+  day: number;
+  title: string;
+  topic: string;
+  resources: string[];
+  tasks: string[];
+  pyqs: string[];
+  done: boolean[];
+};
+
+export type AiProviderName = "gemini" | "openai";
+
+export type AiRoadmapResponse = {
+  provider: AiProviderName;
+  model: string;
+  contextNoteCount: number;
+  days: ApiRoadmapDay[];
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

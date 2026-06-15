@@ -2,17 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import { BookOpenCheck, CheckCircle2, Clock, Sparkles, X } from "lucide-react";
+import { useAppShell } from "@/components/app-shell/app-shell-context";
+import type { AiRoadmapResponse, ApiError, ApiRoadmapDay } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 
-type RoadmapDay = {
-  day: number;
-  title: string;
-  topic: string;
-  resources: string[];
-  tasks: string[];
-  pyqs: string[];
-  done: boolean[];
-};
+type RoadmapDay = ApiRoadmapDay;
 
 const PREVIEW_ROADMAP: RoadmapDay[] = [
   {
@@ -430,6 +424,7 @@ function RoadmapTimelineChart({
 }
 
 export function AIRoadmapsView() {
+  const { me, openAuthPrompt, setToast } = useAppShell();
   const [subject, setSubject] = useState("");
   const [days, setDays] = useState(5);
   const [level, setLevel] = useState("Beginner");
@@ -441,6 +436,12 @@ export function AIRoadmapsView() {
 
   const [generating, setGenerating] = useState(false);
   const [roadmap, setRoadmap] = useState<RoadmapDay[] | null>(null);
+  const [generationMeta, setGenerationMeta] = useState<{
+    provider: AiRoadmapResponse["provider"];
+    model: string;
+    contextNoteCount: number;
+  } | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState<string | null>(null);
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -465,63 +466,64 @@ export function AIRoadmapsView() {
     );
   }
 
-  function handleGenerate(e: FormEvent) {
+  async function readError(response: Response) {
+    try {
+      const body = (await response.json()) as ApiError;
+      return body.error?.message ?? `Request failed (${response.status})`;
+    } catch {
+      return `Request failed (${response.status})`;
+    }
+  }
+
+  async function handleGenerate(e: FormEvent) {
     e.preventDefault();
     if (!subject.trim()) return;
+    if (!me) {
+      openAuthPrompt();
+      return;
+    }
+
     setGenerating(true);
-    setTimeout(() => {
-      setGenerating(false);
-      // Simulated Roadmap Ingestion & Ingestion Details
-      const generatedRoadmap: RoadmapDay[] = [
-        {
-          day: 1,
-          title: "Foundations & Core Architecture",
-          topic: `${subject} Unit 1 basic concepts and architecture paradigms`,
-          resources: [`${subject} Chapter 1 slides.pdf`, "OSI vs TCP/IP Overview (YouTube)"],
-          tasks: ["Read unit 1 slides and summary notes", "Watch 10-minute overview animation"],
-          pyqs: ["Discuss layering advantages and drawbacks (2023, 2024 repeat)"],
-          done: [false, false, false],
-        },
-        {
-          day: 2,
-          title: "Mechanics & Addressing Structures",
-          topic: "Core algorithms, routing protocols, and addressing formats",
-          resources: ["Subnetting & Addressing Cheat Sheet.pdf", "Interactive Problems Set 1"],
-          tasks: ["Solve 10 practice subnetting / addressing equations", "Read routing algorithms guide"],
-          pyqs: ["State differences between Distance Vector & Link State (2022 repeat)"],
-          done: [false, false, false],
-        },
-        {
-          day: 3,
-          title: "Flow Control & Resource Allocation",
-          topic: "Congestion control, TCP windows, and scheduling strategies",
-          resources: ["Sliding Window Protocols Visual guide", "TCP Congestion Control note"],
-          tasks: ["Understand 3-way handshake and congestion window adjustments", "Attempt sample packet traces"],
-          pyqs: ["Describe slow start and congestion avoidance mechanisms (2021 repeat)"],
-          done: [false, false, false],
-        },
-        {
-          day: 4,
-          title: "Application layer & Advanced Integrations",
-          topic: "Symmetric key cryptography, DNS resolutions, and HTTP flows",
-          resources: ["Cryptography Intro PDF", "Web Server protocols cheat sheet"],
-          tasks: ["Revise public/private key algorithms", "Verify DNS resolver pipeline steps"],
-          pyqs: ["Explain security protocols in HTTP transport layer (2024 repeat)"],
-          done: [false, false, false],
-        },
-        {
-          day: 5,
-          title: "Consolidation & Final Practice Run",
-          topic: "Mock test review, full syllabus flashcards, and weak areas",
-          resources: ["Consolidated mock questionnaire", "Flashcards Deck"],
-          tasks: ["Attempt 1 complete mock review quiz", "Go through weakest 3 topics flashcard review"],
-          pyqs: ["Solve entire 2024 official branch exam paper"],
-          done: [false, false, false],
-        },
-      ];
-      setRoadmap(generatedRoadmap.slice(0, days));
+    setGenerateError(null);
+    setGenerationMeta(null);
+    try {
+      const response = await fetch("/api/ai/roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          days,
+          level,
+          goal,
+          sources: {
+            personal: usePersonal,
+            community: useCommunity,
+            pyq: usePYQ,
+            video: useVideo,
+          },
+        }),
+      });
+
+      if (response.status === 401) {
+        openAuthPrompt();
+        return;
+      }
+      if (!response.ok) throw new Error(await readError(response));
+
+      const result = (await response.json()) as AiRoadmapResponse;
+      setRoadmap(result.days);
+      setGenerationMeta({
+        provider: result.provider,
+        model: result.model,
+        contextNoteCount: result.contextNoteCount,
+      });
       setActiveDay(0);
-    }, 1200);
+      setToast("Roadmap generated.");
+    } catch (error) {
+      setGenerateError(error instanceof Error ? error.message : "Could not generate roadmap.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   function toggleTaskCheckbox(dayIdx: number, taskIdx: number) {
@@ -663,6 +665,11 @@ export function AIRoadmapsView() {
               >
                 {generating ? "Parsing materials & compiling roadmap..." : "Generate AI Roadmap"}
               </button>
+              {generateError ? (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                  {generateError}
+                </p>
+              ) : null}
             </form>
           </div>
 
@@ -777,10 +784,17 @@ export function AIRoadmapsView() {
               </h3>
               <p className="text-xs text-ink-soft mt-0.5">
                 Target: {goal} ({level}) • {roadmap.length} active sessions
+                {generationMeta
+                  ? ` • ${generationMeta.provider === "gemini" ? "Gemini" : "OpenAI"} (${generationMeta.contextNoteCount} sources)`
+                  : ""}
               </p>
             </div>
             <button
-              onClick={() => setRoadmap(null)}
+              onClick={() => {
+                setRoadmap(null);
+                setGenerationMeta(null);
+                setGenerateError(null);
+              }}
               className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-paper hover:text-ink sm:w-auto"
             >
               Configure new plan
