@@ -12,6 +12,7 @@ import {
   Flag,
   Grid2X2,
   List,
+  Maximize2,
   MessageSquare,
   Search,
   Send,
@@ -786,6 +787,22 @@ function NoteComments({
 
 function NotePreview({ note }: { note: ApiNote }) {
   const previewUrl = `/api/notes/${note.id}/file?disposition=inline`;
+  const [expanded, setExpanded] = useState(false);
+  const [inlineLoadedNoteId, setInlineLoadedNoteId] = useState<string | null>(null);
+  const [expandedLoadedNoteId, setExpandedLoadedNoteId] = useState<string | null>(null);
+  const inlineLoaded = inlineLoadedNoteId === note.id;
+  const expandedLoaded = expandedLoadedNoteId === note.id;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setInlineLoadedNoteId(note.id), 1600);
+    return () => window.clearTimeout(timer);
+  }, [note.id]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const timer = window.setTimeout(() => setExpandedLoadedNoteId(note.id), 1600);
+    return () => window.clearTimeout(timer);
+  }, [expanded, note.id]);
 
   if (!note.hasFile) {
     return (
@@ -823,24 +840,101 @@ function NotePreview({ note }: { note: ApiNote }) {
   }
 
   return (
-    <section className="mt-6 overflow-hidden rounded-lg border border-line bg-paper">
-      <div className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-        <SectionLabel>Preview</SectionLabel>
-        <a
-          href={previewUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-medium text-ink-soft transition hover:text-ink"
+    <>
+      <section className="mt-6 overflow-hidden rounded-lg border border-line bg-paper">
+        <div className="flex min-w-0 items-center justify-between gap-3 border-b border-line px-3.5 py-2.5">
+          <div className="min-w-0">
+            <SectionLabel>Preview</SectionLabel>
+            <p className="mt-1 truncate text-xs text-ink-faint">PDF · inline viewer</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setExpandedLoadedNoteId(null);
+                setExpanded(true);
+              }}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              Expand
+            </button>
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+            >
+              Open
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        </div>
+        <div className="relative h-96 bg-surface sm:h-[28rem]">
+          {!inlineLoaded ? (
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-ink-faint">
+              Loading preview…
+            </div>
+          ) : null}
+          <iframe
+            title={`${note.title} preview`}
+            src={previewUrl}
+            onLoad={() => setInlineLoadedNoteId(note.id)}
+            className="h-full w-full bg-surface"
+          />
+        </div>
+      </section>
+
+      {expanded ? (
+        <div
+          className="fixed inset-0 z-[80] flex flex-col bg-surface"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${note.title} PDF preview`}
         >
-          Open
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        </a>
-      </div>
-      <iframe
-        title={`${note.title} preview`}
-        src={previewUrl}
-        className="h-80 w-full bg-surface"
-      />
-    </section>
+          <div className="flex min-w-0 items-center justify-between gap-3 border-b border-line px-3.5 py-3 sm:px-5">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{note.title}</p>
+              <p className="truncate text-xs text-ink-faint">
+                {note.courseCode} · {formatBytes(note.fileSizeBytes)}
+                {note.pageCount ? ` · ${note.pageCount} pages` : ""}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+              >
+                Open
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line text-ink-faint transition hover:border-line-strong hover:text-ink"
+                aria-label="Close preview"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="relative min-h-0 flex-1 bg-paper">
+            {!expandedLoaded ? (
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-ink-faint">
+                Loading preview…
+              </div>
+            ) : null}
+            <iframe
+              title={`${note.title} full preview`}
+              src={previewUrl}
+              onLoad={() => setExpandedLoadedNoteId(note.id)}
+              className="h-full w-full bg-surface"
+            />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

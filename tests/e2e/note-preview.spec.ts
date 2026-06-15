@@ -74,6 +74,13 @@ test("clicking a PDF note opens a detail drawer with an inline preview", async (
   await expect(page.getByRole("heading", { level: 2, name: "Uploaded PDF Notes" })).toBeVisible();
   await expect(page.getByText("Preview", { exact: true })).toBeVisible();
   await expect(page.locator('iframe[title="Uploaded PDF Notes preview"]')).toBeVisible();
+
+  await page.getByRole("button", { name: "Expand" }).click();
+  const previewDialog = page.getByRole("dialog", { name: "Uploaded PDF Notes PDF preview" });
+  await expect(previewDialog).toBeVisible();
+  await expect(page.locator('iframe[title="Uploaded PDF Notes full preview"]')).toBeVisible();
+  await previewDialog.getByRole("button", { name: "Close preview" }).click();
+  await expect(previewDialog).toBeHidden();
 });
 
 test("search palette opens a note in the shared detail drawer", async ({ page }) => {
