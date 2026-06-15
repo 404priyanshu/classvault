@@ -2,9 +2,24 @@ import type { AiProviderName } from "@/lib/api-types";
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
+// Flash-Lite: lowest latency + cost in the Gemini family and far less prone to
+// the demand-spike 503s the flagship Flash model returns. Override per env.
+const DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite";
+// Free-tier quota is enforced per-model, so a 429 on one model does not mean
+// the key is exhausted. If the configured model is rate-limited, fall through
+// to these lighter models, which usually still have headroom.
+const GEMINI_FALLBACK_MODELS = ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"];
 const DEFAULT_OPENAI_MODEL = "gpt-5.5";
 const DEFAULT_TIMEOUT_MS = 20_000;
+const GEMINI_MAX_ATTEMPTS = 3;
+// Only retry transient *server* errors. A 429 is a rate/quota limit — retrying
+// it with a sub-second backoff just burns more of the same quota, so fail fast
+// and surface Google's quota message instead.
+const RETRYABLE_STATUSES = new Set([500, 503]);
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 type JsonSchema = {
   name: string;
@@ -157,28 +172,50 @@ async function callGemini(
   provider: { apiKey: string; model: string },
   fetchImpl: FetchLike,
 ): Promise<ProviderResult> {
-  const response = await fetchWithTimeout(
-    fetchImpl,
-    `${GEMINI_API_URL}/${encodeURIComponent(provider.model)}:generateContent?key=${encodeURIComponent(provider.apiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: input.systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: input.userPrompt }] }],
-        generationConfig: {
-          temperature: input.temperature ?? 0.3,
-          responseMimeType: "application/json",
-          responseJsonSchema: input.jsonSchema.schema,
-        },
-      }),
+  const requestBody = JSON.stringify({
+    systemInstruction: { parts: [{ text: input.systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: input.userPrompt }] }],
+    generationConfig: {
+      temperature: input.temperature ?? 0.3,
+      responseMimeType: "application/json",
+      responseJsonSchema: input.jsonSchema.schema,
     },
-  );
-  const body = await readJson(response);
-  if (!response.ok) throw new AiProviderError(parseProviderError("gemini", response.status, body));
-  const text = geminiText(body);
-  if (!text) throw new AiProviderError("Gemini returned an empty response.");
-  return { provider: "gemini", model: provider.model, json: parseJsonObject(text) };
+  });
+
+  // Try the configured model first (respecting an explicit choice), then fall
+  // through to lighter models when one is rate-limited or unavailable.
+  const models = Array.from(new Set([provider.model, ...GEMINI_FALLBACK_MODELS]));
+  let lastError = "Gemini request failed.";
+
+  for (const model of models) {
+    const url = `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(provider.apiKey)}`;
+    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt += 1) {
+      const response = await fetchWithTimeout(fetchImpl, url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: requestBody,
+      });
+      const body = await readJson(response);
+      if (response.ok) {
+        const text = geminiText(body);
+        if (!text) throw new AiProviderError("Gemini returned an empty response.");
+        return { provider: "gemini", model, json: parseJsonObject(text) };
+      }
+      lastError = parseProviderError("gemini", response.status, body);
+      // A 400 is the payload's fault (schema, prompt) and identical for every
+      // model — fail fast instead of retrying it three times across models.
+      if (response.status === 400) throw new AiProviderError(lastError);
+      // Transient server errors: back off and retry the same model.
+      if (RETRYABLE_STATUSES.has(response.status) && attempt < GEMINI_MAX_ATTEMPTS) {
+        await delay(attempt * 600);
+        continue;
+      }
+      // 429 (per-model quota), 404 (model), or exhausted retries: next model.
+      break;
+    }
+  }
+
+  throw new AiProviderError(lastError);
 }
 
 function openAiText(body: unknown) {
@@ -194,6 +231,41 @@ function openAiText(body: unknown) {
       .join("")
       .trim() ?? ""
   );
+}
+
+// OpenAI's strict structured-output mode rejects standard JSON Schema
+// validation keywords (min/max length, min/max items, numeric bounds, etc.)
+// with a 400. Strip them before sending; the route re-validates the response
+// against the Zod schema afterward, so no constraint is actually lost.
+const OPENAI_UNSUPPORTED_KEYWORDS = new Set([
+  "minLength",
+  "maxLength",
+  "pattern",
+  "format",
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+  "minItems",
+  "maxItems",
+  "uniqueItems",
+  "minProperties",
+  "maxProperties",
+  "default",
+]);
+
+function sanitizeSchemaForOpenAi(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(sanitizeSchemaForOpenAi);
+  if (schema && typeof schema === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
+      if (OPENAI_UNSUPPORTED_KEYWORDS.has(key)) continue;
+      out[key] = sanitizeSchemaForOpenAi(value);
+    }
+    return out;
+  }
+  return schema;
 }
 
 async function callOpenAi(
@@ -218,7 +290,7 @@ async function callOpenAi(
         format: {
           type: "json_schema",
           name: input.jsonSchema.name,
-          schema: input.jsonSchema.schema,
+          schema: sanitizeSchemaForOpenAi(input.jsonSchema.schema),
           strict: true,
         },
       },
