@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { requireCurrentUser } from "@/lib/server/auth";
 import {
   collegeOtpHtml,
@@ -39,10 +40,18 @@ export async function POST(request: NextRequest) {
     const collegeName = parsed.collegeName;
     const collegeEmail = normalizeEmail(parsed.collegeEmail);
 
+    // Per-target cap: limits codes sent to one address.
     await assertRateLimit({
       key: `${requestKey(request, "college-verification-start", user.id)}:${collegeEmail}`,
       limit: 5,
       windowMs: 15 * 60 * 1000,
+    });
+    // Per-user cap across all targets: stops one account from spraying codes
+    // at many arbitrary .edu inboxes by rotating the collegeEmail field.
+    await assertRateLimit({
+      key: requestKey(request, "college-verification-start-user", user.id),
+      limit: 8,
+      windowMs: 60 * 60 * 1000,
     });
 
     if (!isAllowedCollegeEmail(collegeEmail)) {
@@ -150,6 +159,16 @@ export async function PATCH(request: NextRequest) {
       return invalidCode();
     }
 
+    // One account per college email. Pre-check for a friendly error; the unique
+    // index on User.collegeEmail is the real guard against a concurrent race.
+    const taken = await db.user.findFirst({
+      where: { collegeEmail, NOT: { id: user.id } },
+      select: { id: true },
+    });
+    if (taken) {
+      return jsonError("EMAIL_TAKEN", "This college email is already linked to another account.", 409);
+    }
+
     const updated = await db.$transaction(async (tx) => {
       await tx.collegeVerificationCode.update({
         where: { id: verification.id },
@@ -169,6 +188,9 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof EmailOtpConfigError) {
       return jsonError("EMAIL_OTP_NOT_CONFIGURED", "College verification is not configured yet.", 503);
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return jsonError("EMAIL_TAKEN", "This college email is already linked to another account.", 409);
     }
     return handleRouteError(error);
   }

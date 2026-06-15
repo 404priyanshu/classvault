@@ -15,3 +15,8 @@ export function verifyPassword(password: string, stored: string) {
   const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length);
   return timingSafeEqual(actual, expected);
 }
+
+// Hash of an unguessable value. Sign-in verifies against this when the account
+// or its password is missing, so a non-existent email costs the same scrypt
+// work as a real one and does not leak account existence via response timing.
+export const DUMMY_PASSWORD_HASH = hashPassword(randomBytes(32).toString("hex"));

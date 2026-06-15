@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   applyUserBootstrap,
   createSession,
+  DUMMY_PASSWORD_HASH,
   sessionCookieOptions,
   SESSION_COOKIE,
   verifyPassword,
@@ -29,7 +30,10 @@ export async function POST(request: NextRequest) {
     // Same error for unknown email and wrong password so the endpoint does
     // not reveal which accounts exist.
     const user = await db.user.findUnique({ where: { email: input.email } });
-    if (!user?.passwordHash || !verifyPassword(input.password, user.passwordHash)) {
+    // Always spend scrypt work — against a dummy hash when the account or its
+    // password is absent — so timing does not reveal which emails exist.
+    const passwordOk = verifyPassword(input.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+    if (!user?.passwordHash || !passwordOk) {
       return jsonError("INVALID_CREDENTIALS", "Invalid email or password.", 401);
     }
 

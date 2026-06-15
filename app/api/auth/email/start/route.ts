@@ -31,10 +31,18 @@ export async function POST(request: NextRequest) {
     const email = normalizeEmail(parsed.email);
     const name = displayNameForEmail(parsed.name, email);
 
+    // Per-target cap: limits codes sent to one address.
     await assertRateLimit({
       key: `${requestKey(request, "email-signup-start")}:${email}`,
       limit: 5,
       windowMs: 15 * 60 * 1000,
+    });
+    // Per-source cap across all targets: stops one client from spraying codes
+    // at many arbitrary campus inboxes by rotating the email field.
+    await assertRateLimit({
+      key: requestKey(request, "email-signup-start-source"),
+      limit: 15,
+      windowMs: 60 * 60 * 1000,
     });
 
     if (!isAllowedCampusEmail(email)) {
