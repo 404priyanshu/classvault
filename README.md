@@ -1,131 +1,178 @@
 # ClassVault
 
-A shared library of notes, previous-year questions, and study resources for your class. Browse, save, rate, and upload — without digging through group chats.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2d3748?logo=prisma)](https://www.prisma.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-11-f69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
-Next.js App Router frontend + backend in one app: API route handlers under `app/api`, Prisma with Postgres, Zod validation, custom cookie sessions, Google OAuth, email OTP sign-up, DB-backed college verification, reviewed uploads, staff moderation, reports, and local/AWS S3-compatible file storage.
+ClassVault is an open-source campus study hub for notes, previous-year questions, uploads, moderation, and AI-assisted exam prep.
 
-This project uses **pnpm only**. `package.json` enforces that during install.
+Built with Next.js App Router, React, TypeScript, Prisma, Postgres, custom cookie auth, Google OAuth, email OTP sign-up, upload moderation, and local or S3-compatible file storage.
 
-## Setup
+> Status: active early project. No open-source license has been selected yet; add a `LICENSE` before treating this as a reusable OSS package.
+
+## Contents
+
+- [Highlights](#highlights)
+- [Quick Start](#quick-start)
+- [Environment](#environment)
+- [Project Structure](#project-structure)
+- [API Overview](#api-overview)
+- [Contributing](#contributing)
+
+## Highlights
+
+- Shared note library with search, filters, saves, ratings, downloads, and reporting.
+- Reviewed upload flow with staff approval, rejection, hiding, and restore actions.
+- Google OAuth, password fallback, email OTP sign-up, and official college email verification.
+- AI study tools for roadmaps, exam-mode prep, and upload metadata suggestions.
+- Dashboard, leaderboard, saved library, review queue, comments, notifications, and study tasks.
+- Thin API route handlers with reusable server logic under `lib/server/`.
+- Vitest unit/integration tests and Playwright browser smoke tests.
+
+## Tech Stack
+
+| Area | Tools |
+| --- | --- |
+| App | Next.js App Router, React 19, TypeScript strict mode |
+| Data | Prisma 7, Postgres, Neon-ready config |
+| Auth | HTTP-only cookie sessions, Google OAuth, email OTP, password fallback |
+| Storage | Local filesystem in dev, AWS S3-compatible direct uploads in prod |
+| Email | AWS SES or Resend |
+| AI | Gemini primary, OpenAI fallback |
+| Quality | ESLint, Vitest, Playwright |
+
+## Quick Start
+
+Requirements:
+
+- Node.js compatible with this repo's toolchain
+- pnpm 11
+- Postgres database
 
 ```bash
 pnpm install
 cp .env.example .env
-pnpm db:migrate   # create the Postgres schema
-pnpm db:seed      # load demo users + notes
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-- `/` — landing page
-- `/app` — redirects to `/app/dashboard`
-- `/app/dashboard` — study dashboard
-- `/app/library` and `/app/saved` — browsable note collections
-- `/app/add-resource` — file upload entry point
-- `/app/college-vault` — official college email verification
-- `/app/roadmaps`, `/app/exam`, `/app/rooms` — study tools
-- `/app/settings` — profile settings
-- `/app/review` — staff-only moderation queue
+This project enforces pnpm through `package.json`.
+
+## App Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Public landing page |
+| `/sign-in`, `/sign-up` | Auth entry points |
+| `/app/dashboard` | Signed-in study dashboard |
+| `/app/library`, `/app/saved` | Notes and saved resources |
+| `/app/add-resource` | Upload flow |
+| `/app/college-vault` | Official college email verification |
+| `/app/roadmaps`, `/app/exam`, `/app/rooms` | Study tools |
+| `/app/leaderboard` | Contributor rankings |
+| `/app/settings` | Profile settings |
+| `/app/review` | Staff moderation queue |
+
+## Environment
+
+Copy `.env.example` to `.env`, then configure only what your local workflow needs.
+
+| Area | Key vars |
+| --- | --- |
+| Core | `DATABASE_URL`, `APP_ORIGIN` |
+| Admin bootstrap | `ADMIN_EMAILS` |
+| Campus access | `ALLOWED_EMAIL_DOMAINS` |
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Email OTP | `EMAIL_PROVIDER`, `EMAIL_FROM`, `EMAIL_OTP_SECRET` |
+| Resend | `RESEND_API_KEY` |
+| AWS SES | `AWS_SES_REGION`, `AWS_DEFAULT_REGION` |
+| Storage | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`, `AWS_S3_PUBLIC_BASE_URL` |
+| Cloudflare R2 bookkeeping | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` |
+| AI | `GEMINI_API_KEY`, `OPENAI_API_KEY`, `AI_GEMINI_MODEL`, `AI_OPENAI_MODEL`, `AI_REQUEST_TIMEOUT_MS` |
+
+Local dev notes:
+
+- Missing email provider credentials print OTPs to the dev server console.
+- Empty `AWS_S3_BUCKET` uses local file storage under ignored `var/storage/`.
+- Keep AI provider keys server-side only. Do not prefix them with `NEXT_PUBLIC_`.
+
+## Auth Setup
 
 Google sign-in:
 
 1. Create a Google OAuth web client in Google Cloud.
 2. Add `http://localhost:3000/api/auth/google/callback` as an authorized redirect URI.
-3. Set `APP_ORIGIN`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` in `.env`.
-4. Set `ALLOWED_EMAIL_DOMAINS` for the campus beta, for example `classvault.edu`.
+3. Set `APP_ORIGIN`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET`.
+4. Set `ALLOWED_EMAIL_DOMAINS` for campus-restricted access.
 
-Email OTP sign-up:
+Email OTP:
 
-1. For AWS SES, verify `EMAIL_FROM`, set `EMAIL_PROVIDER=ses`, and set `AWS_SES_REGION`.
-2. For Resend, set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `EMAIL_FROM`.
+1. Set `EMAIL_PROVIDER=ses`, `EMAIL_FROM`, and `AWS_SES_REGION` for AWS SES.
+2. Or set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `EMAIL_FROM` for Resend.
 3. Set a long random `EMAIL_OTP_SECRET` in production.
-4. In local development without provider env vars, OTP emails are printed to the dev server console.
 
-AI roadmap generation:
+## Project Structure
 
-1. Set `GEMINI_API_KEY` to use Gemini as the primary provider.
-2. Optionally set `OPENAI_API_KEY` as a fallback provider if Gemini fails.
-3. Override `AI_GEMINI_MODEL`, `AI_OPENAI_MODEL`, or `AI_REQUEST_TIMEOUT_MS` only when needed.
-4. Keep AI keys server-side only; never use `NEXT_PUBLIC_` for provider API keys.
+```text
+app/                 Next.js pages, layouts, and API route handlers
+components/          Landing, shell, note UI, and app views
+lib/                 Shared client-safe helpers and API types
+lib/server/          Auth, DB, storage, AI, moderation, validation, rate limits
+prisma/              Schema, migrations, and seed data
+tests/               Vitest tests and Playwright specs
+docs/                Build notes, roadmap, and release runbook
+scripts/             Repo maintenance helpers
+```
 
-Production defaults:
-
-- Host on Vercel.
-- Use Neon Postgres for `DATABASE_URL`; use local Postgres for development.
-- Use AWS S3 for direct uploads and signed downloads.
-- Use AWS SES or Resend for email OTP delivery. SES sandbox accounts can only send to verified recipients until production access is approved.
-- Configure `GEMINI_API_KEY` and optionally `OPENAI_API_KEY` for AI roadmaps.
-- Set `ADMIN_EMAILS` before first sign-in to bootstrap admins.
-- Authorized Google redirect URI: `${APP_ORIGIN}/api/auth/google/callback`.
-
-## API
-
-| Endpoint                        | Purpose                                          |
-| ------------------------------- | ------------------------------------------------ |
-| `POST /api/auth/sign-in`        | Password sign-in, returns the app session cookie |
-| `POST /api/auth/sign-out`       | Destroy current app session                      |
-| `GET /api/auth/google/start`    | Start Google OAuth sign-in                       |
-| `GET /api/auth/google/callback` | Complete Google OAuth sign-in                    |
-| `POST /api/auth/email/start`    | Send an email OTP for account creation           |
-| `POST /api/auth/email/verify`   | Verify email OTP, create/link user, sign in      |
-| `GET /api/health`               | Liveness + note count                            |
-| `GET /api/health/deep`          | DB and S3 readiness check                        |
-| `GET /api/me`                   | Current signed-in user                           |
-| `PATCH /api/me`                 | Update profile name, department, semester        |
-| `POST /api/me/college-verification` | Send official college email OTP              |
-| `PATCH /api/me/college-verification` | Verify college OTP and mark user verified    |
-| `DELETE /api/me/college-verification` | Disconnect college verification             |
-| `GET /api/meta`                 | Filter options + dashboard stats                 |
-| `GET /api/notes`                | List/search notes (`q`, `subject`, `semester`, `tag`, `saved`, `owner`, `limit`, `cursor`) |
-| `POST /api/notes`               | Create pending note metadata for an uploaded file|
-| `GET /api/notes/:id`            | One note                                         |
-| `POST/DELETE /api/notes/:id/save`   | Save / unsave                                |
-| `POST /api/notes/:id/rating`    | Rate 1–5 (upsert, returns fresh aggregates)      |
-| `POST /api/notes/:id/download`  | Record download, returns download URL            |
-| `GET /api/notes/:id/file`       | Stream, download, or inline-preview stored file  |
-| `POST /api/uploads/presign`     | Create S3 upload target, or local upload fallback|
-| `POST /api/uploads`             | Local multipart upload fallback                  |
-| `POST /api/ai/roadmap`          | Generate an authenticated, rate-limited AI study roadmap |
-| `GET /api/admin/notes`          | Staff moderation queue                           |
-| `POST /api/admin/notes/:id/approve` | Publish pending note                         |
-| `POST /api/admin/notes/:id/reject`  | Reject pending note with reason              |
-| `POST /api/admin/notes/:id/hide`    | Hide published note                         |
-| `POST /api/admin/notes/:id/restore` | Restore hidden note                         |
-| `POST /api/reports`             | Report a published note                          |
-| `GET /api/admin/reports`        | Staff report queue                               |
-
-Architecture notes:
-
-- Business logic in `lib/server/notes.ts`; route handlers stay thin.
-- Auth uses HTTP-only app session cookies backed by the `Session` table. Password, Google sign-in, and email OTP sign-up all create the same `classvault_session` cookie.
-- Google sign-in links by provider account ID, falls back to verified email linking, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
-- Email OTP sign-up stores only keyed hashes of short-lived codes, auto-creates first-time verified campus-domain users as `STUDENT` accounts, and promotes `ADMIN_EMAILS`.
-- Password login remains for seeded/existing fallback users. New release access should use Google or email OTP.
-- New uploads are `PENDING`; only `PUBLISHED` notes appear in the public library.
-- Files are stored under `var/storage/` locally. With `AWS_S3_BUCKET` configured, browsers upload directly to AWS S3 and downloads use either `AWS_S3_PUBLIC_BASE_URL` or short-lived signed URLs.
-- Staff routes use `requireRole("ADMIN", "MODERATOR")`.
-- Ratings/downloads are event rows plus cached aggregates on `Note`; seeded aggregates fold into live averages.
-- Abuse-sensitive APIs have DB-backed rate limits for sign-in, email OTP, college verification, upload, note creation, download, rating, and reports.
+Important generated/local paths are ignored: `node_modules/`, `.next/`, `.pnpm-store/`, `.vercel/`, `coverage/`, `test-results/`, `playwright-report/`, `lib/generated/`, `prisma/dev.db*`, and `var/`.
 
 ## Scripts
 
-| Command          | Description                  |
-| ---------------- | ---------------------------- |
-| `pnpm dev`       | Start dev server             |
-| `pnpm build`     | Production build             |
-| `pnpm start`     | Serve production build       |
-| `pnpm lint`      | Run ESLint                   |
-| `pnpm typecheck` | Run TypeScript in strict mode |
-| `pnpm test`      | Run Vitest unit/integration tests |
-| `pnpm test:e2e`  | Run Playwright browser smoke tests |
-| `pnpm db:migrate`| Apply Prisma migrations      |
-| `pnpm db:seed`   | Reset + seed demo data       |
-| `pnpm db:studio` | Inspect the database         |
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start local dev server |
+| `pnpm build` | Generate Prisma client and build Next.js app |
+| `pnpm start` | Serve production build |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Run TypeScript strict checks |
+| `pnpm test` | Run Vitest tests |
+| `pnpm test:e2e` | Run Playwright browser tests |
+| `pnpm db:migrate` | Apply Prisma migrations locally |
+| `pnpm db:seed` | Seed demo data |
+| `pnpm db:studio` | Open Prisma Studio |
 
-## Release Gates
+## API Overview
 
-Run these before a campus beta deploy:
+| Area | Endpoints |
+| --- | --- |
+| Auth | `POST /api/auth/sign-in`, `POST /api/auth/sign-out`, `GET /api/auth/google/start`, `GET /api/auth/google/callback`, `POST /api/auth/email/start`, `POST /api/auth/email/verify` |
+| User | `GET /api/me`, `PATCH /api/me`, `POST/PATCH/DELETE /api/me/college-verification`, `GET/POST/PATCH /api/me/tasks` |
+| Notes | `GET /api/notes`, `POST /api/notes`, `GET /api/notes/:id`, `POST/DELETE /api/notes/:id/save`, `POST /api/notes/:id/rating`, `POST /api/notes/:id/download`, `GET /api/notes/:id/file` |
+| Uploads | `POST /api/uploads/presign`, `POST /api/uploads` |
+| AI | `POST /api/ai/roadmap`, `POST /api/ai/exam`, `POST /api/ai/note-suggestions` |
+| Community | `GET/POST /api/notes/:id/comments`, `PATCH/DELETE /api/comments/:id`, `GET /api/notifications`, `POST /api/notifications/read`, `GET /api/leaderboard` |
+| Moderation | `GET /api/admin/notes`, `POST /api/admin/notes/:id/approve`, `POST /api/admin/notes/:id/reject`, `POST /api/admin/notes/:id/hide`, `POST /api/admin/notes/:id/restore`, `POST /api/reports`, `GET /api/admin/reports` |
+| Health/meta | `GET /api/health`, `GET /api/health/deep`, `GET /api/meta` |
+
+## Architecture Notes
+
+- Route handlers stay thin; business logic lives in `lib/server/`.
+- Sessions use HTTP-only cookies backed by the `Session` table.
+- Password, Google, and email OTP sign-in all issue the same `classvault_session` cookie.
+- New uploads start as `PENDING`; only `PUBLISHED` notes appear in public lists.
+- Staff routes require `ADMIN` or `MODERATOR`.
+- Upload, auth, verification, report, rating, download, and AI flows use DB-backed rate limits.
+- Ratings and downloads are event rows plus cached aggregates on `Note`.
+- S3 downloads use public base URLs when configured, otherwise short-lived signed URLs.
+
+## Release Checklist
+
+Run before a campus beta deploy:
 
 ```bash
 pnpm prisma validate
@@ -136,12 +183,31 @@ pnpm test:e2e
 pnpm build
 ```
 
-Then deploy a Vercel preview, open `/sign-in`, confirm Google starts with the expected redirect URI, upload a resource, approve/reject it from the Review queue, and confirm `/api/health/deep` reports database healthy and S3 reachable when S3 is configured.
+Then verify a preview deployment:
+
+- Sign in with Google and confirm callback URL.
+- Upload a resource.
+- Approve or reject it from `/app/review`.
+- Confirm downloads/previews work.
+- Confirm `/api/health/deep` reports DB healthy and S3 reachable when configured.
 
 ## Contributing
 
-See `CONTRIBUTING.md` for setup, checks, and pull request expectations. Report vulnerabilities privately using `SECURITY.md`.
+Contributions welcome once a license is added. Start with:
+
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
+2. Pick a focused issue or small improvement.
+3. Keep route handlers thin and preserve auth, rate limits, validation, moderation, and storage safety.
+4. Add or update focused tests for behavior changes.
+
+Security reports should stay private. See [SECURITY.md](SECURITY.md).
+
+## Maintainer Docs
+
+- [Backend build guide](docs/backend-build-guide.md)
+- [Release runbook](docs/release-runbook.md)
+- [Product roadmap](docs/roadmap.md)
 
 ## License
 
-No open-source license has been selected yet. Choose and add a `LICENSE` file before making the repository public.
+No open-source license has been selected yet. Add a `LICENSE` file before making the repository public or accepting external reuse.
