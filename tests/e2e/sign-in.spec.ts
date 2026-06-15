@@ -17,9 +17,9 @@ test("sign-up renders email verification and onboarding progress", async ({ page
 
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await expect(page.getByLabel("Full name")).toBeVisible();
-  await expect(page.getByLabel("Campus email")).toBeVisible();
+  await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send verification code" })).toBeVisible();
-  await expect(page.getByText("Step 1 of 4")).toBeVisible();
+  await expect(page.getByText("Step 1 of 5")).toBeVisible();
 });
 
 test("friendly Google callback errors render on sign-in", async ({ page }) => {
