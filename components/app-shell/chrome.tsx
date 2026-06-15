@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { cx } from "@/lib/cx";
 
 export type UploadDraft = {
@@ -128,6 +128,8 @@ export function UploadDialog({
     semester: defaultSemester,
   }));
   const [submitting, setSubmitting] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
@@ -149,6 +151,46 @@ export function UploadDialog({
     setSubmitting(true);
     const ok = await onSubmit(draft);
     if (!ok) setSubmitting(false);
+  }
+
+  async function suggestWithAi() {
+    if (aiLoading) return;
+    if (draft.title.trim().length < 3 || !draft.subject.trim() || !draft.courseCode.trim()) {
+      setAiError("Add a title, subject, and course code first.");
+      return;
+    }
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const response = await fetch("/api/ai/note-suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: draft.title,
+          subject: draft.subject,
+          courseCode: draft.courseCode,
+          unit: draft.unit,
+          fileName: draft.file?.name ?? "",
+        }),
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        setAiError(body?.error?.message ?? "Could not generate suggestions.");
+        return;
+      }
+      const data = (await response.json()) as { description: string; tags: string[] };
+      setDraft((current) => ({
+        ...current,
+        description: data.description,
+        tags: data.tags.join(", ") || current.tags,
+      }));
+    } catch {
+      setAiError("Could not generate suggestions.");
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   const inputClasses =
@@ -250,13 +292,32 @@ export function UploadDialog({
             />
           </label>
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
-            Description
+            <span className="flex items-center justify-between gap-2">
+              <span>Description</span>
+              <button
+                type="button"
+                onClick={suggestWithAi}
+                disabled={aiLoading}
+                className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-0.5 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink disabled:opacity-60"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {aiLoading ? "Generating…" : "Suggest with AI"}
+              </button>
+            </span>
             <textarea
               value={draft.description}
               onChange={(event) => update("description", event.target.value)}
               rows={3}
+              placeholder="Write a short summary, or let AI draft it from the fields above."
               className="resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-ink-faint"
             />
+            {aiError ? (
+              <span className="text-[11px] font-normal text-red-600">{aiError}</span>
+            ) : (
+              <span className="text-[11px] font-normal text-ink-faint">
+                AI fills the description and tags — review before submitting.
+              </span>
+            )}
           </label>
         </div>
 
