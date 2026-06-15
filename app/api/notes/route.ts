@@ -40,6 +40,14 @@ export async function POST(request: NextRequest) {
     if (!fileType) {
       return jsonError("INVALID_INPUT", "Unsupported file type.", 400);
     }
+    // One upload backs at most one note; block re-attaching a used storageKey.
+    const existingNote = await db.note.findFirst({
+      where: { storageKey: input.storageKey },
+      select: { id: true },
+    });
+    if (existingNote) {
+      return jsonError("INVALID_INPUT", "This file is already attached to a note.", 400);
+    }
 
     const note = await createNote(
       { ...input, fileType, fileSizeBytes: upload.sizeBytes },

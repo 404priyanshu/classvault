@@ -47,7 +47,7 @@ model User {
   age          Int?
   subjectPreferences String[] @default([])
   collegeName  String?
-  collegeEmail String?
+  collegeEmail String?  @unique
   collegeVerifiedAt DateTime?
   onboardingCompletedAt DateTime?
   createdAt    DateTime @default(now())

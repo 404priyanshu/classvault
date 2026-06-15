@@ -52,6 +52,7 @@ export async function GET(
         "Content-Type": contentType,
         "Content-Disposition": `${disposition}; filename="${fileName}"`,
         "Content-Length": String(data.byteLength),
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {
