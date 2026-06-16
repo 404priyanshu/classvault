@@ -28,9 +28,10 @@ export function assembleCommentThread(flat: ApiComment[]): {
 
   const items: ApiComment[] = [];
   for (const top of tops) {
-    top.replies = repliesByParent.get(top.id) ?? [];
-    if (top.deleted && top.replies.length === 0) continue;
-    items.push(top);
+    const replies = repliesByParent.get(top.id) ?? [];
+    if (top.deleted && replies.length === 0) continue;
+    // Attach replies via a fresh object so the input flat list is never mutated.
+    items.push({ ...top, replies });
   }
 
   const count = items.reduce(
