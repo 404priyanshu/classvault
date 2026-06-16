@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiCollection, ApiCollectionSummary } from "@/lib/api-types";
+import { collectionSlugWhere } from "@/lib/server/collection-logic";
 import { db } from "@/lib/server/db";
 import { serializeNote, type NoteWithRelations } from "@/lib/server/notes";
 
@@ -73,9 +74,7 @@ export function getOwnedCollection(id: string, userId: string) {
 
 // Visible if public, or owned by the requester.
 export function getCollectionBySlug(slug: string, userId: string | null) {
-  const visibility: Prisma.CollectionWhereInput[] = [{ isPublic: true }];
-  if (userId) visibility.push({ ownerId: userId });
-  return loadFull({ slug, OR: visibility }, userId);
+  return loadFull(collectionSlugWhere(slug, userId) satisfies Prisma.CollectionWhereInput, userId);
 }
 
 export async function createCollection(

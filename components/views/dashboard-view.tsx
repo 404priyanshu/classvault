@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Compass, GraduationCap, Plus, PlusCircle, ShieldCheck, Trash2, Users } from "lucide-react";
-import type { ApiNote, ApiStudyTask } from "@/lib/api-types";
+import type { ApiNote, ApiStudyTask, NotesResponse } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
@@ -89,23 +89,23 @@ export function DashboardView() {
     }
   }
 
-  // Recent notes for the "Saved Resources" strip.
-  const [notes, setNotes] = useState<ApiNote[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Trending notes for the dashboard discovery strip.
+  const [trendingNotes, setTrendingNotes] = useState<ApiNote[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      setLoading(true);
+      setTrendingLoading(true);
       try {
-        const response = await fetch("/api/notes", { signal: controller.signal });
+        const response = await fetch("/api/notes?sort=trending&limit=3", { signal: controller.signal });
         if (response.ok) {
-          setNotes(((await response.json()) as { items: ApiNote[] }).items);
+          setTrendingNotes(((await response.json()) as NotesResponse).items);
         }
       } catch {
-        // recent strip stays empty on failure
+        // trending strip stays empty on failure
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) setTrendingLoading(false);
       }
     }, 0);
     return () => {
@@ -264,10 +264,10 @@ export function DashboardView() {
             </div>
           </section>
 
-          {/* Recently Saved Resources */}
+          {/* Trending Resources */}
           <section className="min-w-0 space-y-3">
             <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Saved Resources</SectionLabel>
+              <SectionLabel>Trending this week</SectionLabel>
               <button
                 onClick={onGoToLibrary}
                 className="shrink-0 text-xs font-semibold text-ink-soft hover:text-ink"
@@ -275,15 +275,15 @@ export function DashboardView() {
                 Browse all
               </button>
             </div>
-            {loading ? (
+            {trendingLoading ? (
               <LoadingRows count={3} />
-            ) : notes.length === 0 ? (
+            ) : trendingNotes.length === 0 ? (
               <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-xs text-ink-faint">
-                Your study vault is empty. Save notes, links, and PYQs to start organizing.
+                No trending resources yet. New downloads will surface useful notes here.
               </div>
             ) : (
               <div className="min-w-0 space-y-2">
-                {notes.slice(0, 3).map((note) => (
+                {trendingNotes.map((note) => (
                   <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
                 ))}
               </div>

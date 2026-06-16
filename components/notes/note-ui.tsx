@@ -6,6 +6,7 @@ import {
   Bookmark,
   Check,
   ChevronDown,
+  Clock,
   CornerDownRight,
   Download,
   EyeOff,
@@ -20,6 +21,7 @@ import {
   Send,
   Star,
   Trash2,
+  TrendingUp,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -34,6 +36,7 @@ import { formatBytes, formatCount, formatDate, initialsOf } from "@/lib/format";
 import { cx } from "@/lib/cx";
 
 export type LayoutMode = "list" | "grid";
+export type NoteSort = "recent" | "trending";
 
 function statusLabel(status: ApiNote["status"]) {
   return status.charAt(0) + status.slice(1).toLowerCase();
@@ -95,6 +98,9 @@ export function FilterBar({
   subject,
   subjects,
   onSubjectChange,
+  sort = "recent",
+  onSortChange,
+  showSort = false,
   layoutMode,
   onLayoutModeChange,
   onReset,
@@ -108,12 +114,15 @@ export function FilterBar({
   subject: string;
   subjects: string[];
   onSubjectChange: (value: string) => void;
+  sort?: NoteSort;
+  onSortChange?: (value: NoteSort) => void;
+  showSort?: boolean;
   layoutMode: LayoutMode;
   onLayoutModeChange: (value: LayoutMode) => void;
   onReset: () => void;
   count: number;
 }) {
-  const filtersActive = query !== "" || semester !== "All" || subject !== "All";
+  const filtersActive = query !== "" || semester !== "All" || subject !== "All" || (showSort && sort !== "recent");
 
   return (
     <div className="flex min-w-0 flex-col gap-2 pb-4 sm:flex-row sm:flex-wrap sm:items-center">
@@ -128,6 +137,30 @@ export function FilterBar({
       </label>
       <FilterSelect label="Semester" value={semester} options={semesters} onChange={onSemesterChange} />
       <FilterSelect label="Subject" value={subject} options={subjects} onChange={onSubjectChange} />
+      {showSort && onSortChange ? (
+        <div className="inline-flex h-9 rounded-md border border-line bg-surface p-0.5">
+          {(
+            [
+              ["recent", "Recent", Clock],
+              ["trending", "Trending", TrendingUp],
+            ] as Array<[NoteSort, string, LucideIcon]>
+          ).map(([mode, label, Icon]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => onSortChange(mode)}
+              aria-pressed={sort === mode}
+              className={cx(
+                "inline-flex items-center gap-1.5 rounded px-2.5 text-xs font-semibold text-ink-faint transition",
+                sort === mode && "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]",
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {filtersActive ? (
         <button
           type="button"
