@@ -2,37 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import type { ApiNotification, NotificationsResponse } from "@/lib/api-types";
+import type { NotificationsResponse } from "@/lib/api-types";
+import { describeNotification } from "@/lib/notification-format";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 
 const POLL_MS = 60_000;
-
-function describe(n: ApiNotification): { title: string; detail: string } {
-  const noteTitle = typeof n.payload.noteTitle === "string" ? n.payload.noteTitle : "your note";
-  switch (n.type) {
-    case "NOTE_APPROVED":
-      return { title: "Note approved", detail: `"${noteTitle}" is now published.` };
-    case "NOTE_REJECTED": {
-      const reason = typeof n.payload.reason === "string" ? n.payload.reason : null;
-      return {
-        title: "Note rejected",
-        detail: reason ? `"${noteTitle}": ${reason}` : `"${noteTitle}" was rejected.`,
-      };
-    }
-    case "COMMENT_NEW": {
-      const by = typeof n.payload.byName === "string" ? n.payload.byName : "Someone";
-      return { title: "New comment", detail: `${by} commented on "${noteTitle}".` };
-    }
-    case "COMMENT_REPLY": {
-      const by = typeof n.payload.byName === "string" ? n.payload.byName : "Someone";
-      const snippet = typeof n.payload.snippet === "string" ? n.payload.snippet : null;
-      return { title: "New reply", detail: snippet ? `${by}: ${snippet}` : `${by} replied to you.` };
-    }
-    default:
-      return { title: "Notification", detail: noteTitle };
-  }
-}
 
 function timeAgo(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -129,7 +104,7 @@ export function NotificationsBell() {
               <div className="px-3 py-8 text-center text-xs text-ink-faint">No notifications yet.</div>
             ) : (
               data.items.map((n) => {
-                const { title, detail } = describe(n);
+                const { title, detail } = describeNotification(n);
                 return (
                   <div
                     key={n.id}

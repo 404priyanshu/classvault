@@ -1,5 +1,10 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiComment, CommentsResponse } from "@/lib/api-types";
+import {
+  assembleCommentThread,
+  commentFanoutTargets,
+  commentSnippet,
+} from "@/lib/server/comment-logic";
 import { db } from "@/lib/server/db";
 import { roleLabelOf } from "@/lib/server/notes";
 import { createNotification } from "@/lib/server/notifications";
@@ -27,10 +32,6 @@ export function serializeComment(comment: CommentWithAuthor, ctx: SerializeCtx):
   };
 }
 
-function snippetOf(body: string) {
-  return body.length > 120 ? `${body.slice(0, 117)}…` : body;
-}
-
 // Returns a one-level thread: top-level comments each with their replies.
 // VISIBLE and DELETED rows are returned (DELETED as a "[deleted]" placeholder so
 // replies keep their context); HIDDEN rows are dropped for everyone. A DELETED
@@ -53,34 +54,7 @@ export async function listComments(
     orderBy: { createdAt: "asc" },
   });
 
-  const repliesByParent = new Map<string, ApiComment[]>();
-  const tops: Array<{ row: CommentWithAuthor; api: ApiComment }> = [];
-
-  for (const row of rows) {
-    const api = serializeComment(row, ctx);
-    if (row.parentId === null) {
-      tops.push({ row, api });
-    } else {
-      const list = repliesByParent.get(row.parentId) ?? [];
-      list.push(api);
-      repliesByParent.set(row.parentId, list);
-    }
-  }
-
-  const items: ApiComment[] = [];
-  for (const { row, api } of tops) {
-    api.replies = repliesByParent.get(row.id) ?? [];
-    if (api.deleted && api.replies.length === 0) continue;
-    items.push(api);
-  }
-
-  // Derive the count from what is actually rendered so the "Discussion · N"
-  // header can never disagree with the visible thread.
-  const count = items.reduce(
-    (sum, top) => sum + (top.deleted ? 0 : 1) + top.replies.filter((r) => !r.deleted).length,
-    0,
-  );
-  return { items, count };
+  return assembleCommentThread(rows.map((row) => serializeComment(row, ctx)));
 }
 
 type CreateResult =
@@ -119,21 +93,20 @@ export async function createComment(
 
     // Fan-out: notify the parent comment's author (reply) and the note owner
     // (new activity), de-duplicated and never to the commenter themselves.
-    const snippet = snippetOf(body);
     const payload = {
       noteId: note.id,
       noteTitle: note.title,
       commentId: created.id,
       byName: author.name,
-      snippet,
+      snippet: commentSnippet(body),
     };
-    const notified = new Set<string>([author.id]);
-    if (parentAuthorId && !notified.has(parentAuthorId)) {
-      await createNotification(tx, { userId: parentAuthorId, type: "COMMENT_REPLY", payload });
-      notified.add(parentAuthorId);
-    }
-    if (!notified.has(note.ownerId)) {
-      await createNotification(tx, { userId: note.ownerId, type: "COMMENT_NEW", payload });
+    const targets = commentFanoutTargets({
+      authorId: author.id,
+      noteOwnerId: note.ownerId,
+      parentAuthorId,
+    });
+    for (const target of targets) {
+      await createNotification(tx, { userId: target.userId, type: target.type, payload });
     }
 
     return { ok: true, comment: serializeComment(created, { userId: author.id, isStaff: false }) };

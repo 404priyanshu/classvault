@@ -30,7 +30,7 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
 | Priority | Feature | Effort | Why next |
 | --- | --- | --- | --- |
-| P0 | Comments + notifications QA | S-M | Prove reply, owner, staff-hide, and read-state flows end-to-end |
+| P0 | Comments + notifications QA | S | Core logic unit-tested; remaining: Playwright e2e for authed reply/owner/staff-hide/bell flows |
 | P1 | Open-source release prep | S | Add `LICENSE`, screenshots/GIF, issue labels, public demo link |
 | P2 | Course entities | L | Follow course pages, course feeds, follower notifications |
 | P2 | Note versioning | M | Replace files while preserving ratings, saves, comments |
@@ -62,15 +62,21 @@ Search is implemented. Remaining polish:
 
 ## Phase 2: Community QA
 
-### Comments + Notifications QA - S-M
+### Comments + Notifications QA - In progress
 
-The models, routes, and UI exist. Add end-to-end coverage for:
+The models, routes, and UI exist. The core logic is now extracted into pure,
+unit-tested helpers (`tests/comment-logic.test.ts`, `tests/notification-format.test.ts`):
 
-- Student comments on a published note.
-- One-level reply creates `COMMENT_REPLY`.
-- New top-level comment notifies note owner.
-- Staff hides a comment.
-- Notification bell unread count and mark-read behavior.
+- `assembleCommentThread` - one-level nesting, deleted-placeholder rules, and the
+  rendered-only count.
+- `commentFanoutTargets` - reply vs new-comment recipients, de-duplicated, never
+  notifying the commenter (covers reply, owner-notify, and self-comment cases).
+- `describeNotification` - bell title/detail for every notification type, shared
+  with the bell UI.
+
+Remaining: full Playwright e2e for the authenticated reply / owner-notify /
+staff-hide / bell unread + mark-read flows (needs seeded moderator and author
+sessions).
 
 Risk: moderation/reporting policy. Comment reports are not first-class yet; staff hide exists.
 
