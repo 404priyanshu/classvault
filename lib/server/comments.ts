@@ -105,9 +105,11 @@ export async function createComment(
       noteOwnerId: note.ownerId,
       parentAuthorId,
     });
-    for (const target of targets) {
-      await createNotification(tx, { userId: target.userId, type: target.type, payload });
-    }
+    await Promise.all(
+      targets.map((target) =>
+        createNotification(tx, { userId: target.userId, type: target.type, payload }),
+      ),
+    );
 
     return { ok: true, comment: serializeComment(created, { userId: author.id, isStaff: false }) };
   });
