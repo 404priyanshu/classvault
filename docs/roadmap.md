@@ -1,253 +1,196 @@
 # ClassVault Product Roadmap
 
-Goal: grow ClassVault from a moderated note library into the one place a class
-runs its academic life — find, read, discuss, organize, and get notified, with
-AI assistance layered on top.
+Goal: grow ClassVault from a moderated note library into the place a class runs
+its academic life: find, read, discuss, organize, and get notified, with AI
+assistance layered on top.
 
-Every feature below builds on what already exists (Prisma/Postgres on Neon,
-cookie sessions + Google OAuth, S3/local storage, moderation pipeline,
-DB-backed rate limits). Effort: **S** ≤ 1 day, **M** = 2–4 days, **L** = 1–2 weeks.
+Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
-## Overview
+## Current Progress
 
-| Phase | Feature | Effort | Depends on | Moves |
-| ----- | ------- | ------ | ---------- | ----- |
-| 1 — Now | Inline PDF preview | S | nothing (API already supports it) | engagement |
-| 1 — Now | Full-text search | M | nothing | discovery |
-| 1 — Now | Trending section | S | nothing | discovery |
-| 2 — Next | Comments / Q&A | M | nothing | engagement |
-| 2 — Next | In-app notifications | M | nothing | retention |
-| 2 — Next | Reputation + leaderboard | S–M | nothing | note supply |
-| 3 — Next | Collections (exam sprints) | M | nothing | retention |
-| 3 — Later | Courses as entities | L | notifications | structure, retention |
-| 3 — Later | Note versioning | M | nothing | quality |
-| 4 — Later | AI summary + tag suggestions | M | `ANTHROPIC_API_KEY` | upload quality |
-| 4 — Later | "Ask your notes" semantic search | L | pgvector, embeddings | discovery |
-| 5 — Later | Email notifications | M | in-app notifications | retention |
-| 5 — Later | PWA / offline | M | nothing | mobile reach |
-| 5 — Later | Admin analytics dashboard | M | nothing | operations |
-| 5 — Later | Server-side study tasks | S | nothing | retention |
+| Area | Status | Notes |
+| --- | --- | --- |
+| Core library | Shipped | Search, filters, saves, ratings, downloads, reports |
+| Auth | Shipped | Password fallback, Google OAuth, email OTP, college verification |
+| Uploads | Shipped | Local/S3-compatible storage, reviewed uploads, staff moderation |
+| Inline PDF preview | Shipped | Drawer preview plus expanded full-screen viewer |
+| Full-text search | Shipped | Postgres `tsvector` + ranked multi-word search |
+| Trending notes | Shipped backend | `GET /api/notes?sort=trending`; needs stronger UI placement |
+| Comments / Q&A | Shipped | One-level replies, delete, staff hide |
+| In-app notifications | Shipped | Moderation and comment notifications, bell UI |
+| Reputation + leaderboard | Shipped | Contributor score excludes self-downloads |
+| AI roadmaps | Shipped | Gemini primary, OpenAI fallback |
+| Exam Mode | Shipped | High-yield crash-prep plan |
+| AI note suggestions | Shipped | Upload description/tag suggestions |
+| Collections | Shipped | Private/public note sets, `/app/collections`, public `/c/[slug]` |
+| Study tasks | Shipped | DB-backed task list |
+| Open-source docs | In progress | README/CONTRIBUTING polished; license still missing |
 
----
+## Next Work
 
-## Phase 1 — Reader & discovery
+| Priority | Feature | Effort | Why next |
+| --- | --- | --- | --- |
+| P0 | Collections QA hardening | S | Latest shipped feature; protect create/share/delete flows |
+| P0 | Roadmap/docs truth pass | S | Keep public project docs honest |
+| P1 | Trending UI | S | Backend exists; visible dashboard/library module improves discovery |
+| P1 | Comments + notifications QA | S-M | Prove reply, owner, staff-hide, and read-state flows end-to-end |
+| P1 | Open-source release prep | S | Add `LICENSE`, screenshots/GIF, issue labels, public demo link |
+| P2 | Course entities | L | Follow course pages, course feeds, follower notifications |
+| P2 | Note versioning | M | Replace files while preserving ratings, saves, comments |
+| P2 | PWA/offline shell | M | Better mobile install and repeat study sessions |
+| P3 | Admin analytics | M | Ops view for uploads, approvals, reports, health |
+| P3 | Ask your notes | L | Needs pgvector, embeddings, citations, extraction pipeline |
+| P3 | Email notifications | M | Reuse in-app notification fan-out with digest controls |
 
-Highest value per unit of effort. All three are independent of each other.
+## Phase 1: Discovery Polish
 
-### Inline PDF preview — S
+### Trending UI - S
 
-*As a student, I read a note in the app before deciding to download it.*
+Backend already supports ranking notes by recent `DownloadEvent` activity. Add:
 
-- **Server: done.** `GET /api/notes/:id/file?disposition=inline` already
-  streams with `Content-Disposition: inline` (local) or redirects to a signed
-  URL with inline response headers (S3).
-- **UI:** "Preview" button in the detail drawer opens a modal (or expands the
-  drawer) with an `<iframe src="/api/notes/{id}/file?disposition=inline">`.
-  PDFs render natively in every modern browser; show a "download to view"
-  fallback for DOCX/PPTX/ZIP.
-- **Risk:** signed-URL redirect inside an iframe must keep response
-  `Content-Disposition` inline — already handled by `createDownloadUrl`'s
-  response-header overrides; verify once against the live bucket.
+- Dashboard strip: "Trending this week".
+- Library sort control: recent/trending.
+- Empty/fallback state when no recent downloads exist.
+- E2E coverage for `sort=trending` query behavior.
 
-### Postgres full-text search — M
+Risk: low. If download volume is small, fall back to all-time `downloadCount`.
 
-*As a student, searching "deadlock semaphore" finds the OS notes even though
-no field contains that exact phrase.*
+### Full-Text Search Follow-Up - S
 
-- Migration: generated `tsvector` column on `Note` over
-  `title || description || topic || subject`, `GIN` index.
-- `lib/server/notes.ts#listNotes`: when `q` has ≥ 2 words use
-  `websearch_to_tsquery('english', q)` ranked by `ts_rank`, else keep the
-  current insensitive `contains` (good for course codes like `CS302`).
-  Implemented with `$queryRaw` for the id list, then the existing
-  include/serialize path — serializer untouched.
-- **Risk:** raw SQL must stay inside `lib/server/notes.ts`; keep the Zod-parsed
-  `q` as a bound parameter (never interpolated).
+Search is implemented. Remaining polish:
 
-### Trending — S
+- Add UI hint for multi-word search.
+- Add tests covering ranked result order plus course-code fallback.
+- Consider highlighting matched terms later.
 
-*As a student, I see what my batch is actually using this week.*
+## Phase 2: Community QA
 
-- `DownloadEvent` rows already carry `createdAt`; score = downloads in the last
-  7 days. One `groupBy` query, surfaced as `GET /api/notes?sort=trending` plus
-  a "Trending this week" dashboard strip.
-- **Risk:** none meaningful; index on `DownloadEvent(noteId, createdAt)` if slow.
+### Comments + Notifications QA - S-M
 
----
+The models, routes, and UI exist. Add end-to-end coverage for:
 
-## Phase 2 — Community
+- Student comments on a published note.
+- One-level reply creates `COMMENT_REPLY`.
+- New top-level comment notifies note owner.
+- Staff hides a comment.
+- Notification bell unread count and mark-read behavior.
 
-### Comments / Q&A on notes — M
+Risk: moderation/reporting policy. Comment reports are not first-class yet; staff hide exists.
 
-*As a student, I ask "does this cover the 2024 syllabus?" on the note itself
-instead of in a group chat.*
+### Leaderboard Follow-Up - S
 
-```prisma
-model Comment {
-  id        String   @id @default(cuid())
-  noteId    String
-  authorId  String
-  parentId  String?            // one level of replies
-  body      String             // 1..2000 chars (Zod)
-  status    CommentStatus @default(VISIBLE) // VISIBLE | HIDDEN | DELETED
-  createdAt DateTime @default(now())
-  @@index([noteId, createdAt])
-}
-```
+Leaderboard is live. Remaining polish:
 
-- Routes: `GET/POST /api/notes/:id/comments`, `DELETE /api/comments/:id`
-  (author or staff). Reuse `requireCurrentUser`, `assertRateLimit`
-  (e.g. 30/hour), and the moderation pattern from `lib/server/moderation.ts`
-  (staff hide + `ModerationEvent` audit row).
-- UI: thread under the tags section in the detail drawer; reply one level deep.
-- **Risk:** moderation load — mitigate with rate limit + report-comment reuse
-  of the existing `Report` flow (add `commentId` nullable column).
+- Show contributor score explanation in UI.
+- Add tests for self-download exclusion.
+- Add lightweight cache if query gets slow.
 
-### In-app notifications — M
+## Phase 3: Organization
 
-*As an uploader, I learn my note was approved (or why it was rejected) without
-checking the uploads tab.*
+### Collections QA Hardening - S
+
+Collections are shipped. Add/maintain tests for:
+
+- Create collection.
+- Open collection detail.
+- Toggle public/private.
+- Copy public share link.
+- Remove notes.
+- Delete collection.
+- Public `/c/[slug]` access.
+
+### Courses As Entities - L
+
+Make course codes first-class:
 
 ```prisma
-model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  type      String    // NOTE_APPROVED | NOTE_REJECTED | COMMENT_REPLY | ...
-  payload   Json      // noteId, commentId, reason, ...
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-  @@index([userId, readAt, createdAt])
+model Course {
+  id         String @id @default(cuid())
+  code       String @unique
+  title      String
+  department String?
+  notes      Note[]
+  followers  CourseFollow[]
+}
+
+model CourseFollow {
+  userId   String
+  courseId String
+  @@id([userId, courseId])
 }
 ```
 
-- Fan-out points: `moderateNote` in `lib/server/moderation.ts`
-  (approve/reject), comment creation (note owner + parent author).
-- Routes: `GET /api/notifications` (latest 20 + unread count),
-  `POST /api/notifications/read`.
-- UI: bell in the top bar, badge with unread count, dropdown list; poll every
-  60 s (no websockets yet — keep it boring).
-- **Why before courses:** course-follow fan-out (Phase 3) reuses this exact
-  pipeline.
+Plan:
 
-### Reputation + leaderboard — S–M
+- Backfill `Course` rows from distinct `Note.courseCode`.
+- Add nullable `Note.courseId` while preserving legacy `courseCode`.
+- Build course pages with notes, followers, and top contributors.
+- Notify followers when new notes are approved.
 
-*As a contributor, my uploads earn visible credit, so I keep uploading.*
+Risk: largest schema change. Ship migration/backfill separately from UI.
 
-- No new model to start: score computed live —
-  `published uploads × 10 + downloads received × 1 + (avg rating ≥ 4.5 ? 25 : 0)`.
-- `GET /api/leaderboard` (top 20, cached 5 min), score shown on profile and
-  next to uploader names in the drawer.
-- **Risk:** gaming via self-downloads — `DownloadEvent.userId` exists, so
-  exclude self-downloads from the score query. Promote to a cached column only
-  if the live query gets slow.
+### Note Versioning - M
 
----
+Allow uploaders to replace files without losing social proof.
 
-## Phase 3 — Organization
+- Add `NoteVersion(noteId, storageKey, fileSizeBytes, pageCount, createdAt)`.
+- Keep current pointer on `Note`.
+- New version re-enters `PENDING` moderation.
+- Show version history in note detail.
 
-### Collections ("exam sprints") — M
+## Phase 4: AI Depth
 
-*As a student, I bundle the 8 resources for next week's DBMS end-sem into one
-named set and share it with my class.*
+### Ask Your Notes - L
 
-```prisma
-model Collection {
-  id        String   @id @default(cuid())
-  ownerId   String
-  title     String
-  slug      String   @unique          // share-by-link
-  isPublic  Boolean  @default(false)
-  notes     CollectionNote[]
-}
-model CollectionNote {
-  collectionId String
-  noteId       String
-  position     Int
-  @@id([collectionId, noteId])
-}
-```
+Semantic Q&A over uploaded resources.
 
-- CRUD routes under `/api/collections`; "Add to collection" action in the
-  drawer; new sidebar tab; public page at `/c/[slug]` for shared sets.
+- Extract text from PDFs/docs.
+- Chunk and embed content.
+- Store embeddings with pgvector.
+- Answer with citations: note title, section/page when available.
 
-### Courses as first-class entities — L
+Risk: infra and cost. Schedule after comments/search usage proves demand.
 
-*As a student, I follow CS302 and get notified when anything new lands.*
+### AI Upload Metadata Follow-Up - M
 
-- `Course` (code unique, title, department) + `CourseFollow(userId, courseId)`.
-- Migration backfills `Course` rows from distinct `Note.courseCode` values,
-  then `Note.courseId` FK alongside the legacy string until the UI flips.
-- Course pages: header, follower count, notes list, top contributors.
-- Publish hook: on approve, notify followers (reuses Notification fan-out —
-  hence sequenced after Phase 2).
-- **Risk:** largest schema change in the roadmap; do the backfill migration in
-  its own deploy and keep `courseCode` string until verified.
+Suggestions exist. Remaining depth:
 
-### Note versioning — M
+- Extract first pages of uploaded PDFs instead of relying only on filename/user metadata.
+- Better fallback for scanned PDFs.
+- Track acceptance rate for AI-generated tags/descriptions.
 
-*As an uploader, I replace my Unit-2 notes with the corrected PDF without
-losing ratings, saves, or comments.*
+## Phase 5: Platform Polish
 
-- `NoteVersion(noteId, storageKey, fileSizeBytes, pageCount, createdAt)`;
-  current pointer stays on `Note`. "Upload new version" only for `ownedByMe`,
-  re-enters `PENDING` review; history list in the drawer.
+### PWA / Offline - M
 
----
+- Manifest and installable shell.
+- Cache app chrome and safe static assets.
+- Later: offline saved-note metadata.
 
-## Phase 4 — AI (needs `ANTHROPIC_API_KEY`; per-call cost)
+### Admin Analytics - M
 
-### Auto-summary + suggested tags at upload — M
+Staff-only view for:
 
-*As an uploader, the description and tags write themselves; I just confirm.*
+- Upload volume.
+- Approval/rejection rate.
+- Report backlog.
+- Downloads and ratings over time.
+- Storage/health checks.
 
-- After the file lands in storage, server extracts PDF text (first ~10 pages,
-  `pdf-parse`), calls Claude (`claude-haiku-4-5` — cheap, fast) for a 2-sentence
-  summary + ≤ 6 tags, returns them to the upload dialog as editable prefills.
-- Strictly assistive: user reviews before submit; moderation still applies.
-- **Risk:** scanned/image PDFs yield no text — fall back silently to manual
-  entry. Rate-limit the endpoint like uploads.
+### Email Notifications - M
 
-### "Ask your notes" — L (Later)
+Reuse `Notification` fan-out:
 
-*As a student, I ask "how does BCNF differ from 3NF?" and get an answer citing
-the exact notes that cover it.*
+- Digest mode by default.
+- Per-event opt-in later.
+- Resend/SES transport behind existing email config.
 
-- pgvector extension on Neon, chunked note text + embeddings table, retrieval
-  endpoint that answers with citations (note title + page).
-- Largest infra addition in the roadmap; schedule only after Phase 1–2 prove
-  engagement, and after auto-summary establishes the text-extraction pipeline.
+## Release Readiness
 
----
+Before public OSS release:
 
-## Phase 5 — Platform polish (Later)
-
-- **Email notifications** — Resend integration behind the same Notification
-  fan-out; digest option instead of per-event spam.
-- **PWA** — manifest + service worker shell so the library installs on phones;
-  pairs well with signed-URL downloads.
-- **Admin analytics** — uploads/downloads/ratings over time from the event
-  tables that already exist; one staff-only dashboard view.
-- **Server-side study tasks** — the dashboard task list is currently client
-  state only and vanishes on refresh; smallest possible model
-  (`StudyTask(userId, title, done)`) + two routes makes it real. Effort S and
-  arguably Phase 1 material if quick wins are needed.
-
----
-
-## Sequencing rationale
-
-```
-Phase 1 (independent quick wins)
-  preview ─┐
-  search  ─┼─→ Phase 2: comments ─→ notifications ─→ Phase 3: courses (fan-out reuse)
-  trending ┘                         leaderboard      collections, versioning
-                                                        └─→ Phase 4: AI summary ─→ ask-your-notes
-```
-
-- Preview/search/trending ship in any order — no schema changes beyond one
-  generated column.
-- Notifications before courses: course-follow is only valuable with a delivery
-  mechanism.
-- Comments before AI Q&A: engagement data shows whether deep retrieval is
-  worth the infra.
-- Every phase leaves the app deployable; no feature blocks the campus beta.
+- Add `LICENSE`.
+- Add README screenshots/GIF.
+- Add demo URL.
+- Add issue labels and a small "good first issue" set.
+- Re-run `pnpm prisma validate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`.
