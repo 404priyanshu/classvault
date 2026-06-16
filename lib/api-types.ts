@@ -29,6 +29,7 @@ export type ApiNote = {
   subject: string;
   semester: string;
   courseCode: string;
+  course?: { id: string; code: string };
   unit: string;
   topic: string;
   fileType: FileType;
@@ -203,4 +204,8 @@ export type MetaResponse = {
 
 export type ApiError = {
   error: { code: string; message: string };
+};
+
+export type BillingCheckoutResponse = {
+  checkoutUrl: string;
 };

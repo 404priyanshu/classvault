@@ -24,9 +24,9 @@ function serializeRoom(row: RoomRow): ApiRoom {
   };
 }
 
-export async function listRooms(user: { id: string; collegeName: string | null }): Promise<ApiRoom[]> {
+export async function listRooms(user: { id: string; collegeName?: string | null; institutionId?: string | null }): Promise<ApiRoom[]> {
   const rooms = await db.room.findMany({
-    where: roomListWhere(user.collegeName),
+    where: roomListWhere({ institutionId: user.institutionId ?? null, collegeName: user.collegeName ?? null }),
     include: { _count: { select: { participants: true } } },
     orderBy: { createdAt: "desc" },
   });

@@ -47,6 +47,7 @@ async function main() {
   await db.emailVerificationCode.deleteMany();
   await db.uploadedFile.deleteMany();
   await db.note.deleteMany();
+  await db.course.deleteMany();
   await db.user.deleteMany();
 
   const userByName = new Map<string, string>();
@@ -76,6 +77,23 @@ async function main() {
 
   const currentUserId = userByName.get(currentUser.name);
 
+  const courseIds = new Map<string, string>();
+  const courseSubjects = new Map<string, string>();
+  for (const note of initialNotes) {
+    const code = note.courseCode;
+    if (!courseIds.has(code) && note.subject) {
+      courseSubjects.set(code, note.subject);
+    }
+  }
+  for (const [code, subject] of courseSubjects) {
+    const c = await db.course.upsert({
+      where: { code },
+      update: {},
+      create: { code, subject },
+    });
+    courseIds.set(code, c.id);
+  }
+
   for (const note of initialNotes) {
     const created = await db.note.create({
       data: {
@@ -84,6 +102,7 @@ async function main() {
         subject: note.subject,
         semester: note.semester,
         courseCode: note.courseCode,
+        courseId: courseIds.get(note.courseCode)!,
         unit: note.unit,
         topic: note.topic,
         fileType: note.fileType,
@@ -112,6 +131,7 @@ async function main() {
   const counts = {
     users: await db.user.count(),
     notes: await db.note.count(),
+    courses: await db.course.count(),
     tags: await db.tag.count(),
     saved: await db.savedNote.count(),
   };

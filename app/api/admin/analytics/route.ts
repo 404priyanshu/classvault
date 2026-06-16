@@ -5,10 +5,11 @@ import { getAdminStats } from "@/lib/server/admin-analytics";
 
 export async function GET(request: Request) {
   try {
-    await requireRole("ADMIN", "MODERATOR");
+    const user = await requireRole("ADMIN", "MODERATOR");
     const { searchParams } = new URL(request.url);
     const college = searchParams.get("college") || undefined; // per-college scoping for B2B pilots (leverages existing User.collegeName)
-    return NextResponse.json(await getAdminStats(college));
+    const institutionId = (user as { institution?: { id: string } | null }).institution?.id ?? undefined;
+    return NextResponse.json(await getAdminStats(college, institutionId));
   } catch (error) {
     return handleRouteError(error);
   }

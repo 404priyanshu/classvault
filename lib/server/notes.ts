@@ -15,6 +15,7 @@ const TRENDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const noteInclude = (userId: string | null) =>
   ({
     owner: true,
+    course: { select: { id: true, code: true } },
     tags: { include: { tag: true } },
     savedBy: userId ? { where: { userId } } : false,
     ratings: userId ? { where: { userId } } : false,
@@ -23,6 +24,7 @@ const noteInclude = (userId: string | null) =>
 export type NoteWithRelations = Prisma.NoteGetPayload<{
   include: {
     owner: true;
+    course: { select: { id: true; code: true } };
     tags: { include: { tag: true } };
   };
 }> & {
@@ -51,6 +53,7 @@ export function serializeNote(note: NoteWithRelations, userId: string | null): A
     subject: note.subject,
     semester: note.semester,
     courseCode: note.courseCode,
+    course: note.course ? { id: note.course.id, code: note.course.code } : undefined,
     unit: note.unit,
     topic: note.topic,
     fileType: note.fileType as FileType,
@@ -185,13 +188,21 @@ export async function createNote(
       ),
     );
 
+    const courseCodeUpper = input.courseCode.toUpperCase();
+    const course = await tx.course.upsert({
+      where: { code: courseCodeUpper },
+      update: {},
+      create: { code: courseCodeUpper, subject: input.subject },
+    });
+
     return tx.note.create({
       data: {
         title: input.title,
         description: input.description,
         subject: input.subject,
         semester: input.semester,
-        courseCode: input.courseCode.toUpperCase(),
+        courseCode: courseCodeUpper,
+        courseId: course.id,
         unit: input.unit || "Uploaded resource",
         topic: input.topic || tagNames[0] || "Student contribution",
         fileType: input.fileType,

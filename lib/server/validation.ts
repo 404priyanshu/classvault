@@ -228,3 +228,8 @@ export const createRoomSchema = z.object({
   timerVal: z.number().int().min(5).max(120),
   goals: z.array(z.string().trim().min(1).max(200)).max(10).default([]),
 });
+
+export const createCheckoutSessionSchema = z.object({
+  institutionId: z.string().trim().min(1),
+  plan: z.enum(["starter", "pro", "enterprise"]).default("starter"),
+});

@@ -6,6 +6,7 @@ import { createNotification } from "@/lib/server/notifications";
 
 const ADMIN_NOTE_INCLUDE = {
   owner: true,
+  course: { select: { id: true, code: true } },
   tags: { include: { tag: true } },
   savedBy: false,
   ratings: false,

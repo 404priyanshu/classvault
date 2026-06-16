@@ -31,3 +31,20 @@ describe("canViewCollegeOnlyRoom", () => {
     expect(canViewCollegeOnlyRoom("Other U", "ClassVault U")).toBe(false);
   });
 });
+
+describe("roomListWhere with institutionId", () => {
+  it("scopes College-only rooms to owners with the matching institutionId (preferred over collegeName)", () => {
+    const where = roomListWhere({ institutionId: "inst-1", collegeName: "Some College" });
+    expect(where.OR).toEqual([
+      { type: "Public" },
+      { type: "College-only", owner: { institutionId: "inst-1" } },
+    ]);
+  });
+
+  it("falls back to collegeName when no institutionId", () => {
+    expect(roomListWhere({ institutionId: null, collegeName: "ClassVault U" }).OR).toEqual([
+      { type: "Public" },
+      { type: "College-only", owner: { collegeName: "ClassVault U" } },
+    ]);
+  });
+});

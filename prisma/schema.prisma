@@ -163,6 +163,7 @@ model Note {
   ratingCount   Int      @default(0)
   downloadCount Int      @default(0)
   ownerId       String
+  courseId      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   /// Generated column (see note_search_vector migration); kept as Unsupported
@@ -170,6 +171,7 @@ model Note {
   searchVector  Unsupported("tsvector")?
 
   owner     User            @relation(fields: [ownerId], references: [id])
+  course    Course?         @relation(fields: [courseId], references: [id])
   tags      NoteTag[]
   savedBy   SavedNote[]
   ratings   Rating[]
@@ -184,6 +186,7 @@ model Note {
   @@index([courseCode])
   @@index([status])
   @@index([ownerId])
+  @@index([courseId])
 }
 
 model ModerationEvent {
@@ -397,6 +400,18 @@ model Institution {
   updatedAt               DateTime @updatedAt
 
   users User[]
+}
+
+// First-class course entity (roadmap: pages, feeds, followers). courseCode string + index kept on Note for backward compat + search.
+model Course {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  subject   String?
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes Note[]
 }
 
 // Silent focus rooms (per-user creation; Public visible to all, College-only scoped to owner's collegeName).

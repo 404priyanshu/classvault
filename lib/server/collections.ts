@@ -8,6 +8,7 @@ import { serializeNote, type NoteWithRelations } from "@/lib/server/notes";
 const noteInclude = (userId: string | null) =>
   ({
     owner: true,
+    course: { select: { id: true, code: true } },
     tags: { include: { tag: true } },
     savedBy: userId ? { where: { userId } } : false,
     ratings: userId ? { where: { userId } } : false,

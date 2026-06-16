@@ -11,19 +11,25 @@ export type AdminStats = {
   // Note: per-college scoping and time-series trends can be added via collegeName filter on User joins or event createdAt buckets (for future per-institution B2B dashboards).
 };
 
-export async function getAdminStats(collegeFilter?: string): Promise<AdminStats> {
-  const userWhere = collegeFilter ? { collegeName: collegeFilter } : {};
-  const noteOwnerJoin = collegeFilter ? { owner: userWhere } : {};
+export async function getAdminStats(collegeFilter?: string, institutionId?: string): Promise<AdminStats> {
+  // Prefer institutionId for true per-institution B2B scoping (from User.institutionId).
+  // Fall back to collegeName filter for transition / existing college-verified flows.
+  const userWhere = institutionId
+    ? { institutionId }
+    : collegeFilter
+      ? { collegeName: collegeFilter }
+      : {};
+  const noteOwnerJoin = institutionId || collegeFilter ? { owner: userWhere } : {};
 
   const [pending, reports, resolvedReports, modEvents, recentDownloads, recentUsers] = await Promise.all([
-    db.note.count({ where: { status: "PENDING", ... (collegeFilter ? { owner: userWhere } : {}) } }),
-    db.report.count({ where: { status: "OPEN", ... (collegeFilter ? { note: noteOwnerJoin } : {}) } }),
-    db.report.count({ where: { status: { in: ["RESOLVED", "DISMISSED"] }, ... (collegeFilter ? { note: noteOwnerJoin } : {}) } }),
-    db.moderationEvent.count({ where: collegeFilter ? { moderator: userWhere } : {} }),
+    db.note.count({ where: { status: "PENDING", ...(institutionId || collegeFilter ? { owner: userWhere } : {}) } }),
+    db.report.count({ where: { status: "OPEN", ...(institutionId || collegeFilter ? { note: noteOwnerJoin } : {}) } }),
+    db.report.count({ where: { status: { in: ["RESOLVED", "DISMISSED"] }, ...(institutionId || collegeFilter ? { note: noteOwnerJoin } : {}) } }),
+    db.moderationEvent.count({ where: institutionId ? { moderator: userWhere } : collegeFilter ? { moderator: userWhere } : {} }),
     db.downloadEvent.count({
       where: {
         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-        ...(collegeFilter ? { user: userWhere } : {}),
+        ...(institutionId || collegeFilter ? { user: userWhere } : {}),
       },
     }),
     db.user.count({
@@ -38,7 +44,7 @@ export async function getAdminStats(collegeFilter?: string): Promise<AdminStats>
   const approveCount = await db.moderationEvent.count({
     where: {
       action: { in: ["APPROVE", "RESTORE"] },
-      ...(collegeFilter ? { moderator: userWhere } : {}),
+      ...(institutionId || collegeFilter ? { moderator: userWhere } : {}),
     },
   });
   const approvalRate = modEvents > 0 ? approveCount / modEvents : 0;

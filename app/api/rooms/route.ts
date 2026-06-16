@@ -8,7 +8,10 @@ import { createRoomSchema } from "@/lib/server/validation";
 export async function GET() {
   try {
     const user = await requireCurrentUser();
-    return NextResponse.json({ items: await listRooms({ id: user.id, collegeName: user.collegeName ?? null }) });
+    const institutionId = (user as { institution?: { id: string } | null }).institution?.id ?? null;
+    return NextResponse.json({
+      items: await listRooms({ id: user.id, collegeName: user.collegeName ?? null, institutionId }),
+    });
   } catch (error) {
     return handleRouteError(error);
   }
@@ -17,8 +20,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
+    const institutionId = (user as { institution?: { id: string } | null }).institution?.id ?? null;
     await assertRateLimit({
-      key: requestKey(request, "room-create", user.id),
+      key: requestKey(request, "room-create", user.id, institutionId),
       limit: 20,
       windowMs: 60 * 60 * 1000,
     });
