@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
+import type { AdminStats } from "@/lib/server/admin-analytics";
 
 type ModerationAction = "approve" | "reject" | "hide" | "restore";
 
@@ -16,14 +17,16 @@ export function ReviewView() {
 
   const [notes, setNotes] = useState<ApiNote[]>([]);
   const [reports, setReports] = useState<AdminReport[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshAdminQueue = useCallback(async () => {
     setLoading(true);
     try {
-      const [notesResponse, reportsResponse] = await Promise.all([
+      const [notesResponse, reportsResponse, statsResponse] = await Promise.all([
         fetch("/api/admin/notes?status=PENDING"),
         fetch("/api/admin/reports"),
+        fetch("/api/admin/analytics"),
       ]);
       if (!notesResponse.ok || !reportsResponse.ok) {
         throw new Error("Could not load review queue.");
@@ -32,6 +35,10 @@ export function ReviewView() {
       const reportsBody = (await reportsResponse.json()) as { items: AdminReport[] };
       setNotes(notesBody.items);
       setReports(reportsBody.items);
+
+      if (statsResponse.ok) {
+        setStats((await statsResponse.json()) as AdminStats);
+      }
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Could not load review queue.");
     } finally {
@@ -75,6 +82,24 @@ export function ReviewView() {
     [refreshAdminQueue, refreshMeta, setToast],
   );
 
+  const onResolveReport = useCallback(
+    async (reportId: string, status: "RESOLVED" | "DISMISSED") => {
+      try {
+        const response = await fetch("/api/admin/reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reportId, status }),
+        });
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        setToast(status === "RESOLVED" ? "Report resolved" : "Report dismissed");
+        void refreshAdminQueue();
+      } catch (error) {
+        setToast(error instanceof Error ? error.message : "Report action failed.");
+      }
+    },
+    [refreshAdminQueue, setToast],
+  );
+
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -98,6 +123,24 @@ export function ReviewView() {
           Refresh
         </button>
       </section>
+
+      {stats && (
+        <section className="rounded-lg border border-line bg-surface p-4 text-sm">
+          <div className="mb-2 flex items-center gap-2">
+            <SectionLabel>Analytics (B2B preview)</SectionLabel>
+            <span className="text-[10px] text-ink-faint">— key for institutional plans (add ?college= filter to /api/admin/analytics for scoping)</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 text-xs">
+            <div>Pending: <span className="font-mono font-bold">{stats.pendingUploads}</span></div>
+            <div>Open reports: <span className="font-mono font-bold">{stats.openReports}</span></div>
+            <div>Resolved reports: <span className="font-mono font-bold">{stats.resolvedReports}</span></div>
+            <div>Mod actions: <span className="font-mono font-bold">{stats.totalModerationActions}</span></div>
+            <div>Approval rate: <span className="font-mono font-bold">{Math.round(stats.approvalRate * 100)}%</span></div>
+            <div>7d downloads: <span className="font-mono font-bold">{stats.recentDownloads}</span></div>
+            <div>Active users (30d): <span className="font-mono font-bold">{stats.activeUsers}</span></div>
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="pb-3">
@@ -163,15 +206,31 @@ export function ReviewView() {
                     {report.details ? (
                       <span className="mt-2 block text-sm leading-6 text-ink-soft">{report.details}</span>
                     ) : null}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onModerate(report.note, "hide")}
-                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-                  >
-                    Hide note
-                  </button>
-                </div>
+                   </button>
+                   <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+                     <button
+                       type="button"
+                       onClick={() => onModerate(report.note, "hide")}
+                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                     >
+                       Hide note
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => onResolveReport(report.id, "RESOLVED")}
+                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                     >
+                       Resolve
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => onResolveReport(report.id, "DISMISSED")}
+                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                     >
+                       Dismiss
+                     </button>
+                   </div>
+                 </div>
               </div>
             ))}
           </div>

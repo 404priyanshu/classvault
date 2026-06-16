@@ -56,9 +56,11 @@ model User {
   collegeEmail String?  @unique
   collegeVerifiedAt DateTime?
   onboardingCompletedAt DateTime?
+  institutionId String?  // B2B: link to Institution for scoping, quotas, per-campus analytics/billing (backfill from collegeName on verification)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  institution Institution? @relation(fields: [institutionId], references: [id])
   notes      Note[]
   savedNotes SavedNote[]
   ratings    Rating[]
@@ -66,14 +68,16 @@ model User {
   studyTasks StudyTask[]
   notifications Notification[]
   comments   Comment[]
-  collections Collection[]
-  sessions   Session[]
-  oauthAccounts OAuthAccount[]
-  collegeVerificationCodes CollegeVerificationCode[]
-  moderationEvents ModerationEvent[]
-  reports Report[] @relation("ReporterReports")
-  resolvedReports Report[] @relation("ResolverReports")
-}
+   collections Collection[]
+   roomsOwned Room[]
+   roomParticipations RoomParticipant[]
+   sessions   Session[]
+   oauthAccounts OAuthAccount[]
+   collegeVerificationCodes CollegeVerificationCode[]
+   moderationEvents ModerationEvent[]
+   reports Report[] @relation("ReporterReports")
+   resolvedReports Report[] @relation("ResolverReports")
+ }
 
 // Server-side session store. The browser cookie holds the raw token; only its
 // SHA-256 hash is persisted, so a leaked database row cannot be replayed.
@@ -374,4 +378,55 @@ model CollectionNote {
 
   @@id([collectionId, noteId])
   @@index([noteId])
+}
+
+// Minimal Institution for B2B per-campus subscriptions, quotas, and scoped analytics (per approved financial sustainability plan).
+// Leverages existing User.college* fields for activation/backfill. Add institutionId to events later for fast metering.
+model Institution {
+  id                      String   @id @default(cuid())
+  name                    String   @unique
+  slug                    String   @unique // e.g. for future campus-specific paths or keys
+  emailDomain             String?  @unique // primary matching (e.g. "classvault.edu"); complements ALLOWED_EMAIL_DOMAINS
+  plan                    String   @default("free") // free|starter|pro|enterprise (for quotas/billing)
+  subscriptionStatus      String?  @default("active")
+  billingEmail            String?
+  quotaStorageBytes       Int?
+  quotaDownloadsPerMonth  Int?
+  quotaAiRequestsPerMonth Int?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  users User[]
+}
+
+// Silent focus rooms (per-user creation; Public visible to all, College-only scoped to owner's collegeName).
+// Timer and goals are simple fields; participation is per-user join (count = participants). No real-time.
+model Room {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  subject   String
+  type      String // "Public" | "College-only" (enforced in app layer)
+  timerVal  Int // minutes, e.g. 25 for Pomodoro
+  goals     String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner        User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  participants RoomParticipant[]
+
+  @@index([ownerId])
+  @@index([type])
+}
+
+model RoomParticipant {
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId])
 }

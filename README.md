@@ -10,7 +10,7 @@ ClassVault is an open-source campus study hub for notes, previous-year questions
 
 Built with Next.js App Router, React, TypeScript, Prisma, Postgres, custom cookie auth, Google OAuth, email OTP sign-up, upload moderation, and local or S3-compatible file storage.
 
-> Status: active early project. No open-source license has been selected yet; add a `LICENSE` before treating this as a reusable OSS package.
+> Status: active early project under MIT license. See [docs/roadmap.md](docs/roadmap.md) for planned features and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contents
 
@@ -24,6 +24,49 @@ Built with Next.js App Router, React, TypeScript, Prisma, Postgres, custom cooki
 ## Highlights
 
 - Shared note library with search, filters, saves, ratings, downloads, and reporting.
+
+## Screenshots
+
+> Placeholder captures (replace with real screenshots/GIFs from `pnpm dev`).
+
+- **Landing**: Hero, feature grid, study rooms teaser
+- **Library**: Search/filters, trending strip, note cards (list/grid)
+- **Note detail**: PDF preview drawer, threaded comments, ratings/saves
+- **Review (staff)**: Pending uploads queue + open reports + B2B analytics strip
+- **AI tools**: Roadmap generator + timeline; Exam Mode plan
+- **Notifications**: Bell + unread list (comment + moderation events)
+- **Collections**: Private list + public share page at `/c/[slug]`
+
+Example flows:
+- Uploading a note → staff review → published
+- Threaded comments + bell notifications
+- AI generated study roadmap
+- Public shareable collections
+
+See the demo at the Vercel preview or local `pnpm dev`.
+
+## For Universities & Institutions (B2B)
+
+ClassVault is designed for campus-wide adoption with a free tier for verified students (to maximize network effects and usage) plus paid institutional plans.
+
+**Key paid value for universities** (see Admin Analytics in /app/review for staff/moderators):
+- Ops dashboard: upload volume, approval/rejection rates, open reports, recent downloads, active users.
+- Moderation tooling + compliance reports (ModerationEvent audit trail).
+- Advanced AI (premium RAG "Ask your notes", higher quotas).
+- Future: SSO, custom branding, per-campus scoping, usage-based billing, PWA.
+
+**Pricing experiments** (see docs/roadmap.md):
+- Students: Free core / $4-8/mo premium (unlimited AI, extra storage).
+- Institutions: $1-4 per student/year or $3k-15k flat per campus for admin suite + advanced features.
+
+**GTM / Pilots (self-sustainability path)**:
+- Start with 1-2 small colleges for 3-mo paid pilots focused on admin analytics + moderation tooling (use existing /app/review + new analytics).
+- Compliance hook: ModerationEvent + Report models provide full audit trail (resolve/dismiss via future staff actions; status already OPEN/RESOLVED/DISMISSED).
+- Outreach: Target verified college admins (college-verified users + ADMIN_EMAILS). Seed demo data via `pnpm db:seed` (extend with multiple collegeNames).
+- Cost control: Existing AI quota fallbacks + rate limits (extend for inst quotas per plan).
+- Next: Full report resolution in lib/server/moderation + admin routes; Stripe checkout stubs; per-inst scoping in queries.
+
+Contact for pilots: Use college verification flow or email admins listed in ADMIN_EMAILS env. 3-month paid pilots recommended to validate retention before scaling.
 - Reviewed upload flow with staff approval, rejection, hiding, and restore actions.
 - Google OAuth, password fallback, email OTP sign-up, and official college email verification.
 - AI study tools for roadmaps, exam-mode prep, and upload metadata suggestions.
@@ -199,6 +242,16 @@ Contributions welcome once a license is added. Start with:
 2. Pick a focused issue or small improvement.
 3. Keep route handlers thin and preserve auth, rate limits, validation, moderation, and storage safety.
 4. Add or update focused tests for behavior changes.
+
+## Good first issues
+
+Pick one of these small, self-contained tasks to start:
+
+- Add one real screenshot/GIF to the Screenshots section (capture from `pnpm dev`; target library or review queue).
+- Add a focused unit test for a pure helper (e.g. `lib/format.ts` or `lib/server/room-logic.ts`).
+- Improve an error message or empty state copy in one view (e.g. empty library or failed upload).
+- Document one additional API endpoint in the API Overview table with a short curl example.
+- Triage 2–3 open issues and label them `good first issue` with clear scope.
 
 Security reports should stay private. See [SECURITY.md](SECURITY.md).
 

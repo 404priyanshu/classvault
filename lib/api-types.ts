@@ -170,6 +170,20 @@ export type CollectionsResponse = {
   items: ApiCollectionSummary[];
 };
 
+export type ApiRoom = {
+  id: string;
+  name: string;
+  subject: string;
+  count: number;
+  timerVal: number;
+  type: "Public" | "College-only";
+  goals: string[];
+};
+
+export type RoomsResponse = {
+  items: ApiRoom[];
+};
+
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;

@@ -305,7 +305,7 @@ async function callOpenAi(
 
 export async function generateJsonWithAi(
   input: GenerateJsonInput,
-  options: { fetchImpl?: FetchLike } = {},
+  options: { fetchImpl?: FetchLike; userId?: string | null; institutionId?: string | null } = {},
 ): Promise<ProviderResult> {
   const providers = configuredProviders();
   if (!providers.length) {
@@ -321,6 +321,13 @@ export async function generateJsonWithAi(
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
     }
+  }
+
+  // B2B usage hook (for future metering/billing on premium "Ask your notes" or unlimited AI tiers).
+  // Callers (ai routes) can pass institutionId from user.institution after tenant model.
+  // TODO: persist to UsageEvent or increment Institution quota counters; integrate with Stripe for overage.
+  if (options.institutionId || options.userId) {
+    // e.g. await recordAiUsage({ institutionId: options.institutionId, userId: options.userId, type: 'roadmap' });
   }
 
   throw new AiProviderError(errors.join(" | ") || "All AI providers failed.");

@@ -99,3 +99,27 @@ export async function listReports() {
     reporter: report.reporter,
   }));
 }
+
+// Resolve/dismiss report (B2B compliance/ops for paid institutional plans; reuses Report resolver fields + tx pattern from moderateNote).
+export async function resolveReport({
+  reportId,
+  resolverId,
+  status, // RESOLVED | DISMISSED
+}: {
+  reportId: string;
+  resolverId: string;
+  status: "RESOLVED" | "DISMISSED";
+}): Promise<{ ok: true } | { ok: false; code: "NOT_FOUND" }> {
+  const report = await db.report.findUnique({ where: { id: reportId }, select: { id: true, status: true } });
+  if (!report || report.status !== "OPEN") return { ok: false, code: "NOT_FOUND" };
+
+  await db.report.update({
+    where: { id: reportId },
+    data: {
+      status,
+      resolvedAt: new Date(),
+      resolverId,
+    },
+  });
+  return { ok: true };
+}

@@ -6,6 +6,7 @@ import {
   notesQuerySchema,
   profileUpdateSchema,
   ratingSchema,
+  reportResolutionSchema,
   reportSchema,
 } from "@/lib/server/validation";
 
@@ -147,5 +148,24 @@ describe("reportSchema", () => {
     });
     expect(() => reportSchema.parse({ noteId: "", reason: "Spam" })).toThrow();
     expect(() => reportSchema.parse({ noteId: "n1", reason: "x" })).toThrow();
+  });
+});
+
+describe("reportResolutionSchema", () => {
+  it("accepts RESOLVED or DISMISSED with a reportId", () => {
+    expect(reportResolutionSchema.parse({ reportId: "r1", status: "RESOLVED" })).toMatchObject({
+      reportId: "r1",
+      status: "RESOLVED",
+    });
+    expect(reportResolutionSchema.parse({ reportId: "r2", status: "DISMISSED" })).toMatchObject({
+      reportId: "r2",
+      status: "DISMISSED",
+    });
+  });
+
+  it("rejects invalid inputs", () => {
+    expect(() => reportResolutionSchema.parse({ reportId: "", status: "RESOLVED" })).toThrow();
+    expect(() => reportResolutionSchema.parse({ reportId: "r1", status: "OPEN" })).toThrow();
+    expect(() => reportResolutionSchema.parse({ reportId: "r1" })).toThrow();
   });
 });

@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Check, X } from "lucide-react";
 
 type RoomDetails = {
+  id: string;
   name: string;
   subject: string;
   count: number;
@@ -14,38 +15,29 @@ type RoomDetails = {
 };
 
 export function StudyRoomsView() {
-  const [rooms, setRooms] = useState<RoomDetails[]>([
-    {
-      name: "DBMS Exam Sprint",
-      subject: "DBMS",
-      count: 18,
-      timer: "25:00 focus",
-      timerVal: 25,
-      type: "College-only",
-      goals: ["Finish Unit 2 Normal forms", "Solve PYQs", "Revise SQL joins"],
-    },
-    {
-      name: "CN Focus Room",
-      subject: "Computer Networks",
-      count: 9,
-      timer: "50:00 focus",
-      timerVal: 50,
-      type: "Public",
-      goals: ["Watch routing lecture", "Revise sliding window", "Draw OSI structure"],
-    },
-    {
-      name: "Silent Study",
-      subject: "General Study",
-      count: 32,
-      timer: "25:00 Pomodoro",
-      timerVal: 25,
-      type: "Public",
-      goals: ["Complete reading tasks", "Clean logs", "Write notes"],
-    },
-  ]);
+  const [rooms, setRooms] = useState<RoomDetails[]>([]);
 
   const [activeRoom, setActiveRoom] = useState<RoomDetails | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  async function refreshRooms() {
+    try {
+      const res = await fetch("/api/rooms");
+      if (res.ok) {
+        const body = (await res.json()) as { items: RoomDetails[] };
+        setRooms(body.items);
+      }
+    } catch {
+      // ignore; list will be empty until successful load
+    }
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refreshRooms();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Creation form states
   const [newRoomName, setNewRoomName] = useState("");
@@ -78,39 +70,54 @@ export function StudyRoomsView() {
     };
   }, [timerRunning, timeLeft]);
 
-  function handleJoinRoom(room: RoomDetails) {
+  async function handleJoinRoom(room: RoomDetails) {
+    try {
+      await fetch(`/api/rooms/${room.id}/join`, { method: "POST" });
+    } catch {
+      // best-effort; still allow entering the session
+    }
     setActiveRoom(room);
     setTimeLeft(room.timerVal * 60);
     setTimerRunning(false);
     setCompletedSession(false);
   }
 
-  function handleCreateRoom(e: FormEvent) {
+  async function handleCreateRoom(e: FormEvent) {
     e.preventDefault();
-    if (!newRoomName || !newSubject) return;
+    if (!newRoomName.trim() || !newSubject.trim()) return;
 
-    const created: RoomDetails = {
-      name: newRoomName,
-      subject: newSubject,
-      count: 1,
-      timer: `${newTimer}:00 Pomodoro`,
-      timerVal: newTimer,
+    const payload = {
+      name: newRoomName.trim(),
+      subject: newSubject.trim(),
       type: newType,
-      goals: newGoals.split(",").map((g) => g.trim()).filter(Boolean),
+      timerVal: newTimer,
+      goals: newGoals
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean),
     };
 
-    setRooms((prev) => [created, ...prev]);
-    setCreateOpen(false);
-
-    // Auto join
-    handleJoinRoom(created);
-
-    // Reset form
-    setNewRoomName("");
-    setNewSubject("");
-    setNewType("Public");
-    setNewTimer(25);
-    setNewGoals("");
+    try {
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Failed to create room");
+      const created: RoomDetails = await res.json();
+      setCreateOpen(false);
+      void refreshRooms();
+      // server auto-joins creator; enter session
+      await handleJoinRoom(created);
+      // Reset form
+      setNewRoomName("");
+      setNewSubject("");
+      setNewType("Public");
+      setNewTimer(25);
+      setNewGoals("");
+    } catch {
+      // on failure leave dialog open for retry (no local fallback)
+    }
   }
 
   const formatTimer = (sec: number) => {
@@ -139,7 +146,7 @@ export function StudyRoomsView() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rooms.map((room) => (
-              <div key={room.name} className="flex flex-col justify-between p-5 rounded-xl border border-line bg-surface hover:shadow-md transition">
+              <div key={room.id} className="flex flex-col justify-between p-5 rounded-xl border border-line bg-surface hover:shadow-md transition">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded border border-line bg-paper px-1.5 py-0.5 text-[9px] font-bold text-ink-soft uppercase">
@@ -182,7 +189,13 @@ export function StudyRoomsView() {
               <p className="text-xs text-ink-soft font-semibold mt-0.5">{activeRoom.subject}</p>
             </div>
             <button
-              onClick={() => {
+              onClick={async () => {
+                if (activeRoom?.id) {
+                  try {
+                    await fetch(`/api/rooms/${activeRoom.id}/leave`, { method: "POST" });
+                  } catch {}
+                  void refreshRooms();
+                }
                 setActiveRoom(null);
                 setTimerRunning(false);
               }}

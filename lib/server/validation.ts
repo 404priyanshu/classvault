@@ -97,6 +97,11 @@ export const reportSchema = z.object({
   details: z.string().trim().max(1000).optional(),
 });
 
+export const reportResolutionSchema = z.object({
+  reportId: z.string().trim().min(1),
+  status: z.enum(["RESOLVED", "DISMISSED"]),
+});
+
 export const adminNotesQuerySchema = z.object({
   status: z.enum(NOTE_STATUSES).default("PENDING"),
   limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -214,4 +219,12 @@ export const updateCollectionSchema = z
 
 export const collectionNoteSchema = z.object({
   noteId: z.string().trim().min(1),
+});
+
+export const createRoomSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  subject: z.string().trim().min(1).max(120),
+  type: z.enum(["Public", "College-only"]),
+  timerVal: z.number().int().min(5).max(120),
+  goals: z.array(z.string().trim().min(1).max(200)).max(10).default([]),
 });

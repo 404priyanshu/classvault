@@ -22,7 +22,10 @@ function clientIp(request: Request) {
   return hops?.length ? hops[hops.length - 1] : "unknown";
 }
 
-export function requestKey(request: Request, scope: string, userId?: string | null) {
+export function requestKey(request: Request, scope: string, userId?: string | null, institutionId?: string | null) {
+  // Extended for B2B: prefix with inst for per-campus quotas/metering (used in premium tiers + analytics).
+  // Falls back to user or IP for free tier (existing behavior).
+  if (institutionId) return `${scope}:inst:${institutionId}:${userId || 'anon'}`;
   if (userId) return `${scope}:user:${userId}`;
   return `${scope}:ip:${clientIp(request)}`;
 }

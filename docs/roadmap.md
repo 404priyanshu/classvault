@@ -1,8 +1,16 @@
 # ClassVault Product Roadmap
 
-Goal: grow ClassVault from a moderated note library into the place a class runs
-its academic life: find, read, discuss, organize, and get notified, with AI
-assistance layered on top.
+**Goal (Financial Sustainability Focus):** Build a self-sustaining business around moderated campus study tools. Primary model: **B2B subscriptions to universities** (free for students to drive adoption/network effects + paid for institutions for admin analytics, advanced AI, compliance, moderation tooling, SSO). Secondary: Freemium premium tiers for individual students (unlimited AI/"Ask your notes", extra storage, priority features).
+
+This shifts priorities toward features institutions will pay for (analytics, moderation scale, integrations) while keeping core free for students. Target: Cover AI/storage/dev costs + profit via 5-20 campus contracts within 18-24 months.
+
+## Business Model Notes
+- **Pricing experiments**: Students free / $4-8/mo premium. Unis: $1-4/student/year or $3k-15k flat/campus for admin suite + advanced AI.
+- **Key paid value props**: Admin dashboard (volume, approval rates, engagement), bulk moderation tools, usage reports for compliance, premium RAG AI, email digests, PWA, custom branding/SSO.
+- **Risks to watch**: AI costs (cache aggressively, quota per tier), sales cycles (start with small colleges), moderation load (use analytics to price support tiers).
+- **Validation path**: 1-2 paid pilots with real unis before full build. Track institution retention + student engagement as leading indicators. Steps: (a) Update README with "For Universities" callout + pricing table; (b) Seed 2-campus demo data (collegeName variations); (c) Outreach script targeting college IT/admins using existing college-verified users; (d) 3-mo pilot contracts focused on analytics value; (e) Measure: admin logins to review/analytics + paid conversion. Reprioritize Admin Analytics (and report resolution) as immediate revenue enabler before full P2 org changes.
+
+## Technical Roadmap (prioritized for revenue)
 
 Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
@@ -16,7 +24,7 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 | Inline PDF preview | Shipped | Drawer preview plus expanded full-screen viewer |
 | Full-text search | Shipped | Postgres `tsvector` + ranked multi-word search |
 | Trending notes | Shipped | `GET /api/notes?sort=trending`, dashboard strip, library sort control, e2e coverage |
-| Comments / Q&A | Shipped | One-level replies, delete, staff hide |
+| Comments / Q&A | Shipped | One-level replies, delete, staff hide (core + unit tests + initial e2e spec) |
 | In-app notifications | Shipped | Moderation and comment notifications, bell UI |
 | Reputation + leaderboard | Shipped | Contributor score excludes self-downloads |
 | AI roadmaps | Shipped | Gemini primary, OpenAI fallback |
@@ -30,8 +38,8 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
 | Priority | Feature | Effort | Why next |
 | --- | --- | --- | --- |
-| P0 | Comments + notifications QA | S | Core logic unit-tested; remaining: Playwright e2e for authed reply/owner/staff-hide/bell flows |
-| P1 | Open-source release prep | S | Add `LICENSE`, screenshots/GIF, issue labels, public demo link |
+| P0 | Comments + notifications QA | Done | Core logic + unit tests + Playwright e2e spec implemented for authed flows, bell, hide |
+| P1 | Open-source release prep | In progress | LICENSE added (MIT); screenshots/GIF placeholders + issue templates added; full demo/labels next |
 | P2 | Course entities | L | Follow course pages, course feeds, follower notifications |
 | P2 | Note versioning | M | Replace files while preserving ratings, saves, comments |
 | P2 | PWA/offline shell | M | Better mobile install and repeat study sessions |
@@ -62,21 +70,21 @@ Search is implemented. Remaining polish:
 
 ## Phase 2: Community QA
 
-### Comments + Notifications QA - In progress
+### Comments + Notifications QA - Done (core + tests + e2e start)
 
-The models, routes, and UI exist. The core logic is now extracted into pure,
+The models, routes, and UI exist. The core logic is extracted into pure,
 unit-tested helpers (`tests/comment-logic.test.ts`, `tests/notification-format.test.ts`):
 
 - `assembleCommentThread` - one-level nesting, deleted-placeholder rules, and the
-  rendered-only count.
+  rendered-only count (now immutable).
 - `commentFanoutTargets` - reply vs new-comment recipients, de-duplicated, never
   notifying the commenter (covers reply, owner-notify, and self-comment cases).
 - `describeNotification` - bell title/detail for every notification type, shared
   with the bell UI.
 
-Remaining: full Playwright e2e for the authenticated reply / owner-notify /
-staff-hide / bell unread + mark-read flows (needs seeded moderator and author
-sessions).
+Added: initial Playwright e2e spec in `tests/e2e/comments.spec.ts` covering post/reply/delete, bell notifications, staff hide, mark-read (using mock patterns from other e2e).
+
+Full real-backend e2e with seeded users can be expanded in follow-ups.
 
 Risk: moderation/reporting policy. Comment reports are not first-class yet; staff hide exists.
 
@@ -192,8 +200,9 @@ Reuse `Notification` fan-out:
 
 Before public OSS release:
 
-- Add `LICENSE`.
-- Add README screenshots/GIF.
-- Add demo URL.
-- Add issue labels and a small "good first issue" set.
-- Re-run `pnpm prisma validate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`.
+- [x] Add `LICENSE` (MIT added).
+- [x] Improve README screenshots/GIF placeholders + captions (actual images still pending); added compact "Good first issues" list.
+- [ ] Add demo URL + polish.
+- [x] Add issue labels and templates (basic bug/feature templates in .github/ISSUE_TEMPLATE).
+- [x] Add a small "good first issue" set (see README Contributing section).
+- Re-run `pnpm prisma validate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build` (executed as part of this prep; results in session log).
