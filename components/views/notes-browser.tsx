@@ -7,6 +7,7 @@ import {
   FilterBar,
   NoteCollection,
   type LayoutMode,
+  type NoteSort,
 } from "@/components/notes/note-ui";
 
 type NotesScope = "library" | "saved";
@@ -22,6 +23,7 @@ export function NotesBrowser({ scope }: { scope: NotesScope }) {
   const [query, setQuery] = useState("");
   const [semester, setSemester] = useState("All");
   const [subject, setSubject] = useState("All");
+  const [sort, setSort] = useState<NoteSort>("recent");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("list");
   const [notes, setNotes] = useState<ApiNote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export function NotesBrowser({ scope }: { scope: NotesScope }) {
     if (query.trim()) params.set("q", query.trim());
     if (semester !== "All") params.set("semester", semester);
     if (subject !== "All") params.set("subject", subject);
+    if (scope === "library" && sort !== "recent") params.set("sort", sort);
     if (scope === "saved") params.set("saved", "true");
 
     const timer = window.setTimeout(async () => {
@@ -66,7 +69,7 @@ export function NotesBrowser({ scope }: { scope: NotesScope }) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [scope, query, semester, subject, refetchTick, openAuthPrompt]);
+  }, [scope, query, semester, subject, sort, refetchTick, openAuthPrompt]);
 
   // Apply optimistic patches from the shared note actions.
   useEffect(
@@ -94,12 +97,16 @@ export function NotesBrowser({ scope }: { scope: NotesScope }) {
         subject={subject}
         subjects={["All", ...(meta?.subjects ?? [])]}
         onSubjectChange={setSubject}
+        sort={sort}
+        onSortChange={setSort}
+        showSort={scope === "library"}
         layoutMode={layoutMode}
         onLayoutModeChange={setLayoutMode}
         onReset={() => {
           setQuery("");
           setSemester("All");
           setSubject("All");
+          setSort("recent");
         }}
         count={notes.length}
       />
@@ -110,7 +117,11 @@ export function NotesBrowser({ scope }: { scope: NotesScope }) {
         onRetry={refetch}
         layoutMode={layoutMode}
         onOpenNote={openNoteDetail}
-        emptyHint={EMPTY_HINT[scope]}
+        emptyHint={
+          scope === "library" && sort === "trending"
+            ? "No trending resources yet. Recent uploads will appear while downloads build up."
+            : EMPTY_HINT[scope]
+        }
       />
     </>
   );

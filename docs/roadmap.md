@@ -15,14 +15,14 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 | Uploads | Shipped | Local/S3-compatible storage, reviewed uploads, staff moderation |
 | Inline PDF preview | Shipped | Drawer preview plus expanded full-screen viewer |
 | Full-text search | Shipped | Postgres `tsvector` + ranked multi-word search |
-| Trending notes | Shipped backend | `GET /api/notes?sort=trending`; needs stronger UI placement |
+| Trending notes | Shipped | `GET /api/notes?sort=trending`, dashboard strip, library sort control, e2e coverage |
 | Comments / Q&A | Shipped | One-level replies, delete, staff hide |
 | In-app notifications | Shipped | Moderation and comment notifications, bell UI |
 | Reputation + leaderboard | Shipped | Contributor score excludes self-downloads |
 | AI roadmaps | Shipped | Gemini primary, OpenAI fallback |
 | Exam Mode | Shipped | High-yield crash-prep plan |
 | AI note suggestions | Shipped | Upload description/tag suggestions |
-| Collections | Shipped | Private/public note sets, `/app/collections`, public `/c/[slug]` |
+| Collections | Shipped + QA hardened | Private/public note sets, `/app/collections`, public `/c/[slug]`, app-flow and slug-visibility coverage |
 | Study tasks | Shipped | DB-backed task list |
 | Open-source docs | In progress | README/CONTRIBUTING polished; license still missing |
 
@@ -30,10 +30,7 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
 | Priority | Feature | Effort | Why next |
 | --- | --- | --- | --- |
-| P0 | Collections QA hardening | S | Latest shipped feature; protect create/share/delete flows |
-| P0 | Roadmap/docs truth pass | S | Keep public project docs honest |
-| P1 | Trending UI | S | Backend exists; visible dashboard/library module improves discovery |
-| P1 | Comments + notifications QA | S-M | Prove reply, owner, staff-hide, and read-state flows end-to-end |
+| P0 | Comments + notifications QA | S-M | Prove reply, owner, staff-hide, and read-state flows end-to-end |
 | P1 | Open-source release prep | S | Add `LICENSE`, screenshots/GIF, issue labels, public demo link |
 | P2 | Course entities | L | Follow course pages, course feeds, follower notifications |
 | P2 | Note versioning | M | Replace files while preserving ratings, saves, comments |
@@ -44,14 +41,14 @@ Effort: **S** <= 1 day, **M** = 2-4 days, **L** = 1-2 weeks.
 
 ## Phase 1: Discovery Polish
 
-### Trending UI - S
+### Trending UI - Done
 
-Backend already supports ranking notes by recent `DownloadEvent` activity. Add:
+Backend supports ranking notes by recent `DownloadEvent` activity. Shipped:
 
 - Dashboard strip: "Trending this week".
 - Library sort control: recent/trending.
-- Empty/fallback state when no recent downloads exist.
-- E2E coverage for `sort=trending` query behavior.
+- Empty state while downloads build up.
+- E2E coverage for dashboard and library `sort=trending` query behavior.
 
 Risk: low. If download volume is small, fall back to all-time `downloadCount`.
 
@@ -87,17 +84,17 @@ Leaderboard is live. Remaining polish:
 
 ## Phase 3: Organization
 
-### Collections QA Hardening - S
+### Collections QA Hardening - Done
 
-Collections are shipped. Add/maintain tests for:
+Collections are shipped with coverage for:
 
-- Create collection.
-- Open collection detail.
-- Toggle public/private.
-- Copy public share link.
-- Remove notes.
-- Delete collection.
-- Public `/c/[slug]` access.
+- Creating a collection.
+- Opening collection detail.
+- Toggling public/private state.
+- Surfacing the public share path.
+- Removing notes.
+- Deleting a collection.
+- Public `/c/[slug]` visibility rules for anonymous visitors and collection owners.
 
 ### Courses As Entities - L
 
