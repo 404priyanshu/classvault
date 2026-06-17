@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { BookOpenCheck, CheckCircle2, Clock, Sparkles, X } from "lucide-react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { BookOpenCheck, CheckCircle2, Clock, Sparkles, Wand2, X, Zap } from "lucide-react";
+import confetti from "canvas-confetti";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import type { AiRoadmapResponse, ApiError, ApiRoadmapDay } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
@@ -159,12 +161,15 @@ function RoadmapTimelineChart({
           const isActive = activeIndex === index;
           const progress = roadmapProgress(day);
           return (
-            <button
+            <motion.button
               key={day.day}
               type="button"
               onClick={() => onSelect(index)}
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.99 }}
+              transition={{ type: "spring", stiffness: 400, damping: 28 }}
               className={cx(
-                "min-w-0 rounded-xl border p-4 text-left transition-all duration-200",
+                "timeline-pill min-w-0 rounded-xl border p-4 text-left",
                 isActive
                   ? "border-accent bg-surface shadow-[0_4px_12px_rgba(99,91,255,0.08)] ring-2 ring-accent/30"
                   : progress === 100
@@ -208,7 +213,7 @@ function RoadmapTimelineChart({
                   style={{ width: `${progress}%` }}
                 />
               </span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -306,21 +311,24 @@ function RoadmapTimelineChart({
               const isActive = activeIndex === index;
               const progress = roadmapProgress(day);
               return (
-                <button
+                <motion.button
                   key={day.day}
                   type="button"
                   onMouseEnter={() => onHover(index)}
                   onMouseLeave={() => onHover(null)}
                   onClick={() => onSelect(index)}
                   style={roadmapPillStyle(index, days.length)}
+                  whileHover={{ y: -2, scale: isActive ? 1.01 : 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 26 }}
                   className={cx(
-                    "absolute z-20 flex h-[98px] min-w-0 flex-col justify-between rounded-xl p-3 text-left text-xs font-semibold shadow-sm border transition-all duration-300 animate-pill-cascade",
+                    "timeline-pill absolute z-20 flex h-[98px] min-w-0 flex-col justify-between rounded-xl p-3 text-left text-xs font-semibold shadow-sm border",
                     isActive
-                      ? "border-accent bg-surface text-ink ring-4 ring-accent-soft/40 shadow-lg scale-[1.03] -translate-y-0.5"
+                      ? "border-accent bg-surface text-ink ring-4 ring-accent-soft/40 shadow-xl"
                       : progress === 100
-                        ? "border-emerald-500/40 bg-emerald-50/60 hover:bg-emerald-50 text-ink hover:border-emerald-500 hover:shadow-md hover:-translate-y-0.5"
+                        ? "border-emerald-500/40 bg-emerald-50/60 text-ink hover:border-emerald-500"
                         : isHovered
-                          ? "border-line-strong bg-paper text-ink hover:shadow-md hover:-translate-y-0.5"
+                          ? "border-line-strong bg-paper text-ink"
                           : "border-line bg-surface text-ink",
                   )}
                 >
@@ -362,7 +370,7 @@ function RoadmapTimelineChart({
                       />
                     </span>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -374,12 +382,15 @@ function RoadmapTimelineChart({
             const isActive = activeIndex === index;
             const progress = roadmapProgress(day);
             return (
-              <button
+              <motion.button
                 key={day.day}
                 type="button"
                 onClick={() => onSelect(index)}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.985 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={cx(
-                  "min-w-0 rounded-xl border p-3 text-left transition-all duration-200",
+                  "timeline-pill min-w-0 rounded-xl border p-3 text-left",
                   isActive
                     ? "border-accent bg-accent-soft/50 shadow-sm"
                     : progress === 100
@@ -397,7 +408,7 @@ function RoadmapTimelineChart({
                 </div>
                 <h4 className="mt-1 break-words text-xs font-bold leading-snug text-ink line-clamp-1">{day.title}</h4>
                 <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-ink-soft">{day.topic}</p>
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -436,6 +447,11 @@ export function AIRoadmapsView() {
 
   const [generating, setGenerating] = useState(false);
   const [roadmap, setRoadmap] = useState<RoadmapDay[] | null>(null);
+
+  // Beautiful loader visuals (decoupled from real API for delightful progress feel)
+  const [loaderStep, setLoaderStep] = useState(0);
+  const [notesAnalyzed, setNotesAnalyzed] = useState(42);
+  const [connectionsMapped, setConnectionsMapped] = useState(17);
   const [generationMeta, setGenerationMeta] = useState<{
     provider: AiRoadmapResponse["provider"];
     model: string;
@@ -454,6 +470,9 @@ export function AIRoadmapsView() {
   // Interactive Preview State
   const [previewRoadmap, setPreviewRoadmap] = useState<RoadmapDay[]>(PREVIEW_ROADMAP);
   const [hoveredPreviewDay, setHoveredPreviewDay] = useState<number | null>(null);
+
+  // For aborting in-flight generation
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   function togglePreviewTaskCheckbox(dayIdx: number, taskIdx: number) {
     setPreviewRoadmap((current) =>
@@ -483,9 +502,17 @@ export function AIRoadmapsView() {
       return;
     }
 
+    // Setup abort controller for cancel support
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setGenerating(true);
+    setLoaderStep(0);
+    setNotesAnalyzed(42);
+    setConnectionsMapped(17);
     setGenerateError(null);
     setGenerationMeta(null);
+
     try {
       const response = await fetch("/api/ai/roadmap", {
         method: "POST",
@@ -502,6 +529,7 @@ export function AIRoadmapsView() {
             video: useVideo,
           },
         }),
+        signal: controller.signal,
       });
 
       if (response.status === 401) {
@@ -519,12 +547,67 @@ export function AIRoadmapsView() {
       });
       setActiveDay(0);
       setToast("Roadmap generated.");
-    } catch (error) {
-      setGenerateError(error instanceof Error ? error.message : "Could not generate roadmap.");
+
+      // Reward the user with a beautiful confetti burst (accent + success colors)
+      confetti({
+        particleCount: 180,
+        spread: 90,
+        origin: { y: 0.65 },
+        colors: ["#635BFF", "#22C55E", "#a5b4fc"],
+      });
+      // Second burst for more magic
+      setTimeout(() => {
+        confetti({
+          particleCount: 90,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.1, y: 0.7 },
+          colors: ["#635BFF"],
+        });
+      }, 180);
+    } catch (error: unknown) {
+      const err = error as Error & { name?: string };
+      if (err.name === "AbortError") {
+        // User cancelled — do not treat as error
+        setGenerateError(null);
+        return;
+      }
+      setGenerateError(err instanceof Error ? err.message : "Could not generate roadmap.");
     } finally {
       setGenerating(false);
+      abortControllerRef.current = null;
     }
   }
+
+  function stopGeneration() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setGenerating(false);
+    setGenerateError(null);
+    abortControllerRef.current = null;
+  }
+
+  // Drive the gorgeous loader visuals + simulated progress while the real generation runs
+  useEffect(() => {
+    if (!generating) {
+      return;
+    }
+
+    const stepTimer = window.setInterval(() => {
+      setLoaderStep((s) => Math.min(s + 1, 3));
+    }, 1250);
+
+    const metricsTimer = window.setInterval(() => {
+      setNotesAnalyzed((n) => Math.min(n + (Math.random() > 0.5 ? 2 : 1), 137));
+      setConnectionsMapped((c) => Math.min(c + (Math.random() > 0.6 ? 2 : 1), 71));
+    }, 620);
+
+    return () => {
+      window.clearInterval(stepTimer);
+      window.clearInterval(metricsTimer);
+    };
+  }, [generating]);
 
   function toggleTaskCheckbox(dayIdx: number, taskIdx: number) {
     if (!roadmap) return;
@@ -546,263 +629,519 @@ export function AIRoadmapsView() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      <p className="text-sm text-ink-soft">
-        Generate a customized subject study schedule using your files, community notes, and syllabus specifications.
-      </p>
-
-      {!roadmap && (
-        <div className="min-w-0 space-y-6">
-          {/* Left Column: Form Configuration */}
-          <div className="min-w-0 rounded-xl border border-line bg-surface p-3 shadow-sm sm:p-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2.5">
-              Configure Study Plan
-            </h3>
-            <form onSubmit={handleGenerate} className="space-y-3">
-              <div className="grid gap-3">
-                {/* Row 1: Subject and Duration */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <label className="block min-w-0 sm:col-span-2">
-                    <span className="text-[11px] font-bold text-ink-soft">Study Subject</span>
-                    <input
-                      type="text"
-                      required
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="e.g. Computer Networks, DBMS, Operating Systems"
-                      className="mt-1 h-9 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-xs outline-none transition focus:border-line-strong focus:bg-surface"
-                    />
-                  </label>
-
-                  <label className="block min-w-0">
-                    <span className="text-[11px] font-bold text-ink-soft">Target Duration</span>
-                    <select
-                      value={days}
-                      onChange={(e) => setDays(Number(e.target.value))}
-                      className="mt-1 h-9 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-xs outline-none transition focus:border-line-strong focus:bg-surface"
-                    >
-                      <option value={3}>3 Days (Exam Sprint)</option>
-                      <option value={5}>5 Days (Recommended)</option>
-                      <option value={7}>7 Days (Deep Learning)</option>
-                    </select>
-                  </label>
-                </div>
-
-                {/* Row 2: Level and Goal */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="block min-w-0">
-                    <span className="text-[11px] font-bold text-ink-soft">Current Level</span>
-                    <div className="mt-1 flex min-w-0 gap-1 rounded-lg border border-line bg-paper p-0.5">
-                      {["Beginner", "Okay", "Strong"].map((lvl) => (
-                        <button
-                          key={lvl}
-                          type="button"
-                          onClick={() => setLevel(lvl)}
-                          className={cx(
-                            "min-w-0 flex-1 rounded py-1 text-[11px] font-bold transition",
-                            level === lvl ? "bg-ink text-surface" : "text-ink-soft hover:text-ink",
-                          )}
-                        >
-                          {lvl}
-                        </button>
-                      ))}
-                    </div>
-                  </label>
-
-                  <label className="block min-w-0">
-                    <span className="text-[11px] font-bold text-ink-soft">Study Goal</span>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {[
-                        "Pass quickly",
-                        "Score high",
-                        "Deep understanding",
-                        "Interview prep",
-                      ].map((gl) => (
-                        <button
-                          key={gl}
-                          type="button"
-                          onClick={() => setGoal(gl)}
-                          className={cx(
-                            "rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition",
-                            goal === gl ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
-                          )}
-                        >
-                          {gl}
-                        </button>
-                      ))}
-                    </div>
-                  </label>
-                </div>
-
-                {/* Row 3: Ingestion Source Materials */}
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold text-ink-soft block">Ingestion Source Materials</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
-                      { label: "Use community resources", val: useCommunity, set: setUseCommunity },
-                      { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
-                      { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
-                    ].map((toggle) => (
-                      <label key={toggle.label} className="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-ink-soft hover:text-ink">
-                        <input
-                          type="checkbox"
-                          checked={toggle.val}
-                          onChange={(e) => toggle.set(e.target.checked)}
-                          className="rounded border-line text-accent focus:ring-accent"
-                        />
-                        <span className="truncate" title={toggle.label}>{toggle.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={generating || !subject.trim()}
-                className="inline-flex h-9 w-full items-center justify-center rounded-md bg-ink text-xs font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60 pt-0.5"
-              >
-                {generating ? "Parsing materials & compiling roadmap..." : "Generate AI Roadmap"}
-              </button>
-              {generateError ? (
-                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
-                  {generateError}
-                </p>
-              ) : null}
-            </form>
-          </div>
-
-          {/* Right Column: Live Interactive Sandbox Preview */}
-          <div className="min-w-0 space-y-4">
-            <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent"></span>
-                Interactive Preview
-              </span>
-              <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider">
-                Demo: Computer Networks (5 Days)
-              </span>
+    <div className="space-y-10 pb-16">
+      {/* Luxurious, rewarding AI header */}
+      <div className="magic-header pt-2">
+        <div className="flex items-center gap-4">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="ai-badge inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-gradient-to-br from-accent/10 to-accent/5 ring-1 ring-inset ring-accent/30 shadow-inner"
+          >
+            <Sparkles className="h-5 w-5 text-accent" />
+          </motion.div>
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-accent/70">CLASSVAULT • AI STUDIO</div>
             </div>
-
-            {/* Sandbox Gantt Chart Timeline Card */}
-            <div className="relative min-w-0 select-none overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
-              <RoadmapTimelineChart
-                days={previewRoadmap}
-                activeIndex={activePreviewDay}
-                hoveredIndex={hoveredPreviewDay}
-                onSelect={setActivePreviewDay}
-                onHover={setHoveredPreviewDay}
-              />
-
-              {/* Active Day Detail Panel for Preview */}
-              <div className="mt-6 space-y-4 border-t border-line pt-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
-                    <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
-                      Day {previewRoadmap[activePreviewDay].day} Focus
-                    </span>
-                    <h4 className="min-w-0 text-sm font-bold text-ink">
-                      {previewRoadmap[activePreviewDay].title}
-                    </h4>
-                  </div>
-                  <span className="w-fit text-xs font-mono font-bold text-success bg-success/10 px-2 py-0.5 rounded">
-                    {Math.round((previewRoadmap[activePreviewDay].done.filter(Boolean).length / previewRoadmap[activePreviewDay].done.length) * 100)}% Complete
-                  </span>
-                </div>
-
-                <p className="text-xs text-ink-soft leading-relaxed bg-paper p-3 rounded-lg border border-line">
-                  <span className="font-semibold text-ink block text-[10px] uppercase tracking-wider mb-0.5">Focus Topic</span>
-                  {previewRoadmap[activePreviewDay].topic}
-                </p>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* Left Column: Tasks */}
-                  <div className="space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Tasks Checklist</span>
-                    <div className="space-y-2.5">
-                      {[...previewRoadmap[activePreviewDay].tasks, ...previewRoadmap[activePreviewDay].pyqs].map((task, tIdx) => (
-                        <div key={tIdx} className="flex items-start gap-3 group bg-surface hover:bg-paper p-2 rounded-lg border border-line/40 transition-colors">
-                          <button
-                            onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
-                            className={cx(
-                              "flex h-4 w-4 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
-                              previewRoadmap[activePreviewDay].done[tIdx]
-                                ? "border-success bg-success text-surface animate-check-pop"
-                                : "border-line-strong hover:border-accent hover:bg-accent-soft"
-                            )}
-                          >
-                            {previewRoadmap[activePreviewDay].done[tIdx] ? <span className="text-[9px] font-black">✓</span> : null}
-                          </button>
-                          <span
-                            className={cx(
-                              "text-xs font-medium leading-relaxed transition-colors",
-                              previewRoadmap[activePreviewDay].done[tIdx]
-                                ? "text-ink-faint line-through"
-                                : "text-ink-soft group-hover:text-ink"
-                            )}
-                          >
-                            {task}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Ingested Materials */}
-                  <div className="space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Ingested Materials</span>
-                    <div className="space-y-2">
-                      {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
-                        <div
-                          key={rIdx}
-                          className="flex items-center gap-2.5 text-xs text-ink-soft bg-paper p-2.5 rounded-lg border border-line truncate"
-                          title={res}
-                        >
-                          <span className="text-base">📄</span>
-                          <span className="truncate font-medium">{res}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <h1 className="text-[28px] leading-none font-semibold tracking-[-1.2px] text-ink">Your Perfect Study Roadmap</h1>
           </div>
         </div>
+        <p className="mt-3 max-w-[58ch] text-[13px] leading-relaxed text-ink-soft">
+          AI synthesizes a personalized, prerequisite-perfect plan from your files, the community vault, and real exams. 
+          Play with the live sandbox below. Every generation feels like magic.
+        </p>
+      </div>
+
+      {!roadmap && (
+        <div className="min-w-0 space-y-8">
+          {/* Premium Composer — the "create magic" moment */}
+          <div className="roadmap-premium-card min-w-0 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-2xl bg-accent/10 p-1.5">
+                  <Wand2 className="h-4 w-4 text-accent" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold tracking-tight text-ink">Compose Your AI Plan</span>
+                  <div className="text-[10px] text-ink-faint -mt-0.5">Tell the AI exactly what you need</div>
+                </div>
+              </div>
+              <div className="rounded-full border border-accent/20 bg-accent-soft px-3 py-0.5 text-[9px] font-bold text-accent">Gemini + your vault</div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {!generating ? (
+                <motion.form
+                  key="config-form"
+                  onSubmit={handleGenerate}
+                  className="space-y-4"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
+                >
+                  <div className="grid gap-3">
+                    {/* Row 1: Subject and Duration */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label className="block min-w-0 sm:col-span-2">
+                        <span className="text-[11px] font-bold text-ink-soft">Study Subject</span>
+                        <input
+                          type="text"
+                          required
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value)}
+                          placeholder="e.g. Computer Networks, DBMS, Operating Systems"
+                          className="mt-1 h-9 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-xs outline-none transition focus:border-line-strong focus:bg-surface focus:ring-1 focus:ring-accent/30"
+                        />
+                      </label>
+
+                      <label className="block min-w-0">
+                        <span className="text-[11px] font-bold text-ink-soft">Target Duration</span>
+                        <select
+                          value={days}
+                          onChange={(e) => setDays(Number(e.target.value))}
+                          className="mt-1 h-9 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-xs outline-none transition focus:border-line-strong focus:bg-surface focus:ring-1 focus:ring-accent/30"
+                        >
+                          <option value={3}>3 Days (Exam Sprint)</option>
+                          <option value={5}>5 Days (Recommended)</option>
+                          <option value={7}>7 Days (Deep Learning)</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    {/* Row 2: Level and Goal — beautiful segmented */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="block min-w-0">
+                        <span className="text-[11px] font-bold text-ink-soft">Current Level</span>
+                        <div className="mt-1 flex min-w-0 gap-1 rounded-lg border border-line bg-paper p-0.5">
+                          {["Beginner", "Okay", "Strong"].map((lvl) => (
+                            <button
+                              key={lvl}
+                              type="button"
+                              onClick={() => setLevel(lvl)}
+                              className={cx(
+                                "min-w-0 flex-1 rounded py-1 text-[11px] font-bold transition active:scale-[0.985]",
+                                level === lvl ? "bg-ink text-surface shadow-sm" : "text-ink-soft hover:text-ink hover:bg-surface",
+                              )}
+                            >
+                              {lvl}
+                            </button>
+                          ))}
+                        </div>
+                      </label>
+
+                      <label className="block min-w-0">
+                        <span className="text-[11px] font-bold text-ink-soft">Study Goal</span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {[
+                            "Pass quickly",
+                            "Score high",
+                            "Deep understanding",
+                            "Interview prep",
+                          ].map((gl) => (
+                            <button
+                              key={gl}
+                              type="button"
+                              onClick={() => setGoal(gl)}
+                              className={cx(
+                                "rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition active:scale-[0.985]",
+                                goal === gl ? "border-accent bg-accent-soft text-accent shadow-sm" : "border-line text-ink-soft hover:border-line-strong hover:text-ink hover:bg-paper",
+                              )}
+                            >
+                              {gl}
+                            </button>
+                          ))}
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Row 3: Ingestion Source Materials */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-bold text-ink-soft block">Ingestion Source Materials</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
+                          { label: "Use community resources", val: useCommunity, set: setUseCommunity },
+                          { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
+                          { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
+                        ].map((toggle) => (
+                          <label key={toggle.label} className="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-ink-soft hover:text-ink">
+                            <input
+                              type="checkbox"
+                              checked={toggle.val}
+                              onChange={(e) => toggle.set(e.target.checked)}
+                              className="rounded border-line text-accent focus:ring-accent accent-accent"
+                            />
+                            <span className="truncate" title={toggle.label}>{toggle.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-1">
+                    <div className="text-[10px] text-ink-faint mb-1.5 text-center font-medium tracking-wider">
+                      AI will craft a perfect plan from your selected sources
+                    </div>
+                    <button
+                      type="submit"
+                      className="ai-magic-btn inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-surface active:scale-[0.985] shadow-lg"
+                    >
+                      <Zap className="h-4 w-4" />
+                      Generate AI Roadmap
+                    </button>
+                  </div>
+
+                  {generateError ? (
+                    <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                      {generateError}
+                    </p>
+                  ) : null}
+                </motion.form>
+              ) : (
+                /* Stunning, rewarding AI generation experience */
+                <motion.div
+                  key="generating"
+                  initial={{ opacity: 0, scale: 0.985 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98, transition: { duration: 0.12 } }}
+                  className="relative overflow-hidden rounded-2xl border border-line/70 bg-paper/70 p-6 text-center"
+                >
+                  {/* Subtle living background field */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#635bFF_0.6px,transparent_1px)] bg-[length:3.5px_3.5px] opacity-[0.035]" />
+
+                  <div className="relative z-10">
+                    {/* Hero AI Orb — beautiful layered animated core */}
+                    <div className="relative mx-auto mb-5 flex h-24 w-24 items-center justify-center">
+                      {/* Outer slow rotating glow ring */}
+                      <motion.div
+                        className="absolute h-24 w-24 rounded-full border border-accent/30"
+                        animate={{ rotate: 360, scale: [1, 1.06, 1] }}
+                        transition={{ rotate: { duration: 18, repeat: Infinity, ease: "linear" }, scale: { duration: 4.2, repeat: Infinity, ease: "easeInOut" } }}
+                      />
+                      {/* Mid pulsing ring */}
+                      <motion.div
+                        className="absolute h-[78px] w-[78px] rounded-full border-2 border-accent/50"
+                        animate={{ rotate: -360, scale: [1, 1.03, 1] }}
+                        transition={{ rotate: { duration: 11, repeat: Infinity, ease: "linear" }, scale: { duration: 3.1, repeat: Infinity } }}
+                      />
+                      {/* Core glowing orb */}
+                      <motion.div
+                        className="absolute h-12 w-12 rounded-full bg-gradient-to-br from-accent via-[#7C6AFF] to-accent shadow-[0_0_28px_rgba(99,91,255,0.55)]"
+                        animate={{ scale: [1, 1.18, 1], opacity: [0.85, 1, 0.85] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      {/* Inner bright nucleus */}
+                      <motion.div
+                        className="absolute h-5 w-5 rounded-full bg-white/90"
+                        animate={{ scale: [0.6, 1.15, 0.6] }}
+                        transition={{ duration: 1.8, repeat: Infinity }}
+                      />
+                      {/* Orbiting data nodes — neural feel */}
+                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute h-1.5 w-1.5 rounded-full bg-accent"
+                          style={{
+                            top: "50%",
+                            left: "50%",
+                            marginTop: -3,
+                            marginLeft: -3,
+                          }}
+                          animate={{
+                            x: [Math.cos((i / 6) * Math.PI * 2) * 34, Math.cos((i / 6 + 0.5) * Math.PI * 2) * 34],
+                            y: [Math.sin((i / 6) * Math.PI * 2) * 34, Math.sin((i / 6 + 0.5) * Math.PI * 2) * 34],
+                          }}
+                          transition={{
+                            duration: 3.8 + i * 0.15,
+                            repeat: Infinity,
+                            ease: "linear",
+                            delay: i * -0.4,
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="text-base font-semibold tracking-tight text-ink">AI is crafting your perfect study path</div>
+                    <div className="mt-0.5 text-xs text-ink-soft">This is personalized to you in real time</div>
+
+                    {/* Live AI metrics — feel the work happening */}
+                    <div className="mt-4 flex justify-center gap-2">
+                      <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
+                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">{notesAnalyzed}</div>
+                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">notes analyzed</div>
+                      </div>
+                      <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
+                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">{connectionsMapped}</div>
+                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">connections mapped</div>
+                      </div>
+                    </div>
+
+                    {/* Elegant progressing steps — current step glows & previous complete */}
+                    <div className="mt-5 mx-auto max-w-[300px] space-y-2 text-left">
+                      {[
+                        "Scanning your vault & community notes",
+                        "Mapping prerequisites & difficulty",
+                        "Weighting to your level + goal",
+                        "Injecting high-yield PYQs & resources",
+                      ].map((label, index) => {
+                        const isActive = loaderStep === index;
+                        const isDone = loaderStep > index;
+                        return (
+                          <div
+                            key={index}
+                            className={cx(
+                              "flex items-center gap-3 rounded-xl border px-3 py-2 text-xs font-medium transition-all",
+                              isActive
+                                ? "border-accent bg-accent-soft/60 text-accent shadow-sm scale-[1.01]"
+                                : isDone
+                                ? "border-emerald-500/30 bg-emerald-50/40 text-emerald-700"
+                                : "border-line bg-surface text-ink-soft"
+                            )}
+                          >
+                            <div className={cx(
+                              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black",
+                              isActive ? "bg-accent text-surface" : isDone ? "bg-emerald-500 text-white" : "bg-line text-ink-faint"
+                            )}>
+                              {isDone ? "✓" : index + 1}
+                            </div>
+                            <div className="flex-1 leading-tight">{label}</div>
+                            {isActive && (
+                              <motion.div
+                                className="h-1.5 w-1.5 rounded-full bg-accent"
+                                animate={{ scale: [1, 1.6, 1], opacity: [0.6, 1, 0.6] }}
+                                transition={{ duration: 0.9, repeat: Infinity }}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Beautiful, obvious stop control */}
+                    <button
+                      type="button"
+                      onClick={stopGeneration}
+                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-5 py-2 text-xs font-semibold text-ink-soft transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600 active:scale-[0.985]"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Stop generation
+                    </button>
+                    <div className="mt-1 text-[10px] text-ink-faint/70">You can cancel at any time</div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Live Interactive Sandbox — a gorgeous, rewarding playground */}
+          <div className="roadmap-premium-card min-w-0 space-y-5 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
+            <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[1.5px] text-accent">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                  LIVE SANDBOX
+                </span>
+                <div>
+                  <div className="text-sm font-semibold tracking-tight text-ink">Play with the demo</div>
+                  <div className="text-[11px] text-ink-soft -mt-0.5">Toggle tasks and switch days — this is exactly how your real roadmap will feel</div>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-line bg-paper px-4 py-1 text-center">
+                <div className="text-[10px] font-mono font-bold tracking-widest text-ink-faint">DEMO</div>
+                <div className="text-xs font-semibold text-ink-soft -mt-0.5">Computer Networks • 5 Days</div>
+              </div>
+            </div>
+
+            {/* Live overall demo progress — makes the sandbox feel rewarding even in preview mode */}
+            {(() => {
+              const demoTotal = previewRoadmap.reduce((sum, d) => sum + d.done.length, 0);
+              const demoDone = previewRoadmap.reduce((sum, d) => sum + d.done.filter(Boolean).length, 0);
+              const demoPct = demoTotal ? Math.round((demoDone / demoTotal) * 100) : 0;
+              return (
+                <div className="flex items-center gap-3 rounded-2xl bg-paper border border-line px-4 py-2 text-xs">
+                  <div className="font-mono font-semibold text-ink">{demoPct}%</div>
+                  <div className="flex-1 h-1.5 rounded-full bg-line overflow-hidden">
+                    <div className="h-full bg-accent transition-all" style={{ width: `${demoPct}%` }} />
+                  </div>
+                  <div className="text-ink-faint font-medium">{demoDone}/{demoTotal} demo tasks complete</div>
+                </div>
+              );
+            })()}
+
+            <RoadmapTimelineChart
+              days={previewRoadmap}
+              activeIndex={activePreviewDay}
+              hoveredIndex={hoveredPreviewDay}
+              onSelect={setActivePreviewDay}
+              onHover={setHoveredPreviewDay}
+            />
+
+              {/* Active Day Detail Panel for Preview — now as luxurious and rewarding as the real thing */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activePreviewDay}
+                  initial={{ opacity: 0.6, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="mt-6 space-y-5 border-t border-line pt-6"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
+                      <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                        Day {previewRoadmap[activePreviewDay].day} Focus
+                      </span>
+                      <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
+                        {previewRoadmap[activePreviewDay].title}
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-2xl bg-success/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-success">
+                        {Math.round((previewRoadmap[activePreviewDay].done.filter(Boolean).length / previewRoadmap[activePreviewDay].done.length) * 100)}% done
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
+                    <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">Core Focus</div>
+                    {previewRoadmap[activePreviewDay].topic}
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* Tasks — matching the gorgeous generated experience */}
+                    <div>
+                      <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                        <span>Action Checklist</span>
+                        <span>{previewRoadmap[activePreviewDay].done.filter(Boolean).length} / {previewRoadmap[activePreviewDay].done.length}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {[...previewRoadmap[activePreviewDay].tasks, ...previewRoadmap[activePreviewDay].pyqs].map((task, tIdx) => (
+                          <div key={tIdx} className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper">
+                            <button
+                              onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
+                              className={cx(
+                                "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                                previewRoadmap[activePreviewDay].done[tIdx]
+                                  ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                  : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft"
+                              )}
+                            >
+                              {previewRoadmap[activePreviewDay].done[tIdx] ? "✓" : null}
+                            </button>
+                            <span className={cx(
+                              "text-[13px] leading-snug font-medium transition-all",
+                              previewRoadmap[activePreviewDay].done[tIdx] ? "text-ink-faint line-through" : "text-ink"
+                            )}>
+                              {task}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Resources — elegant curated list (matches generated) */}
+                    <div>
+                      <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">Curated Resources</div>
+                      <div className="space-y-2">
+                        {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
+                          <div key={rIdx} className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">📘</div>
+                            <span className="font-medium leading-tight">{res}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 text-[10px] text-ink-faint">Toggle tasks above — watch the progress update live. This is your future roadmap.</div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
       )}
 
       {roadmap && (
-        <div className="space-y-6">
-          <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint">
-                Generated Plan
-              </span>
-              <h3 className="text-lg font-bold text-ink">
-                {subject} — {days} Day Roadmap
-              </h3>
-              <p className="text-xs text-ink-soft mt-0.5">
-                Target: {goal} ({level}) • {roadmap.length} active sessions
-                {generationMeta
-                  ? ` • ${generationMeta.provider === "gemini" ? "Gemini" : "OpenAI"} (${generationMeta.contextNoteCount} sources)`
-                  : ""}
-              </p>
+        <motion.div
+          className="space-y-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Hero Reward Header — this is the "you did it" moment */}
+          <div className="roadmap-premium-card rounded-3xl border border-accent/20 bg-gradient-to-br from-surface to-paper p-6 sm:p-7 reward-glow">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">AI GENERATION COMPLETE</span>
+                </div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tighter text-ink">{subject} — {days}-Day Mastery Path</h2>
+                <p className="mt-1 text-sm text-ink-soft">
+                  Tailored for <span className="font-medium text-ink">{goal}</span> • {level} level • Built from {generationMeta?.contextNoteCount ?? 'your'} sources
+                </p>
+              </div>
+
+              {/* Big rewarding progress ring + stats */}
+              <div className="flex items-center gap-5">
+                {(() => {
+                  const totalTasks = roadmap.reduce((sum, d) => sum + d.done.length, 0);
+                  const doneTasks = roadmap.reduce((sum, d) => sum + roadmapCompletedCount(d), 0);
+                  const pct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+                  const size = 68;
+                  const stroke = 6;
+                  const r = (size - stroke) / 2;
+                  const circ = 2 * Math.PI * r;
+                  const offset = circ * (1 - pct / 100);
+
+                  return (
+                    <div className="flex items-center gap-4">
+                      <div className="relative" style={{ width: size, height: size }}>
+                        <svg width={size} height={size} className="rotate-[-90deg]">
+                          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
+                          <circle 
+                            cx={size/2} cy={size/2} r={r} fill="none" 
+                            stroke="var(--accent)" strokeWidth={stroke} strokeLinecap="round"
+                            strokeDasharray={circ} strokeDashoffset={offset}
+                            className="progress-ring"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="font-mono text-xl font-semibold tabular-nums text-ink">{pct}</div>
+                            <div className="text-[8px] -mt-1 font-bold tracking-widest text-ink-faint">DONE</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-sm leading-tight">
+                        <div className="font-semibold text-ink">{doneTasks} / {totalTasks} tasks</div>
+                        <div className="text-ink-soft text-xs">Your journey is {pct}% complete</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <button
+                  onClick={() => {
+                    setRoadmap(null);
+                    setGenerationMeta(null);
+                    setGenerateError(null);
+                  }}
+                  className="rounded-2xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-soft transition hover:bg-paper hover:text-ink active:scale-[0.985] whitespace-nowrap"
+                >
+                  Start new plan
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                setRoadmap(null);
-                setGenerationMeta(null);
-                setGenerateError(null);
-              }}
-              className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-paper hover:text-ink sm:w-auto"
-            >
-              Configure new plan
-            </button>
           </div>
 
-          {/* Visual Gantt Chart Timeline Card (Desktop-scrollable, responsive) */}
-          <div className="relative min-w-0 overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-6">
+          {/* The beautiful timeline (preserved + elevated) */}
+          <div className="relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-7 roadmap-premium-card">
+            <div className="mb-4 flex items-center justify-between border-b border-line pb-4">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-faint">Your Visual Journey</span>
+                <div className="text-lg font-semibold tracking-tight">Timeline & Progress</div>
+              </div>
+              <div className="text-xs font-mono text-ink-soft">{roadmap.length} sessions • {generationMeta ? (generationMeta.provider === "gemini" ? "Gemini" : "OpenAI") : ""}</div>
+            </div>
+
             <RoadmapTimelineChart
               days={roadmap}
               activeIndex={activeDay}
@@ -812,94 +1151,107 @@ export function AIRoadmapsView() {
               includeClassroomMaterials
             />
 
-            {/* Detailed Active Day Panel */}
-            <div className="mt-6 space-y-4 border-t border-line pt-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
-                  <span className="bg-accent-soft text-accent text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase">
-                    Day {roadmap[activeDay].day} Focus
-                  </span>
-                  <h4 className="min-w-0 text-sm font-bold text-ink">
-                    {roadmap[activeDay].title}
-                  </h4>
-                </div>
-                <div className="grid gap-2 min-[420px]:flex min-[420px]:items-center min-[420px]:gap-3">
-                  <button
-                    onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
-                    className="inline-flex h-8 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-accent transition hover:bg-accent hover:text-surface"
-                  >
-                    Take Practice Quiz
-                  </button>
-                  <span className="inline-flex h-8 items-center justify-center rounded bg-success/10 px-2 py-0.5 font-mono text-xs font-bold text-success">
-                    {Math.round((roadmap[activeDay].done.filter(Boolean).length / roadmap[activeDay].done.length) * 100)}% Complete
-                  </span>
-                </div>
-              </div>
+            {/* Luxurious Day Detail Panel */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeDay}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-7 space-y-5 border-t border-line pt-7"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
+                    <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                      Day {roadmap[activeDay].day} Focus
+                    </span>
+                    <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
+                      {roadmap[activeDay].title}
+                    </h4>
+                  </div>
 
-              <p className="text-xs text-ink-soft leading-relaxed bg-paper p-3 rounded-lg border border-line">
-                <span className="font-semibold text-ink block text-[10px] uppercase tracking-wider mb-0.5">Focus Topic</span>
-                {roadmap[activeDay].topic}
-              </p>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Left Column: Tasks */}
-                <div className="space-y-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Tasks Checklist</span>
-                  <div className="space-y-2.5">
-                    {[...roadmap[activeDay].tasks, ...roadmap[activeDay].pyqs].map((task, tIdx) => (
-                      <div key={tIdx} className="flex items-start gap-3 group bg-surface hover:bg-paper p-2 rounded-lg border border-line/40 transition-colors">
-                        <button
-                          onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
-                          className={cx(
-                            "flex h-4 w-4 mt-0.5 shrink-0 items-center justify-center rounded border transition-colors",
-                            roadmap[activeDay].done[tIdx]
-                              ? "border-success bg-success text-surface animate-check-pop"
-                              : "border-line-strong hover:border-accent hover:bg-accent-soft"
-                          )}
-                        >
-                          {roadmap[activeDay].done[tIdx] ? <span className="text-[9px] font-black">✓</span> : null}
-                        </button>
-                        <span
-                          className={cx(
-                            "text-xs font-medium leading-relaxed transition-colors",
-                            roadmap[activeDay].done[tIdx]
-                              ? "text-ink-faint line-through"
-                              : "text-ink-soft group-hover:text-ink"
-                          )}
-                        >
-                          {task}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white active:scale-[0.985]"
+                    >
+                      <Zap className="h-3.5 w-3.5" /> Practice Quiz
+                    </button>
+                    <div className="rounded-2xl bg-emerald-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-emerald-600">
+                      {Math.round((roadmap[activeDay].done.filter(Boolean).length / roadmap[activeDay].done.length) * 100)}% done
+                    </div>
                   </div>
                 </div>
 
-                {/* Right Column: Ingested Materials */}
-                <div className="space-y-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-faint block">Ingested Materials</span>
-                  <div className="space-y-2">
-                    {roadmap[activeDay].resources.map((res, rIdx) => (
-                      <div
-                        key={rIdx}
-                        className="flex items-center gap-2.5 text-xs text-ink-soft bg-paper p-2.5 rounded-lg border border-line truncate"
-                        title={res}
-                      >
-                        <span className="text-base">📄</span>
-                        <span className="truncate font-medium">{res}</span>
-                      </div>
-                    ))}
+                <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
+                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">Core Focus</div>
+                  {roadmap[activeDay].topic}
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Tasks — ultra satisfying checklist */}
+                  <div>
+                    <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                      <span>Action Checklist</span>
+                      <span>{roadmap[activeDay].done.filter(Boolean).length} / {roadmap[activeDay].done.length}</span>
+                    </div>
+                    <div className="space-y-2">
+                      {[...roadmap[activeDay].tasks, ...roadmap[activeDay].pyqs].map((task, tIdx) => (
+                        <div key={tIdx} className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper">
+                          <button
+                            onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
+                            className={cx(
+                              "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                              roadmap[activeDay].done[tIdx]
+                                ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft"
+                            )}
+                          >
+                            {roadmap[activeDay].done[tIdx] ? "✓" : null}
+                          </button>
+                          <span className={cx(
+                            "text-[13px] leading-snug font-medium transition-all",
+                            roadmap[activeDay].done[tIdx] ? "text-ink-faint line-through" : "text-ink"
+                          )}>
+                            {task}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Resources — beautiful curated list */}
+                  <div>
+                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">Curated Resources</div>
+                    <div className="space-y-2">
+                      {roadmap[activeDay].resources.map((res, rIdx) => (
+                        <div key={rIdx} className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">📘</div>
+                          <span className="font-medium leading-tight">{res}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-[10px] text-ink-faint">Click tasks above to mark progress — your roadmap updates live.</div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* Mock Quiz dialog modal */}
-      {showQuiz && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl">
+      {/* Mock Quiz dialog modal — beautiful spring entrance */}
+      <AnimatePresence>
+        {showQuiz && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.985 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl"
+            >
             <div className="flex items-center justify-between border-b border-line pb-2.5">
               <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">AI Practice Quiz</h4>
               <button onClick={() => setShowQuiz(null)} className="text-ink-faint hover:text-ink">
@@ -955,9 +1307,10 @@ export function AIRoadmapsView() {
                 Submit Answers
               </button>
             )}
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

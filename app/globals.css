@@ -362,6 +362,232 @@ textarea:disabled {
   animation: pill-cascade 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* AI Roadmap — premium delight (minimal, high-reward additions) */
+@keyframes ai-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.ai-magic-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--ink), #1f2937);
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 120ms ease, background 200ms ease;
+}
+.ai-magic-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px -12px rgba(99, 91, 255, 0.35), 0 4px 10px -2px rgba(0, 0, 0, 0.12);
+}
+.ai-magic-btn:disabled {
+  opacity: 0.65;
+}
+.ai-magic-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: ai-shimmer 2.2s linear infinite;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.ai-magic-btn:hover:not(:disabled)::after {
+  opacity: 0.9;
+}
+
+/* Ultra-gorgeous roadmap redesign additions */
+.roadmap-premium-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 200ms ease;
+}
+.roadmap-premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.12);
+  border-color: var(--line-strong);
+}
+
+.roadmap-stat {
+  transition: all 150ms ease;
+}
+.roadmap-stat:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.progress-ring {
+  transition: stroke-dashoffset 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.day-detail {
+  transition: all 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.gorgeous-task {
+  transition: all 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.gorgeous-task:hover {
+  transform: translateX(2px);
+}
+
+.reward-glow {
+  box-shadow: 0 0 0 1px rgba(99, 91, 255, 0.1),
+              0 10px 40px -10px rgba(99, 91, 255, 0.2);
+}
+
+.magic-header {
+  position: relative;
+}
+.magic-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent), transparent);
+  border-radius: 999px;
+}
+
+/* Dashboard premium polish (consistent with roadmaps redesign) */
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 180ms ease,
+              border-color 180ms ease;
+}
+.dashboard-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.1);
+  border-color: var(--line-strong);
+}
+
+/* Bold gradient hero band */
+.dashboard-hero {
+  background:
+    radial-gradient(900px 360px at 88% -30%, rgba(255, 255, 255, 0.22), transparent 60%),
+    radial-gradient(700px 300px at 0% 120%, rgba(255, 255, 255, 0.12), transparent 55%),
+    linear-gradient(135deg, var(--accent) 0%, #4f46e5 52%, #3730a3 100%);
+}
+.dashboard-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.35;
+  -webkit-mask-image: radial-gradient(140% 120% at 90% 0%, black, transparent 62%);
+  mask-image: radial-gradient(140% 120% at 90% 0%, black, transparent 62%);
+  pointer-events: none;
+}
+
+.dashboard-stat {
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.dashboard-stat:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.gorgeous-task-item {
+  transition: all 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.gorgeous-task-item:hover {
+  transform: translateX(1px);
+}
+
+/* Dashboard extras: room avatars and enhanced rings */
+.room-avatar {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.room-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.room-avatars {
+  display: flex;
+  gap: -4px;
+}
+.room-avatar + .room-avatar {
+  margin-left: -4px;
+}
+
+@keyframes ai-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(6px, -8px) scale(1.1); opacity: 0.95; }
+}
+
+.ai-orb {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+  filter: blur(1px);
+  animation: ai-orb 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ai-step {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: ai-step-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ai-step:nth-child(1) { animation-delay: 60ms; }
+.ai-step:nth-child(2) { animation-delay: 220ms; }
+.ai-step:nth-child(3) { animation-delay: 380ms; }
+.ai-step:nth-child(4) { animation-delay: 540ms; }
+
+@keyframes ai-step-enter {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.roadmap-content-enter {
+  animation: roadmap-content-enter 380ms cubic-bezier(0.22, 1.0, 0.36, 1) both;
+}
+@keyframes roadmap-content-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-glow {
+  box-shadow:
+    0 0 0 1px rgba(99, 91, 255, 0.12),
+    0 10px 30px -10px rgba(99, 91, 255, 0.18);
+}
+
+.timeline-pill {
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+.timeline-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.18);
+}
+.timeline-pill:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.ai-badge {
+  position: relative;
+}
+.ai-badge::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(99,91,255,0.22) 0%, transparent 70%);
+  z-index: -1;
+  animation: ai-orb 3.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
