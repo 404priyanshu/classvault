@@ -2,7 +2,20 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Compass, GraduationCap, Plus, PlusCircle, ShieldCheck, Trash2, Users } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Compass,
+  Plus,
+  PlusCircle,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Trash2,
+  Users,
+} from "lucide-react";
 import type { ApiNote, ApiStudyTask, NotesResponse } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
@@ -116,147 +129,199 @@ export function DashboardView() {
 
   const isVerified = Boolean(me?.isCollegeVerified);
   const collegeName = me?.collegeName ?? "your college";
+  const firstName = me?.name ? me.name.split(" ")[0] : null;
+  const greeting = firstName ? `Good to see you, ${firstName}.` : "Welcome back.";
+  const tasksDone = tasks.filter((task) => task.done).length;
 
-  const greeting = me?.name ? `Good evening, ${me.name.split(" ")[0]}.` : "Welcome back.";
+  const heroPills = [
+    { icon: BookOpen, label: "Saved", value: String(stats?.totalNotes ?? 0) },
+    { icon: CheckCircle2, label: "Tasks done", value: String(tasksDone) },
+    {
+      icon: ShieldCheck,
+      label: isVerified ? collegeName : "Not verified",
+      value: null as string | null,
+    },
+  ];
+
+  const primaryCta = isVerified
+    ? { label: "Generate a roadmap", icon: Sparkles, action: onGoToRoadmaps }
+    : { label: "Verify college email", icon: ShieldCheck, action: onGoToVerify };
+
+  const quickActions = [
+    { label: "Generate AI Roadmap", desc: "Custom subject study plans", icon: Compass, action: onGoToRoadmaps, primary: true },
+    { label: "Add Resource", desc: "Upload notes, slides, PYQs", icon: PlusCircle, action: onGoToAddResource, primary: false },
+    { label: "Browse Notes", desc: "Search the course library", icon: BookOpen, action: onGoToLibrary, primary: false },
+    { label: "Join Study Room", desc: "Focus alongside peers", icon: Users, action: onGoToStudyRooms, primary: false },
+  ];
 
   return (
     <div className="min-w-0 space-y-8 pb-12">
-      {/* Greeting Header */}
-      <div className="space-y-1">
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">{greeting}</h2>
-        <p className="text-sm text-ink-soft">Ready to continue your study roadmap?</p>
-      </div>
-
-      {/* College Vault Status */}
-      <div className="flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        <div className="flex min-w-0 items-start gap-3.5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <GraduationCap className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 space-y-1">
-            <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
-              <h3 className="text-sm font-semibold text-ink">
-                {isVerified ? `Verified: ${collegeName}` : "Unlock your College Vault"}
-              </h3>
-              {isVerified && (
-                <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
-                  <ShieldCheck className="h-3 w-3" />
-                  Verified student
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-ink-soft">
-              {isVerified
-                ? "You have full access to verified campus notes, semester groups, and private study rooms."
-                : "Verify your official student email address to access private course groups, notes, and classmate study rooms."}
+      {/* Hero band */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+        className="dashboard-hero relative overflow-hidden rounded-3xl px-6 py-7 text-surface shadow-[0_24px_70px_-28px_rgba(99,91,255,0.65)] sm:px-8 sm:py-9"
+      >
+        <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
+              Your study dashboard
             </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-[2.1rem]">{greeting}</h2>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-white/80">
+              Pick up where you left off — your plan, trending notes, and live rooms are all here.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              {heroPills.map((pill) => (
+                <span
+                  key={pill.label}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-inset ring-white/20 backdrop-blur-sm"
+                >
+                  <pill.icon className="h-3.5 w-3.5 text-white/80" />
+                  {pill.value ? <span className="font-mono tabular-nums">{pill.value}</span> : null}
+                  <span className="max-w-[10rem] truncate text-white/80">{pill.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            <motion.button
+              type="button"
+              onClick={primaryCta.action}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="group inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-accent shadow-lg shadow-black/10"
+            >
+              <primaryCta.icon className="h-4 w-4" />
+              {primaryCta.label}
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+            </motion.button>
           </div>
         </div>
-        {!isVerified && (
-          <button
-            type="button"
-            onClick={onGoToVerify}
-            className="inline-flex h-9 w-full items-center justify-center rounded-md bg-accent px-4 text-xs font-semibold text-surface transition hover:bg-accent-hover sm:w-auto"
-          >
-            Verify college email
-          </button>
-        )}
-      </div>
+      </motion.section>
 
-      {/* Primary Action Grid */}
-      <section className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
-        {[
-          { label: "Generate AI Roadmap", desc: "Build custom subject study plans", icon: Compass, action: onGoToRoadmaps },
-          { label: "Add Resource", desc: "Upload notes, slides, and PYQs", icon: PlusCircle, action: onGoToAddResource },
-          { label: "Browse Notes", desc: "Search subject course library", icon: BookOpen, action: onGoToLibrary },
-          { label: "Join Study Room", desc: "Study silently alongside peers", icon: Users, action: onGoToStudyRooms },
-        ].map((card) => (
-          <button
-            key={card.label}
-            onClick={card.action}
-            className="group flex min-w-0 flex-col rounded-xl border border-line bg-surface p-4 text-left transition hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-paper border border-line text-ink-soft group-hover:text-accent transition">
-              <card.icon className="h-4.5 w-4.5" />
-            </span>
-            <h4 className="mt-3.5 min-w-0 text-xs font-bold text-ink">{card.label}</h4>
-            <p className="mt-1 min-w-0 text-[11px] leading-normal text-ink-faint">{card.desc}</p>
-          </button>
-        ))}
+      {/* Quick actions */}
+      <section>
+        <div className="mb-3">
+          <SectionLabel>Quick actions</SectionLabel>
+        </div>
+        <div className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
+          {quickActions.map((card) => (
+            <motion.button
+              key={card.label}
+              onClick={card.action}
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.985 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className={cx(
+                "dashboard-card group flex min-w-0 flex-col rounded-3xl border p-5 text-left",
+                card.primary
+                  ? "border-transparent bg-accent text-surface shadow-[0_18px_45px_-22px_rgba(99,91,255,0.8)]"
+                  : "border-line bg-surface",
+              )}
+            >
+              <span
+                className={cx(
+                  "flex h-10 w-10 items-center justify-center rounded-2xl transition",
+                  card.primary
+                    ? "bg-white/15 text-white ring-1 ring-inset ring-white/25"
+                    : "bg-accent-soft text-accent ring-1 ring-inset ring-accent/15 group-hover:ring-accent/30",
+                )}
+              >
+                <card.icon className="h-5 w-5" />
+              </span>
+              <h4 className={cx("mt-4 text-sm font-semibold tracking-tight", card.primary ? "text-white" : "text-ink")}>
+                {card.label}
+              </h4>
+              <p className={cx("mt-1 text-[12px] leading-snug", card.primary ? "text-white/75" : "text-ink-faint")}>
+                {card.desc}
+              </p>
+            </motion.button>
+          ))}
+        </div>
       </section>
 
-      {/* Main Grid: Today's Plan & Study Rooms */}
+      {/* Main bento grid */}
       <div className="grid min-w-0 gap-8 lg:grid-cols-[1.6fr_1fr]">
-
-        {/* Left column: Plan & Saved */}
+        {/* Left column: Plan & Trending */}
         <div className="min-w-0 space-y-8">
-          {/* Today's Study Plan */}
           <section className="min-w-0 space-y-3">
             <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Today&apos;s Study Plan</SectionLabel>
-              <button
-                onClick={onGoToRoadmaps}
-                className="shrink-0 text-xs font-semibold text-accent hover:underline"
-              >
+              <SectionLabel>Today&apos;s study plan</SectionLabel>
+              <button onClick={onGoToRoadmaps} className="shrink-0 text-xs font-semibold text-accent hover:underline">
                 Go to Roadmaps
               </button>
             </div>
 
-            <div className="min-w-0 rounded-lg border border-line bg-surface">
+            <div className="dashboard-card min-w-0 overflow-hidden rounded-3xl border border-line bg-surface">
               <div className="divide-y divide-line">
-                {tasks.map((task) => (
-                  <div key={task.id} className="group flex min-w-0 items-center gap-3 px-3.5 py-2.5">
-                    <button
-                      type="button"
-                      onClick={() => onToggleTask(task.id)}
-                      className={cx(
-                        "flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-md border transition",
-                        task.done ? "border-accent bg-accent text-surface" : "border-line-strong hover:border-ink",
-                      )}
+                <AnimatePresence>
+                  {tasks.map((task) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="gorgeous-task-item group flex min-w-0 items-center gap-3 px-4 py-3"
                     >
-                      {task.done ? <span className="text-[10px]">✓</span> : null}
-                    </button>
-                    <span
-                      className={cx(
-                        "min-w-0 flex-1 truncate text-xs font-medium",
-                        task.done ? "text-ink-faint line-through" : "text-ink",
-                      )}
-                    >
-                      {task.title}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onRemoveTask(task.id)}
-                      className="shrink-0 text-ink-faint opacity-0 transition hover:text-ink group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-                {!tasks.length ? (
-                  <div className="px-3.5 py-10 text-center space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => onToggleTask(task.id)}
+                        className={cx(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-xl border text-[11px] font-black transition active:scale-95",
+                          task.done
+                            ? "border-emerald-500 bg-emerald-500 text-white"
+                            : "border-line-strong bg-surface hover:border-accent hover:bg-accent-soft",
+                        )}
+                      >
+                        {task.done ? "✓" : null}
+                      </button>
+                      <span
+                        className={cx(
+                          "min-w-0 flex-1 truncate text-[13px] font-medium",
+                          task.done ? "text-ink-faint line-through" : "text-ink",
+                        )}
+                      >
+                        {task.title}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveTask(task.id)}
+                        className="-mr-1 shrink-0 p-1 text-ink-faint opacity-0 transition hover:text-red-500 group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {!tasks.length && (
+                  <div className="space-y-3 px-4 py-8 text-center">
                     <p className="text-xs text-ink-soft">
-                      No roadmap yet. Generate a study plan from your notes, PYQs, and saved resources.
+                      No tasks yet. Generate a roadmap or add something quick below.
                     </p>
                     <button
                       onClick={onGoToRoadmaps}
-                      className="inline-flex h-8 items-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
+                      className="inline-flex h-8 items-center rounded-2xl bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
                     >
                       Generate roadmap
                     </button>
                   </div>
-                ) : null}
+                )}
               </div>
-              <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line p-2">
+              <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line bg-paper p-3">
                 <input
                   value={newTask}
                   onChange={(event) => onNewTaskChange(event.target.value)}
-                  placeholder="Add a custom task…"
-                  className="h-8 min-w-0 flex-1 rounded-md border border-transparent bg-paper px-2.5 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
+                  placeholder="Add a quick task…"
+                  className="h-9 min-w-0 flex-1 rounded-2xl border border-transparent bg-surface px-3 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
                 />
                 <button
                   type="submit"
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-surface transition hover:bg-ink/85"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-ink text-surface transition hover:bg-ink/85 active:scale-[0.985]"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -264,21 +329,17 @@ export function DashboardView() {
             </div>
           </section>
 
-          {/* Trending Resources */}
           <section className="min-w-0 space-y-3">
             <div className="flex min-w-0 items-center justify-between gap-3">
               <SectionLabel>Trending this week</SectionLabel>
-              <button
-                onClick={onGoToLibrary}
-                className="shrink-0 text-xs font-semibold text-ink-soft hover:text-ink"
-              >
+              <button onClick={onGoToLibrary} className="shrink-0 text-xs font-semibold text-ink-soft hover:text-ink">
                 Browse all
               </button>
             </div>
             {trendingLoading ? (
               <LoadingRows count={3} />
             ) : trendingNotes.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-xs text-ink-faint">
+              <div className="rounded-2xl border border-dashed border-line px-4 py-8 text-center text-xs text-ink-faint">
                 No trending resources yet. New downloads will surface useful notes here.
               </div>
             ) : (
@@ -291,68 +352,121 @@ export function DashboardView() {
           </section>
         </div>
 
-        {/* Right column: Active Study Rooms & Quick Stats */}
+        {/* Right column: Rooms & metrics */}
         <div className="min-w-0 space-y-8">
-          {/* Study Rooms Feed */}
           <section className="min-w-0 space-y-3">
             <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Active Study Rooms</SectionLabel>
-              <button
-                onClick={onGoToStudyRooms}
-                className="shrink-0 text-xs font-semibold text-accent hover:underline"
-              >
+              <SectionLabel>Active study rooms</SectionLabel>
+              <button onClick={onGoToStudyRooms} className="shrink-0 text-xs font-semibold text-accent hover:underline">
                 Join room
               </button>
             </div>
             <div className="min-w-0 space-y-3">
               {[
-                { name: "DBMS Exam Sprint", count: 18, timer: "25m focus", type: "College-only" },
-                { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public" },
-                { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public" },
-              ].map((room) => (
-                <div key={room.name} className="flex min-w-0 flex-col gap-3 rounded-lg border border-line bg-surface p-3.5 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
-                  <div className="min-w-0 space-y-1">
+                { name: "DBMS Exam Sprint", count: 18, timer: "25m focus", type: "College-only", avatars: ["D", "M", "B"] },
+                { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public", avatars: ["C", "N"] },
+                { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public", avatars: ["S", "T", "U", "D"] },
+              ].map((room, idx) => (
+                <motion.div
+                  key={room.name}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="dashboard-card flex min-w-0 flex-col gap-3 rounded-3xl border border-line bg-surface p-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between"
+                >
+                  <div className="min-w-0 space-y-1.5">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <h4 className="min-w-0 text-xs font-semibold leading-none text-ink">{room.name}</h4>
-                      <span className="inline-flex items-center rounded border border-line bg-paper px-1 py-0.5 text-[9px] font-bold text-ink-soft uppercase leading-none">
+                      <h4 className="min-w-0 text-sm font-semibold leading-none text-ink">{room.name}</h4>
+                      <span className="inline-flex items-center rounded-full border border-line bg-paper px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ink-soft">
                         {room.type}
                       </span>
                     </div>
-                    <p className="truncate text-[10px] leading-none text-ink-soft">
-                      {room.count} studying • {room.timer}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="room-avatars">
+                        {room.avatars.map((initial, i) => (
+                          <motion.div
+                            key={i}
+                            whileHover={{ scale: 1.2 }}
+                            className="room-avatar flex h-5 w-5 items-center justify-center rounded-full border border-line bg-accent-soft text-[8px] font-mono font-bold text-accent"
+                            style={{ zIndex: room.avatars.length - i }}
+                          >
+                            {initial}
+                          </motion.div>
+                        ))}
+                      </div>
+                      <p className="truncate text-xs text-ink-soft">
+                        {room.count} studying • {room.timer}
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={onGoToStudyRooms}
-                    className="inline-flex h-8 w-full items-center justify-center rounded bg-ink px-3 text-[10px] font-bold text-surface hover:bg-ink/85 min-[420px]:h-7 min-[420px]:w-auto"
+                    className="inline-flex h-8 w-full items-center justify-center rounded-2xl bg-ink px-4 text-xs font-bold text-surface hover:bg-ink/85 active:scale-[0.985] min-[420px]:w-auto"
                   >
                     Join
                   </button>
-                </div>
+                </motion.div>
               ))}
             </div>
           </section>
 
-          {/* Study Metrics */}
           <section className="min-w-0 space-y-3">
             <SectionLabel>Study metrics</SectionLabel>
             <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-              <div className="rounded-lg border border-line bg-surface p-4 text-center">
-                <span className="block text-xl font-bold text-ink">{stats?.totalNotes ?? "0"}</span>
-                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Saved files</span>
-              </div>
-              <div className="rounded-lg border border-line bg-surface p-4 text-center">
-                <span className="block text-xl font-bold text-ink">{tasks.filter(t => t.done).length}</span>
-                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Tasks done</span>
-              </div>
-              <div className="rounded-lg border border-line bg-surface p-4 text-center">
-                <span className="block text-xl font-bold text-ink">1.2h</span>
-                <span className="block text-[10px] text-ink-soft font-semibold mt-1">Focus hours</span>
-              </div>
-              <div className="rounded-lg border border-line bg-surface p-4 text-center">
-                <span className="block text-xl font-bold text-ink">3</span>
-                <span className="block text-[10px] text-ink-soft font-semibold mt-1">AI Roadmaps</span>
-              </div>
+              {(() => {
+                const done = tasksDone;
+                const total = Math.max(done, 8); // demo goal
+                const pct = total ? Math.round((done / total) * 100) : 0;
+                const size = 36,
+                  stroke = 4,
+                  r = (size - stroke) / 2;
+                const circ = 2 * Math.PI * r;
+                const offset = circ * (1 - pct / 100);
+                return (
+                  <div className="dashboard-stat flex items-center gap-3 rounded-3xl border border-accent/25 bg-accent-soft p-4">
+                    <div className="relative" style={{ width: size, height: size }}>
+                      <svg width={size} height={size} className="rotate-[-90deg]">
+                        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={r}
+                          fill="none"
+                          stroke="var(--accent)"
+                          strokeWidth={stroke}
+                          strokeLinecap="round"
+                          strokeDasharray={circ}
+                          strokeDashoffset={offset}
+                          className="progress-ring"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold text-accent">
+                        {pct}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-mono text-xl font-semibold tabular-nums text-ink">{done}</div>
+                      <div className="-mt-0.5 text-[11px] font-semibold text-ink-soft">Tasks done (goal {total})</div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {[
+                { label: "Saved files", value: String(stats?.totalNotes ?? 0), icon: BookOpen },
+                { label: "Focus hours", value: "1.2h", icon: Target },
+                { label: "AI Roadmaps", value: "3", icon: Compass },
+              ].map((stat, i) => (
+                <div key={i} className="dashboard-stat flex items-center gap-3 rounded-3xl border border-line bg-surface p-4">
+                  <div className="rounded-2xl border border-line bg-paper p-2 text-ink-soft">
+                    <stat.icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-xl font-semibold tabular-nums text-ink">{stat.value}</div>
+                    <div className="-mt-0.5 text-[11px] font-semibold text-ink-faint">{stat.label}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         </div>
