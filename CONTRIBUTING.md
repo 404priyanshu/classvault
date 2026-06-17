@@ -58,6 +58,13 @@ Run `pnpm test:e2e` for browser-facing changes.
 - Mention tests run.
 - Call out migrations, env vars, or deployment steps.
 
+## Code Review
+
+Pull requests get an automated [Amazon Q Developer](https://aws.amazon.com/q/developer/)
+review in addition to maintainer review. Treat its comments as advisory: address
+real findings, but the maintainer still approves and merges. Comment `/q review`
+on a PR to trigger a fresh pass.
+
 ## Code Guidelines
 
 - Keep route handlers thin; put reusable server logic in `lib/server/`.
