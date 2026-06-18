@@ -37,19 +37,43 @@ export async function createCheckoutSession(params: {
 }
 
 export async function handleStripeWebhook(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _rawBody: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _signature: string | null,
+  rawBody: string,
+  signature: string | null,
 ): Promise<{ received: true }> {
-  // TODO(real): verify signature with STRIPE_WEBHOOK_SECRET and handle events
-  // const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+  void rawBody;
+  void signature;
+
+  const secret = envValue("STRIPE_WEBHOOK_SECRET");
+
+  if (!secret) {
+    // No webhook secret configured → reject all calls in production so that
+    // deploying real Stripe logic cannot accidentally ship without verification.
+    if (process.env.NODE_ENV === "production") {
+      throw new WebhookNotConfiguredError(
+        "STRIPE_WEBHOOK_SECRET is required to process webhook events.",
+      );
+    }
+    // Dev/test: log and accept stub calls so local testing is unblocked.
+    console.info("[billing stub] Webhook received (signature check skipped in non-production)");
+    return { received: true };
+  }
+
+  // TODO(real): verify signature before processing any events
+  // const stripe = new Stripe(envValue("STRIPE_SECRET_KEY")!, { apiVersion: "2024-06-20" });
+  // const event = stripe.webhooks.constructEvent(rawBody, signature ?? "", secret);
   // switch (event.type) {
-  //   case "checkout.session.completed": { /* update Institution.plan + status */ }
-  //   case "invoice.paid": { /* extend quota window */ }
+  //   case "checkout.session.completed": { /* update Institution.plan + status */ break; }
+  //   case "invoice.paid":              { /* extend quota window */              break; }
   // }
-  return { received: true };
+
+  // Signature check is not yet implemented — reject even with a key present
+  // so the TODO above cannot be silently skipped when wiring real events.
+  throw new WebhookNotConfiguredError(
+    "Stripe webhook handler is not yet implemented. Add signature verification before processing events.",
+  );
 }
+
+export class WebhookNotConfiguredError extends Error {}
 
 // Tiny env reader (mirrors the pattern used in storage.ts, google-oauth.ts, etc.)
 // We avoid importing a broad env module to keep this file self-contained.

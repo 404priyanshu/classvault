@@ -116,11 +116,6 @@ export async function createUploadTarget({
   };
 }
 
-export function publicFileUrl(storageKey: string) {
-  const config = getS3Config();
-  return config?.publicBaseUrl ? `${config.publicBaseUrl}/${storageKey}` : null;
-}
-
 export async function createDownloadUrl(
   storageKey: string,
   options: {
@@ -132,7 +127,7 @@ export async function createDownloadUrl(
   const s3 = s3Client();
   if (!s3) return null;
   if (s3.config.publicBaseUrl) return `${s3.config.publicBaseUrl}/${storageKey}`;
-  const safeFileName = options.fileName?.replace(/["\\]/g, "");
+  const safeFileName = options.fileName?.replace(/["\\]/g, "").replace(/[\r\n]/g, "");
   const command = new GetObjectCommand({
     Bucket: s3.config.bucket,
     Key: storageKey,

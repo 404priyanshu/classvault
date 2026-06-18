@@ -1,6 +1,6 @@
 import type { ApiRoom } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
-import { roomListWhere } from "@/lib/server/room-logic";
+import { canViewCollegeOnlyRoom, roomListWhere } from "@/lib/server/room-logic";
 
 type RoomRow = {
   id: string;
@@ -59,9 +59,33 @@ export async function createRoom(
 export async function joinRoom(
   roomId: string,
   userId: string,
-): Promise<{ ok: true } | { ok: false; code: "NOT_FOUND" }> {
-  const room = await db.room.findUnique({ where: { id: roomId }, select: { id: true } });
+  viewer: { collegeName?: string | null; institutionId?: string | null },
+): Promise<{ ok: true } | { ok: false; code: "NOT_FOUND" | "FORBIDDEN" }> {
+  const room = await db.room.findUnique({
+    where: { id: roomId },
+    select: {
+      id: true,
+      type: true,
+      owner: { select: { collegeName: true, institutionId: true } },
+    },
+  });
   if (!room) return { ok: false, code: "NOT_FOUND" };
+
+  // College-only rooms are restricted to members of the same campus.
+  if (room.type === "College-only") {
+    const allowed = canViewCollegeOnlyRoom(
+      {
+        collegeName: room.owner.collegeName ?? null,
+        institutionId: room.owner.institutionId ?? null,
+      },
+      {
+        collegeName: viewer.collegeName ?? null,
+        institutionId: viewer.institutionId ?? null,
+      },
+    );
+    if (!allowed) return { ok: false, code: "FORBIDDEN" };
+  }
+
   await db.roomParticipant.upsert({
     where: { roomId_userId: { roomId, userId } },
     update: {},

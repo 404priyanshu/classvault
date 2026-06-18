@@ -20,15 +20,39 @@ describe("roomListWhere", () => {
 
 describe("canViewCollegeOnlyRoom", () => {
   it("denies when viewer has no college", () => {
-    expect(canViewCollegeOnlyRoom("Some College", null)).toBe(false);
+    expect(
+      canViewCollegeOnlyRoom(
+        { collegeName: "Some College", institutionId: null },
+        { collegeName: null, institutionId: null },
+      ),
+    ).toBe(false);
   });
 
   it("allows when colleges match", () => {
-    expect(canViewCollegeOnlyRoom("ClassVault U", "ClassVault U")).toBe(true);
+    expect(
+      canViewCollegeOnlyRoom(
+        { collegeName: "ClassVault U", institutionId: null },
+        { collegeName: "ClassVault U", institutionId: null },
+      ),
+    ).toBe(true);
+  });
+
+  it("allows when institution ids match", () => {
+    expect(
+      canViewCollegeOnlyRoom(
+        { collegeName: "Owner College", institutionId: "inst_1" },
+        { collegeName: "Viewer College", institutionId: "inst_1" },
+      ),
+    ).toBe(true);
   });
 
   it("denies cross-college College-only rooms", () => {
-    expect(canViewCollegeOnlyRoom("Other U", "ClassVault U")).toBe(false);
+    expect(
+      canViewCollegeOnlyRoom(
+        { collegeName: "Other U", institutionId: "inst_2" },
+        { collegeName: "ClassVault U", institutionId: "inst_1" },
+      ),
+    ).toBe(false);
   });
 });
 

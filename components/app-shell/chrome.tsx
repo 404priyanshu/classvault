@@ -16,7 +16,7 @@ export type UploadDraft = {
   file: File | null;
 };
 
-export const emptyDraft: UploadDraft = {
+const emptyDraft: UploadDraft = {
   title: "",
   subject: "",
   semester: "5",

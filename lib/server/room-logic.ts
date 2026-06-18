@@ -25,7 +25,13 @@ export function roomListWhere(
   return { OR: clauses };
 }
 
-export function canViewCollegeOnlyRoom(ownerCollege: string | null, viewerCollege: string | null): boolean {
-  if (!viewerCollege) return false;
-  return viewerCollege === ownerCollege;
+export function canViewCollegeOnlyRoom(
+  owner: { collegeName: string | null; institutionId: string | null },
+  viewer: { collegeName: string | null; institutionId: string | null },
+): boolean {
+  if (owner.institutionId && viewer.institutionId) {
+    return owner.institutionId === viewer.institutionId;
+  }
+  if (!owner.collegeName || !viewer.collegeName) return false;
+  return owner.collegeName === viewer.collegeName;
 }
