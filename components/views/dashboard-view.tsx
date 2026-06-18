@@ -6,13 +6,13 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
   BookOpen,
+  Bookmark,
   CheckCircle2,
   Compass,
   Plus,
   PlusCircle,
   ShieldCheck,
   Sparkles,
-  Target,
   Trash2,
   Users,
 } from "lucide-react";
@@ -134,7 +134,7 @@ export function DashboardView() {
   const tasksDone = tasks.filter((task) => task.done).length;
 
   const heroPills = [
-    { icon: BookOpen, label: "Saved", value: String(stats?.totalNotes ?? 0) },
+    { icon: Bookmark, label: "Saved", value: String(stats?.savedCount ?? 0) },
     { icon: CheckCircle2, label: "Tasks done", value: String(tasksDone) },
     {
       icon: ShieldCheck,
@@ -415,7 +415,7 @@ export function DashboardView() {
             <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
               {(() => {
                 const done = tasksDone;
-                const total = Math.max(done, 8); // demo goal
+                const total = tasks.length; // real: completion of today's tasks
                 const pct = total ? Math.round((done / total) * 100) : 0;
                 const size = 36,
                   stroke = 4,
@@ -446,16 +446,18 @@ export function DashboardView() {
                     </div>
                     <div>
                       <div className="font-mono text-xl font-semibold tabular-nums text-ink">{done}</div>
-                      <div className="-mt-0.5 text-[11px] font-semibold text-ink-soft">Tasks done (goal {total})</div>
+                      <div className="-mt-0.5 text-[11px] font-semibold text-ink-soft">
+                        Tasks done{total ? ` of ${total}` : ""}
+                      </div>
                     </div>
                   </div>
                 );
               })()}
 
               {[
-                { label: "Saved files", value: String(stats?.totalNotes ?? 0), icon: BookOpen },
-                { label: "Focus hours", value: "1.2h", icon: Target },
-                { label: "AI Roadmaps", value: "3", icon: Compass },
+                { label: "My uploads", value: String(stats?.uploadCount ?? 0), icon: PlusCircle },
+                { label: "Saved notes", value: String(stats?.savedCount ?? 0), icon: Bookmark },
+                { label: "Library notes", value: String(stats?.totalNotes ?? 0), icon: BookOpen },
               ].map((stat, i) => (
                 <div key={i} className="dashboard-stat flex items-center gap-3 rounded-3xl border border-line bg-surface p-4">
                   <div className="rounded-2xl border border-line bg-paper p-2 text-ink-soft">
