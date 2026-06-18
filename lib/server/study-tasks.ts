@@ -3,7 +3,7 @@ import { db } from "@/lib/server/db";
 
 type StudyTaskRow = { id: string; title: string; done: boolean };
 
-export function serializeStudyTask(task: StudyTaskRow): ApiStudyTask {
+function serializeStudyTask(task: StudyTaskRow): ApiStudyTask {
   return { id: task.id, title: task.title, done: task.done };
 }
 

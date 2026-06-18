@@ -55,8 +55,6 @@ export type ApiStudyTask = {
   done: boolean;
 };
 
-export type CommentStatus = "VISIBLE" | "HIDDEN" | "DELETED";
-
 export type ApiComment = {
   id: string;
   body: string;
@@ -181,10 +179,6 @@ export type ApiRoom = {
   goals: string[];
 };
 
-export type RoomsResponse = {
-  items: ApiRoom[];
-};
-
 export type NotesResponse = {
   items: ApiNote[];
   nextCursor: string | null;
@@ -204,8 +198,4 @@ export type MetaResponse = {
 
 export type ApiError = {
   error: { code: string; message: string };
-};
-
-export type BillingCheckoutResponse = {
-  checkoutUrl: string;
 };

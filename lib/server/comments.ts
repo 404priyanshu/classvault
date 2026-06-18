@@ -13,7 +13,7 @@ type CommentWithAuthor = Prisma.CommentGetPayload<{ include: { author: true } }>
 
 type SerializeCtx = { userId: string | null; isStaff: boolean };
 
-export function serializeComment(comment: CommentWithAuthor, ctx: SerializeCtx): ApiComment {
+function serializeComment(comment: CommentWithAuthor, ctx: SerializeCtx): ApiComment {
   const deleted = comment.status === "DELETED";
   return {
     id: comment.id,

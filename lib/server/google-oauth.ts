@@ -6,9 +6,9 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
 
-export const GOOGLE_PROVIDER = "google";
+const GOOGLE_PROVIDER = "google";
 export const GOOGLE_OAUTH_STATE_COOKIE = "classvault_google_oauth_state";
-export const GOOGLE_OAUTH_STATE_TTL_SECONDS = 10 * 60;
+const GOOGLE_OAUTH_STATE_TTL_SECONDS = 10 * 60;
 
 export class GoogleOAuthError extends Error {
   constructor(

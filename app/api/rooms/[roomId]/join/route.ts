@@ -10,8 +10,17 @@ export async function POST(
   try {
     const user = await requireCurrentUser();
     const { roomId } = await params;
-    const result = await joinRoom(roomId, user.id);
-    if (!result.ok) return jsonError("NOT_FOUND", "Room not found.", 404);
+    const viewer = {
+      collegeName: (user as { collegeName?: string | null }).collegeName ?? null,
+      institutionId: (user as { institution?: { id: string } | null }).institution?.id ?? null,
+    };
+    const result = await joinRoom(roomId, user.id, viewer);
+    if (!result.ok) {
+      if (result.code === "FORBIDDEN") {
+        return jsonError("FORBIDDEN", "You do not have access to this room.", 403);
+      }
+      return jsonError("NOT_FOUND", "Room not found.", 404);
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);

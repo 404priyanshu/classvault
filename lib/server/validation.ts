@@ -1,11 +1,10 @@
 import { z } from "zod";
 
-export const FILE_TYPES = ["PDF", "DOCX", "PPTX", "ZIP"] as const;
-export const USER_ROLES = ["STUDENT", "MODERATOR", "ADMIN"] as const;
-export const NOTE_STATUSES = ["PENDING", "PUBLISHED", "REJECTED", "HIDDEN", "DELETED"] as const;
-export const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
+type FileType = "PDF" | "DOCX" | "PPTX" | "ZIP";
+const NOTE_STATUSES = ["PENDING", "PUBLISHED", "REJECTED", "HIDDEN", "DELETED"] as const;
+const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 
-export const ALLOWED_MIME_TYPES: Record<string, (typeof FILE_TYPES)[number]> = {
+export const ALLOWED_MIME_TYPES: Record<string, FileType> = {
   "application/pdf": "PDF",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PPTX",
@@ -145,7 +144,7 @@ export const aiRoadmapRequestSchema = z.object({
     .default({ personal: true, community: true, pyq: true, video: true }),
 });
 
-export const aiRoadmapDaySchema = z.object({
+const aiRoadmapDaySchema = z.object({
   day: z.coerce.number().int().min(1).max(14),
   title: z.string().trim().min(3).max(80),
   topic: z.string().trim().min(10).max(500),

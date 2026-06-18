@@ -14,7 +14,7 @@ type NotificationRow = {
 // happen inside the same transaction as the event that triggered it.
 type DbClient = typeof db | Prisma.TransactionClient;
 
-export function serializeNotification(n: NotificationRow): ApiNotification {
+function serializeNotification(n: NotificationRow): ApiNotification {
   return {
     id: n.id,
     type: n.type,

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import type { UserRole } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
 
-export { hashPassword, verifyPassword, DUMMY_PASSWORD_HASH } from "@/lib/server/password";
+export { verifyPassword, DUMMY_PASSWORD_HASH } from "@/lib/server/password";
 
 export const SESSION_COOKIE = "classvault_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -21,7 +21,7 @@ function envList(name: string) {
     .filter(Boolean);
 }
 
-export function isAdminEmail(email: string) {
+function isAdminEmail(email: string) {
   return envList("ADMIN_EMAILS").includes(email.trim().toLowerCase());
 }
 

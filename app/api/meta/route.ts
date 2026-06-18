@@ -1,10 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { handleRouteError } from "@/lib/server/http";
+import { assertRateLimit, requestKey } from "@/lib/server/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    await assertRateLimit({
+      key: requestKey(request, "meta"),
+      limit: 120,
+      windowMs: 60 * 1000,
+    });
     const user = await getCurrentUser();
 
     const [subjectRows, semesterRows, totalNotes, savedCount, uploadCount, downloadSum, ratingAvg] =
