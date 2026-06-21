@@ -66,6 +66,7 @@ model User {
   ratings    Rating[]
   downloads  DownloadEvent[]
   studyTasks StudyTask[]
+  savedRoadmaps SavedRoadmap[]
   notifications Notification[]
   comments   Comment[]
    collections Collection[]
@@ -333,6 +334,29 @@ model StudyTask {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// A persisted AI study roadmap. `plan` holds the full ApiRoadmapDay[] (topics,
+// tasks, pyqs, resources, and the per-task done[] progress), so resuming a plan
+// restores both content and checkbox state. Generation is auto-saved; the
+// oldest are pruned per user to cap storage.
+model SavedRoadmap {
+  id               String   @id @default(cuid())
+  userId           String
+  subject          String
+  days             Int
+  level            String
+  goal             String
+  provider         String
+  model            String
+  contextNoteCount Int      @default(0)
+  plan             Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
 }
 
 // In-app notification (e.g. note approved/rejected). payload is type-specific
