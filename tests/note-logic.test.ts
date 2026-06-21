@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  blendScore,
   computeRatingAggregate,
   isFullTextQuery,
   orderByIds,
@@ -67,20 +68,39 @@ describe("computeRatingAggregate", () => {
 });
 
 describe("isFullTextQuery", () => {
-  it("treats two or more words as full-text", () => {
+  it("treats any non-empty query as a ranked search (multi- and single-word)", () => {
     expect(isFullTextQuery("memory paging")).toBe(true);
     expect(isFullTextQuery("  sliding   window  routing ")).toBe(true);
-  });
-
-  it("treats a single token (e.g. a course code) as substring search", () => {
-    expect(isFullTextQuery("CS302")).toBe(false);
-    expect(isFullTextQuery("dbms")).toBe(false);
+    // Single tokens now also go through the unified ranked path (trigram fuzzy).
+    expect(isFullTextQuery("CS302")).toBe(true);
+    expect(isFullTextQuery("dbms")).toBe(true);
   });
 
   it("is false for empty or missing queries", () => {
     expect(isFullTextQuery("")).toBe(false);
     expect(isFullTextQuery("   ")).toBe(false);
     expect(isFullTextQuery(undefined)).toBe(false);
+  });
+});
+
+describe("blendScore", () => {
+  it("weights FTS rank above incidental trigram overlap", () => {
+    // A strong tsvector phrase hit should outrank a title-only trigram match.
+    const ftsHit = blendScore({ tsRank: 0.08, titleSim: 0, subjectSim: 0, codeSim: 0 });
+    const trigramOnly = blendScore({ tsRank: 0, titleSim: 0.05, subjectSim: 0, codeSim: 0 });
+    expect(ftsHit).toBeGreaterThan(trigramOnly);
+  });
+
+  it("is monotonic in each component (more similarity never lowers the score)", () => {
+    const base = blendScore({ tsRank: 0.02, titleSim: 0.3, subjectSim: 0.1, codeSim: 0 });
+    const moreTitle = blendScore({ tsRank: 0.02, titleSim: 0.6, subjectSim: 0.1, codeSim: 0 });
+    const moreCode = blendScore({ tsRank: 0.02, titleSim: 0.3, subjectSim: 0.1, codeSim: 0.9 });
+    expect(moreTitle).toBeGreaterThan(base);
+    expect(moreCode).toBeGreaterThan(base);
+  });
+
+  it("returns zero when nothing matches", () => {
+    expect(blendScore({ tsRank: 0, titleSim: 0, subjectSim: 0, codeSim: 0 })).toBe(0);
   });
 });
 

@@ -20,10 +20,35 @@ export function computeRatingAggregate(input: {
   return { ratingAverage, ratingCount };
 }
 
-// Multi-word queries use Postgres full-text search; single words keep the
-// substring match, which suits course codes like "CS302" and partial words.
+// Any non-empty query now goes through the unified ranked search (tsvector FTS
+// blended with pg_trgm similarity), so single words and typos match too. The
+// gate still toggles the rank-ordered path in listNotes (which disables the id
+// cursor, since a rank order cannot resume from a keyset).
 export function isFullTextQuery(q: string | undefined): boolean {
-  return Boolean(q && q.trim().split(/\s+/).length >= 2);
+  return Boolean(q && q.trim().length > 0);
+}
+
+// Relevance weights + thresholds for the unified ranked search. Single source of
+// truth: notes.ts interpolates these constants into the raw SQL, and blendScore
+// mirrors the same formula so the ranking is unit-testable without a database.
+export const SEARCH_WEIGHTS = { fts: 1.0, title: 0.6, subject: 0.3, code: 0.5 } as const;
+export const SIMILARITY_THRESHOLD = 0.3;
+export const WORD_SIMILARITY_THRESHOLD = 0.4;
+
+// Blend the tsvector rank with trigram similarities into one comparable score.
+// Higher is more relevant. Mirrors the ORDER BY expression in searchRankedIds.
+export function blendScore(parts: {
+  tsRank: number;
+  titleSim: number;
+  subjectSim: number;
+  codeSim: number;
+}): number {
+  return (
+    parts.tsRank * SEARCH_WEIGHTS.fts +
+    parts.titleSim * SEARCH_WEIGHTS.title +
+    parts.subjectSim * SEARCH_WEIGHTS.subject +
+    parts.codeSim * SEARCH_WEIGHTS.code
+  );
 }
 
 // Re-apply an ordering computed outside the database (ts_rank, trending

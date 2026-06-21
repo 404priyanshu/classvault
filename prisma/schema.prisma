@@ -187,6 +187,9 @@ model Note {
   @@index([status])
   @@index([ownerId])
   @@index([courseId])
+  // Raw-only (not expressible here), see migrations:
+  //   note_search_vector  -> GIN(searchVector) for full-text ranking
+  //   note_trgm_search    -> GIN trigram on title/subject/courseCode for fuzzy
 }
 
 model ModerationEvent {

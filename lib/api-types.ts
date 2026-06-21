@@ -184,6 +184,18 @@ export type NotesResponse = {
   nextCursor: string | null;
 };
 
+// Lightweight autocomplete hit for the typeahead endpoint (/api/notes/suggest).
+export type ApiNoteSuggestion = {
+  id: string;
+  title: string;
+  subject: string;
+  courseCode: string;
+};
+
+export type NoteSuggestResponse = {
+  items: ApiNoteSuggestion[];
+};
+
 export type MetaResponse = {
   subjects: string[];
   semesters: string[];
