@@ -5,7 +5,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { BookOpenCheck, CheckCircle2, Clock, Sparkles, Wand2, X, Zap } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
-import type { AiRoadmapResponse, ApiError, ApiRoadmapDay } from "@/lib/api-types";
+import type {
+  AiRoadmapResponse,
+  ApiError,
+  ApiRoadmapDay,
+  ApiSavedRoadmap,
+  ApiSavedRoadmapSummary,
+  SavedRoadmapsResponse,
+} from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 
 type RoadmapDay = ApiRoadmapDay;
@@ -566,6 +573,85 @@ export function AIRoadmapsView() {
   // For aborting in-flight generation
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Persistence: the saved row backing the current roadmap, the user's saved
+  // list (for the resume picker), and a debounce timer for progress syncs.
+  const [savedRoadmapId, setSavedRoadmapId] = useState<string | null>(null);
+  const [savedList, setSavedList] = useState<ApiSavedRoadmapSummary[]>([]);
+  const [resumingId, setResumingId] = useState<string | null>(null);
+  const progressSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function refreshSavedList(signal?: AbortSignal) {
+    try {
+      const response = await fetch("/api/me/roadmaps", { signal });
+      if (response.ok) {
+        setSavedList(((await response.json()) as SavedRoadmapsResponse).items);
+      }
+    } catch {
+      // not signed in or offline: leave the list as-is
+    }
+  }
+
+  // Load the saved-roadmaps list for the resume picker.
+  useEffect(() => {
+    if (!me?.id) return;
+    const controller = new AbortController();
+    void (async () => {
+      await refreshSavedList(controller.signal);
+    })();
+    return () => controller.abort();
+  }, [me?.id]);
+
+  // Debounced progress sync. Content is immutable server-side; only done[] moves.
+  function scheduleProgressSave(id: string, plan: RoadmapDay[]) {
+    if (progressSaveRef.current) clearTimeout(progressSaveRef.current);
+    progressSaveRef.current = setTimeout(() => {
+      void fetch(`/api/me/roadmaps/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      }).catch(() => {
+        // best-effort; local state already reflects the toggle
+      });
+    }, 700);
+  }
+
+  async function openSavedRoadmap(id: string) {
+    setResumingId(id);
+    try {
+      const response = await fetch(`/api/me/roadmaps/${id}`);
+      if (!response.ok) return;
+      const saved = (await response.json()) as ApiSavedRoadmap;
+      setSubject(saved.subject);
+      setDays(saved.days);
+      setLevel(saved.level);
+      setGoal(saved.goal);
+      setGenerationMeta({
+        provider: saved.provider,
+        model: saved.model,
+        contextNoteCount: saved.contextNoteCount,
+      });
+      setSavedRoadmapId(saved.id);
+      setRoadmap(saved.plan);
+      setActiveDay(0);
+    } catch {
+      // ignore; picker stays open
+    } finally {
+      setResumingId(null);
+    }
+  }
+
+  async function deleteSavedRoadmap(id: string) {
+    const snapshot = savedList;
+    setSavedList((current) => current.filter((item) => item.id !== id));
+    if (savedRoadmapId === id) setSavedRoadmapId(null);
+    try {
+      const response = await fetch(`/api/me/roadmaps/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("delete failed");
+    } catch {
+      setSavedList(snapshot);
+    }
+  }
+
   function togglePreviewTaskCheckbox(dayIdx: number, taskIdx: number) {
     setPreviewRoadmap((current) =>
       current.map((day, dIdx) => {
@@ -638,7 +724,35 @@ export function AIRoadmapsView() {
         contextNoteCount: result.contextNoteCount,
       });
       setActiveDay(0);
+      setSavedRoadmapId(null);
       setToast("Roadmap generated.");
+
+      // Auto-save so the plan survives refresh and shows in the resume picker.
+      void (async () => {
+        try {
+          const saveResponse = await fetch("/api/me/roadmaps", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              subject,
+              days,
+              level,
+              goal,
+              provider: result.provider,
+              model: result.model,
+              contextNoteCount: result.contextNoteCount,
+              plan: result.days,
+            }),
+          });
+          if (saveResponse.ok) {
+            const saved = (await saveResponse.json()) as ApiSavedRoadmap;
+            setSavedRoadmapId(saved.id);
+            void refreshSavedList();
+          }
+        } catch {
+          // generation still succeeded; saving is best-effort
+        }
+      })();
 
       // Reward the user with a beautiful confetti burst (accent + success colors)
       confetti({
@@ -703,15 +817,14 @@ export function AIRoadmapsView() {
 
   function toggleTaskCheckbox(dayIdx: number, taskIdx: number) {
     if (!roadmap) return;
-    setRoadmap((current) => {
-      if (!current) return null;
-      return current.map((day, dIdx) => {
-        if (dIdx !== dayIdx) return day;
-        const newDone = [...day.done];
-        newDone[taskIdx] = !newDone[taskIdx];
-        return { ...day, done: newDone };
-      });
+    const next = roadmap.map((day, dIdx) => {
+      if (dIdx !== dayIdx) return day;
+      const newDone = [...day.done];
+      newDone[taskIdx] = !newDone[taskIdx];
+      return { ...day, done: newDone };
     });
+    setRoadmap(next);
+    if (savedRoadmapId) scheduleProgressSave(savedRoadmapId, next);
   }
 
   function handleTriggerQuiz(dayTitle: string) {
@@ -756,6 +869,70 @@ export function AIRoadmapsView() {
 
       {!roadmap && (
         <div className="min-w-0 space-y-8">
+          {/* Resume a previously saved roadmap */}
+          {savedList.length > 0 && (
+            <div className="roadmap-premium-card min-w-0 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+              <div className="mb-3 flex items-center gap-2.5">
+                <div className="rounded-2xl bg-accent/10 p-1.5">
+                  <BookOpenCheck className="h-4 w-4 text-accent" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold tracking-tight text-ink">Resume a saved roadmap</span>
+                  <div className="-mt-0.5 text-[10px] text-ink-faint">Your plans and progress are saved automatically</div>
+                </div>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {savedList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-3 transition hover:border-line-strong"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => openSavedRoadmap(item.id)}
+                      disabled={resumingId === item.id}
+                      className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:opacity-60"
+                    >
+                      <div className="relative h-9 w-9 shrink-0">
+                        <svg width={36} height={36} className="rotate-[-90deg]">
+                          <circle cx={18} cy={18} r={15} fill="none" stroke="var(--line)" strokeWidth={3} />
+                          <circle
+                            cx={18}
+                            cy={18}
+                            r={15}
+                            fill="none"
+                            stroke="var(--accent)"
+                            strokeWidth={3}
+                            strokeLinecap="round"
+                            strokeDasharray={2 * Math.PI * 15}
+                            strokeDashoffset={2 * Math.PI * 15 * (1 - item.progress / 100)}
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] font-bold text-accent">
+                          {item.progress}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate text-[13px] font-semibold text-ink">{item.subject}</div>
+                        <div className="truncate font-mono text-[10px] text-ink-faint">
+                          {item.days}d · {item.level} · {item.goal}
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSavedRoadmap(item.id)}
+                      aria-label="Delete saved roadmap"
+                      className="shrink-0 p-1 text-ink-faint opacity-0 transition hover:text-red-500 group-hover:opacity-100"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Premium Composer — the "create magic" moment */}
           <div className="roadmap-premium-card min-w-0 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
             <div className="mb-4 flex items-center justify-between">
@@ -1352,6 +1529,7 @@ export function AIRoadmapsView() {
                     setRoadmap(null);
                     setGenerationMeta(null);
                     setGenerateError(null);
+                    setSavedRoadmapId(null);
                   }}
                   className="rounded-2xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-soft transition hover:bg-paper hover:text-ink active:scale-[0.985] whitespace-nowrap"
                 >

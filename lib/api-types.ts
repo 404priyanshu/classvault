@@ -129,6 +129,36 @@ export type AiRoadmapResponse = {
   days: ApiRoadmapDay[];
 };
 
+// A persisted roadmap the user can resume. `plan` carries content + progress.
+export type ApiSavedRoadmap = {
+  id: string;
+  subject: string;
+  days: number;
+  level: string;
+  goal: string;
+  provider: AiProviderName;
+  model: string;
+  contextNoteCount: number;
+  plan: ApiRoadmapDay[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Lightweight row for the "Saved roadmaps" picker (no full plan payload).
+export type ApiSavedRoadmapSummary = {
+  id: string;
+  subject: string;
+  days: number;
+  level: string;
+  goal: string;
+  progress: number; // 0-100, derived from plan done[] counts
+  updatedAt: string;
+};
+
+export type SavedRoadmapsResponse = {
+  items: ApiSavedRoadmapSummary[];
+};
+
 export type AiNoteSuggestion = {
   description: string;
   tags: string[];

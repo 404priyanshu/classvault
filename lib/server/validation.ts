@@ -166,6 +166,29 @@ export const updateStudyTaskSchema = z
     message: "Provide a title or done state to update.",
   });
 
+// A persisted roadmap day extends the generated shape with per-task progress.
+const savedRoadmapDaySchema = aiRoadmapDaySchema.extend({
+  done: z.array(z.boolean()).max(20),
+});
+
+const savedRoadmapPlanSchema = z.array(savedRoadmapDaySchema).min(1).max(7);
+
+export const createSavedRoadmapSchema = z.object({
+  subject: z.string().trim().min(2).max(120),
+  days: z.coerce.number().int().min(1).max(7),
+  level: z.enum(["Beginner", "Okay", "Strong"]),
+  goal: z.enum(["Pass quickly", "Score high", "Deep understanding", "Interview prep"]),
+  provider: z.enum(["gemini", "openai"]),
+  model: z.string().trim().min(1).max(120),
+  contextNoteCount: z.coerce.number().int().min(0).max(10000).default(0),
+  plan: savedRoadmapPlanSchema,
+});
+
+// Resuming persists only progress (the done[] toggles); content is immutable.
+export const updateSavedRoadmapSchema = z.object({
+  plan: savedRoadmapPlanSchema,
+});
+
 export const aiNoteSuggestionRequestSchema = z.object({
   title: z.string().trim().min(3).max(120),
   subject: z.string().trim().min(1).max(120),
