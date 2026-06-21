@@ -195,6 +195,17 @@ model Note {
   //   note_trgm_search    -> GIN trigram on title/subject/courseCode for fuzzy
 }
 
+// Cross-instance cache for hot global read paths (meta stats, trending,
+// leaderboard). DB-backed so it survives across Vercel serverless instances,
+// mirroring the RateLimit table. value is the cached JSON payload; rows past
+// expiresAt are treated as misses and overwritten on the next load.
+model CacheEntry {
+  key       String   @id
+  value     Json
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+}
+
 model ModerationEvent {
   id          String   @id @default(cuid())
   noteId      String

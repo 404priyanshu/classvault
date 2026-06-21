@@ -1,6 +1,7 @@
 import { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiLeaderboardEntry, LeaderboardResponse } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
+import { getCached } from "@/lib/server/cache";
 import { roleLabelOf } from "@/lib/server/notes";
 
 // Live-computed reputation. No stored column: score = published uploads * 10
@@ -43,8 +44,6 @@ function toEntry(row: ScoredRow): ApiLeaderboardEntry {
   };
 }
 
-let cache: { at: number; rows: ScoredRow[] } | null = null;
-
 async function loadScoredRows(): Promise<ScoredRow[]> {
   // Self-downloads are excluded so contributors cannot inflate their own score.
   const rows = await db.$queryRaw<ScoredRow[]>(Prisma.sql`
@@ -77,16 +76,18 @@ async function loadScoredRows(): Promise<ScoredRow[]> {
   return rows;
 }
 
-async function getRanked(now: number): Promise<ScoredRow[]> {
-  if (cache && now - cache.at < CACHE_TTL_MS) return cache.rows;
-  const rows = await loadScoredRows();
-  rows.sort((a, b) => scoreOf(b) - scoreOf(a));
-  cache = { at: now, rows };
-  return rows;
+// Cross-instance cache (was a per-instance in-memory map, which never warmed on
+// serverless). The ranked rows are global, so cache the whole sorted list.
+async function getRanked(): Promise<ScoredRow[]> {
+  return getCached("leaderboard:ranked", CACHE_TTL_MS, async () => {
+    const rows = await loadScoredRows();
+    rows.sort((a, b) => scoreOf(b) - scoreOf(a));
+    return rows;
+  });
 }
 
 export async function getLeaderboard(currentUserId: string | null): Promise<LeaderboardResponse> {
-  const ranked = await getRanked(Date.now());
+  const ranked = await getRanked();
   const entries = ranked.slice(0, TOP_N).map(toEntry);
 
   let me: LeaderboardResponse["me"] = null;

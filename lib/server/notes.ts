@@ -1,6 +1,7 @@
 import { Prisma } from "@/lib/generated/prisma/client";
 import type { ApiNote, FileType, NoteStatus } from "@/lib/api-types";
 import { db } from "@/lib/server/db";
+import { getCached } from "@/lib/server/cache";
 import {
   computeRatingAggregate,
   isFullTextQuery,
@@ -14,6 +15,7 @@ import type { notesQuerySchema, createNoteSchema } from "@/lib/server/validation
 import type { z } from "zod";
 
 const TRENDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const TRENDING_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const noteInclude = (userId: string | null) =>
   ({
@@ -138,16 +140,20 @@ export async function suggestNotes(q: string, limit: number) {
 }
 
 // Notes ordered by downloads inside the trending window; cached lifetime
-// downloadCount breaks ties and covers windows with no recent activity.
+// downloadCount breaks ties and covers windows with no recent activity. The
+// windowed groupBy is the same for everyone, so cache the ordered ids briefly
+// (per requested size) instead of recomputing it on every request.
 async function trendingIds(limit: number) {
-  const grouped = await db.downloadEvent.groupBy({
-    by: ["noteId"],
-    where: { createdAt: { gte: new Date(Date.now() - TRENDING_WINDOW_MS) } },
-    _count: { noteId: true },
-    orderBy: { _count: { noteId: "desc" } },
-    take: limit,
+  return getCached(`trending:notes:${limit}`, TRENDING_CACHE_TTL_MS, async () => {
+    const grouped = await db.downloadEvent.groupBy({
+      by: ["noteId"],
+      where: { createdAt: { gte: new Date(Date.now() - TRENDING_WINDOW_MS) } },
+      _count: { noteId: true },
+      orderBy: { _count: { noteId: "desc" } },
+      take: limit,
+    });
+    return grouped.map((row) => row.noteId);
   });
-  return grouped.map((row) => row.noteId);
 }
 
 export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId: string | null) {
