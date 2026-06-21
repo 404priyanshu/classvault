@@ -27,6 +27,11 @@ export const notesQuerySchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const suggestQuerySchema = z.object({
+  q: z.string().trim().min(1).max(120),
+  limit: z.coerce.number().int().min(1).max(10).default(8),
+});
+
 export const createNoteSchema = z.object({
   title: z.string().trim().min(3).max(120),
   description: z.string().trim().max(2000).default(""),

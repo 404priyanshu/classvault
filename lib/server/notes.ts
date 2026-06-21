@@ -6,6 +6,9 @@ import {
   isFullTextQuery,
   orderByIds,
   roundToTenth,
+  SEARCH_WEIGHTS,
+  SIMILARITY_THRESHOLD,
+  WORD_SIMILARITY_THRESHOLD,
 } from "@/lib/server/note-logic";
 import type { notesQuerySchema, createNoteSchema } from "@/lib/server/validation";
 import type { z } from "zod";
@@ -78,18 +81,60 @@ export function serializeNote(note: NoteWithRelations, userId: string | null): A
   };
 }
 
-// Multi-word queries hit the tsvector generated column (websearch semantics,
-// ranked); single words keep the insensitive substring match, which works
-// better for course codes like "CS302" and partial words.
+// Unified ranked search. Blends the tsvector full-text rank (good for phrases
+// and stemming) with pg_trgm similarity on title/subject/courseCode (good for
+// single words, typos, and partial codes — "dbm"→"dbms", "operatng systm"→
+// "operating systems"). One query returns rank-ordered ids; weights/thresholds
+// live in note-logic so blendScore can mirror this formula in unit tests.
 async function searchRankedIds(q: string) {
   const rows = await db.$queryRaw<Array<{ id: string }>>(Prisma.sql`
     SELECT "id"
     FROM "Note"
-    WHERE "searchVector" @@ websearch_to_tsquery('english', ${q})
-    ORDER BY ts_rank("searchVector", websearch_to_tsquery('english', ${q})) DESC
+    WHERE
+      "searchVector" @@ websearch_to_tsquery('english', ${q})
+      OR word_similarity(${q}, "title") > ${WORD_SIMILARITY_THRESHOLD}
+      OR similarity("subject", ${q}) > ${SIMILARITY_THRESHOLD}
+      OR similarity("courseCode", ${q}) > ${SIMILARITY_THRESHOLD}
+    ORDER BY (
+      ts_rank("searchVector", websearch_to_tsquery('english', ${q})) * ${SEARCH_WEIGHTS.fts}
+      + GREATEST(word_similarity(${q}, "title"), similarity("title", ${q})) * ${SEARCH_WEIGHTS.title}
+      + similarity("subject", ${q}) * ${SEARCH_WEIGHTS.subject}
+      + similarity("courseCode", ${q}) * ${SEARCH_WEIGHTS.code}
+    ) DESC
     LIMIT 200
   `);
   return rows.map((row) => row.id);
+}
+
+// Lightweight typeahead: a few best fuzzy/prefix matches for autocomplete. Small
+// payload, PUBLISHED only, no pagination. Reuses the trigram indexes.
+export async function suggestNotes(q: string, limit: number) {
+  const rows = await db.$queryRaw<
+    Array<{ id: string; title: string; subject: string; courseCode: string }>
+  >(Prisma.sql`
+    SELECT "id", "title", "subject", "courseCode"
+    FROM "Note"
+    WHERE
+      "status" = 'PUBLISHED'
+      AND (
+        "searchVector" @@ websearch_to_tsquery('english', ${q})
+        OR word_similarity(${q}, "title") > ${WORD_SIMILARITY_THRESHOLD}
+        OR similarity("subject", ${q}) > ${SIMILARITY_THRESHOLD}
+        OR similarity("courseCode", ${q}) > ${SIMILARITY_THRESHOLD}
+      )
+    ORDER BY GREATEST(
+      word_similarity(${q}, "title"),
+      similarity("title", ${q}),
+      similarity("courseCode", ${q})
+    ) DESC
+    LIMIT ${limit}
+  `);
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    subject: row.subject,
+    courseCode: row.courseCode,
+  }));
 }
 
 // Notes ordered by downloads inside the trending window; cached lifetime
@@ -118,21 +163,10 @@ export async function listNotes(query: z.infer<typeof notesQuerySchema>, userId:
   if (q && useFts) {
     rankedIds = await searchRankedIds(q);
     const match = { contains: q, mode: "insensitive" as const };
-    // Rank-ordered tsvector hits, plus tag/code matches FTS cannot see.
+    // Rank-ordered hits (FTS + trigram), plus tag matches the ranked query
+    // cannot see (tags live in a relation, not on Note).
     where.OR = [
       { id: { in: rankedIds } },
-      { courseCode: match },
-      { tags: { some: { tag: { name: match } } } },
-    ];
-  } else if (q) {
-    const match = { contains: q, mode: "insensitive" as const };
-    where.OR = [
-      { title: match },
-      { description: match },
-      { subject: match },
-      { topic: match },
-      { courseCode: match },
-      { unit: match },
       { tags: { some: { tag: { name: match } } } },
     ];
   }
