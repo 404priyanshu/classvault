@@ -268,7 +268,7 @@ export function StudyRoomsView() {
       {/* Complete session modal details */}
       {completedSession && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-6 text-center shadow-2xl">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-6 text-center">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <Check className="h-6 w-6" />
             </div>
@@ -300,7 +300,7 @@ export function StudyRoomsView() {
       {/* Room Creation dialog modal */}
       {createOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5">
             <div className="flex items-center justify-between border-b border-line pb-2.5">
               <h3 className="text-sm font-bold text-ink">Create study room</h3>
               <button onClick={() => setCreateOpen(false)} className="text-ink-faint hover:text-ink">

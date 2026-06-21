@@ -1,7 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { FileText, RefreshCw, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ApiNote, NotesResponse } from "@/lib/api-types";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
@@ -123,34 +122,21 @@ export function SearchCommandPalette() {
         </kbd>
       </button>
 
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            className="fixed inset-0 z-[90] flex items-start justify-center bg-black/25 px-3 py-4 backdrop-blur-[2px] sm:px-4 sm:py-28"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setOpen(false);
-            }}
+      {open ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-start justify-center bg-black/25 px-3 py-4 sm:px-4 sm:py-28"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setOpen(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search resources"
+            className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-lg"
           >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Search resources"
-              className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-hidden rounded-lg border border-line bg-surface shadow-[0_24px_60px_rgba(0,0,0,0.14),0_4px_18px_rgba(0,0,0,0.06)]"
-              initial={{ opacity: 0, scale: 0.97, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 6 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            >
               <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-                {searching ? (
-                  <RefreshCw className="h-4 w-4 shrink-0 animate-spin text-ink-faint" />
-                ) : (
-                  <Search className="h-4 w-4 shrink-0 text-ink-faint" />
-                )}
+                <Search className="h-4 w-4 shrink-0 text-ink-faint" />
                 <input
                   ref={inputRef}
                   value={query}
@@ -232,10 +218,9 @@ export function SearchCommandPalette() {
                   </div>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
