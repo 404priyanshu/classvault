@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { BookOpenCheck, CheckCircle2, Clock, Sparkles, Wand2, X, Zap } from "lucide-react";
-import confetti from "canvas-confetti";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import type {
   AiRoadmapResponse,
@@ -230,17 +228,14 @@ function RoadmapTimelineChart({
           const isActive = activeIndex === index;
           const progress = roadmapProgress(day);
           return (
-            <motion.button
+            <button
               key={day.day}
               type="button"
               onClick={() => onSelect(index)}
-              whileHover={{ scale: 1.005 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              className={cx(
+                                                        className={cx(
                 "timeline-pill min-w-0 rounded-xl border p-4 text-left",
                 isActive
-                  ? "border-accent bg-surface shadow-[0_4px_12px_rgba(99,91,255,0.08)] ring-2 ring-accent/30"
+                  ? "border-accent bg-surface ring-2 ring-accent/30"
                   : progress === 100
                     ? "border-emerald-500/30 bg-emerald-50/45 hover:bg-emerald-50"
                     : "border-line bg-paper hover:border-line-strong",
@@ -288,7 +283,7 @@ function RoadmapTimelineChart({
                   style={{ width: `${progress}%` }}
                 />
               </span>
-            </motion.button>
+            </button>
           );
         })}
       </div>
@@ -389,20 +384,17 @@ function RoadmapTimelineChart({
               const isActive = activeIndex === index;
               const progress = roadmapProgress(day);
               return (
-                <motion.button
+                <button
                   key={day.day}
                   type="button"
                   onMouseEnter={() => onHover(index)}
                   onMouseLeave={() => onHover(null)}
                   onClick={() => onSelect(index)}
                   style={roadmapPillStyle(index, days.length)}
-                  whileHover={{ y: -2, scale: isActive ? 1.01 : 1.015 }}
-                  whileTap={{ scale: 0.985 }}
-                  transition={{ type: "spring", stiffness: 420, damping: 26 }}
-                  className={cx(
+                                                                        className={cx(
                     "timeline-pill absolute z-20 flex h-[98px] min-w-0 flex-col justify-between rounded-xl p-3 text-left text-xs font-semibold shadow-sm border",
                     isActive
-                      ? "border-accent bg-surface text-ink ring-4 ring-accent-soft/40 shadow-xl"
+                      ? "border-accent bg-surface text-ink ring-4 ring-accent-soft/40"
                       : progress === 100
                         ? "border-emerald-500/40 bg-emerald-50/60 text-ink hover:border-emerald-500"
                         : isHovered
@@ -452,7 +444,7 @@ function RoadmapTimelineChart({
                       />
                     </span>
                   </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -467,14 +459,11 @@ function RoadmapTimelineChart({
             const isActive = activeIndex === index;
             const progress = roadmapProgress(day);
             return (
-              <motion.button
+              <button
                 key={day.day}
                 type="button"
                 onClick={() => onSelect(index)}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.985 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className={cx(
+                                                                className={cx(
                   "timeline-pill min-w-0 rounded-xl border p-3 text-left",
                   isActive
                     ? "border-accent bg-accent-soft/50 shadow-sm"
@@ -495,7 +484,7 @@ function RoadmapTimelineChart({
                   {day.title}
                 </h4>
                 <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-ink-soft">{day.topic}</p>
-              </motion.button>
+              </button>
             );
           })}
         </div>
@@ -753,24 +742,6 @@ export function AIRoadmapsView() {
           // generation still succeeded; saving is best-effort
         }
       })();
-
-      // Reward the user with a beautiful confetti burst (accent + success colors)
-      confetti({
-        particleCount: 180,
-        spread: 90,
-        origin: { y: 0.65 },
-        colors: ["#635BFF", "#22C55E", "#a5b4fc"],
-      });
-      // Second burst for more magic
-      setTimeout(() => {
-        confetti({
-          particleCount: 90,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0.1, y: 0.7 },
-          colors: ["#635BFF"],
-        });
-      }, 180);
     } catch (error: unknown) {
       const err = error as Error & { name?: string };
       if (err.name === "AbortError") {
@@ -838,12 +809,11 @@ export function AIRoadmapsView() {
       {/* Luxurious, rewarding AI header */}
       <div className=" pt-2">
         <div className="flex items-center gap-4">
-          <motion.div
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            className="ai-badge inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-gradient-to-br from-accent/10 to-accent/5 ring-1 ring-inset ring-accent/30 shadow-inner"
+          <div
+                        className="ai-badge inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent-soft ring-1 ring-inset ring-accent/30 shadow-inner"
           >
             <Sparkles className="h-5 w-5 text-accent" />
-          </motion.div>
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <div className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-accent/70">
@@ -871,9 +841,9 @@ export function AIRoadmapsView() {
         <div className="min-w-0 space-y-8">
           {/* Resume a previously saved roadmap */}
           {savedList.length > 0 && (
-            <div className="roadmap-premium-card min-w-0 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+            <div className="roadmap-premium-card min-w-0 rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-6">
               <div className="mb-3 flex items-center gap-2.5">
-                <div className="rounded-2xl bg-accent/10 p-1.5">
+                <div className="rounded-md bg-accent/10 p-1.5">
                   <BookOpenCheck className="h-4 w-4 text-accent" />
                 </div>
                 <div>
@@ -885,7 +855,7 @@ export function AIRoadmapsView() {
                 {savedList.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-3 transition hover:border-line-strong"
+                    className="group flex items-center gap-3 rounded-md border border-line bg-paper p-3 transition hover:border-line-strong"
                   >
                     <button
                       type="button"
@@ -934,10 +904,10 @@ export function AIRoadmapsView() {
           )}
 
           {/* Premium Composer — the "create magic" moment */}
-          <div className="roadmap-premium-card min-w-0 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
+          <div className="roadmap-premium-card min-w-0 rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="rounded-2xl bg-accent/10 p-1.5">
+                <div className="rounded-md bg-accent/10 p-1.5">
                   <Wand2 className="h-4 w-4 text-accent" />
                 </div>
                 <div>
@@ -954,15 +924,12 @@ export function AIRoadmapsView() {
               </div>
             </div>
 
-            <AnimatePresence mode="wait">
-              {!generating ? (
-                <motion.form
+                          {!generating ? (
+                <form
                   key="config-form"
                   onSubmit={handleGenerate}
                   className="space-y-4"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
-                >
+                                                    >
                   <div className="grid gap-3">
                     {/* Row 1: Subject and Duration */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1087,7 +1054,7 @@ export function AIRoadmapsView() {
                     </div>
                     <button
                       type="submit"
-                      className="ai-magic-btn inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-surface active:scale-[0.985] shadow-lg"
+                      className="ai-magic-btn inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-surface active:scale-[0.985]"
                     >
                       <Zap className="h-4 w-4" />
                       Generate AI Roadmap
@@ -1099,15 +1066,12 @@ export function AIRoadmapsView() {
                       {generateError}
                     </p>
                   ) : null}
-                </motion.form>
+                </form>
               ) : (
                 /* Stunning, rewarding AI generation experience */
-                <motion.div
+                <div
                   key="generating"
-                  initial={{ opacity: 0, scale: 0.985 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.98, transition: { duration: 0.12 } }}
-                  className="relative overflow-hidden rounded-2xl border border-line/70 bg-paper/70 p-6 text-center"
+                                                                        className="relative overflow-hidden rounded-md border border-line/70 bg-paper/70 p-6 text-center"
                 >
                   {/* Subtle living background field */}
                   <div className="absolute inset-0 bg-[radial-gradient(#635bFF_0.6px,transparent_1px)] bg-[length:3.5px_3.5px] opacity-[0.035]" />
@@ -1116,38 +1080,24 @@ export function AIRoadmapsView() {
                     {/* Hero AI Orb — beautiful layered animated core */}
                     <div className="relative mx-auto mb-5 flex h-24 w-24 items-center justify-center">
                       {/* Outer slow rotating glow ring */}
-                      <motion.div
+                      <div
                         className="absolute h-24 w-24 rounded-full border border-accent/30"
-                        animate={{ rotate: 360, scale: [1, 1.06, 1] }}
-                        transition={{
-                          rotate: { duration: 18, repeat: Infinity, ease: "linear" },
-                          scale: { duration: 4.2, repeat: Infinity, ease: "easeInOut" },
-                        }}
-                      />
+                                                                      />
                       {/* Mid pulsing ring */}
-                      <motion.div
+                      <div
                         className="absolute h-[78px] w-[78px] rounded-full border-2 border-accent/50"
-                        animate={{ rotate: -360, scale: [1, 1.03, 1] }}
-                        transition={{
-                          rotate: { duration: 11, repeat: Infinity, ease: "linear" },
-                          scale: { duration: 3.1, repeat: Infinity },
-                        }}
-                      />
+                                                                      />
                       {/* Core glowing orb */}
-                      <motion.div
-                        className="absolute h-12 w-12 rounded-full bg-gradient-to-br from-accent via-[#7C6AFF] to-accent shadow-[0_0_28px_rgba(99,91,255,0.55)]"
-                        animate={{ scale: [1, 1.18, 1], opacity: [0.85, 1, 0.85] }}
-                        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-                      />
+                      <div
+                        className="absolute h-12 w-12 rounded-full bg-ink"
+                                                                      />
                       {/* Inner bright nucleus */}
-                      <motion.div
+                      <div
                         className="absolute h-5 w-5 rounded-full bg-white/90"
-                        animate={{ scale: [0.6, 1.15, 0.6] }}
-                        transition={{ duration: 1.8, repeat: Infinity }}
-                      />
+                                                                      />
                       {/* Orbiting data nodes — neural feel */}
                       {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <motion.div
+                        <div
                           key={i}
                           className="absolute h-1.5 w-1.5 rounded-full bg-accent"
                           style={{
@@ -1156,23 +1106,7 @@ export function AIRoadmapsView() {
                             marginTop: -3,
                             marginLeft: -3,
                           }}
-                          animate={{
-                            x: [
-                              Math.cos((i / 6) * Math.PI * 2) * 34,
-                              Math.cos((i / 6 + 0.5) * Math.PI * 2) * 34,
-                            ],
-                            y: [
-                              Math.sin((i / 6) * Math.PI * 2) * 34,
-                              Math.sin((i / 6 + 0.5) * Math.PI * 2) * 34,
-                            ],
-                          }}
-                          transition={{
-                            duration: 3.8 + i * 0.15,
-                            repeat: Infinity,
-                            ease: "linear",
-                            delay: i * -0.4,
-                          }}
-                        />
+                                                                            />
                       ))}
                     </div>
 
@@ -1239,11 +1173,9 @@ export function AIRoadmapsView() {
                             </div>
                             <div className="flex-1 leading-tight">{label}</div>
                             {isActive && (
-                              <motion.div
+                              <div
                                 className="h-1.5 w-1.5 rounded-full bg-accent"
-                                animate={{ scale: [1, 1.6, 1], opacity: [0.6, 1, 0.6] }}
-                                transition={{ duration: 0.9, repeat: Infinity }}
-                              />
+                                                                                              />
                             )}
                           </div>
                         );
@@ -1263,16 +1195,15 @@ export function AIRoadmapsView() {
                       You can cancel at any time
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </div>
+                      </div>
 
           {/* Live Interactive Sandbox — a gorgeous, rewarding playground */}
-          <div className="roadmap-premium-card min-w-0 space-y-5 rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
+          <div className="roadmap-premium-card min-w-0 space-y-5 rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
             <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[1.5px] text-accent">
+                <span className="inline-flex items-center gap-2 rounded-md border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[1.5px] text-accent">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                   LIVE SANDBOX
                 </span>
@@ -1285,7 +1216,7 @@ export function AIRoadmapsView() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-2xl border border-line bg-paper px-4 py-1 text-center">
+              <div className="rounded-md border border-line bg-paper px-4 py-1 text-center">
                 <div className="text-[10px] font-mono font-bold tracking-widest text-ink-faint">
                   DEMO
                 </div>
@@ -1304,7 +1235,7 @@ export function AIRoadmapsView() {
               );
               const demoPct = demoTotal ? Math.round((demoDone / demoTotal) * 100) : 0;
               return (
-                <div className="flex items-center gap-3 rounded-2xl bg-paper border border-line px-4 py-2 text-xs">
+                <div className="flex items-center gap-3 rounded-md bg-paper border border-line px-4 py-2 text-xs">
                   <div className="font-mono font-semibold text-ink">{demoPct}%</div>
                   <div className="flex-1 h-1.5 rounded-full bg-line overflow-hidden">
                     <div
@@ -1328,18 +1259,13 @@ export function AIRoadmapsView() {
             />
 
             {/* Active Day Detail Panel for Preview — now as luxurious and rewarding as the real thing */}
-            <AnimatePresence mode="wait">
-              <motion.div
+                          <div
                 key={activePreviewDay}
-                initial={{ opacity: 0.6, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-6 space-y-5 border-t border-line pt-6"
+                                                                                className="mt-6 space-y-5 border-t border-line pt-6"
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
-                    <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
                       Day {previewRoadmap[activePreviewDay].day} Focus
                     </span>
                     <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
@@ -1348,7 +1274,7 @@ export function AIRoadmapsView() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="rounded-2xl bg-success/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-success">
+                    <div className="rounded-md bg-success/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-success">
                       {Math.round(
                         (previewRoadmap[activePreviewDay].done.filter(Boolean).length /
                           previewRoadmap[activePreviewDay].done.length) *
@@ -1359,7 +1285,7 @@ export function AIRoadmapsView() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
+                <div className="rounded-md border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
                   <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
                     Core Focus
                   </div>
@@ -1383,7 +1309,7 @@ export function AIRoadmapsView() {
                       ].map((task, tIdx) => (
                         <div
                           key={tIdx}
-                          className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
+                          className="gorgeous-task group flex items-start gap-3.5 rounded-md border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
                         >
                           <button
                             onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
@@ -1420,7 +1346,7 @@ export function AIRoadmapsView() {
                       {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
                         <div
                           key={rIdx}
-                          className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
+                          className="flex items-center gap-3 rounded-md border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
                         >
                           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">
                             📘
@@ -1435,21 +1361,17 @@ export function AIRoadmapsView() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+              </div>
+                      </div>
         </div>
       )}
 
       {roadmap && (
-        <motion.div
+        <div
           className="space-y-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
+                                      >
           {/* Hero Reward Header — this is the "you did it" moment */}
-          <div className="roadmap-premium-card rounded-3xl border border-accent/20 bg-gradient-to-br from-surface to-paper p-6 sm:p-7 reward-glow">
+          <div className="roadmap-premium-card rounded-lg border border-accent/20 bg-surface p-6 sm:p-7 reward-glow">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -1531,7 +1453,7 @@ export function AIRoadmapsView() {
                     setGenerateError(null);
                     setSavedRoadmapId(null);
                   }}
-                  className="rounded-2xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-soft transition hover:bg-paper hover:text-ink active:scale-[0.985] whitespace-nowrap"
+                  className="rounded-md border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-soft transition hover:bg-paper hover:text-ink active:scale-[0.985] whitespace-nowrap"
                 >
                   Start new plan
                 </button>
@@ -1540,7 +1462,7 @@ export function AIRoadmapsView() {
           </div>
 
           {/* The beautiful timeline (preserved + elevated) */}
-          <div className="relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-7 roadmap-premium-card">
+          <div className="relative min-w-0 overflow-hidden rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-7 roadmap-premium-card">
             <div className="mb-4 flex items-center justify-between border-b border-line pb-4">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-faint">
@@ -1564,18 +1486,13 @@ export function AIRoadmapsView() {
             />
 
             {/* Luxurious Day Detail Panel */}
-            <AnimatePresence mode="wait">
-              <motion.div
+                          <div
                 key={activeDay}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-7 space-y-5 border-t border-line pt-7"
+                                                                                className="mt-7 space-y-5 border-t border-line pt-7"
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
-                    <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
                       Day {roadmap[activeDay].day} Focus
                     </span>
                     <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
@@ -1586,11 +1503,11 @@ export function AIRoadmapsView() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white active:scale-[0.985]"
+                      className="inline-flex items-center gap-2 rounded-md border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white active:scale-[0.985]"
                     >
                       <Zap className="h-3.5 w-3.5" /> Practice Quiz
                     </button>
-                    <div className="rounded-2xl bg-emerald-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-emerald-600">
+                    <div className="rounded-md bg-emerald-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-emerald-600">
                       {Math.round(
                         (roadmap[activeDay].done.filter(Boolean).length /
                           roadmap[activeDay].done.length) *
@@ -1601,7 +1518,7 @@ export function AIRoadmapsView() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
+                <div className="rounded-md border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
                   <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
                     Core Focus
                   </div>
@@ -1623,7 +1540,7 @@ export function AIRoadmapsView() {
                         (task, tIdx) => (
                           <div
                             key={tIdx}
-                            className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
+                            className="gorgeous-task group flex items-start gap-3.5 rounded-md border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
                           >
                             <button
                               onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
@@ -1661,7 +1578,7 @@ export function AIRoadmapsView() {
                       {roadmap[activeDay].resources.map((res, rIdx) => (
                         <div
                           key={rIdx}
-                          className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
+                          className="flex items-center gap-3 rounded-md border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
                         >
                           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">
                             📘
@@ -1675,22 +1592,16 @@ export function AIRoadmapsView() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.div>
+              </div>
+                      </div>
+        </div>
       )}
 
       {/* Mock Quiz dialog modal — beautiful spring entrance */}
-      <AnimatePresence>
-        {showQuiz && (
+              {showQuiz && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.985 }}
-              transition={{ type: "spring", stiffness: 380, damping: 28 }}
-              className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl"
+            <div
+                                                                      className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5"
             >
               <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">
@@ -1762,11 +1673,10 @@ export function AIRoadmapsView() {
                   Submit Answers
                 </button>
               )}
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
-    </div>
+          </div>
   );
 }
 

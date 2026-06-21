@@ -152,7 +152,7 @@ export function FilterBar({
               aria-pressed={sort === mode}
               className={cx(
                 "inline-flex items-center gap-1.5 rounded px-2.5 text-xs font-semibold text-ink-faint transition",
-                sort === mode && "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]",
+                sort === mode && "bg-paper text-ink",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -185,7 +185,7 @@ export function FilterBar({
               onClick={() => onLayoutModeChange(mode)}
               className={cx(
                 "inline-flex h-7 w-7 items-center justify-center rounded text-ink-faint transition",
-                layoutMode === mode && "bg-paper text-ink shadow-[inset_0_0_0_1px_var(--line)]",
+                layoutMode === mode && "bg-paper text-ink",
               )}
               aria-label={`${mode} layout`}
             >
@@ -387,7 +387,7 @@ export function DetailDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/25">
       <button type="button" className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close detail" />
-      <aside className="relative flex h-full w-full max-w-lg flex-col border-l border-line bg-surface shadow-2xl">
+      <aside className="relative flex h-full w-full max-w-lg flex-col border-l border-line bg-surface">
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
           <div className="flex items-center gap-3">
             <FileBadge type={note.fileType} />
@@ -754,7 +754,7 @@ function AddToCollection({
           <FolderPlus className="h-4 w-4" /> Add to collection
         </button>
         {open ? (
-          <div className="absolute left-0 z-50 mt-2 w-72 max-w-[80vw] overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
+          <div className="absolute left-0 z-50 mt-2 w-72 max-w-[80vw] overflow-hidden rounded-lg border border-line bg-surface">
             <div className="max-h-64 overflow-y-auto">
               {!loaded ? (
                 <p className="px-3 py-3 text-xs text-ink-faint">Loading…</p>

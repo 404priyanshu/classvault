@@ -92,31 +92,25 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
   const { me, authChecked, openUpload, showAuthBanner, dismissAuthBanner } = useAppShell();
 
   const title = VIEW_TITLES[pathname] ?? "ClassVault";
-  const isDashboard = pathname === "/app/dashboard";
   const profileName = me?.name ?? (authChecked ? "Preview mode" : "Loading...");
   const profileEmail = me?.email ?? (authChecked ? "Sign in to save and upload" : "");
   const canModerate = me?.role === "ADMIN" || me?.role === "MODERATOR";
   const sections = canModerate ? [...NAV_SECTIONS, ADMIN_SECTION] : NAV_SECTIONS;
 
   return (
-    <div className={cx("min-h-screen bg-paper text-ink", isDashboard && "dashboard-theme")}>
+    <div className="min-h-screen bg-paper text-ink">
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-line bg-surface lg:flex">
         <div className="flex items-center gap-2 px-4 py-4">
-          <span
-            className={cx(
-              "grid h-7 w-7 place-items-center rounded-md text-xs font-bold",
-              isDashboard ? "bg-accent text-[#100f0d]" : "bg-ink text-surface",
-            )}
-          >
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-ink text-xs font-bold text-surface">
             CV
           </span>
-          <span className={cx("text-sm font-bold tracking-tight", isDashboard && "text-accent")}>ClassVault</span>
+          <span className="text-sm font-semibold tracking-tight">ClassVault</span>
         </div>
         <div className="flex-1 overflow-y-auto px-3">
           {sections.map((section) => (
             <div key={section.label} className="py-2">
-              <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
+              <span className="px-2 text-[10px] font-medium uppercase tracking-wider text-ink-faint">
                 {section.label}
               </span>
               <nav className="mt-1 grid gap-0.5">
@@ -125,14 +119,10 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={cx(
-                      "flex items-center gap-3 rounded-md px-2 py-1.5 text-xs font-semibold transition",
+                      "flex items-center gap-3 rounded-md px-2 py-1.5 text-xs font-medium",
                       isActive(pathname, item.href)
-                        ? isDashboard
-                          ? "bg-paper-warm text-ink shadow-[inset_0_0_0_1px_var(--line)]"
-                          : "bg-paper text-ink"
-                        : isDashboard
-                          ? "text-ink-soft hover:bg-paper-warm hover:text-ink"
-                          : "text-ink-soft hover:bg-paper hover:text-ink",
+                        ? "bg-paper text-ink"
+                        : "text-ink-soft hover:bg-paper hover:text-ink",
                     )}
                   >
                     <item.icon className="h-3.5 w-3.5" />
@@ -143,52 +133,32 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </div>
-        {isDashboard ? (
-          <Link
-            href="/app/roadmaps"
-            className="mx-3 mb-3 rounded-3xl border border-accent/35 bg-accent p-4 text-[#130f0d] shadow-[0_16px_38px_-20px_rgba(255,80,35,0.9)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
-          >
-            <span className="block text-[11px] font-black uppercase tracking-tight">Level up with AI</span>
-            <span className="mt-1 block text-[10px] font-semibold text-black/65">
-              Turn notes into a focused weekly plan.
-            </span>
-            <span className="mt-3 inline-flex h-7 items-center rounded-full bg-[#15100e] px-3 text-[10px] font-bold text-accent">
-              Generate plan
-            </span>
-          </Link>
-        ) : null}
         <Link
           href="/app/settings"
           className={cx(
-            "flex items-center gap-3 border-t border-line p-3 text-left transition",
-            isDashboard ? "hover:bg-paper-warm" : "hover:bg-paper",
-            isActive(pathname, "/app/settings") ? (isDashboard ? "bg-paper-warm" : "bg-paper") : "",
+            "flex items-center gap-3 border-t border-line p-3 text-left hover:bg-paper",
+            isActive(pathname, "/app/settings") && "bg-paper",
           )}
         >
-          <span
-            className={cx(
-              "grid h-8 w-8 place-items-center rounded-full text-[10px] font-bold",
-              isDashboard ? "bg-accent text-[#130f0d]" : "bg-ink text-surface",
-            )}
-          >
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-[10px] font-semibold text-surface">
             {initialsOf(me?.name ?? "Guest")}
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-xs font-bold text-ink">{profileName}</span>
+            <span className="block truncate text-xs font-medium text-ink">{profileName}</span>
             <span className="block truncate text-[10px] text-ink-faint">{profileEmail}</span>
           </span>
         </Link>
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface/95 px-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface px-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 lg:hidden">
         {MOBILE_NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cx(
-              "flex min-w-14 flex-1 flex-col items-center gap-1 rounded-md px-1 py-1 text-[10px] font-semibold",
-              isActive(pathname, item.href) ? (isDashboard ? "bg-paper-warm text-accent" : "text-ink") : "text-ink-faint",
+              "flex min-w-14 flex-1 flex-col items-center gap-1 rounded-md px-1 py-1 text-[10px] font-medium",
+              isActive(pathname, item.href) ? "text-ink" : "text-ink-faint",
             )}
           >
             <item.icon className="h-4 w-4" />
@@ -197,32 +167,17 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
         ))}
       </nav>
 
-      <main
-        className={cx(
-          "px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:ml-56 lg:pb-12",
-          isDashboard ? "lg:px-7 lg:pt-6" : "lg:px-10 lg:pt-8",
-        )}
-      >
-        <div className={cx("mx-auto", isDashboard ? "max-w-[1180px]" : "max-w-5xl")}>
-          <div
-            className={cx(
-              "flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between",
-              isDashboard ? "pb-5" : "pb-6",
-            )}
-          >
-            <h1 className={cx("text-xl font-semibold tracking-tight", isDashboard && "sr-only")}>{title}</h1>
+      <main className="px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:ml-56 lg:px-10 lg:pb-12 lg:pt-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col gap-3 pb-6 lg:flex-row lg:items-center lg:justify-between">
+            <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
               <SearchCommandPalette />
               {me ? <NotificationsBell /> : null}
               <button
                 type="button"
                 onClick={openUpload}
-                className={cx(
-                  "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md px-3.5 text-sm font-medium transition",
-                  isDashboard
-                    ? "bg-accent text-[#130f0d] hover:bg-accent-hover"
-                    : "bg-ink text-surface hover:bg-ink/85",
-                )}
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface hover:bg-ink/85"
               >
                 <Plus className="h-4 w-4" />
                 Upload

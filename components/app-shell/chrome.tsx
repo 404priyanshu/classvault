@@ -72,7 +72,7 @@ export function AuthPromptDialog({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         aria-label="Close sign-in prompt"
       />
-      <section className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl transition duration-200">
+      <section className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-lg border border-line bg-surface transition duration-200">
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase text-ink-faint">
@@ -200,7 +200,7 @@ export function UploadDialog({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
       <form
         onSubmit={handleSubmit}
-        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface shadow-2xl"
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
