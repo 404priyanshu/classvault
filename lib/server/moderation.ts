@@ -1,6 +1,7 @@
 import type { NoteStatus } from "@/lib/api-types";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { db } from "@/lib/server/db";
+import { invalidateCache } from "@/lib/server/cache";
 import { serializeNote, type NoteWithRelations } from "@/lib/server/notes";
 import { createNotification } from "@/lib/server/notifications";
 
@@ -46,7 +47,7 @@ export async function moderateNote({
     RESTORE: "PUBLISHED",
   } satisfies Record<typeof action, NoteStatus>;
 
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const note = await tx.note.update({
       where: { id: noteId },
       data: {
@@ -77,6 +78,17 @@ export async function moderateNote({
 
     return serializeAdminNote(note);
   });
+
+  // A status change moves published counts/subjects (meta), reputation
+  // (leaderboard), and trending eligibility. Invalidate after the commit so the
+  // next read recomputes; downloads rely on TTL only (too frequent to bust).
+  await Promise.all([
+    invalidateCache("meta"),
+    invalidateCache("leaderboard"),
+    invalidateCache("trending"),
+  ]);
+
+  return result;
 }
 
 export async function listReports() {
