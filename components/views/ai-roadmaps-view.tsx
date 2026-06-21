@@ -14,46 +14,106 @@ const PREVIEW_ROADMAP: RoadmapDay[] = [
   {
     day: 1,
     title: "Foundations & Layering Paradigms",
-    topic: "Introduction to layered protocols, TCP/IP stack vs OSI model, packet switching basics, and performance metrics (delay, loss).",
-    resources: ["Introduction to Layers & Protocols.pdf", "Computer Networks: System Approach (Slides)", "Network Architecture 101 (YouTube)"],
-    tasks: ["Read Layering paradigms slide deck", "Explain propagation vs transmission delay differences", "Summarize peer-to-peer vs client-server models"],
-    pyqs: ["State differences between OSI and TCP/IP protocol architectures (2024, 2022 repeats)", "Calculate throughput for a multi-hop link (2023 exam)"],
+    topic:
+      "Introduction to layered protocols, TCP/IP stack vs OSI model, packet switching basics, and performance metrics (delay, loss).",
+    resources: [
+      "Introduction to Layers & Protocols.pdf",
+      "Computer Networks: System Approach (Slides)",
+      "Network Architecture 101 (YouTube)",
+    ],
+    tasks: [
+      "Read Layering paradigms slide deck",
+      "Explain propagation vs transmission delay differences",
+      "Summarize peer-to-peer vs client-server models",
+    ],
+    pyqs: [
+      "State differences between OSI and TCP/IP protocol architectures (2024, 2022 repeats)",
+      "Calculate throughput for a multi-hop link (2023 exam)",
+    ],
     done: [true, false, false, false, false],
   },
   {
     day: 2,
     title: "Link Layer & Media Access Control",
-    topic: "Error detection (parity, CRC), sliding window protocols, multiple access protocols (CSMA/CD, CSMA/CA), Ethernet, and switching.",
-    resources: ["Sliding Window Protocols Visual Guide.pdf", "CRC Error Detection Solver", "CSMA/CD Collision Resolution Note"],
-    tasks: ["Attempt 5 practice questions on CRC generation and validation", "Verify sliding window sequence numbers", "Understand MAC vs IP address resolutions"],
-    pyqs: ["Describe sliding window flow control protocols (2023, 2021 repeat)", "Show how switch learns MAC addresses dynamically (2022 exam)"],
+    topic:
+      "Error detection (parity, CRC), sliding window protocols, multiple access protocols (CSMA/CD, CSMA/CA), Ethernet, and switching.",
+    resources: [
+      "Sliding Window Protocols Visual Guide.pdf",
+      "CRC Error Detection Solver",
+      "CSMA/CD Collision Resolution Note",
+    ],
+    tasks: [
+      "Attempt 5 practice questions on CRC generation and validation",
+      "Verify sliding window sequence numbers",
+      "Understand MAC vs IP address resolutions",
+    ],
+    pyqs: [
+      "Describe sliding window flow control protocols (2023, 2021 repeat)",
+      "Show how switch learns MAC addresses dynamically (2022 exam)",
+    ],
     done: [true, true, false, false, false],
   },
   {
     day: 3,
     title: "Routing Algorithms & Subnetting",
-    topic: "IP addressing, CIDR subnetting, Distance Vector vs Link State routing, packet forwarding mechanics, and NAT mappings.",
-    resources: ["IP Subnetting Cheat Sheet.pdf", "Dijkstra Routing Visualizer", "NAT Port Mapping Handout"],
-    tasks: ["Solve subnetting allocation problems for 4 networks", "Trace Dijkstra shortest path computation", "Compare IPv4 and IPv6 headers side-by-side"],
-    pyqs: ["Given an IP block, partition it into 4 subnets (2024, 2023 repeat)", "Explain link-state routing vs distance-vector routing (2023 exam)"],
+    topic:
+      "IP addressing, CIDR subnetting, Distance Vector vs Link State routing, packet forwarding mechanics, and NAT mappings.",
+    resources: [
+      "IP Subnetting Cheat Sheet.pdf",
+      "Dijkstra Routing Visualizer",
+      "NAT Port Mapping Handout",
+    ],
+    tasks: [
+      "Solve subnetting allocation problems for 4 networks",
+      "Trace Dijkstra shortest path computation",
+      "Compare IPv4 and IPv6 headers side-by-side",
+    ],
+    pyqs: [
+      "Given an IP block, partition it into 4 subnets (2024, 2023 repeat)",
+      "Explain link-state routing vs distance-vector routing (2023 exam)",
+    ],
     done: [false, false, false, false, false],
   },
   {
     day: 4,
     title: "Transport Protocols & Congestion Control",
-    topic: "TCP 3-way handshake, connection release, flow control, congestion window phases (Slow Start, Congestion Avoidance, Fast Recovery).",
-    resources: ["TCP Congestion Control note.pdf", "Connection Handshake Trace", "UDP vs TCP Header Comparison"],
-    tasks: ["Graph TCP window sizing during packet drops", "Understand TCP Retransmission Timeout calculation", "Review UDP sockets architecture"],
-    pyqs: ["Discuss TCP congestion window phase shifts on duplicate ACKs (2023, 2021 repeat)", "Explain why UDP is preferred for real-time video (2022 exam)"],
+    topic:
+      "TCP 3-way handshake, connection release, flow control, congestion window phases (Slow Start, Congestion Avoidance, Fast Recovery).",
+    resources: [
+      "TCP Congestion Control note.pdf",
+      "Connection Handshake Trace",
+      "UDP vs TCP Header Comparison",
+    ],
+    tasks: [
+      "Graph TCP window sizing during packet drops",
+      "Understand TCP Retransmission Timeout calculation",
+      "Review UDP sockets architecture",
+    ],
+    pyqs: [
+      "Discuss TCP congestion window phase shifts on duplicate ACKs (2023, 2021 repeat)",
+      "Explain why UDP is preferred for real-time video (2022 exam)",
+    ],
     done: [false, false, false, false, false],
   },
   {
     day: 5,
     title: "Application Layer & Security Principles",
-    topic: "DNS resolution stages, HTTP/1.1 vs HTTP/2 multiplexing, SMTP email delivery, symmetric/asymmetric cryptography (RSA), SSL/TLS handshakes.",
-    resources: ["DNS Resolution Walkthrough.pdf", "Web Server protocols cheat sheet", "Intro to RSA & Cryptography"],
-    tasks: ["Trace a recursive DNS resolution path", "Review TLS cipher suite negotiations", "Revise public key encryption mathematical steps"],
-    pyqs: ["Explain the TLS handshake procedure (2024 repeat)", "Differentiate symmetric key vs asymmetric key cryptography (2023 exam)"],
+    topic:
+      "DNS resolution stages, HTTP/1.1 vs HTTP/2 multiplexing, SMTP email delivery, symmetric/asymmetric cryptography (RSA), SSL/TLS handshakes.",
+    resources: [
+      "DNS Resolution Walkthrough.pdf",
+      "Web Server protocols cheat sheet",
+      "Intro to RSA & Cryptography",
+    ],
+    tasks: [
+      "Trace a recursive DNS resolution path",
+      "Review TLS cipher suite negotiations",
+      "Revise public key encryption mathematical steps",
+    ],
+    pyqs: [
+      "Explain the TLS handshake procedure (2024 repeat)",
+      "Differentiate symmetric key vs asymmetric key cryptography (2023 exam)",
+    ],
     done: [false, false, false, false, false],
   },
 ];
@@ -133,7 +193,9 @@ function RoadmapTimelineChart({
           </span>
           <h3 className="mt-2 text-xl font-bold tracking-tight text-ink">Timeline</h3>
           <p className="mt-1 text-xs leading-5 text-ink-soft">
-            {activeDay ? `Now viewing Day ${activeDay.day}: ${activeDay.title}` : "Select a day to inspect its plan."}
+            {activeDay
+              ? `Now viewing Day ${activeDay.day}: ${activeDay.title}`
+              : "Select a day to inspect its plan."}
           </p>
         </div>
 
@@ -178,24 +240,30 @@ function RoadmapTimelineChart({
               )}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className={cx(
-                  "rounded px-2 py-0.5 font-mono text-[9px] font-extrabold uppercase",
-                  isActive
-                    ? "bg-accent/10 text-accent"
-                    : progress === 100
-                      ? "bg-emerald-500/10 text-emerald-700"
-                      : "bg-surface text-ink-soft"
-                )}>
+                <span
+                  className={cx(
+                    "rounded px-2 py-0.5 font-mono text-[9px] font-extrabold uppercase",
+                    isActive
+                      ? "bg-accent/10 text-accent"
+                      : progress === 100
+                        ? "bg-emerald-500/10 text-emerald-700"
+                        : "bg-surface text-ink-soft",
+                  )}
+                >
                   Day {day.day}
                 </span>
-                <span className={cx(
-                  "font-mono text-[10px] font-bold",
-                  progress === 100 ? "text-emerald-600" : "text-ink-soft"
-                )}>
+                <span
+                  className={cx(
+                    "font-mono text-[10px] font-bold",
+                    progress === 100 ? "text-emerald-600" : "text-ink-soft",
+                  )}
+                >
                   {progress === 100 ? "✓ Done" : `${progress}% done`}
                 </span>
               </div>
-              <h4 className="mt-3 break-words text-sm font-bold leading-snug text-ink">{day.title}</h4>
+              <h4 className="mt-3 break-words text-sm font-bold leading-snug text-ink">
+                {day.title}
+              </h4>
               <p className="mt-1 text-xs leading-5 text-ink-soft">{day.topic}</p>
 
               <div className="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-ink-faint border-t border-line/40 pt-3">
@@ -208,7 +276,7 @@ function RoadmapTimelineChart({
                 <span
                   className={cx(
                     "block h-full rounded-full transition-all",
-                    progress === 100 ? "bg-emerald-500" : "bg-accent"
+                    progress === 100 ? "bg-emerald-500" : "bg-accent",
                   )}
                   style={{ width: `${progress}%` }}
                 />
@@ -254,7 +322,10 @@ function RoadmapTimelineChart({
               {days.map((day, index) => (
                 <div
                   key={day.day}
-                  className={cx("h-full border-dashed border-line", index < days.length - 1 && "border-r")}
+                  className={cx(
+                    "h-full border-dashed border-line",
+                    index < days.length - 1 && "border-r",
+                  )}
                 />
               ))}
             </div>
@@ -287,7 +358,7 @@ function RoadmapTimelineChart({
                         ? "border-accent bg-surface"
                         : isCompleted
                           ? "border-emerald-500 bg-emerald-500"
-                          : "border-line bg-paper"
+                          : "border-line bg-paper",
                     )}
                   />
                 </div>
@@ -333,20 +404,24 @@ function RoadmapTimelineChart({
                   )}
                 >
                   <div className="flex items-center justify-between gap-2 w-full">
-                    <span className={cx(
-                      "font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded",
-                      isActive
-                        ? "bg-accent/10 text-accent"
-                        : progress === 100
-                          ? "bg-emerald-500/10 text-emerald-700"
-                          : "bg-paper text-ink-soft"
-                    )}>
+                    <span
+                      className={cx(
+                        "font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded",
+                        isActive
+                          ? "bg-accent/10 text-accent"
+                          : progress === 100
+                            ? "bg-emerald-500/10 text-emerald-700"
+                            : "bg-paper text-ink-soft",
+                      )}
+                    >
                       Day {day.day}
                     </span>
-                    <span className={cx(
-                      "font-mono text-[9px] font-bold",
-                      progress === 100 ? "text-emerald-600" : "text-ink-soft"
-                    )}>
+                    <span
+                      className={cx(
+                        "font-mono text-[9px] font-bold",
+                        progress === 100 ? "text-emerald-600" : "text-ink-soft",
+                      )}
+                    >
                       {progress === 100 ? "✓ Done" : `${progress}%`}
                     </span>
                   </div>
@@ -364,7 +439,7 @@ function RoadmapTimelineChart({
                       <span
                         className={cx(
                           "block h-full rounded-full transition-all",
-                          progress === 100 ? "bg-emerald-500" : "bg-accent"
+                          progress === 100 ? "bg-emerald-500" : "bg-accent",
                         )}
                         style={{ width: `${progress}%` }}
                       />
@@ -377,7 +452,10 @@ function RoadmapTimelineChart({
         </div>
 
         {/* Staggered Day Cards Grid - Dynamic Column Count */}
-        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+        <div
+          className="grid gap-3"
+          style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+        >
           {days.map((day, index) => {
             const isActive = activeIndex === index;
             const progress = roadmapProgress(day);
@@ -406,7 +484,9 @@ function RoadmapTimelineChart({
                     <span className="text-[10px] text-emerald-600 font-bold">✓</span>
                   )}
                 </div>
-                <h4 className="mt-1 break-words text-xs font-bold leading-snug text-ink line-clamp-1">{day.title}</h4>
+                <h4 className="mt-1 break-words text-xs font-bold leading-snug text-ink line-clamp-1">
+                  {day.title}
+                </h4>
                 <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-ink-soft">{day.topic}</p>
               </motion.button>
             );
@@ -415,17 +495,29 @@ function RoadmapTimelineChart({
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <div className="rounded-lg border border-line bg-paper px-3 py-2">
-            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Sequencing</span>
-            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">Prerequisites flow left to right.</span>
-          </div>
-          <div className="rounded-lg border border-line bg-paper px-3 py-2">
-            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Evidence</span>
-            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">{totalResources} resources mapped into sessions.</span>
-          </div>
-          <div className="rounded-lg border border-line bg-paper px-3 py-2">
-            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">Mode</span>
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">
+              Sequencing
+            </span>
             <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
-              {includeClassroomMaterials ? "Classroom materials included." : "Preview sandbox with sample sources."}
+              Prerequisites flow left to right.
+            </span>
+          </div>
+          <div className="rounded-lg border border-line bg-paper px-3 py-2">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">
+              Evidence
+            </span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
+              {totalResources} resources mapped into sessions.
+            </span>
+          </div>
+          <div className="rounded-lg border border-line bg-paper px-3 py-2">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-faint">
+              Mode
+            </span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
+              {includeClassroomMaterials
+                ? "Classroom materials included."
+                : "Preview sandbox with sample sources."}
             </span>
           </div>
         </div>
@@ -481,7 +573,7 @@ export function AIRoadmapsView() {
         const newDone = [...day.done];
         newDone[taskIdx] = !newDone[taskIdx];
         return { ...day, done: newDone };
-      })
+      }),
     );
   }
 
@@ -631,9 +723,9 @@ export function AIRoadmapsView() {
   return (
     <div className="space-y-10 pb-16">
       {/* Luxurious, rewarding AI header */}
-      <div className="magic-header pt-2">
+      <div className=" pt-2">
         <div className="flex items-center gap-4">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05, rotate: 5 }}
             className="ai-badge inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-gradient-to-br from-accent/10 to-accent/5 ring-1 ring-inset ring-accent/30 shadow-inner"
           >
@@ -641,14 +733,24 @@ export function AIRoadmapsView() {
           </motion.div>
           <div>
             <div className="flex items-center gap-2">
-              <div className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-accent/70">CLASSVAULT • AI STUDIO</div>
+              <div className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-accent/70">
+                CLASSVAULT • AI STUDIO
+              </div>
             </div>
-            <h1 className="text-[28px] leading-none font-semibold tracking-[-1.2px] text-ink">Your Perfect Study Roadmap</h1>
+            <h1 className="text-[28px] leading-none font-semibold tracking-[-1.2px] text-ink">
+              Your Perfect Study Roadmap
+            </h1>
           </div>
         </div>
-        <p className="mt-3 max-w-[58ch] text-[13px] leading-relaxed text-ink-soft">
-          AI synthesizes a personalized, prerequisite-perfect plan from your files, the community vault, and real exams. 
-          Play with the live sandbox below. Every generation feels like magic.
+        <p
+          className="no-native-text-check mt-3 max-w-[58ch] text-[13px] leading-relaxed text-ink-soft"
+          spellCheck={false}
+          data-gramm="false"
+          data-ms-editor="false"
+        >
+          AI synthesizes a personalized, prerequisite-perfect plan from your files, the community
+          vault, and real exams. Play with the live sandbox below. Every generation feels like
+          magic.
         </p>
       </div>
 
@@ -662,11 +764,17 @@ export function AIRoadmapsView() {
                   <Wand2 className="h-4 w-4 text-accent" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold tracking-tight text-ink">Compose Your AI Plan</span>
-                  <div className="text-[10px] text-ink-faint -mt-0.5">Tell the AI exactly what you need</div>
+                  <span className="text-[11px] font-semibold tracking-tight text-ink">
+                    Compose Your AI Plan
+                  </span>
+                  <div className="text-[10px] text-ink-faint -mt-0.5">
+                    Tell the AI exactly what you need
+                  </div>
                 </div>
               </div>
-              <div className="rounded-full border border-accent/20 bg-accent-soft px-3 py-0.5 text-[9px] font-bold text-accent">Gemini + your vault</div>
+              <div className="rounded-full border border-accent/20 bg-accent-soft px-3 py-0.5 text-[9px] font-bold text-accent">
+                Gemini + your vault
+              </div>
             </div>
 
             <AnimatePresence mode="wait">
@@ -719,7 +827,9 @@ export function AIRoadmapsView() {
                               onClick={() => setLevel(lvl)}
                               className={cx(
                                 "min-w-0 flex-1 rounded py-1 text-[11px] font-bold transition active:scale-[0.985]",
-                                level === lvl ? "bg-ink text-surface shadow-sm" : "text-ink-soft hover:text-ink hover:bg-surface",
+                                level === lvl
+                                  ? "bg-ink text-surface shadow-sm"
+                                  : "text-ink-soft hover:text-ink hover:bg-surface",
                               )}
                             >
                               {lvl}
@@ -743,7 +853,9 @@ export function AIRoadmapsView() {
                               onClick={() => setGoal(gl)}
                               className={cx(
                                 "rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition active:scale-[0.985]",
-                                goal === gl ? "border-accent bg-accent-soft text-accent shadow-sm" : "border-line text-ink-soft hover:border-line-strong hover:text-ink hover:bg-paper",
+                                goal === gl
+                                  ? "border-accent bg-accent-soft text-accent shadow-sm"
+                                  : "border-line text-ink-soft hover:border-line-strong hover:text-ink hover:bg-paper",
                               )}
                             >
                               {gl}
@@ -755,22 +867,37 @@ export function AIRoadmapsView() {
 
                     {/* Row 3: Ingestion Source Materials */}
                     <div className="space-y-1.5">
-                      <span className="text-[11px] font-bold text-ink-soft block">Ingestion Source Materials</span>
+                      <span className="text-[11px] font-bold text-ink-soft block">
+                        Ingestion Source Materials
+                      </span>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
-                          { label: "Use personal resources", val: usePersonal, set: setUsePersonal },
-                          { label: "Use community resources", val: useCommunity, set: setUseCommunity },
+                          {
+                            label: "Use personal resources",
+                            val: usePersonal,
+                            set: setUsePersonal,
+                          },
+                          {
+                            label: "Use community resources",
+                            val: useCommunity,
+                            set: setUseCommunity,
+                          },
                           { label: "Include PYQ sets", val: usePYQ, set: setUsePYQ },
                           { label: "Video lectures & websites", val: useVideo, set: setUseVideo },
                         ].map((toggle) => (
-                          <label key={toggle.label} className="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-ink-soft hover:text-ink">
+                          <label
+                            key={toggle.label}
+                            className="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-ink-soft hover:text-ink"
+                          >
                             <input
                               type="checkbox"
                               checked={toggle.val}
                               onChange={(e) => toggle.set(e.target.checked)}
                               className="rounded border-line text-accent focus:ring-accent accent-accent"
                             />
-                            <span className="truncate" title={toggle.label}>{toggle.label}</span>
+                            <span className="truncate" title={toggle.label}>
+                              {toggle.label}
+                            </span>
                           </label>
                         ))}
                       </div>
@@ -815,13 +942,19 @@ export function AIRoadmapsView() {
                       <motion.div
                         className="absolute h-24 w-24 rounded-full border border-accent/30"
                         animate={{ rotate: 360, scale: [1, 1.06, 1] }}
-                        transition={{ rotate: { duration: 18, repeat: Infinity, ease: "linear" }, scale: { duration: 4.2, repeat: Infinity, ease: "easeInOut" } }}
+                        transition={{
+                          rotate: { duration: 18, repeat: Infinity, ease: "linear" },
+                          scale: { duration: 4.2, repeat: Infinity, ease: "easeInOut" },
+                        }}
                       />
                       {/* Mid pulsing ring */}
                       <motion.div
                         className="absolute h-[78px] w-[78px] rounded-full border-2 border-accent/50"
                         animate={{ rotate: -360, scale: [1, 1.03, 1] }}
-                        transition={{ rotate: { duration: 11, repeat: Infinity, ease: "linear" }, scale: { duration: 3.1, repeat: Infinity } }}
+                        transition={{
+                          rotate: { duration: 11, repeat: Infinity, ease: "linear" },
+                          scale: { duration: 3.1, repeat: Infinity },
+                        }}
                       />
                       {/* Core glowing orb */}
                       <motion.div
@@ -847,8 +980,14 @@ export function AIRoadmapsView() {
                             marginLeft: -3,
                           }}
                           animate={{
-                            x: [Math.cos((i / 6) * Math.PI * 2) * 34, Math.cos((i / 6 + 0.5) * Math.PI * 2) * 34],
-                            y: [Math.sin((i / 6) * Math.PI * 2) * 34, Math.sin((i / 6 + 0.5) * Math.PI * 2) * 34],
+                            x: [
+                              Math.cos((i / 6) * Math.PI * 2) * 34,
+                              Math.cos((i / 6 + 0.5) * Math.PI * 2) * 34,
+                            ],
+                            y: [
+                              Math.sin((i / 6) * Math.PI * 2) * 34,
+                              Math.sin((i / 6 + 0.5) * Math.PI * 2) * 34,
+                            ],
                           }}
                           transition={{
                             duration: 3.8 + i * 0.15,
@@ -860,18 +999,30 @@ export function AIRoadmapsView() {
                       ))}
                     </div>
 
-                    <div className="text-base font-semibold tracking-tight text-ink">AI is crafting your perfect study path</div>
-                    <div className="mt-0.5 text-xs text-ink-soft">This is personalized to you in real time</div>
+                    <div className="text-base font-semibold tracking-tight text-ink">
+                      AI is crafting your perfect study path
+                    </div>
+                    <div className="mt-0.5 text-xs text-ink-soft">
+                      This is personalized to you in real time
+                    </div>
 
                     {/* Live AI metrics — feel the work happening */}
                     <div className="mt-4 flex justify-center gap-2">
                       <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
-                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">{notesAnalyzed}</div>
-                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">notes analyzed</div>
+                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">
+                          {notesAnalyzed}
+                        </div>
+                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">
+                          notes analyzed
+                        </div>
                       </div>
                       <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
-                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">{connectionsMapped}</div>
-                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">connections mapped</div>
+                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">
+                          {connectionsMapped}
+                        </div>
+                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">
+                          connections mapped
+                        </div>
                       </div>
                     </div>
 
@@ -893,14 +1044,20 @@ export function AIRoadmapsView() {
                               isActive
                                 ? "border-accent bg-accent-soft/60 text-accent shadow-sm scale-[1.01]"
                                 : isDone
-                                ? "border-emerald-500/30 bg-emerald-50/40 text-emerald-700"
-                                : "border-line bg-surface text-ink-soft"
+                                  ? "border-emerald-500/30 bg-emerald-50/40 text-emerald-700"
+                                  : "border-line bg-surface text-ink-soft",
                             )}
                           >
-                            <div className={cx(
-                              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black",
-                              isActive ? "bg-accent text-surface" : isDone ? "bg-emerald-500 text-white" : "bg-line text-ink-faint"
-                            )}>
+                            <div
+                              className={cx(
+                                "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black",
+                                isActive
+                                  ? "bg-accent text-surface"
+                                  : isDone
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-line text-ink-faint",
+                              )}
+                            >
                               {isDone ? "✓" : index + 1}
                             </div>
                             <div className="flex-1 leading-tight">{label}</div>
@@ -925,7 +1082,9 @@ export function AIRoadmapsView() {
                       <X className="h-3.5 w-3.5" />
                       Stop generation
                     </button>
-                    <div className="mt-1 text-[10px] text-ink-faint/70">You can cancel at any time</div>
+                    <div className="mt-1 text-[10px] text-ink-faint/70">
+                      You can cancel at any time
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -941,28 +1100,44 @@ export function AIRoadmapsView() {
                   LIVE SANDBOX
                 </span>
                 <div>
-                  <div className="text-sm font-semibold tracking-tight text-ink">Play with the demo</div>
-                  <div className="text-[11px] text-ink-soft -mt-0.5">Toggle tasks and switch days — this is exactly how your real roadmap will feel</div>
+                  <div className="text-sm font-semibold tracking-tight text-ink">
+                    Play with the demo
+                  </div>
+                  <div className="text-[11px] text-ink-soft -mt-0.5">
+                    Toggle tasks and switch days — this is exactly how your real roadmap will feel
+                  </div>
                 </div>
               </div>
               <div className="rounded-2xl border border-line bg-paper px-4 py-1 text-center">
-                <div className="text-[10px] font-mono font-bold tracking-widest text-ink-faint">DEMO</div>
-                <div className="text-xs font-semibold text-ink-soft -mt-0.5">Computer Networks • 5 Days</div>
+                <div className="text-[10px] font-mono font-bold tracking-widest text-ink-faint">
+                  DEMO
+                </div>
+                <div className="text-xs font-semibold text-ink-soft -mt-0.5">
+                  Computer Networks • 5 Days
+                </div>
               </div>
             </div>
 
             {/* Live overall demo progress — makes the sandbox feel rewarding even in preview mode */}
             {(() => {
               const demoTotal = previewRoadmap.reduce((sum, d) => sum + d.done.length, 0);
-              const demoDone = previewRoadmap.reduce((sum, d) => sum + d.done.filter(Boolean).length, 0);
+              const demoDone = previewRoadmap.reduce(
+                (sum, d) => sum + d.done.filter(Boolean).length,
+                0,
+              );
               const demoPct = demoTotal ? Math.round((demoDone / demoTotal) * 100) : 0;
               return (
                 <div className="flex items-center gap-3 rounded-2xl bg-paper border border-line px-4 py-2 text-xs">
                   <div className="font-mono font-semibold text-ink">{demoPct}%</div>
                   <div className="flex-1 h-1.5 rounded-full bg-line overflow-hidden">
-                    <div className="h-full bg-accent transition-all" style={{ width: `${demoPct}%` }} />
+                    <div
+                      className="h-full bg-accent transition-all"
+                      style={{ width: `${demoPct}%` }}
+                    />
                   </div>
-                  <div className="text-ink-faint font-medium">{demoDone}/{demoTotal} demo tasks complete</div>
+                  <div className="text-ink-faint font-medium">
+                    {demoDone}/{demoTotal} demo tasks complete
+                  </div>
                 </div>
               );
             })()}
@@ -975,88 +1150,118 @@ export function AIRoadmapsView() {
               onHover={setHoveredPreviewDay}
             />
 
-              {/* Active Day Detail Panel for Preview — now as luxurious and rewarding as the real thing */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activePreviewDay}
-                  initial={{ opacity: 0.6, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  className="mt-6 space-y-5 border-t border-line pt-6"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
-                      <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
-                        Day {previewRoadmap[activePreviewDay].day} Focus
+            {/* Active Day Detail Panel for Preview — now as luxurious and rewarding as the real thing */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activePreviewDay}
+                initial={{ opacity: 0.6, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-6 space-y-5 border-t border-line pt-6"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
+                    <span className="inline-block w-fit rounded-2xl bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                      Day {previewRoadmap[activePreviewDay].day} Focus
+                    </span>
+                    <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
+                      {previewRoadmap[activePreviewDay].title}
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-2xl bg-success/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-success">
+                      {Math.round(
+                        (previewRoadmap[activePreviewDay].done.filter(Boolean).length /
+                          previewRoadmap[activePreviewDay].done.length) *
+                          100,
+                      )}
+                      % done
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
+                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
+                    Core Focus
+                  </div>
+                  {previewRoadmap[activePreviewDay].topic}
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Tasks — matching the gorgeous generated experience */}
+                  <div>
+                    <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                      <span>Action Checklist</span>
+                      <span>
+                        {previewRoadmap[activePreviewDay].done.filter(Boolean).length} /{" "}
+                        {previewRoadmap[activePreviewDay].done.length}
                       </span>
-                      <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
-                        {previewRoadmap[activePreviewDay].title}
-                      </h4>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-2xl bg-success/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-success">
-                        {Math.round((previewRoadmap[activePreviewDay].done.filter(Boolean).length / previewRoadmap[activePreviewDay].done.length) * 100)}% done
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
-                    <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">Core Focus</div>
-                    {previewRoadmap[activePreviewDay].topic}
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {/* Tasks — matching the gorgeous generated experience */}
-                    <div>
-                      <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
-                        <span>Action Checklist</span>
-                        <span>{previewRoadmap[activePreviewDay].done.filter(Boolean).length} / {previewRoadmap[activePreviewDay].done.length}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {[...previewRoadmap[activePreviewDay].tasks, ...previewRoadmap[activePreviewDay].pyqs].map((task, tIdx) => (
-                          <div key={tIdx} className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper">
-                            <button
-                              onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
-                              className={cx(
-                                "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
-                                previewRoadmap[activePreviewDay].done[tIdx]
-                                  ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
-                                  : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft"
-                              )}
-                            >
-                              {previewRoadmap[activePreviewDay].done[tIdx] ? "✓" : null}
-                            </button>
-                            <span className={cx(
+                    <div className="space-y-2">
+                      {[
+                        ...previewRoadmap[activePreviewDay].tasks,
+                        ...previewRoadmap[activePreviewDay].pyqs,
+                      ].map((task, tIdx) => (
+                        <div
+                          key={tIdx}
+                          className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
+                        >
+                          <button
+                            onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
+                            className={cx(
+                              "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                              previewRoadmap[activePreviewDay].done[tIdx]
+                                ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft",
+                            )}
+                          >
+                            {previewRoadmap[activePreviewDay].done[tIdx] ? "✓" : null}
+                          </button>
+                          <span
+                            className={cx(
                               "text-[13px] leading-snug font-medium transition-all",
-                              previewRoadmap[activePreviewDay].done[tIdx] ? "text-ink-faint line-through" : "text-ink"
-                            )}>
-                              {task}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Resources — elegant curated list (matches generated) */}
-                    <div>
-                      <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">Curated Resources</div>
-                      <div className="space-y-2">
-                        {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
-                          <div key={rIdx} className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">📘</div>
-                            <span className="font-medium leading-tight">{res}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-3 text-[10px] text-ink-faint">Toggle tasks above — watch the progress update live. This is your future roadmap.</div>
+                              previewRoadmap[activePreviewDay].done[tIdx]
+                                ? "text-ink-faint line-through"
+                                : "text-ink",
+                            )}
+                          >
+                            {task}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+
+                  {/* Resources — elegant curated list (matches generated) */}
+                  <div>
+                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                      Curated Resources
+                    </div>
+                    <div className="space-y-2">
+                      {previewRoadmap[activePreviewDay].resources.map((res, rIdx) => (
+                        <div
+                          key={rIdx}
+                          className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">
+                            📘
+                          </div>
+                          <span className="font-medium leading-tight">{res}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-[10px] text-ink-faint">
+                      Toggle tasks above — watch the progress update live. This is your future
+                      roadmap.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
+        </div>
       )}
 
       {roadmap && (
@@ -1071,11 +1276,16 @@ export function AIRoadmapsView() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">AI GENERATION COMPLETE</span>
+                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
+                    AI GENERATION COMPLETE
+                  </span>
                 </div>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tighter text-ink">{subject} — {days}-Day Mastery Path</h2>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tighter text-ink">
+                  {subject} — {days}-Day Mastery Path
+                </h2>
                 <p className="mt-1 text-sm text-ink-soft">
-                  Tailored for <span className="font-medium text-ink">{goal}</span> • {level} level • Built from {generationMeta?.contextNoteCount ?? 'your'} sources
+                  Tailored for <span className="font-medium text-ink">{goal}</span> • {level} level
+                  • Built from {generationMeta?.contextNoteCount ?? "your"} sources
                 </p>
               </div>
 
@@ -1095,23 +1305,42 @@ export function AIRoadmapsView() {
                     <div className="flex items-center gap-4">
                       <div className="relative" style={{ width: size, height: size }}>
                         <svg width={size} height={size} className="rotate-[-90deg]">
-                          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
-                          <circle 
-                            cx={size/2} cy={size/2} r={r} fill="none" 
-                            stroke="var(--accent)" strokeWidth={stroke} strokeLinecap="round"
-                            strokeDasharray={circ} strokeDashoffset={offset}
+                          <circle
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={r}
+                            fill="none"
+                            stroke="var(--line)"
+                            strokeWidth={stroke}
+                          />
+                          <circle
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={r}
+                            fill="none"
+                            stroke="var(--accent)"
+                            strokeWidth={stroke}
+                            strokeLinecap="round"
+                            strokeDasharray={circ}
+                            strokeDashoffset={offset}
                             className="progress-ring"
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="font-mono text-xl font-semibold tabular-nums text-ink">{pct}</div>
-                            <div className="text-[8px] -mt-1 font-bold tracking-widest text-ink-faint">DONE</div>
+                            <div className="font-mono text-xl font-semibold tabular-nums text-ink">
+                              {pct}
+                            </div>
+                            <div className="text-[8px] -mt-1 font-bold tracking-widest text-ink-faint">
+                              DONE
+                            </div>
                           </div>
                         </div>
                       </div>
                       <div className="text-sm leading-tight">
-                        <div className="font-semibold text-ink">{doneTasks} / {totalTasks} tasks</div>
+                        <div className="font-semibold text-ink">
+                          {doneTasks} / {totalTasks} tasks
+                        </div>
                         <div className="text-ink-soft text-xs">Your journey is {pct}% complete</div>
                       </div>
                     </div>
@@ -1136,10 +1365,15 @@ export function AIRoadmapsView() {
           <div className="relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-5 shadow-sm sm:p-7 roadmap-premium-card">
             <div className="mb-4 flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-faint">Your Visual Journey</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-faint">
+                  Your Visual Journey
+                </span>
                 <div className="text-lg font-semibold tracking-tight">Timeline & Progress</div>
               </div>
-              <div className="text-xs font-mono text-ink-soft">{roadmap.length} sessions • {generationMeta ? (generationMeta.provider === "gemini" ? "Gemini" : "OpenAI") : ""}</div>
+              <div className="text-xs font-mono text-ink-soft">
+                {roadmap.length} sessions •{" "}
+                {generationMeta ? (generationMeta.provider === "gemini" ? "Gemini" : "OpenAI") : ""}
+              </div>
             </div>
 
             <RoadmapTimelineChart
@@ -1179,13 +1413,20 @@ export function AIRoadmapsView() {
                       <Zap className="h-3.5 w-3.5" /> Practice Quiz
                     </button>
                     <div className="rounded-2xl bg-emerald-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-emerald-600">
-                      {Math.round((roadmap[activeDay].done.filter(Boolean).length / roadmap[activeDay].done.length) * 100)}% done
+                      {Math.round(
+                        (roadmap[activeDay].done.filter(Boolean).length /
+                          roadmap[activeDay].done.length) *
+                          100,
+                      )}
+                      % done
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
-                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">Core Focus</div>
+                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
+                    Core Focus
+                  </div>
                   {roadmap[activeDay].topic}
                 </div>
 
@@ -1194,45 +1435,66 @@ export function AIRoadmapsView() {
                   <div>
                     <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
                       <span>Action Checklist</span>
-                      <span>{roadmap[activeDay].done.filter(Boolean).length} / {roadmap[activeDay].done.length}</span>
+                      <span>
+                        {roadmap[activeDay].done.filter(Boolean).length} /{" "}
+                        {roadmap[activeDay].done.length}
+                      </span>
                     </div>
                     <div className="space-y-2">
-                      {[...roadmap[activeDay].tasks, ...roadmap[activeDay].pyqs].map((task, tIdx) => (
-                        <div key={tIdx} className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper">
-                          <button
-                            onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
-                            className={cx(
-                              "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
-                              roadmap[activeDay].done[tIdx]
-                                ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
-                                : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft"
-                            )}
+                      {[...roadmap[activeDay].tasks, ...roadmap[activeDay].pyqs].map(
+                        (task, tIdx) => (
+                          <div
+                            key={tIdx}
+                            className="gorgeous-task group flex items-start gap-3.5 rounded-2xl border border-line/70 bg-surface p-3.5 transition hover:border-accent/30 hover:bg-paper"
                           >
-                            {roadmap[activeDay].done[tIdx] ? "✓" : null}
-                          </button>
-                          <span className={cx(
-                            "text-[13px] leading-snug font-medium transition-all",
-                            roadmap[activeDay].done[tIdx] ? "text-ink-faint line-through" : "text-ink"
-                          )}>
-                            {task}
-                          </span>
-                        </div>
-                      ))}
+                            <button
+                              onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
+                              className={cx(
+                                "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                                roadmap[activeDay].done[tIdx]
+                                  ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                  : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft",
+                              )}
+                            >
+                              {roadmap[activeDay].done[tIdx] ? "✓" : null}
+                            </button>
+                            <span
+                              className={cx(
+                                "text-[13px] leading-snug font-medium transition-all",
+                                roadmap[activeDay].done[tIdx]
+                                  ? "text-ink-faint line-through"
+                                  : "text-ink",
+                              )}
+                            >
+                              {task}
+                            </span>
+                          </div>
+                        ),
+                      )}
                     </div>
                   </div>
 
                   {/* Resources — beautiful curated list */}
                   <div>
-                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">Curated Resources</div>
+                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                      Curated Resources
+                    </div>
                     <div className="space-y-2">
                       {roadmap[activeDay].resources.map((res, rIdx) => (
-                        <div key={rIdx} className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">📘</div>
+                        <div
+                          key={rIdx}
+                          className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink-soft transition hover:border-line-strong"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-surface text-base">
+                            📘
+                          </div>
                           <span className="font-medium leading-tight">{res}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 text-[10px] text-ink-faint">Click tasks above to mark progress — your roadmap updates live.</div>
+                    <div className="mt-3 text-[10px] text-ink-faint">
+                      Click tasks above to mark progress — your roadmap updates live.
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -1252,61 +1514,76 @@ export function AIRoadmapsView() {
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-2xl"
             >
-            <div className="flex items-center justify-between border-b border-line pb-2.5">
-              <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">AI Practice Quiz</h4>
-              <button onClick={() => setShowQuiz(null)} className="text-ink-faint hover:text-ink">
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-ink leading-relaxed">
-                Test: {showQuiz}
-              </p>
-              <div className="space-y-2.5">
-                {[
-                  { q: "1. Which protocol provides reliable connection-oriented packet deliveries?", o: ["UDP", "TCP", "IP", "DNS"], a: 1 },
-                  { q: "2. What is the default size of an IPv4 address?", o: ["32 bits", "64 bits", "128 bits", "48 bits"], a: 0 },
-                ].map((item, idx) => (
-                  <div key={idx} className="space-y-1.5 border border-line p-3 rounded-lg bg-paper">
-                    <p className="text-xs font-bold text-ink">{item.q}</p>
-                    <div className="grid gap-2 min-[380px]:grid-cols-2">
-                      {item.o.map((opt, oIdx) => (
-                        <button
-                          key={oIdx}
-                          type="button"
-                          onClick={() => setAnswers(prev => ({ ...prev, [idx]: oIdx }))}
-                          className={cx(
-                            "py-1.5 px-2 rounded border text-[11px] font-semibold transition text-left",
-                            answers[idx] === oIdx ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface hover:bg-paper"
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
+              <div className="flex items-center justify-between border-b border-line pb-2.5">
+                <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">
+                  AI Practice Quiz
+                </h4>
+                <button onClick={() => setShowQuiz(null)} className="text-ink-faint hover:text-ink">
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-ink leading-relaxed">Test: {showQuiz}</p>
+                <div className="space-y-2.5">
+                  {[
+                    {
+                      q: "1. Which protocol provides reliable connection-oriented packet deliveries?",
+                      o: ["UDP", "TCP", "IP", "DNS"],
+                      a: 1,
+                    },
+                    {
+                      q: "2. What is the default size of an IPv4 address?",
+                      o: ["32 bits", "64 bits", "128 bits", "48 bits"],
+                      a: 0,
+                    },
+                  ].map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="space-y-1.5 border border-line p-3 rounded-lg bg-paper"
+                    >
+                      <p className="text-xs font-bold text-ink">{item.q}</p>
+                      <div className="grid gap-2 min-[380px]:grid-cols-2">
+                        {item.o.map((opt, oIdx) => (
+                          <button
+                            key={oIdx}
+                            type="button"
+                            onClick={() => setAnswers((prev) => ({ ...prev, [idx]: oIdx }))}
+                            className={cx(
+                              "py-1.5 px-2 rounded border text-[11px] font-semibold transition text-left",
+                              answers[idx] === oIdx
+                                ? "border-accent bg-accent-soft text-accent"
+                                : "border-line bg-surface hover:bg-paper",
+                            )}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {quizScore !== null ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded text-center">
-                <p className="text-xs font-bold text-emerald-800">Quiz Completed! Score: {quizScore} / 2</p>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  let correct = 0;
-                  if (answers[0] === 1) correct++;
-                  if (answers[1] === 0) correct++;
-                  setQuizScore(correct);
-                }}
-                disabled={answers[0] === undefined || answers[1] === undefined}
-                className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 disabled:opacity-50"
-              >
-                Submit Answers
-              </button>
-            )}
+              {quizScore !== null ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded text-center">
+                  <p className="text-xs font-bold text-emerald-800">
+                    Quiz Completed! Score: {quizScore} / 2
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    let correct = 0;
+                    if (answers[0] === 1) correct++;
+                    if (answers[1] === 0) correct++;
+                    setQuizScore(correct);
+                  }}
+                  disabled={answers[0] === undefined || answers[1] === undefined}
+                  className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 disabled:opacity-50"
+                >
+                  Submit Answers
+                </button>
+              )}
             </motion.div>
           </div>
         )}
