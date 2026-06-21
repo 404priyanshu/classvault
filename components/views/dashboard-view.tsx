@@ -7,19 +7,50 @@ import {
   ArrowRight,
   BookOpen,
   Bookmark,
+  CalendarDays,
   CheckCircle2,
+  Clock,
   Compass,
+  FileText,
+  Flame,
+  GraduationCap,
   Plus,
   PlusCircle,
   ShieldCheck,
   Sparkles,
   Trash2,
   Users,
+  Zap,
+  type LucideIcon,
 } from "lucide-react";
 import type { ApiNote, ApiStudyTask, NotesResponse } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
-import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
+
+type LearningCard = {
+  number: string;
+  title: string;
+  subtitle: string;
+  icon: LucideIcon;
+  tone: "light" | "accent" | "dark";
+  action: () => void;
+};
+
+type ModuleItem = {
+  label: string;
+  detail: string;
+  icon: LucideIcon;
+  action: () => void;
+  active?: boolean;
+};
+
+function DashboardLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-mono text-[10px] font-black uppercase tracking-[0.16em] text-ink-faint">
+      {children}
+    </p>
+  );
+}
 
 export function DashboardView() {
   const { me, stats, openNoteDetail } = useAppShell();
@@ -32,7 +63,6 @@ export function DashboardView() {
   const onGoToAddResource = () => router.push("/app/add-resource");
   const onOpenNote = openNoteDetail;
 
-  // Study tasks (server-backed; persisted per user via /api/me/tasks).
   const [tasks, setTasks] = useState<ApiStudyTask[]>([]);
   const [newTask, setNewTask] = useState("");
 
@@ -52,7 +82,6 @@ export function DashboardView() {
     return () => controller.abort();
   }, [me?.id]);
 
-  const onNewTaskChange = setNewTask;
   async function onSubmitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const title = newTask.trim();
@@ -74,6 +103,7 @@ export function DashboardView() {
       setNewTask(title);
     }
   }
+
   async function onToggleTask(id: string) {
     const target = tasks.find((task) => task.id === id);
     if (!target) return;
@@ -87,10 +117,10 @@ export function DashboardView() {
       });
       if (!response.ok) throw new Error("toggle failed");
     } catch {
-      // Revert the optimistic toggle on failure.
       setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !done } : task)));
     }
   }
+
   async function onRemoveTask(id: string) {
     const snapshot = tasks;
     setTasks((current) => current.filter((task) => task.id !== id));
@@ -102,7 +132,6 @@ export function DashboardView() {
     }
   }
 
-  // Trending notes for the dashboard discovery strip.
   const [trendingNotes, setTrendingNotes] = useState<ApiNote[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
 
@@ -116,7 +145,7 @@ export function DashboardView() {
           setTrendingNotes(((await response.json()) as NotesResponse).items);
         }
       } catch {
-        // trending strip stays empty on failure
+        // The dashboard remains useful without the discovery strip.
       } finally {
         if (!controller.signal.aborted) setTrendingLoading(false);
       }
@@ -128,161 +157,281 @@ export function DashboardView() {
   }, []);
 
   const isVerified = Boolean(me?.isCollegeVerified);
-  const collegeName = me?.collegeName ?? "your college";
-  const firstName = me?.name ? me.name.split(" ")[0] : null;
-  const greeting = firstName ? `Good to see you, ${firstName}.` : "Welcome back.";
+  const collegeName = me?.collegeName ?? "College vault";
+  const firstName = me?.name ? me.name.split(" ")[0] : "there";
   const tasksDone = tasks.filter((task) => task.done).length;
+  const taskTotal = tasks.length;
+  const taskProgress = taskTotal ? Math.round((tasksDone / taskTotal) * 100) : 0;
+  const activityCount = (stats?.savedCount ?? 0) + (stats?.uploadCount ?? 0);
+  const heroTitle = taskTotal
+    ? `You've completed ${tasksDone} of ${taskTotal} tasks`
+    : activityCount
+      ? `You've collected ${activityCount} study items`
+      : "Build your study week";
 
-  const heroPills = [
-    { icon: Bookmark, label: "Saved", value: String(stats?.savedCount ?? 0) },
-    { icon: CheckCircle2, label: "Tasks done", value: String(tasksDone) },
+  const primaryCta = isVerified
+    ? { label: "View progress", icon: ArrowRight, action: onGoToRoadmaps }
+    : { label: "Verify college", icon: ShieldCheck, action: onGoToVerify };
+
+  const learningCards: LearningCard[] = [
     {
-      icon: ShieldCheck,
-      label: isVerified ? collegeName : "Not verified",
-      value: null as string | null,
+      number: "01",
+      title: "AI Roadmaps",
+      subtitle: "Prerequisite-perfect plans",
+      icon: Compass,
+      tone: "light",
+      action: onGoToRoadmaps,
+    },
+    {
+      number: "02",
+      title: "Exam Sprint",
+      subtitle: "High-yield PYQ focus",
+      icon: Flame,
+      tone: "accent",
+      action: () => router.push("/app/exam"),
+    },
+    {
+      number: "03",
+      title: "Study Rooms",
+      subtitle: "Focus with peers",
+      icon: Users,
+      tone: "dark",
+      action: onGoToStudyRooms,
     },
   ];
 
-  const primaryCta = isVerified
-    ? { label: "Generate a roadmap", icon: Sparkles, action: onGoToRoadmaps }
-    : { label: "Verify college email", icon: ShieldCheck, action: onGoToVerify };
-
-  const quickActions = [
-    { label: "Generate AI Roadmap", desc: "Custom subject study plans", icon: Compass, action: onGoToRoadmaps, primary: true },
-    { label: "Add Resource", desc: "Upload notes, slides, PYQs", icon: PlusCircle, action: onGoToAddResource, primary: false },
-    { label: "Browse Notes", desc: "Search the course library", icon: BookOpen, action: onGoToLibrary, primary: false },
-    { label: "Join Study Room", desc: "Focus alongside peers", icon: Users, action: onGoToStudyRooms, primary: false },
+  const moduleItems: ModuleItem[] = [
+    { label: "Generate AI roadmap", detail: "Custom plan from your files", icon: Sparkles, action: onGoToRoadmaps, active: true },
+    { label: "Browse course library", detail: `${stats?.totalNotes ?? 0} published notes`, icon: BookOpen, action: onGoToLibrary },
+    { label: "Upload resource", detail: `${stats?.uploadCount ?? 0} uploads by you`, icon: PlusCircle, action: onGoToAddResource },
+    { label: "Open study rooms", detail: "Live focus sessions", icon: Users, action: onGoToStudyRooms },
   ];
 
-  return (
-    <div className="min-w-0 space-y-8 pb-12">
-      {/* Hero band */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        className="dashboard-hero relative overflow-hidden rounded-3xl px-6 py-7 text-surface shadow-[0_24px_70px_-28px_rgba(99,91,255,0.65)] sm:px-8 sm:py-9"
-      >
-        <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
-              Your study dashboard
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-[2.1rem]">{greeting}</h2>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-white/80">
-              Pick up where you left off — your plan, trending notes, and live rooms are all here.
-            </p>
+  const scheduledRooms = [
+    { name: "DBMS Exam Sprint", starts: "Starts in 3 min", type: "Group", accent: "bg-accent", people: ["D", "M", "B"] },
+    { name: "CN Focus Room", starts: "7:00-7:40 PM", type: "College", accent: "bg-[#f7b267]", people: ["C", "N"] },
+    { name: "Silent Study", starts: "Pomodoro live", type: "Public", accent: "bg-[#72dd89]", people: ["S", "T", "U"] },
+  ];
 
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {heroPills.map((pill) => (
-                <span
-                  key={pill.label}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-inset ring-white/20 backdrop-blur-sm"
+  const metricCards = [
+    { label: "Saved notes", value: String(stats?.savedCount ?? 0), icon: Bookmark },
+    { label: "Uploads", value: String(stats?.uploadCount ?? 0), icon: FileText },
+    { label: "Library", value: String(stats?.totalNotes ?? 0), icon: BookOpen },
+  ];
+
+  const ringSize = 72;
+  const ringStroke = 8;
+  const ringRadius = (ringSize - ringStroke) / 2;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringOffset = ringCircumference * (1 - taskProgress / 100);
+
+  return (
+    <div className="dashboard-redesign min-w-0 pb-6 text-ink">
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.36, ease: [0.23, 1, 0.32, 1] }}
+        className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]"
+      >
+        <div className="min-w-0 overflow-hidden rounded-[2rem] border border-line bg-[#241813] shadow-[0_28px_80px_-48px_rgba(255,81,40,0.9)]">
+          <div className="grid min-h-[300px] gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.95fr)]">
+            <div className="flex min-w-0 flex-col justify-between">
+              <div>
+                <p className="text-sm font-semibold text-ink-soft">Salut, {firstName}!</p>
+                <h2 className="mt-3 max-w-[11ch] text-[42px] font-black leading-[0.95] tracking-[-0.06em] text-ink sm:text-5xl lg:text-[56px]">
+                  {heroTitle}
+                </h2>
+                <p className="mt-4 max-w-md text-sm leading-6 text-ink-soft">
+                  Your roadmap, tasks, resources, and live study rooms now sit in one focused weekly command center.
+                </p>
+              </div>
+
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <motion.button
+                  type="button"
+                  onClick={primaryCta.action}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-black text-[#130f0d] shadow-[0_14px_34px_-18px_rgba(255,81,40,1)] transition hover:bg-accent-hover"
                 >
-                  <pill.icon className="h-3.5 w-3.5 text-white/80" />
-                  {pill.value ? <span className="font-mono tabular-nums">{pill.value}</span> : null}
-                  <span className="max-w-[10rem] truncate text-white/80">{pill.label}</span>
+                  {primaryCta.label}
+                  <primaryCta.icon className="h-4 w-4" />
+                </motion.button>
+                <span className="inline-flex h-11 items-center gap-2 rounded-full border border-line bg-white/[0.04] px-4 text-xs font-bold text-ink-soft">
+                  <GraduationCap className="h-4 w-4 text-accent" />
+                  {isVerified ? collegeName : "Preview mode"}
                 </span>
+              </div>
+            </div>
+
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-3">
+              {learningCards.map((card) => (
+                <motion.button
+                  key={card.number}
+                  type="button"
+                  onClick={card.action}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.985 }}
+                  className={cx(
+                    "group flex min-h-[210px] min-w-0 flex-col justify-between rounded-[1.45rem] border p-4 text-left transition",
+                    card.tone === "light" &&
+                      "border-[#efe5d8] bg-[#f5f0e7] text-[#17130f] shadow-[0_18px_40px_-28px_rgba(255,245,230,0.7)]",
+                    card.tone === "accent" &&
+                      "border-accent/40 bg-accent text-[#160f0c] shadow-[0_22px_42px_-28px_rgba(255,81,40,0.9)]",
+                    card.tone === "dark" && "border-line bg-[#171a16] text-ink",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span
+                      className={cx(
+                        "font-mono text-xs font-black",
+                        card.tone === "dark" ? "text-accent" : "text-[#d74222]",
+                      )}
+                    >
+                      {card.number}
+                    </span>
+                    <span
+                      className={cx(
+                        "grid h-8 w-8 place-items-center rounded-full",
+                        card.tone === "accent" ? "bg-[#17100d]/15" : "bg-black/8",
+                      )}
+                    >
+                      <card.icon className="h-4 w-4" />
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-[22px] font-black leading-[0.95] tracking-[-0.05em]">{card.title}</h3>
+                    <p className={cx("mt-2 text-xs font-semibold", card.tone === "dark" ? "text-ink-soft" : "text-black/58")}>
+                      {card.subtitle}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-black">
+                    Open <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                  </span>
+                </motion.button>
               ))}
             </div>
           </div>
-
-          <div className="shrink-0">
-            <motion.button
-              type="button"
-              onClick={primaryCta.action}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="group inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-accent shadow-lg shadow-black/10"
-            >
-              <primaryCta.icon className="h-4 w-4" />
-              {primaryCta.label}
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </motion.button>
-          </div>
         </div>
+
+        <aside className="rounded-[2rem] border border-line bg-surface p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <DashboardLabel>Weekly progress</DashboardLabel>
+              <h3 className="mt-1 text-xl font-black tracking-[-0.04em]">Tasks</h3>
+            </div>
+            <div className="relative" style={{ width: ringSize, height: ringSize }}>
+              <svg width={ringSize} height={ringSize} className="-rotate-90">
+                <circle cx={ringSize / 2} cy={ringSize / 2} r={ringRadius} fill="none" stroke="var(--line)" strokeWidth={ringStroke} />
+                <circle
+                  cx={ringSize / 2}
+                  cy={ringSize / 2}
+                  r={ringRadius}
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth={ringStroke}
+                  strokeLinecap="round"
+                  strokeDasharray={ringCircumference}
+                  strokeDashoffset={ringOffset}
+                />
+              </svg>
+              <div className="absolute inset-0 grid place-items-center font-mono text-sm font-black text-accent">
+                {taskProgress}%
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {metricCards.map((metric) => (
+              <div key={metric.label} className="flex items-center gap-3 rounded-2xl border border-line bg-paper-warm p-3">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+                  <metric.icon className="h-4 w-4" />
+                </span>
+                <div>
+                  <div className="font-mono text-lg font-black leading-none">{metric.value}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-ink-faint">{metric.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
       </motion.section>
 
-      {/* Quick actions */}
-      <section>
-        <div className="mb-3">
-          <SectionLabel>Quick actions</SectionLabel>
-        </div>
-        <div className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:grid-cols-4 md:gap-4">
-          {quickActions.map((card) => (
-            <motion.button
-              key={card.label}
-              onClick={card.action}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.985 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className={cx(
-                "dashboard-card group flex min-w-0 flex-col rounded-3xl border p-5 text-left",
-                card.primary
-                  ? "border-transparent bg-accent text-surface shadow-[0_18px_45px_-22px_rgba(99,91,255,0.8)]"
-                  : "border-line bg-surface",
-              )}
-            >
-              <span
-                className={cx(
-                  "flex h-10 w-10 items-center justify-center rounded-2xl transition",
-                  card.primary
-                    ? "bg-white/15 text-white ring-1 ring-inset ring-white/25"
-                    : "bg-accent-soft text-accent ring-1 ring-inset ring-accent/15 group-hover:ring-accent/30",
-                )}
-              >
-                <card.icon className="h-5 w-5" />
-              </span>
-              <h4 className={cx("mt-4 text-sm font-semibold tracking-tight", card.primary ? "text-white" : "text-ink")}>
-                {card.label}
-              </h4>
-              <p className={cx("mt-1 text-[12px] leading-snug", card.primary ? "text-white/75" : "text-ink-faint")}>
-                {card.desc}
-              </p>
-            </motion.button>
-          ))}
-        </div>
-      </section>
+      <div className="mt-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
+        <section className="min-w-0 rounded-[2rem] border border-line bg-surface p-5 sm:p-6">
+          <div className="grid gap-6 lg:grid-cols-[minmax(230px,0.78fr)_minmax(0,1fr)]">
+            <div>
+              <DashboardLabel>Current module</DashboardLabel>
+              <h3 className="mt-2 text-2xl font-black tracking-[-0.05em]">ClassVault sprint</h3>
+              <p className="mt-1 text-sm font-semibold text-ink-soft">Your next study moves, ordered by impact.</p>
 
-      {/* Main bento grid */}
-      <div className="grid min-w-0 gap-8 lg:grid-cols-[1.6fr_1fr]">
-        {/* Left column: Plan & Trending */}
-        <div className="min-w-0 space-y-8">
-          <section className="min-w-0 space-y-3">
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Today&apos;s study plan</SectionLabel>
-              <button onClick={onGoToRoadmaps} className="shrink-0 text-xs font-semibold text-accent hover:underline">
-                Go to Roadmaps
-              </button>
+              <div className="mt-5 space-y-2">
+                {moduleItems.map((item) => (
+                  <motion.button
+                    key={item.label}
+                    type="button"
+                    onClick={item.action}
+                    whileHover={{ x: 3 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={cx(
+                      "flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition",
+                      item.active ? "border-accent/35 bg-accent-soft" : "border-line bg-paper-warm hover:border-line-strong",
+                    )}
+                  >
+                    <span
+                      className={cx(
+                        "grid h-9 w-9 shrink-0 place-items-center rounded-full border",
+                        item.active ? "border-accent/35 bg-accent text-[#130f0d]" : "border-line bg-surface text-ink-soft",
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-black">{item.label}</span>
+                      <span className="block truncate text-xs font-semibold text-ink-faint">{item.detail}</span>
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
             </div>
 
-            <div className="dashboard-card min-w-0 overflow-hidden rounded-3xl border border-line bg-surface">
-              <div className="divide-y divide-line">
-                <AnimatePresence>
+            <div className="min-w-0 rounded-[1.5rem] border border-line bg-paper p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <DashboardLabel>Today&apos;s plan</DashboardLabel>
+                  <h3 className="mt-1 text-xl font-black tracking-[-0.04em]">Task queue</h3>
+                </div>
+                <span className="rounded-full bg-accent-soft px-3 py-1 font-mono text-xs font-black text-accent">
+                  {tasksDone}/{taskTotal}
+                </span>
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
+                <AnimatePresence initial={false}>
                   {tasks.map((task) => (
                     <motion.div
                       key={task.id}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="gorgeous-task-item group flex min-w-0 items-center gap-3 px-4 py-3"
+                      className="group flex min-w-0 items-center gap-3 border-b border-line px-4 py-3 last:border-b-0"
                     >
                       <button
                         type="button"
                         onClick={() => onToggleTask(task.id)}
                         className={cx(
-                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-xl border text-[11px] font-black transition active:scale-95",
+                          "grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-black transition active:scale-95",
                           task.done
-                            ? "border-emerald-500 bg-emerald-500 text-white"
-                            : "border-line-strong bg-surface hover:border-accent hover:bg-accent-soft",
+                            ? "border-accent bg-accent text-[#130f0d]"
+                            : "border-line-strong bg-paper-warm hover:border-accent hover:bg-accent-soft",
                         )}
+                        aria-label={task.done ? "Mark task incomplete" : "Mark task complete"}
                       >
-                        {task.done ? "✓" : null}
+                        {task.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : null}
                       </button>
                       <span
                         className={cx(
-                          "min-w-0 flex-1 truncate text-[13px] font-medium",
+                          "min-w-0 flex-1 truncate text-sm font-bold",
                           task.done ? "text-ink-faint line-through" : "text-ink",
                         )}
                       >
@@ -291,186 +440,176 @@ export function DashboardView() {
                       <button
                         type="button"
                         onClick={() => onRemoveTask(task.id)}
-                        className="-mr-1 shrink-0 p-1 text-ink-faint opacity-0 transition hover:text-red-500 group-hover:opacity-100"
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink-faint opacity-0 transition hover:bg-paper-warm hover:text-accent group-hover:opacity-100"
+                        aria-label="Remove task"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </motion.div>
                   ))}
                 </AnimatePresence>
-                {!tasks.length && (
-                  <div className="space-y-3 px-4 py-8 text-center">
-                    <p className="text-xs text-ink-soft">
-                      No tasks yet. Generate a roadmap or add something quick below.
-                    </p>
+
+                {!tasks.length ? (
+                  <div className="px-4 py-7 text-center">
+                    <p className="text-sm font-semibold text-ink-soft">No tasks yet. Add one quick move or generate a roadmap.</p>
                     <button
+                      type="button"
                       onClick={onGoToRoadmaps}
-                      className="inline-flex h-8 items-center rounded-2xl bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85"
+                      className="mt-4 inline-flex h-9 items-center rounded-full bg-accent px-4 text-xs font-black text-[#130f0d] transition hover:bg-accent-hover"
                     >
                       Generate roadmap
                     </button>
                   </div>
-                )}
+                ) : null}
               </div>
-              <form onSubmit={onSubmitTask} className="flex min-w-0 gap-2 border-t border-line bg-paper p-3">
+
+              <form onSubmit={onSubmitTask} className="mt-3 flex min-w-0 gap-2">
                 <input
                   value={newTask}
-                  onChange={(event) => onNewTaskChange(event.target.value)}
-                  placeholder="Add a quick task…"
-                  className="h-9 min-w-0 flex-1 rounded-2xl border border-transparent bg-surface px-3 text-xs font-medium outline-none transition placeholder:text-ink-faint focus:border-line-strong"
+                  onChange={(event) => setNewTask(event.target.value)}
+                  placeholder="Add a quick task..."
+                  className="h-10 min-w-0 flex-1 rounded-full border border-line bg-surface px-4 text-sm font-semibold outline-none transition placeholder:text-ink-faint hover:border-line-strong focus:border-accent"
                 />
                 <button
                   type="submit"
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-ink text-surface transition hover:bg-ink/85 active:scale-[0.985]"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-[#130f0d] transition hover:bg-accent-hover active:scale-[0.985]"
+                  aria-label="Add task"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </form>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="min-w-0 space-y-3">
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Trending this week</SectionLabel>
-              <button onClick={onGoToLibrary} className="shrink-0 text-xs font-semibold text-ink-soft hover:text-ink">
-                Browse all
-              </button>
+        <section className="min-w-0 rounded-[2rem] border border-line bg-surface p-5 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <DashboardLabel>Scheduled</DashboardLabel>
+              <h3 className="mt-2 text-2xl font-black tracking-[-0.05em]">Rooms today</h3>
             </div>
-            {trendingLoading ? (
-              <LoadingRows count={3} />
-            ) : trendingNotes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-line px-4 py-8 text-center text-xs text-ink-faint">
-                No trending resources yet. New downloads will surface useful notes here.
-              </div>
-            ) : (
-              <div className="min-w-0 space-y-2">
-                {trendingNotes.map((note) => (
-                  <NoteRow key={note.id} note={note} onOpen={() => onOpenNote(note)} />
-                ))}
-              </div>
-            )}
-          </section>
+            <button
+              type="button"
+              onClick={onGoToStudyRooms}
+              className="text-xs font-black text-accent hover:text-accent-hover"
+            >
+              See all
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {scheduledRooms.map((room) => (
+              <motion.button
+                key={room.name}
+                type="button"
+                onClick={onGoToStudyRooms}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full rounded-[1.25rem] border border-line bg-paper-warm p-4 text-left transition hover:border-line-strong"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-base font-black tracking-[-0.03em]">{room.name}</h4>
+                    <p className="mt-1 text-xs font-semibold text-ink-faint">{room.starts}</p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[10px] font-black text-ink-soft">
+                    <span className={cx("h-1.5 w-1.5 rounded-full", room.accent)} />
+                    {room.type}
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center gap-1.5">
+                  {room.people.map((person, index) => (
+                    <span
+                      key={`${room.name}-${person}-${index}`}
+                      className="grid h-7 w-7 place-items-center rounded-full border border-line bg-surface font-mono text-[10px] font-black text-ink"
+                    >
+                      {person}
+                    </span>
+                  ))}
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="mt-5 rounded-[2rem] border border-line bg-surface p-5 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <DashboardLabel>Recommended resources</DashboardLabel>
+            <h3 className="mt-2 text-2xl font-black tracking-[-0.05em]">Trending this week</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onGoToLibrary}
+            className="inline-flex h-9 items-center justify-center rounded-full border border-line px-4 text-xs font-black text-ink-soft transition hover:border-line-strong hover:text-ink"
+          >
+            Browse all
+          </button>
         </div>
 
-        {/* Right column: Rooms & metrics */}
-        <div className="min-w-0 space-y-8">
-          <section className="min-w-0 space-y-3">
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <SectionLabel>Active study rooms</SectionLabel>
-              <button onClick={onGoToStudyRooms} className="shrink-0 text-xs font-semibold text-accent hover:underline">
-                Join room
-              </button>
+        <div className="mt-5 grid gap-3 lg:grid-cols-3">
+          {trendingLoading
+            ? Array.from({ length: 3 }, (_, index) => (
+                <div key={index} className="h-32 animate-pulse rounded-[1.4rem] border border-line bg-paper-warm" />
+              ))
+            : null}
+
+          {!trendingLoading && !trendingNotes.length ? (
+            <div className="rounded-[1.4rem] border border-dashed border-line px-5 py-8 text-center text-sm font-semibold text-ink-faint lg:col-span-3">
+              No trending resources yet. New downloads will surface useful notes here.
             </div>
-            <div className="min-w-0 space-y-3">
-              {[
-                { name: "DBMS Exam Sprint", count: 18, timer: "25m focus", type: "College-only", avatars: ["D", "M", "B"] },
-                { name: "CN Focus Room", count: 9, timer: "50m focus", type: "Public", avatars: ["C", "N"] },
-                { name: "Silent Study", count: 32, timer: "Silent Pomodoro", type: "Public", avatars: ["S", "T", "U", "D"] },
-              ].map((room, idx) => (
-                <motion.div
-                  key={room.name}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="dashboard-card flex min-w-0 flex-col gap-3 rounded-3xl border border-line bg-surface p-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between"
+          ) : null}
+
+          {!trendingLoading
+            ? trendingNotes.map((note) => (
+                <motion.button
+                  key={note.id}
+                  type="button"
+                  onClick={() => onOpenNote(note)}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="group min-w-0 rounded-[1.4rem] border border-line bg-paper-warm p-4 text-left transition hover:border-line-strong"
                 >
-                  <div className="min-w-0 space-y-1.5">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <h4 className="min-w-0 text-sm font-semibold leading-none text-ink">{room.name}</h4>
-                      <span className="inline-flex items-center rounded-full border border-line bg-paper px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ink-soft">
-                        {room.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="room-avatars">
-                        {room.avatars.map((initial, i) => (
-                          <motion.div
-                            key={i}
-                            whileHover={{ scale: 1.2 }}
-                            className="room-avatar flex h-5 w-5 items-center justify-center rounded-full border border-line bg-accent-soft text-[8px] font-mono font-bold text-accent"
-                            style={{ zIndex: room.avatars.length - i }}
-                          >
-                            {initial}
-                          </motion.div>
-                        ))}
-                      </div>
-                      <p className="truncate text-xs text-ink-soft">
-                        {room.count} studying • {room.timer}
-                      </p>
-                    </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                    <span className="rounded-full border border-line bg-surface px-2.5 py-1 font-mono text-[10px] font-black text-ink-faint">
+                      {note.fileType}
+                    </span>
                   </div>
-                  <button
-                    onClick={onGoToStudyRooms}
-                    className="inline-flex h-8 w-full items-center justify-center rounded-2xl bg-ink px-4 text-xs font-bold text-surface hover:bg-ink/85 active:scale-[0.985] min-[420px]:w-auto"
-                  >
-                    Join
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </section>
+                  <h4 className="mt-4 line-clamp-2 text-base font-black leading-tight tracking-[-0.03em] text-ink">
+                    {note.title}
+                  </h4>
+                  <div className="mt-3 flex min-w-0 items-center justify-between gap-3 text-xs font-bold text-ink-faint">
+                    <span className="truncate">{note.subject}</span>
+                    <span className="shrink-0">{note.downloadCount} downloads</span>
+                  </div>
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-accent">
+                    Open resource <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                  </span>
+                </motion.button>
+              ))
+            : null}
+        </div>
+      </section>
 
-          <section className="min-w-0 space-y-3">
-            <SectionLabel>Study metrics</SectionLabel>
-            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-              {(() => {
-                const done = tasksDone;
-                const total = tasks.length; // real: completion of today's tasks
-                const pct = total ? Math.round((done / total) * 100) : 0;
-                const size = 36,
-                  stroke = 4,
-                  r = (size - stroke) / 2;
-                const circ = 2 * Math.PI * r;
-                const offset = circ * (1 - pct / 100);
-                return (
-                  <div className="dashboard-stat flex items-center gap-3 rounded-3xl border border-accent/25 bg-accent-soft p-4">
-                    <div className="relative" style={{ width: size, height: size }}>
-                      <svg width={size} height={size} className="rotate-[-90deg]">
-                        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
-                        <circle
-                          cx={size / 2}
-                          cy={size / 2}
-                          r={r}
-                          fill="none"
-                          stroke="var(--accent)"
-                          strokeWidth={stroke}
-                          strokeLinecap="round"
-                          strokeDasharray={circ}
-                          strokeDashoffset={offset}
-                          className="progress-ring"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold text-accent">
-                        {pct}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-mono text-xl font-semibold tabular-nums text-ink">{done}</div>
-                      <div className="-mt-0.5 text-[11px] font-semibold text-ink-soft">
-                        Tasks done{total ? ` of ${total}` : ""}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {[
-                { label: "My uploads", value: String(stats?.uploadCount ?? 0), icon: PlusCircle },
-                { label: "Saved notes", value: String(stats?.savedCount ?? 0), icon: Bookmark },
-                { label: "Library notes", value: String(stats?.totalNotes ?? 0), icon: BookOpen },
-              ].map((stat, i) => (
-                <div key={i} className="dashboard-stat flex items-center gap-3 rounded-3xl border border-line bg-surface p-4">
-                  <div className="rounded-2xl border border-line bg-paper p-2 text-ink-soft">
-                    <stat.icon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-xl font-semibold tabular-nums text-ink">{stat.value}</div>
-                    <div className="-mt-0.5 text-[11px] font-semibold text-ink-faint">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-[1.5rem] border border-line bg-surface p-4">
+          <Clock className="h-4 w-4 text-accent" />
+          <p className="mt-3 text-sm font-black">Focus rhythm</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-ink-faint">Plan work in short rooms, then bank resources for later.</p>
+        </div>
+        <div className="rounded-[1.5rem] border border-line bg-surface p-4">
+          <CalendarDays className="h-4 w-4 text-accent" />
+          <p className="mt-3 text-sm font-black">Weekly cadence</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-ink-faint">Tasks, rooms, and library activity stay visible in one view.</p>
+        </div>
+        <div className="rounded-[1.5rem] border border-line bg-surface p-4">
+          <Zap className="h-4 w-4 text-accent" />
+          <p className="mt-3 text-sm font-black">AI ready</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-ink-faint">Jump straight into personalized roadmaps when you need a path.</p>
         </div>
       </div>
     </div>

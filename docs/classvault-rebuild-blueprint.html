@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<!-- ==================================================================
+     LONG DOCUMENT · English · parchment design system
+     Multi-page A4 white paper / tech report / annual review
+     Flow: cover -> toc -> exec summary -> chapters -> appendix
+     ================================================================== -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ClassVault Rebuild Blueprint</title>
+<meta name="author" content="Kami">
+<meta name="description" content="A practical ground-up tutorial for rebuilding ClassVault with stronger product foundations, AI workflows, moderation, and launch discipline.">
+<meta name="keywords" content="ClassVault, Next.js, Prisma, AI study app, product architecture">
+<meta name="generator" content="Kami">
+<style>
+  /* Palatino is a system font, no @font-face needed */
+  @font-face { font-family: "JetBrains Mono"; src: url("../fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 500; font-style: normal; }
+
+  @page {
+    size: A4;
+    margin: 20mm 22mm 22mm 22mm;
+    background: #f5f4ed;
+
+    @top-right {
+      content: string(section-title);
+      font-family: Charter, Georgia, Palatino, serif;
+      font-size: 8pt;
+      color: #6b6a64;
+    }
+
+    @bottom-center {
+      content: counter(page) "  ·  ClassVault Rebuild Blueprint";
+      font-family: Charter, Georgia, Palatino, serif;
+      font-size: 9pt;
+      color: #6b6a64;
+    }
+  }
+  @page:first {
+    @top-right { content: ""; }
+    @bottom-center { content: ""; }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment: #f5f4ed;
+    --ivory:     #faf9f5;
+    --near-black:#141413;
+    --dark-warm: #3d3d3a;
+    --olive:     #504e49;
+    --stone:     #6b6a64;
+    --brand:     #1B365D;
+    --border:    #e8e6dc;
+    --border-soft:#e5e3d8;
+    --tag-bg:    #E4ECF5;
+
+    --serif: Charter, Georgia,
+             Palatino, "Times New Roman", serif;
+    --sans: var(--serif);
+    --mono:  "JetBrains Mono", "SF Mono", "Fira Code",
+             Consolas, Monaco, monospace;
+
+    --rhythm-module:  14pt;
+    --rhythm-section: 18pt;
+  }
+
+  html, body { background: var(--parchment); }
+
+  @media screen {
+    body { max-width: 210mm; margin: 0 auto; padding: 20mm 22mm 22mm 22mm; }
+  }
+
+  body {
+    color: var(--near-black);
+    font-family: var(--serif);
+    font-size: 10.5pt;
+    line-height: 1.55;
+    widows: 3;
+    orphans: 3;
+  }
+
+  .sans { font-family: var(--sans); }
+
+  /* COVER */
+  .cover {
+    min-height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40mm 0 0 0;
+    break-after: page;
+  }
+  .cover-eyebrow {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--brand);
+    letter-spacing: 2pt;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 18pt;
+  }
+  .cover-title {
+    font-size: 40pt;
+    font-weight: 500;
+    color: var(--near-black);
+    line-height: 1.12;
+    letter-spacing: -0.5pt;
+    margin-bottom: 16pt;
+  }
+  .cover-sub {
+    font-family: var(--sans);
+    font-size: 14pt;
+    color: var(--olive);
+    line-height: 1.45;
+    max-width: 85%;
+    margin-bottom: 30pt;
+  }
+  .cover-meta {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--stone);
+    line-height: 1.55;
+    font-variant-numeric: tabular-nums;
+  }
+  .cover-meta strong { color: var(--dark-warm); font-weight: 500; }
+
+  /* TOC */
+  .toc { break-after: page; }
+  .toc h2 {
+    font-size: 22pt;
+    font-weight: 500;
+    margin-bottom: var(--rhythm-module);
+    border-left: 2.5pt solid var(--brand);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6pt 0;
+    border-bottom: 0.3pt dotted var(--border);
+    font-size: 11pt;
+  }
+  .toc-item:last-of-type { border-bottom: none; }
+  .toc-num {
+    color: var(--brand);
+    font-weight: 500;
+    min-width: 30pt;
+    font-variant-numeric: tabular-nums;
+  }
+  .toc-title {
+    flex: 1;
+    color: var(--near-black);
+    padding-left: 6pt;
+  }
+  .toc-page {
+    color: var(--stone);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* HEADINGS */
+  h1 {
+    font-size: 24pt;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.3pt;
+    margin: 0 0 10pt 0;
+    border-left: 2.5pt solid var(--brand);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+    color: var(--near-black);
+    break-after: avoid;
+  }
+  h2 {
+    font-size: 16pt;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 24pt 0 8pt 0;
+    color: var(--near-black);
+    break-after: avoid;
+    string-set: section-title content();
+  }
+  h3 {
+    font-size: 13pt;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 18pt 0 6pt 0;
+    color: var(--dark-warm);
+    break-after: avoid;
+  }
+
+  .chapter-num {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--brand);
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 6pt;
+  }
+
+  /* PARAGRAPHS */
+  p { margin: 0 0 10pt 0; line-height: 1.55; color: var(--near-black); widows: 2; orphans: 2; }
+
+  .lead {
+    font-size: 12pt;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    margin-bottom: var(--rhythm-module);
+  }
+
+  .hl { color: var(--brand); font-weight: 500; }
+  strong { font-weight: 500; }
+
+  /* LISTS */
+  ul, ol {
+    margin: 6pt 0 10pt 0;
+    padding-left: 20pt;
+    line-height: 1.55;
+  }
+  ul li::marker { color: var(--brand); }
+  ol li::marker { color: var(--brand); font-weight: 500; }
+
+  /* QUOTE */
+  blockquote, .quote {
+    border-left: 2pt solid var(--brand);
+    margin: 12pt 0;
+    padding: 4pt 0 4pt 16pt;
+    color: var(--olive);
+    line-height: 1.55;
+    break-inside: avoid;
+  }
+  blockquote .cite, .quote .cite {
+    display: block;
+    font-family: var(--sans);
+    font-size: 9pt;
+    color: var(--stone);
+    margin-top: 4pt;
+  }
+
+  /* CODE */
+  code {
+    font-family: var(--mono);
+    font-size: 9pt;
+    background: var(--ivory);
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    color: var(--dark-warm);
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 9pt;
+    line-height: 1.5;
+    background: var(--ivory);
+    border-radius: 4pt;
+    padding: 10pt 14pt;
+    margin: 10pt 0;
+    white-space: pre-wrap;
+    color: var(--near-black);
+    break-inside: avoid;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; }
+
+  /* TABLE (kami-table) */
+  table, .kami-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 12pt 0;
+    break-inside: avoid;
+  }
+  table th, .kami-table th {
+    text-align: left;
+    font-family: var(--sans);
+    font-weight: 500;
+    color: var(--dark-warm);
+    padding: 6pt 8pt;
+    border-bottom: 1pt solid var(--border);
+    background: var(--ivory);
+  }
+  table td, .kami-table td {
+    padding: 5pt 8pt;
+    border-bottom: 0.3pt solid var(--border-soft);
+    vertical-align: top;
+  }
+  table.compact th, .kami-table.compact th { padding: 3pt 6pt; font-size: 8pt; }
+  table.compact td, .kami-table.compact td { padding: 2pt 6pt; font-size: 8pt; line-height: 1.4; }
+  table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  table.financial th:not(:first-child), .kami-table.financial th:not(:first-child) { text-align: right; }
+  table.striped tbody tr:nth-child(even) td, .kami-table.striped tbody tr:nth-child(even) td {
+    background: var(--ivory);
+  }
+  table .total td, .kami-table .total td {
+    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+  }
+
+  /* CALLOUT / TAKEAWAY */
+  .callout {
+    background: var(--ivory);
+    border-left: 2pt solid var(--brand);
+    padding: 10pt 14pt;
+    border-radius: 3pt;
+    margin: 12pt 0;
+    line-height: 1.55;
+    break-inside: avoid;
+  }
+  .callout blockquote,
+  .callout .quote {
+    border-left: none;
+    padding-left: 0;
+    margin: 6pt 0;
+    color: var(--olive);
+  }
+  .callout blockquote:first-child,
+  .callout .quote:first-child { margin-top: 0; }
+  .callout blockquote:last-child,
+  .callout .quote:last-child  { margin-bottom: 0; }
+  .takeaway {
+    background: var(--ivory);
+    border-radius: 4pt;
+    padding: 10pt 14pt;
+    margin: 14pt 0;
+    break-inside: avoid;
+  }
+  .takeaway-label {
+    font-family: var(--sans);
+    font-size: 9pt;
+    color: var(--brand);
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 4pt;
+  }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--brand);
+    font-family: var(--sans);
+    font-size: 9pt;
+    font-weight: 500;
+    padding: 1pt 6pt;
+    border-radius: 3pt;
+    letter-spacing: 0.4pt;
+    text-transform: uppercase;
+    margin-right: 4pt;
+  }
+
+  /* FIGURE */
+  figure { margin: 14pt 0; break-inside: avoid; }
+  figure img { max-width: 100%; border-radius: 4pt; }
+  figcaption {
+    font-family: var(--sans);
+    font-size: 9pt;
+    color: var(--stone);
+    margin-top: 6pt;
+    text-align: center;
+  }
+
+  /* CHAPTER BREAK */
+  .chapter { break-before: page; }
+</style>
+</head>
+
+<body>
+<section class="cover">
+  <div>
+    <div class="cover-eyebrow">Technical Rebuild Tutorial</div>
+    <div class="cover-title">ClassVault<br>Rebuild Blueprint</div>
+    <div class="cover-sub">How to build the campus study hub again, with a cleaner foundation and a stronger AI layer.</div>
+  </div>
+  <div class="cover-meta">
+    <strong>ClassVault project guide</strong><br>
+    Version 1.0 · 2026.06<br>
+    Generated with Kami
+  </div>
+</section>
+
+<section class="toc">
+  <h2>Contents</h2>
+  <div class="toc-item"><span class="toc-num">01</span><span class="toc-title">Rebuild Thesis</span><span class="toc-page">03</span></div>
+  <div class="toc-item"><span class="toc-num">02</span><span class="toc-title">What To Do First</span><span class="toc-page">04</span></div>
+  <div class="toc-item"><span class="toc-num">03</span><span class="toc-title">Recommended Stack</span><span class="toc-page">06</span></div>
+  <div class="toc-item"><span class="toc-num">04</span><span class="toc-title">Data Model</span><span class="toc-page">08</span></div>
+  <div class="toc-item"><span class="toc-num">05</span><span class="toc-title">Trust, Uploads, And Moderation</span><span class="toc-page">10</span></div>
+  <div class="toc-item"><span class="toc-num">06</span><span class="toc-title">Search, Community, And AI</span><span class="toc-page">12</span></div>
+  <div class="toc-item"><span class="toc-num">07</span><span class="toc-title">Frontend And Delivery Plan</span><span class="toc-page">15</span></div>
+  <div class="toc-item"><span class="toc-num">08</span><span class="toc-title">Quality Bar And Launch</span><span class="toc-page">18</span></div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">01 · Rebuild Thesis</div>
+  <h1>Rebuild Thesis</h1>
+  <p class="lead">If I rebuilt ClassVault from scratch, I would not start with screens. I would start with the trust model: who can upload, who can see, who can verify, who can moderate, and what evidence the AI is allowed to use.</p>
+  <p>ClassVault is not just a notes app. The useful version is a campus knowledge network where study material becomes searchable, discussable, reusable, and AI-readable without becoming messy or unsafe. The current project already proves several important product primitives: notes, moderated uploads, full-text search, saves, ratings, comments, notifications, collections, study rooms, leaderboards, AI roadmaps, exam plans, and campus verification.</p>
+  <p>The smarter rebuild keeps the same core direction but changes the order. Build the durable spine first: institution, course, note version, file ledger, moderation event, AI usage event, document chunk, citation, and audit log. Then build the interface around those objects. That sequence makes AI features easier, search better, moderation safer, and paid institutional plans less painful later.</p>
+
+  <h2>What I Would Keep</h2>
+  <ul>
+    <li><strong>Next.js App Router, React, TypeScript, and pnpm.</strong> The current stack fits a product with server-rendered pages, route handlers, and client-side interactive islands.</li>
+    <li><strong>Postgres with Prisma.</strong> The app needs relational integrity, full-text search, moderation history, usage counters, and later vector search. Postgres is the right center.</li>
+    <li><strong>Zod at every boundary.</strong> AI output, upload metadata, form input, and route bodies all need runtime validation, not just TypeScript.</li>
+    <li><strong>S3-compatible object storage.</strong> Keep signed upload and download URLs, a storage-key ledger, and file metadata verification.</li>
+    <li><strong>Thin route handlers with server modules.</strong> The current repo already follows this pattern under <code>lib/server/</code>; preserve it.</li>
+  </ul>
+
+  <h2>What I Would Change</h2>
+  <table>
+    <thead><tr><th>Area</th><th>Current shape</th><th>Rebuild change</th></tr></thead>
+    <tbody>
+      <tr><td>Data model</td><td>Strong notes core, institution and course exist but are still emerging.</td><td>Make Institution, Course, Syllabus, NoteVersion, DocumentChunk, and AIUsageEvent first-class on day one.</td></tr>
+      <tr><td>AI</td><td>Direct provider module with Gemini primary and OpenAI fallback.</td><td>Use a provider abstraction plus AI SDK-style streaming, structured outputs, tool calls, retrieval, and per-institution quotas.</td></tr>
+      <tr><td>Uploads</td><td>File validation, storage keys, direct upload, moderation.</td><td>Add async file processing: virus scan, text extraction, OCR fallback, duplicate detection, embeddings, and preview generation.</td></tr>
+      <tr><td>Search</td><td>Postgres full-text search plus filters and trending.</td><td>Use hybrid search: full-text for exact course intent, vector search for semantic questions, and citation-backed AI answers.</td></tr>
+      <tr><td>Product flow</td><td>Many features shipped in parallel.</td><td>Sequence trust, corpus, search, and moderation before advanced community and AI features.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Core principle</div>
+    Build ClassVault as a trusted study corpus first. The AI should be a layer over verified, searchable, permissioned material, not a magic text box sitting beside loose uploads.
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">02 · What To Do First</div>
+  <h1>What To Do First</h1>
+  <p class="lead">The first week should answer product and data questions, not animation and landing-page questions. A clean first week saves months of rewrites.</p>
+
+  <h2>Day 1: Write The Product Contract</h2>
+  <p>Create a one-page product contract before opening the editor. It should define the users, promises, non-goals, and trust rules. For ClassVault, the user roles are student, contributor, moderator, admin, and institution owner. The promise is simple: students find useful, campus-relevant material faster, and AI can explain or plan using the material with citations.</p>
+  <table>
+    <thead><tr><th>Decision</th><th>Recommended answer</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td>Primary user</td><td>Student preparing for coursework or exams.</td><td>Keeps the UI focused on search, saved notes, progress, and exam pressure.</td></tr>
+      <tr><td>Supply source</td><td>Student uploads, seeded official samples, and institution-curated material.</td><td>Prevents the library from depending only on cold-start uploads.</td></tr>
+      <tr><td>Trust rule</td><td>Files are not fully trusted until validated and reviewed.</td><td>Protects the app from spam, copyrighted dumps, unsafe files, and low-quality notes.</td></tr>
+      <tr><td>AI rule</td><td>Answers must cite notes, pages, chunks, or clearly say when no source exists.</td><td>Prevents plausible but unsupported study advice.</td></tr>
+      <tr><td>Business rule</td><td>Institutions pay for governance, analytics, quotas, and verified vaults.</td><td>Gives the product a monetizable surface without charging every student first.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Day 2: Define The Non-Negotiable Flows</h2>
+  <p>Map these flows before UI polish: sign up, verify campus, upload resource, moderate resource, search library, save note, ask note, report note, resolve report, and review institution analytics. If a screen does not support one of these flows, it is probably not part of the first build.</p>
+  <pre><code>student signs up
+  -> verifies campus email
+  -> uploads file and metadata
+  -> file enters processing and moderation
+  -> approved note appears in course library
+  -> classmates search, save, comment, rate, download
+  -> AI can cite chunks from approved notes
+  -> moderators handle reports and quality issues</code></pre>
+
+  <h2>Day 3: Create The Architecture Map</h2>
+  <figure>
+    
+<svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ClassVault rebuild architecture map">
+  <rect width="1000" height="520" fill="#f5f4ed"/>
+  <text x="64" y="44" fill="#1B365D" font-size="13" font-weight="600" font-family="JetBrains Mono, monospace" letter-spacing="3">FIGURE  1</text>
+  <text x="180" y="44" fill="#504e49" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="3">REBUILD ARCHITECTURE MAP</text>
+  <line x1="64" y1="60" x2="936" y2="60" stroke="#1B365D" stroke-width="1"/>
+
+  <rect x="64" y="96" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="88" y="124" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">CLIENT</text>
+  <text x="88" y="152" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">App Shell</text>
+  <text x="88" y="176" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Dashboard, library, upload, AI cockpit</text>
+
+  <rect x="392" y="96" width="240" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="416" y="124" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">APP CORE</text>
+  <text x="416" y="152" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Next.js Boundary</text>
+  <text x="416" y="176" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Server components plus thin route handlers</text>
+
+  <rect x="720" y="96" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="744" y="124" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">TRUST</text>
+  <text x="744" y="152" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Auth and Roles</text>
+  <text x="744" y="176" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Session, OAuth, OTP, campus verification</text>
+
+  <rect x="64" y="240" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="88" y="268" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">CONTENT</text>
+  <text x="88" y="296" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Resources</text>
+  <text x="88" y="320" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Notes, courses, versions, comments</text>
+
+  <rect x="392" y="240" width="240" height="88" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+  <text x="416" y="268" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">INTELLIGENCE</text>
+  <text x="416" y="296" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">AI Layer</text>
+  <text x="416" y="320" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Extraction, embeddings, tools, citations</text>
+
+  <rect x="720" y="240" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="744" y="268" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">OPERATIONS</text>
+  <text x="744" y="296" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Moderation</text>
+  <text x="744" y="320" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Review queue, reports, audit trail</text>
+
+  <rect x="64" y="384" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="88" y="412" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">STORAGE</text>
+  <text x="88" y="440" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Object Store</text>
+  <text x="88" y="464" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">S3/R2, signed URLs, file ledger</text>
+
+  <rect x="392" y="384" width="240" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="416" y="412" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">DATA</text>
+  <text x="416" y="440" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Postgres</text>
+  <text x="416" y="464" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Prisma, FTS, pgvector, usage events</text>
+
+  <rect x="720" y="384" width="216" height="88" rx="8" fill="#faf9f5" stroke="#e8e6dc"/>
+  <text x="744" y="412" fill="#1B365D" font-size="13" font-family="JetBrains Mono, monospace" letter-spacing="2">BUSINESS</text>
+  <text x="744" y="440" fill="#141413" font-size="23" font-weight="600" font-family="Charter, Georgia, serif">Institutions</text>
+  <text x="744" y="464" fill="#504e49" font-size="14" font-family="Charter, Georgia, serif">Quotas, billing, analytics, admin views</text>
+
+  <path d="M280 140 H392" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M632 140 H720" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M512 184 V240" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M280 284 H392" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M632 284 H720" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M512 328 V384" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M280 428 H392" stroke="#d0dce9" stroke-width="2" fill="none"/>
+  <path d="M632 428 H720" stroke="#d0dce9" stroke-width="2" fill="none"/>
+</svg>
+    <figcaption>Figure 1. The rebuilt app should make the AI layer depend on trusted content, storage, and Postgres rather than bypassing them.</figcaption>
+  </figure>
+
+  <h2>Days 4-5: Bootstrap The Repo</h2>
+  <p>Use a boring setup. The product is already ambitious; the build system should not be. Start with pnpm, Next.js App Router, TypeScript strict mode, Tailwind, Prisma, Vitest, Playwright, ESLint, and a CI workflow that runs lint, typecheck, tests, Prisma validation, and build.</p>
+  <pre><code>pnpm create next-app classvault --ts --app
+cd classvault
+pnpm add zod prisma @prisma/client pg @prisma/adapter-pg
+pnpm add lucide-react motion @vercel/analytics @vercel/speed-insights
+pnpm add -D vitest @playwright/test eslint-config-next tsx
+pnpm prisma init</code></pre>
+  <p>Do not add payment, chat, vector search, and background jobs on day one. Put placeholders in the architecture, not in the dependency list. Add the dependency when the first production path needs it.</p>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">03 · Recommended Stack</div>
+  <h1>Recommended Stack</h1>
+  <p class="lead">I would mostly keep the current stack. The efficiency gain is not a dramatic framework switch; it is a stricter architecture, a better data model, and an AI pipeline designed before the AI features multiply.</p>
+
+  <h2>Default Stack</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>App framework</td><td>Next.js App Router</td><td>Good fit for server-rendered product pages, route handlers, metadata, dashboard routes, and selective client interactivity.</td></tr>
+      <tr><td>UI runtime</td><td>React 19 with TypeScript strict mode</td><td>Matches the existing repo and supports typed, componentized product surfaces.</td></tr>
+      <tr><td>Styling</td><td>Tailwind 4 plus local design tokens</td><td>Fast to build, easy to keep dense operational UI consistent, and already aligned with the project.</td></tr>
+      <tr><td>Database</td><td>Postgres on Neon or another managed Postgres</td><td>Relational core, full-text search, transactions, analytics, and pgvector path in one system.</td></tr>
+      <tr><td>ORM</td><td>Prisma 7</td><td>Strong schema readability, migrations, generated client, and enough escape hatches for raw SQL search queries.</td></tr>
+      <tr><td>Storage</td><td>S3-compatible storage such as R2 or AWS S3</td><td>Cheap durable file storage, signed upload/download URLs, CDN path later.</td></tr>
+      <tr><td>Email</td><td>Resend for speed, SES for scale or AWS consolidation</td><td>Email OTP, verification, moderation notifications, and institution digests.</td></tr>
+      <tr><td>AI</td><td>Vercel AI SDK-style abstraction plus OpenAI/Gemini providers</td><td>Streaming, structured outputs, provider flexibility, tool calls, and consistent UX hooks.</td></tr>
+      <tr><td>Testing</td><td>Vitest, Playwright, and AI eval fixtures</td><td>Unit tests for pure logic, e2e for flows, evals for prompt and retrieval quality.</td></tr>
+      <tr><td>Observability</td><td>Vercel Analytics/Speed Insights plus structured logs and error tracking</td><td>Product usage, performance, failures, and AI cost need to be visible early.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>When I Would Choose A Different Stack</h2>
+  <p>There are only a few cases where I would move away from the current direction. If speed matters more than custom campus logic, Supabase can replace custom auth, storage, and some admin tooling. If the product becomes mobile-first with heavy native features, move the backend into a separate API service and keep Next.js as the web client. If institution analytics becomes the main business, add a warehouse later rather than bending the app database into a BI system.</p>
+  <table>
+    <thead><tr><th>Scenario</th><th>Alternative</th><th>Tradeoff</th></tr></thead>
+    <tbody>
+      <tr><td>Solo MVP in under 2 weeks</td><td>Supabase Auth, Storage, Postgres, Edge Functions</td><td>Faster setup, less custom security code, but campus verification and moderation rules become platform-shaped.</td></tr>
+      <tr><td>Large multi-platform app</td><td>Next.js frontend plus separate Fastify/Nest API</td><td>Cleaner service boundary for mobile clients, but more deployment and auth complexity.</td></tr>
+      <tr><td>Institution enterprise from day one</td><td>Postgres app DB plus warehouse/event pipeline</td><td>Better analytics, but unnecessary until there is real institutional usage volume.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Recommended Repository Shape</h2>
+  <pre><code>app/
+  api/                 route handlers: thin HTTP boundary only
+  app/                 authenticated product routes
+components/
+  app-shell/           navigation, command palette, notifications
+  views/               route-level client views
+  notes/               reusable note cards, previews, controls
+lib/
+  server/              auth, db, storage, AI, moderation, domain logic
+  api-types.ts         serialized response types
+prisma/
+  schema.prisma        source of truth for data contracts
+  migrations/          reviewed database history
+tests/
+  e2e/                 Playwright user flows
+  *.test.ts            domain logic and route helper tests
+docs/
+  architecture/        decisions, runbooks, AI policies</code></pre>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Stack call</div>
+    Keep the Next.js plus Prisma plus Postgres direction. Spend the rebuild energy on domain modeling, background processing, retrieval, evals, and moderation tooling.
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">04 · Data Model</div>
+  <h1>Data Model</h1>
+  <p class="lead">A better ClassVault starts with a better schema. The database should describe the product you want in year two, not only the upload form you need in week one.</p>
+
+  <h2>Start With These Core Entities</h2>
+  <table>
+    <thead><tr><th>Entity</th><th>Purpose</th><th>Build now?</th></tr></thead>
+    <tbody>
+      <tr><td>User</td><td>Student, moderator, admin, institution owner, verification state, role.</td><td>Yes</td></tr>
+      <tr><td>Institution</td><td>College identity, domain, plan, quotas, billing, analytics scope.</td><td>Yes</td></tr>
+      <tr><td>Course</td><td>Stable home for notes, PYQs, syllabus, followers, top contributors.</td><td>Yes</td></tr>
+      <tr><td>Syllabus</td><td>Units, topics, outcomes, exam weight, prerequisite graph.</td><td>Yes, simple version</td></tr>
+      <tr><td>Note</td><td>Published resource record with owner, course, metadata, status, ratings.</td><td>Yes</td></tr>
+      <tr><td>NoteVersion</td><td>File replacement history, moderation per version, old storage keys.</td><td>Yes</td></tr>
+      <tr><td>UploadedFile</td><td>Storage ledger that prevents fake storage keys or wrong file metadata.</td><td>Yes</td></tr>
+      <tr><td>DocumentChunk</td><td>Extracted text, page, section, embedding id, moderation eligibility.</td><td>Before AI Q&amp;A</td></tr>
+      <tr><td>AIUsageEvent</td><td>User, institution, feature, model, tokens or cost estimate, status.</td><td>Before public AI</td></tr>
+      <tr><td>AuditLog</td><td>Security and moderation-sensitive actions.</td><td>Before staff tooling</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Schema Pattern</h2>
+  <p>Use Prisma for relational models and migrations. Use raw SQL where Prisma cannot express the exact Postgres feature cleanly, such as ranked full-text search, triggers for search vectors, and vector indexes. This is not a failure of Prisma; it is the right division of labor.</p>
+  <pre><code>model Institution {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  slug                  String   @unique
+  emailDomain           String?  @unique
+  plan                  String   @default("free")
+  quotaStorageBytes     BigInt?
+  quotaAiRequestsMonth  Int?
+  users                 User[]
+  courses               Course[]
+}
+
+model Course {
+  id            String   @id @default(cuid())
+  institutionId String?
+  code          String
+  name          String?
+  subject       String?
+  notes         Note[]
+  syllabusUnits SyllabusUnit[]
+
+  @@unique([institutionId, code])
+}
+
+model Note {
+  id              String      @id @default(cuid())
+  courseId        String?
+  ownerId         String
+  title           String
+  status          NoteStatus  @default(PENDING)
+  currentVersionId String?
+  versions        NoteVersion[]
+  chunks          DocumentChunk[]
+}</code></pre>
+
+  <h2>Indexes To Plan Early</h2>
+  <ul>
+    <li>Course lookup: <code>institutionId, code</code> and <code>subject, semester</code>.</li>
+    <li>Library browsing: <code>status, createdAt</code>, <code>courseId, status</code>, and tag join indexes.</li>
+    <li>Moderation queue: <code>status, reviewedAt</code> and reviewer history.</li>
+    <li>Trending: <code>noteId, createdAt</code> on download events.</li>
+    <li>Notifications: <code>userId, readAt, createdAt</code>.</li>
+    <li>Rate limits: key as primary id with window start and updated time.</li>
+    <li>AI retrieval: full-text vector, embedding vector index, <code>noteId, pageNumber</code> on chunks.</li>
+  </ul>
+
+  <h2>Migration Discipline</h2>
+  <p>Use migrations as product history. Avoid changing a model and immediately coupling it to a large UI change. For risky schema work, ship in three moves: add nullable fields and backfill, read from the new fields with fallback, then enforce constraints after production data proves the migration.</p>
+  <div class="takeaway">
+    <div class="takeaway-label">Data model rule</div>
+    Do not make AI features store their own invisible truth. Every AI answer should resolve back to Course, Note, NoteVersion, DocumentChunk, User, and Institution records.
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">05 · Trust, Uploads, And Moderation</div>
+  <h1>Trust, Uploads, And Moderation</h1>
+  <p class="lead">ClassVault lives or dies by trust. A fast upload flow is not enough; the app needs a defensible path from raw file to approved study resource.</p>
+
+  <h2>Authentication And Campus Identity</h2>
+  <p>Keep the custom cookie-session approach if campus verification, role bootstrapping, and institution scoping are central. Store only hashed session tokens, use HTTP-only cookies, and keep role checks server-side. Google OAuth and email OTP can coexist, but both should feed the same User and Session tables.</p>
+  <table>
+    <thead><tr><th>Concern</th><th>Implementation rule</th><th>Test</th></tr></thead>
+    <tbody>
+      <tr><td>Session safety</td><td>Hash raw session tokens before database storage.</td><td>Unit test token hashing and expiry.</td></tr>
+      <tr><td>Campus access</td><td>Restrict or mark verified users by allowed email domains and verification codes.</td><td>E2E sign-up plus verification path.</td></tr>
+      <tr><td>Roles</td><td>Use server-side <code>requireRole</code> checks on every staff route.</td><td>Route tests for student denial and moderator access.</td></tr>
+      <tr><td>Institution scope</td><td>Pass institution id into rate limits, queries, and analytics.</td><td>Integration tests with two institutions.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Upload Pipeline</h2>
+  <p>The upload pipeline should be explicit. First, validate the intended file name, type, size, and user. Second, create a storage key generated by the server. Third, give the client a signed upload URL. Fourth, verify the uploaded file metadata. Fifth, create a pending note and processing job. Sixth, extract text and preview data. Seventh, send it to moderation.</p>
+  <pre><code>POST /api/uploads/presign
+  -> validate user, mime type, size
+  -> create storage key and UploadedFile ledger row
+  -> return signed PUT URL
+
+client uploads file directly to object store
+
+POST /api/uploads
+  -> verify storage key belongs to user
+  -> verify file size and type
+  -> create NoteVersion and Note in PENDING state
+  -> enqueue processing and moderation jobs</code></pre>
+
+  <h2>Moderation System</h2>
+  <p>Build moderation before growth. The current code has the right instinct: staff actions are transaction-wrapped and recorded as moderation events. Expand that into a full review console with reasons, duplicate warnings, text extraction preview, report backlog, and audit log search.</p>
+  <table>
+    <thead><tr><th>Moderation feature</th><th>Why it belongs early</th><th>AI assist?</th></tr></thead>
+    <tbody>
+      <tr><td>Approve, reject, hide, restore</td><td>Basic lifecycle control.</td><td>Suggest likely decision, never auto-publish at first.</td></tr>
+      <tr><td>Report resolution</td><td>Required once comments and public notes exist.</td><td>Summarize report context and prior actions.</td></tr>
+      <tr><td>Duplicate detection</td><td>Prevents ten copies of the same PYQ file.</td><td>Use file hash plus semantic title and chunk similarity.</td></tr>
+      <tr><td>PII and unsafe content detection</td><td>Protects students and institutions.</td><td>Flag emails, phone numbers, IDs, answer-key leaks, spam.</td></tr>
+      <tr><td>Copyright risk tagging</td><td>Campus resources can include copyrighted books or paid material.</td><td>Flag suspicious source patterns for human review.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Storage Safety</h2>
+  <p>Do not let the client invent arbitrary storage keys. Keep server-generated keys, sanitize file names, track uploaded file rows, and verify the final object. Public URLs are fine only for approved material; otherwise use short-lived signed download URLs.</p>
+  <div class="takeaway">
+    <div class="takeaway-label">Trust rule</div>
+    The safest upload flow is not the one with the fewest steps. It is the one where every step can be explained, audited, retried, and revoked.
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">06 · Search, Community, And AI</div>
+  <h1>Search, Community, And AI</h1>
+  <p class="lead">AI should arrive after the corpus exists. Search proves the material is structured; AI then becomes a better way to navigate that structure.</p>
+
+  <h2>Search In Three Layers</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Use case</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>Filters</td><td>Semester, subject, course, tag, file type, owner, saved.</td><td>Prisma queries and indexed relational fields.</td></tr>
+      <tr><td>Full-text search</td><td>Exact phrases and multi-word course intent.</td><td>Postgres <code>tsvector</code>, <code>websearch_to_tsquery</code>, ranked ids, fallback to substring fields.</td></tr>
+      <tr><td>Semantic search</td><td>Ask for concepts even when words differ.</td><td>Embeddings on DocumentChunk records with hybrid ranking.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Community Features Worth Building</h2>
+  <p>Community should reinforce study value, not become generic social noise. Keep comments attached to notes, collections attached to exam sprints or courses, rooms attached to focused sessions, and leaderboards attached to useful contribution, not raw activity.</p>
+  <ul>
+    <li><strong>Comments and one-level replies:</strong> enough for Q&amp;A without turning every note into a forum thread.</li>
+    <li><strong>Collections:</strong> bundles for exam sprints, unit packs, lab references, and public share links.</li>
+    <li><strong>Study rooms:</strong> lightweight focus sessions tied to courses or exam windows.</li>
+    <li><strong>Leaderboards:</strong> count approved contributions, helpful comments, ratings from others, and downloads excluding self-downloads.</li>
+    <li><strong>Notifications:</strong> moderation decisions, comment replies, collection updates, course follower updates, and digest emails.</li>
+  </ul>
+
+  <h2>AI Feature Roadmap</h2>
+  <table>
+    <thead><tr><th>Priority</th><th>Feature</th><th>How it should work</th></tr></thead>
+    <tbody>
+      <tr><td>P0</td><td>Upload metadata assistant</td><td>Suggest title, description, tags, course, unit, and PYQ flag from file name plus extracted first pages.</td></tr>
+      <tr><td>P0</td><td>AI roadmap</td><td>Use course, syllabus, weak topics, saved notes, and approved resources to generate day-by-day plans.</td></tr>
+      <tr><td>P0</td><td>Exam sprint</td><td>Rank high-yield topics, produce a crash plan, and attach matching PYQs or notes.</td></tr>
+      <tr><td>P1</td><td>Ask your notes</td><td>Answer questions from approved DocumentChunks only; cite note title, page, and chunk id.</td></tr>
+      <tr><td>P1</td><td>Flashcard and quiz generator</td><td>Generate cards from a note section; track confidence and resurface weak items.</td></tr>
+      <tr><td>P1</td><td>Semantic duplicate detector</td><td>Compare upload text and embeddings against existing course notes before moderation.</td></tr>
+      <tr><td>P2</td><td>Moderator copilot</td><td>Summarize file content, risk flags, duplicate matches, and recommended moderation reason.</td></tr>
+      <tr><td>P2</td><td>Institution insights</td><td>Show weak courses, upload gaps, high-demand topics, unanswered questions, and moderation backlog.</td></tr>
+      <tr><td>P3</td><td>Personal study coach</td><td>Use saved notes, tasks, room sessions, quizzes, and deadlines to adapt weekly plans.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>AI Architecture</h2>
+  <p>Keep prompts out of route handlers. Create feature-specific AI modules with typed inputs, structured outputs, model/provider settings, retries, and test fixtures. Every model response should be parsed through Zod. Every production call should create an AIUsageEvent and include a feature name, user id, institution id when present, provider, model, status, latency, and estimated token or request cost.</p>
+  <pre><code>lib/server/ai/
+  providers.ts          provider selection and retries
+  structured.ts         schema-bound JSON generation
+  retrieval.ts          hybrid search and citation assembly
+  features/
+    roadmap.ts
+    exam-plan.ts
+    note-suggestions.ts
+    ask-notes.ts
+    moderation-assist.ts
+  evals/
+    fixtures.ts         stable inputs and expected properties</code></pre>
+
+  <h2>AI Guardrails</h2>
+  <ul>
+    <li>Require citations for note-grounded answers; no citation, no confident answer.</li>
+    <li>Separate creative study planning from factual Q&amp;A. Planning can be flexible; Q&amp;A must be source-bound.</li>
+    <li>Rate-limit by user, IP, and institution. Track quota before calling the model.</li>
+    <li>Use background jobs for document extraction, embeddings, duplicate detection, and batch summaries.</li>
+    <li>Keep an eval set for every AI feature. Test schema validity, citation presence, refusal behavior, and latency budget.</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">07 · Frontend And Delivery Plan</div>
+  <h1>Frontend And Delivery Plan</h1>
+  <p class="lead">The frontend should feel like a study operating system: dense, calm, fast, and obvious. Avoid making the signed-in app look like a landing page.</p>
+
+  <h2>Design Direction</h2>
+  <p>Use a restrained product UI with a strong app shell, predictable navigation, and focused work surfaces. Keep cards for repeated items such as notes, tasks, collections, and queue rows. Use tables for moderation and admin analytics. Use drawers or side panels for note detail, citations, upload progress, and AI conversations.</p>
+  <table>
+    <thead><tr><th>Surface</th><th>Design idea</th><th>Important state</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard</td><td>Study cockpit: tasks, current sprint, saved notes, trending course resources, room schedule.</td><td>Empty account, verified account, exam week, offline or failed fetch.</td></tr>
+      <tr><td>Library</td><td>Faceted browser with search, filters, quick preview, save, rate, download, collection add.</td><td>No results, semantic results, pending note hidden, citation jump.</td></tr>
+      <tr><td>Upload</td><td>Wizard: file, metadata, AI suggestions, preview, policy confirmation, moderation status.</td><td>Invalid mime, too large, duplicate warning, upload retry.</td></tr>
+      <tr><td>AI Roadmaps</td><td>Inputs on left, generated plan on right, linked resources and progress tracking.</td><td>Quota hit, no resources found, regenerate with constraints.</td></tr>
+      <tr><td>Ask Notes</td><td>Chat panel grounded in selected course or collection with visible citations.</td><td>No source answer, conflicting notes, citation unavailable.</td></tr>
+      <tr><td>Review Queue</td><td>Dense staff table plus detail pane: file preview, extraction, risk flags, actions.</td><td>Already reviewed, duplicate, report escalated.</td></tr>
+      <tr><td>Institution Admin</td><td>Analytics dashboard: uploads, approvals, active courses, AI usage, storage, reports.</td><td>Quota warning, plan inactive, domain unverified.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Component Rules</h2>
+  <ul>
+    <li>Use Server Components for data-heavy route shells, and client components for forms, search controls, optimistic saves, drawers, and command palettes.</li>
+    <li>Keep note cards stable in size. Do not let ratings, tags, or long course names resize the entire grid.</li>
+    <li>Use icons for repeated actions: save, upload, search, filter, report, approve, reject, hide, restore.</li>
+    <li>Make keyboard search a first-class workflow. Students should jump from dashboard to any note, course, room, or collection without browsing the sidebar.</li>
+    <li>Show source confidence in AI answers. Citations should be visible, clickable, and tied to note previews.</li>
+    <li>Design mobile as a real product, not a collapsed desktop table. Library search, upload status, and AI roadmaps must work on phone screens.</li>
+  </ul>
+
+  <h2>Delivery Plan</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>Build</th><th>Exit criteria</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Product contract, schema draft, repo bootstrap, CI, env examples.</td><td>Local dev, migration, seed, lint, typecheck, and smoke test pass.</td></tr>
+      <tr><td>1</td><td>Auth, user profile, institution, campus verification, roles.</td><td>Student, moderator, admin paths tested.</td></tr>
+      <tr><td>2</td><td>Upload, storage ledger, note creation, moderation queue.</td><td>Pending upload can be approved or rejected; invalid files blocked.</td></tr>
+      <tr><td>3</td><td>Library, filters, full-text search, note preview, save, rate, download.</td><td>Students can find, save, and download approved material.</td></tr>
+      <tr><td>4</td><td>Comments, reports, notifications, collections.</td><td>Community actions generate correct notifications and moderation paths.</td></tr>
+      <tr><td>5</td><td>AI metadata, roadmap, exam plan with schema validation and quotas.</td><td>AI calls are rate-limited, logged, typed, and useful without retrieval.</td></tr>
+      <tr><td>6</td><td>Text extraction, chunks, embeddings, ask notes, citations.</td><td>Answers cite approved notes and refuse unsupported claims.</td></tr>
+      <tr><td>7</td><td>Institution analytics, billing, admin reports, launch runbooks.</td><td>Pilot college can manage users, quotas, content, and reports.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>First 30 Days</h2>
+  <p><strong>Week 1:</strong> product contract, repo, schema, auth, institution and course seed data. <strong>Week 2:</strong> upload, storage, moderation, library basics. <strong>Week 3:</strong> search, saves, ratings, downloads, dashboard, notifications. <strong>Week 4:</strong> AI metadata, roadmap, exam plan, admin review polish, tests, pilot checklist.</p>
+  <p>Do not wait until the end to add tests. The current repo already benefits from unit tests for pure logic and Playwright specs for core flows. Preserve that habit from the first feature.</p>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">08 · Quality Bar And Launch</div>
+  <h1>Quality Bar And Launch</h1>
+  <p class="lead">A smarter rebuild is not finished when the features exist. It is finished when unsafe paths fail closed, AI behavior is measured, and a pilot college can trust the workflow.</p>
+
+  <h2>Test Matrix</h2>
+  <table>
+    <thead><tr><th>Area</th><th>Tests</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Domain logic</td><td>Vitest unit tests</td><td>rating aggregation, notification formatting, comment threading, rate-limit keys.</td></tr>
+      <tr><td>Server routes</td><td>Integration tests with mocked auth/storage/AI</td><td>upload creation, moderation action, report resolution, AI schema failure.</td></tr>
+      <tr><td>Browser flows</td><td>Playwright</td><td>sign in, upload, approve/reject, library search, collections, comments, trending.</td></tr>
+      <tr><td>AI features</td><td>Fixture-based evals</td><td>valid JSON, citations present, unsupported answer refusal, no PII leakage.</td></tr>
+      <tr><td>Database</td><td>Prisma validate, migrations, seed smoke</td><td>schema compiles, migrations replay, seed creates demo courses and notes.</td></tr>
+      <tr><td>Release</td><td>Build and health checks</td><td>Next build, deep health route, storage access, email provider check.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Security Checklist</h2>
+  <ul>
+    <li>HTTP-only session cookie, token hashing, expiry, and sign-out cleanup.</li>
+    <li>Server-side role checks for every moderator, admin, and institution route.</li>
+    <li>Rate limits for auth, uploads, comments, downloads, reports, and every AI endpoint.</li>
+    <li>Storage keys generated only by the server; path traversal rejected.</li>
+    <li>Mime type, size, and ledger verification before creating public note records.</li>
+    <li>Report and moderation events retained for audit history.</li>
+    <li>AI prompts avoid secrets and raw unnecessary personal data.</li>
+    <li>Public collection and note routes enforce visibility rules.</li>
+  </ul>
+
+  <h2>Launch Sequence</h2>
+  <p>Launch with one pilot college or one department, not a vague global campus market. Seed 30-50 high-quality notes across 5-8 courses, recruit 5-10 contributors, and appoint at least one moderator. Make the first pilot about weekly retention and upload quality, not vanity signup counts.</p>
+  <table>
+    <thead><tr><th>Milestone</th><th>Target</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td>Seed quality</td><td>At least 5 useful resources per pilot course.</td><td>Do students find something useful before uploading?</td></tr>
+      <tr><td>Search success</td><td>Most common course queries return relevant results.</td><td>Do filters, FTS, and course pages work?</td></tr>
+      <tr><td>Upload health</td><td>Moderation can clear pending notes within 24 hours.</td><td>Is the review workflow manageable?</td></tr>
+      <tr><td>AI usefulness</td><td>Roadmap/exam outputs are accepted or saved by users.</td><td>Does AI change study behavior?</td></tr>
+      <tr><td>Institution value</td><td>Admin can see useful upload, usage, and risk metrics.</td><td>Would a college pay for governance?</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The Final Shape</h2>
+  <p>The better ClassVault is not simply faster or more AI-heavy. It is more legible. Students understand where answers came from. Moderators understand what changed. Institutions understand usage and risk. Developers understand where business logic lives. That clarity is what makes the app easier to scale.</p>
+  <div class="takeaway">
+    <div class="takeaway-label">Monday morning start</div>
+    Write the product contract, draw the schema, seed the first courses, and build the upload-to-moderation path before anything else. Once trusted notes exist, search, community, and AI all become easier to build well.
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">Appendix · Sources And Checklists</div>
+  <h1>Appendix</h1>
+  <h2>Sources Checked</h2>
+  <ul>
+    <li>Local ClassVault source: <code>README.md</code>, <code>docs/roadmap.md</code>, <code>package.json</code>, <code>prisma/schema.prisma</code>, and targeted files under <code>lib/server/</code> and <code>components/</code>.</li>
+    <li>Current docs lookup through Context7 for Next.js App Router, Prisma, and Vercel AI SDK.</li>
+    <li>Official reference locations: <code>https://nextjs.org/docs</code>, <code>https://www.prisma.io/docs</code>, and <code>https://ai-sdk.dev/docs</code>.</li>
+  </ul>
+
+  <h2>Build Commands</h2>
+  <pre><code>pnpm install
+cp .env.example .env
+pnpm prisma validate
+pnpm db:migrate
+pnpm db:seed
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm build</code></pre>
+
+  <h2>Definition Of Done</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Done means</th></tr></thead>
+    <tbody>
+      <tr><td>Upload</td><td>Valid files upload, invalid files fail, moderation can approve/reject, storage access is verified.</td></tr>
+      <tr><td>Library</td><td>Search, filters, note preview, saves, ratings, downloads, and empty states work on mobile and desktop.</td></tr>
+      <tr><td>AI roadmap</td><td>Output schema is validated, rate-limited, logged, and useful without hallucinated resources.</td></tr>
+      <tr><td>Ask notes</td><td>Every factual answer includes citations or refuses the question.</td></tr>
+      <tr><td>Moderation</td><td>Every staff action has a reason, actor, timestamp, and reversible status where appropriate.</td></tr>
+      <tr><td>Institution plan</td><td>Users, quotas, domains, analytics, billing state, and admin views share the same institution id.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Glossary</h2>
+  <p><strong>Trusted corpus</strong> - The approved, permissioned set of notes and chunks that search and AI are allowed to use.</p>
+  <p><strong>DocumentChunk</strong> - A piece of extracted note text with page and section metadata, used for semantic search and citations.</p>
+  <p><strong>Hybrid search</strong> - Ranking that combines exact full-text matches, relational filters, and vector similarity.</p>
+  <p><strong>AIUsageEvent</strong> - A durable record of each model call for quota, cost, debugging, and abuse analysis.</p>
+</section>
+</body>
+</html>
