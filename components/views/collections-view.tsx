@@ -6,6 +6,7 @@ import type { ApiCollection, ApiCollectionSummary, CollectionsResponse } from "@
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
+import { Button, Card, EmptyState, Input } from "@/components/ui";
 
 export function CollectionsView() {
   const { me, authChecked, openAuthPrompt, openNoteDetail, setToast } = useAppShell();
@@ -141,12 +142,14 @@ export function CollectionsView() {
 
   if (authChecked && !me) {
     return (
-      <div className="rounded-lg border border-dashed border-line px-5 py-14 text-center">
-        <p className="text-sm font-medium">Sign in to build collections</p>
-        <p className="mt-1 text-sm text-ink-faint">
-          Bundle notes into named, shareable sets like exam sprints.
-        </p>
-      </div>
+      <EmptyState
+        message={
+          <>
+            <span className="block text-sm font-medium text-ink">Sign in to build collections</span>
+            <span className="mt-1 block">Bundle notes into named, shareable sets like exam sprints.</span>
+          </>
+        }
+      />
     );
   }
 
@@ -156,44 +159,40 @@ export function CollectionsView() {
         Bundle notes into named sets — exam sprints, unit packs — and share them with a public link.
       </p>
 
-      <form
-        onSubmit={createCollection}
-        className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center"
-      >
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={80}
-          placeholder="New collection name (e.g. DBMS End-Sem Sprint)"
-          className="h-9 min-w-0 flex-1 rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong"
-        />
-        <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-ink-soft">
-          <input
-            type="checkbox"
-            checked={isPublic}
-            onChange={(event) => setIsPublic(event.target.checked)}
-            className="rounded border-line"
+      <Card padded className="p-4">
+        <form onSubmit={createCollection} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={80}
+            placeholder="New collection name (e.g. DBMS End-Sem Sprint)"
+            className="flex-1"
           />
-          Public
-        </label>
-        <button
-          type="submit"
-          disabled={creating || title.trim().length < 2}
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md bg-ink px-3.5 text-sm font-medium text-surface transition hover:bg-ink/85 disabled:opacity-60"
-        >
-          <FolderPlus className="h-4 w-4" />
-          Create
-        </button>
-      </form>
+          <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-ink-soft">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(event) => setIsPublic(event.target.checked)}
+              className="rounded border-line"
+            />
+            Public
+          </label>
+          <Button
+            type="submit"
+            disabled={creating || title.trim().length < 2}
+            icon={<FolderPlus className="h-4 w-4" />}
+          >
+            Create
+          </Button>
+        </form>
+      </Card>
 
       <section className="space-y-3">
         <SectionLabel>Your collections</SectionLabel>
         {loading ? (
           <LoadingRows count={3} />
         ) : items.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line px-5 py-10 text-center text-sm text-ink-faint">
-            No collections yet. Create one above, then add notes from any note&apos;s detail panel.
-          </div>
+          <EmptyState message="No collections yet. Create one above, then add notes from any note's detail panel." />
         ) : (
           <div className="space-y-2">
             {items.map((collection) => (
@@ -262,30 +261,24 @@ export function CollectionsView() {
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => togglePublic(selected)}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line px-2.5 text-xs font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
+                icon={selected.isPublic ? <Lock className="h-3.5 w-3.5" /> : <Globe className="h-3.5 w-3.5" />}
               >
-                {selected.isPublic ? <Lock className="h-3.5 w-3.5" /> : <Globe className="h-3.5 w-3.5" />}
                 {selected.isPublic ? "Make private" : "Make public"}
-              </button>
+              </Button>
               {selected.isPublic ? (
-                <button
-                  type="button"
-                  onClick={() => copyShareLink(selected.slug)}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-ink px-2.5 text-xs font-medium text-surface transition hover:bg-ink/85"
-                >
-                  <Link2 className="h-3.5 w-3.5" /> Copy link
-                </button>
+                <Button size="sm" onClick={() => copyShareLink(selected.slug)} icon={<Link2 className="h-3.5 w-3.5" />}>
+                  Copy link
+                </Button>
               ) : null}
             </div>
           </div>
 
           {selected.notes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-line px-5 py-10 text-center text-sm text-ink-faint">
-              Empty. Open any note and use “Add to collection”.
-            </div>
+            <EmptyState message="Empty. Open any note and use “Add to collection”." />
           ) : (
             <div className="space-y-2">
               {selected.notes.map((note) => (

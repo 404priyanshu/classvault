@@ -11,6 +11,7 @@ import type {
   SavedRoadmapsResponse,
 } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
+import { Button, Modal } from "@/components/ui";
 import {
   PREVIEW_ROADMAP,
   roadmapCompletedCount,
@@ -533,13 +534,9 @@ export function AIRoadmapsView() {
                     <div className="text-[10px] text-ink-faint mb-1.5 text-center font-medium tracking-wider">
                       AI will craft a perfect plan from your selected sources
                     </div>
-                    <button
-                      type="submit"
-                      className="ai-magic-btn inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-surface active:scale-[0.985]"
-                    >
-                      <Zap className="h-4 w-4" />
+                    <Button type="submit" icon={<Zap className="h-4 w-4" />} className="h-11 w-full">
                       Generate AI Roadmap
-                    </button>
+                    </Button>
                   </div>
 
                   {generateError ? (
@@ -587,14 +584,15 @@ export function AIRoadmapsView() {
                     })}
                   </div>
 
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={stopGeneration}
-                    className="mt-5 inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-soft hover:border-line-strong hover:text-ink"
+                    icon={<X className="h-3.5 w-3.5" />}
+                    className="mt-5"
                   >
-                    <X className="h-3.5 w-3.5" />
                     Stop generation
-                  </button>
+                  </Button>
                 </div>
               )}
                       </div>
@@ -846,17 +844,19 @@ export function AIRoadmapsView() {
                   );
                 })()}
 
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => {
                     setRoadmap(null);
                     setGenerationMeta(null);
                     setGenerateError(null);
                     setSavedRoadmapId(null);
                   }}
-                  className="rounded-md border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-soft transition hover:bg-paper hover:text-ink active:scale-[0.985] whitespace-nowrap"
+                  className="whitespace-nowrap"
                 >
                   Start new plan
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -901,12 +901,14 @@ export function AIRoadmapsView() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => handleTriggerQuiz(roadmap[activeDay].title)}
-                      className="inline-flex items-center gap-2 rounded-md border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white active:scale-[0.985]"
+                      icon={<Zap className="h-3.5 w-3.5" />}
                     >
-                      <Zap className="h-3.5 w-3.5" /> Practice Quiz
-                    </button>
+                      Practice Quiz
+                    </Button>
                     <div className="rounded-md bg-neutral-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-neutral-600">
                       {Math.round(
                         (roadmap[activeDay].done.filter(Boolean).length /
@@ -997,12 +999,9 @@ export function AIRoadmapsView() {
         </div>
       )}
 
-      {/* Mock Quiz dialog modal — beautiful spring entrance */}
-              {showQuiz && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
-            <div
-                                                                      className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5"
-            >
+      {/* Practice quiz dialog */}
+      <Modal open={!!showQuiz} onClose={() => setShowQuiz(null)} label="AI Practice Quiz" className="max-w-md">
+            <div className="space-y-4 p-5">
               <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <h4 className="text-xs font-bold uppercase text-accent tracking-wider leading-none">
                   AI Practice Quiz
@@ -1060,7 +1059,7 @@ export function AIRoadmapsView() {
                   </p>
                 </div>
               ) : (
-                <button
+                <Button
                   onClick={() => {
                     let correct = 0;
                     if (answers[0] === 1) correct++;
@@ -1068,14 +1067,13 @@ export function AIRoadmapsView() {
                     setQuizScore(correct);
                   }}
                   disabled={answers[0] === undefined || answers[1] === undefined}
-                  className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 disabled:opacity-50"
+                  className="w-full"
                 >
                   Submit Answers
-                </button>
+                </Button>
               )}
             </div>
-          </div>
-        )}
+      </Modal>
           </div>
   );
 }

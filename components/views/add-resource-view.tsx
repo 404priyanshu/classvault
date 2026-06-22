@@ -2,6 +2,7 @@
 
 import { FileUp } from "lucide-react";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
+import { Button, Card } from "@/components/ui";
 
 export function AddResourceView() {
   const { openUpload } = useAppShell();
@@ -12,7 +13,7 @@ export function AddResourceView() {
         Upload notes, slides, documents, and PYQ archives for moderator review before they appear in the shared library.
       </p>
 
-      <div className="space-y-5 rounded-xl border border-line bg-surface p-5 shadow-sm">
+      <Card padded className="space-y-5">
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-paper text-ink-soft">
             <FileUp className="h-5 w-5" />
@@ -25,14 +26,10 @@ export function AddResourceView() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={openUpload}
-          className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink px-4 text-sm font-semibold text-surface transition hover:bg-ink/85 sm:w-auto"
-        >
+        <Button onClick={openUpload} className="h-10 w-full sm:w-auto">
           Choose document file
-        </button>
-      </div>
+        </Button>
+      </Card>
     </div>
   );
 }

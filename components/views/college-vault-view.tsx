@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { ShieldCheck } from "lucide-react";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import type { ApiError } from "@/lib/api-types";
+import { Button, Card, Input } from "@/components/ui";
 
 async function apiErrorMessage(response: Response, fallback: string) {
   try {
@@ -121,7 +122,7 @@ export function CollegeVaultView() {
       </p>
 
       {verified ? (
-        <div className="rounded-xl border border-line bg-surface p-6 text-center space-y-4 shadow-sm">
+        <Card padded className="p-6 text-center space-y-4">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
             <ShieldCheck className="h-6 w-6" />
           </div>
@@ -150,41 +151,36 @@ export function CollegeVaultView() {
               <span>Peer silent study rooms</span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={loading}
-            className="inline-flex h-8 items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink"
-          >
+          <Button variant="secondary" size="sm" onClick={handleReset} disabled={loading}>
             {loading ? "Disconnecting..." : "Disconnect verification"}
-          </button>
+          </Button>
           {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
-        </div>
+        </Card>
       ) : (
-        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <Card padded className="p-5">
           {status === "unverified" && (
             <form onSubmit={handleSendCode} className="space-y-4">
               <div className="space-y-3">
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">College / University Name</span>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={collegeName}
                     onChange={(e) => setCollegeName(e.target.value)}
                     placeholder="e.g. Stanford University"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10"
                   />
                 </label>
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Official College Email Address</span>
-                  <input
+                  <Input
                     type="email"
                     required
                     value={collegeEmail}
                     onChange={(e) => setCollegeEmail(e.target.value)}
                     placeholder="you@college.edu or student@college.ac.in"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10"
                   />
                   <span className="block mt-1 text-[10px] text-ink-faint">
                     Accepted endings: .edu, .edu.in, or .ac.in.
@@ -192,13 +188,9 @@ export function CollegeVaultView() {
                 </label>
               </div>
               {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60"
-              >
+              <Button type="submit" disabled={loading} className="h-10 w-full">
                 {loading ? "Sending code..." : "Send verification code"}
-              </button>
+              </Button>
             </form>
           )}
 
@@ -210,35 +202,31 @@ export function CollegeVaultView() {
                 </p>
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Verification Code</span>
-                  <input
+                  <Input
                     type="text"
                     required
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="000000"
-                    className="mt-1 h-11 w-full rounded-md border border-line bg-paper px-3 text-center font-mono text-base tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-11 text-center font-mono text-base tracking-widest"
                   />
                 </label>
               </div>
               {error ? <p className="text-xs font-semibold text-red-600">{error}</p> : null}
-              <button
-                type="submit"
-                disabled={loading || otpCode.length !== 6}
-                className="inline-flex h-10 w-full items-center justify-center rounded-md bg-ink text-sm font-semibold text-surface transition hover:bg-ink/85 disabled:opacity-60"
-              >
+              <Button type="submit" disabled={loading || otpCode.length !== 6} className="h-10 w-full">
                 {loading ? "Verifying..." : "Verify code"}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setStatus("unverified")}
-                className="inline-flex h-9 w-full items-center justify-center text-xs font-semibold text-ink-soft transition hover:underline"
+                className="w-full"
               >
                 Change college details
-              </button>
+              </Button>
             </form>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

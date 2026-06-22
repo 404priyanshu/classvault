@@ -5,6 +5,7 @@ import { Trophy } from "lucide-react";
 import type { LeaderboardResponse } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { Avatar, SectionLabel } from "@/components/notes/note-ui";
+import { Card, EmptyState } from "@/components/ui";
 
 export function LeaderboardView() {
   const [data, setData] = useState<LeaderboardResponse | null>(null);
@@ -37,7 +38,7 @@ export function LeaderboardView() {
       </p>
 
       {me ? (
-        <div className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
+        <Card padded className="flex items-center gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <Trophy className="h-5 w-5" />
           </span>
@@ -51,7 +52,7 @@ export function LeaderboardView() {
             <p className="font-mono text-xl font-bold text-ink">{me.score}</p>
             <p className="text-[10px] font-semibold text-ink-faint">Rank #{me.rank}</p>
           </div>
-        </div>
+        </Card>
       ) : null}
 
       <section className="space-y-3">
@@ -59,11 +60,9 @@ export function LeaderboardView() {
         {loading ? (
           <p className="text-xs text-ink-faint">Loading leaderboard…</p>
         ) : entries.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line px-5 py-12 text-center text-sm text-ink-faint">
-            No contributors yet. Upload notes to get on the board.
-          </div>
+          <EmptyState message="No contributors yet. Upload notes to get on the board." />
         ) : (
-          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+          <Card>
             <div className="divide-y divide-line">
               {entries.map((entry, index) => {
                 const isMe = me?.userId === entry.userId;
@@ -92,7 +91,7 @@ export function LeaderboardView() {
                 );
               })}
             </div>
-          </div>
+          </Card>
         )}
         {me && !meInTop ? (
           <p className="text-center text-[11px] text-ink-faint">
