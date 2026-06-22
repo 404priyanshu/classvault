@@ -269,7 +269,7 @@ export function StudyRoomsView() {
       {completedSession && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
           <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-6 text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
               <Check className="h-6 w-6" />
             </div>
             <div className="space-y-1">

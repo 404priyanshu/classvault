@@ -137,7 +137,7 @@ export function ExamModeView() {
             <button
               type="submit"
               disabled={!subject.trim() || generating}
-              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-amber-600 text-sm font-semibold text-surface transition hover:bg-amber-700 disabled:opacity-60"
+              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-neutral-600 text-sm font-semibold text-surface transition hover:bg-neutral-700 disabled:opacity-60"
             >
               {generating ? "Building plan…" : "Activate Exam Mode"}
             </button>
@@ -147,7 +147,7 @@ export function ExamModeView() {
         <div className="space-y-6">
           <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+              <span className="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-800">
                 Exam Mode Active
               </span>
               <h3 className="mt-1 text-lg font-bold text-ink">
@@ -168,17 +168,17 @@ export function ExamModeView() {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-6">
               <div className="space-y-3 rounded-xl border border-line bg-surface p-5 shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-amber-700">
+                <div className="flex items-center gap-2 font-bold text-neutral-700">
                   <Flame className="h-4 w-4" />
                   <h4 className="text-xs font-bold uppercase tracking-wider">Must Study (High-Yield)</h4>
                 </div>
                 <ul className="space-y-2.5">
                   {plan.mustStudy.map((item, index) => (
                     <li key={index} className="flex items-start gap-2.5 text-xs">
-                      <span className="font-bold text-amber-500">•</span>
+                      <span className="font-bold text-neutral-500">•</span>
                       <span className="min-w-0">
                         <span className="font-semibold text-ink">{item.topic}</span>
-                        <span className="ml-1.5 font-mono text-[10px] font-bold text-amber-700">
+                        <span className="ml-1.5 font-mono text-[10px] font-bold text-neutral-700">
                           {item.examProbability}%
                         </span>
                         {item.why ? (
@@ -217,7 +217,7 @@ export function ExamModeView() {
                       type="checkbox"
                       checked={checked.has(index)}
                       onChange={() => toggleCheckpoint(index)}
-                      className="mt-0.5 rounded border-line text-amber-600 focus:ring-amber-500"
+                      className="mt-0.5 rounded border-line text-neutral-600 focus:ring-neutral-500"
                     />
                     <span
                       className={cx(

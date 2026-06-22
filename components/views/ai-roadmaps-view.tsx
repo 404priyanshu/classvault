@@ -237,18 +237,18 @@ function RoadmapTimelineChart({
                 isActive
                   ? "border-accent bg-surface ring-2 ring-accent/30"
                   : progress === 100
-                    ? "border-emerald-500/30 bg-emerald-50/45 hover:bg-emerald-50"
+                    ? "border-neutral-500/30 bg-neutral-50/45 hover:bg-neutral-50"
                     : "border-line bg-paper hover:border-line-strong",
               )}
             >
               <div className="flex items-center justify-between gap-3">
                 <span
                   className={cx(
-                    "rounded px-2 py-0.5 font-mono text-[9px] font-extrabold uppercase",
+                    "rounded px-2 py-0.5 font-mono text-[9px] font-semibold uppercase",
                     isActive
                       ? "bg-accent/10 text-accent"
                       : progress === 100
-                        ? "bg-emerald-500/10 text-emerald-700"
+                        ? "bg-neutral-500/10 text-neutral-700"
                         : "bg-surface text-ink-soft",
                   )}
                 >
@@ -257,7 +257,7 @@ function RoadmapTimelineChart({
                 <span
                   className={cx(
                     "font-mono text-[10px] font-bold",
-                    progress === 100 ? "text-emerald-600" : "text-ink-soft",
+                    progress === 100 ? "text-neutral-600" : "text-ink-soft",
                   )}
                 >
                   {progress === 100 ? "✓ Done" : `${progress}% done`}
@@ -278,7 +278,7 @@ function RoadmapTimelineChart({
                 <span
                   className={cx(
                     "block h-full rounded-full transition-all",
-                    progress === 100 ? "bg-emerald-500" : "bg-accent",
+                    progress === 100 ? "bg-neutral-500" : "bg-accent",
                   )}
                   style={{ width: `${progress}%` }}
                 />
@@ -359,7 +359,7 @@ function RoadmapTimelineChart({
                       isActive
                         ? "border-accent bg-surface"
                         : isCompleted
-                          ? "border-emerald-500 bg-emerald-500"
+                          ? "border-neutral-500 bg-neutral-500"
                           : "border-line bg-paper",
                     )}
                   />
@@ -369,7 +369,7 @@ function RoadmapTimelineChart({
 
             {/* Premium Active Focus Badge */}
             <div className="absolute right-4 top-4 rounded-xl border border-line bg-surface/90 backdrop-blur-md px-3.5 py-2 text-right shadow-sm transition-all duration-300">
-              <span className="inline-flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider text-accent">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-accent">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"></span>
                 Active focus
               </span>
@@ -396,7 +396,7 @@ function RoadmapTimelineChart({
                     isActive
                       ? "border-accent bg-surface text-ink ring-4 ring-accent-soft/40"
                       : progress === 100
-                        ? "border-emerald-500/40 bg-emerald-50/60 text-ink hover:border-emerald-500"
+                        ? "border-neutral-500/40 bg-neutral-50/60 text-ink hover:border-neutral-500"
                         : isHovered
                           ? "border-line-strong bg-paper text-ink"
                           : "border-line bg-surface text-ink",
@@ -405,11 +405,11 @@ function RoadmapTimelineChart({
                   <div className="flex items-center justify-between gap-2 w-full">
                     <span
                       className={cx(
-                        "font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded",
+                        "font-mono text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded",
                         isActive
                           ? "bg-accent/10 text-accent"
                           : progress === 100
-                            ? "bg-emerald-500/10 text-emerald-700"
+                            ? "bg-neutral-500/10 text-neutral-700"
                             : "bg-paper text-ink-soft",
                       )}
                     >
@@ -418,7 +418,7 @@ function RoadmapTimelineChart({
                     <span
                       className={cx(
                         "font-mono text-[9px] font-bold",
-                        progress === 100 ? "text-emerald-600" : "text-ink-soft",
+                        progress === 100 ? "text-neutral-600" : "text-ink-soft",
                       )}
                     >
                       {progress === 100 ? "✓ Done" : `${progress}%`}
@@ -438,7 +438,7 @@ function RoadmapTimelineChart({
                       <span
                         className={cx(
                           "block h-full rounded-full transition-all",
-                          progress === 100 ? "bg-emerald-500" : "bg-accent",
+                          progress === 100 ? "bg-neutral-500" : "bg-accent",
                         )}
                         style={{ width: `${progress}%` }}
                       />
@@ -468,7 +468,7 @@ function RoadmapTimelineChart({
                   isActive
                     ? "border-accent bg-accent-soft/50 shadow-sm"
                     : progress === 100
-                      ? "border-emerald-500/20 bg-emerald-50/30 hover:bg-emerald-50/50"
+                      ? "border-neutral-500/20 bg-neutral-50/30 hover:bg-neutral-50/50"
                       : "border-line bg-paper hover:border-line-strong",
                 )}
               >
@@ -477,7 +477,7 @@ function RoadmapTimelineChart({
                     Day {day.day}
                   </span>
                   {progress === 100 && (
-                    <span className="text-[10px] text-emerald-600 font-bold">✓</span>
+                    <span className="text-[10px] text-neutral-600 font-bold">✓</span>
                   )}
                 </div>
                 <h4 className="mt-1 break-words text-xs font-bold leading-snug text-ink line-clamp-1">
@@ -536,10 +536,8 @@ export function AIRoadmapsView() {
   const [generating, setGenerating] = useState(false);
   const [roadmap, setRoadmap] = useState<RoadmapDay[] | null>(null);
 
-  // Beautiful loader visuals (decoupled from real API for delightful progress feel)
+  // Loader step driver (reflects generation stages; no fabricated counters).
   const [loaderStep, setLoaderStep] = useState(0);
-  const [notesAnalyzed, setNotesAnalyzed] = useState(42);
-  const [connectionsMapped, setConnectionsMapped] = useState(17);
   const [generationMeta, setGenerationMeta] = useState<{
     provider: AiRoadmapResponse["provider"];
     model: string;
@@ -675,8 +673,6 @@ export function AIRoadmapsView() {
 
     setGenerating(true);
     setLoaderStep(0);
-    setNotesAnalyzed(42);
-    setConnectionsMapped(17);
     setGenerateError(null);
     setGenerationMeta(null);
 
@@ -765,25 +761,13 @@ export function AIRoadmapsView() {
     abortControllerRef.current = null;
   }
 
-  // Drive the gorgeous loader visuals + simulated progress while the real generation runs
+  // Advance the loader step labels while generation runs.
   useEffect(() => {
-    if (!generating) {
-      return;
-    }
-
+    if (!generating) return;
     const stepTimer = window.setInterval(() => {
       setLoaderStep((s) => Math.min(s + 1, 3));
     }, 1250);
-
-    const metricsTimer = window.setInterval(() => {
-      setNotesAnalyzed((n) => Math.min(n + (Math.random() > 0.5 ? 2 : 1), 137));
-      setConnectionsMapped((c) => Math.min(c + (Math.random() > 0.6 ? 2 : 1), 71));
-    }, 620);
-
-    return () => {
-      window.clearInterval(stepTimer);
-      window.clearInterval(metricsTimer);
-    };
+    return () => window.clearInterval(stepTimer);
   }, [generating]);
 
   function toggleTaskCheckbox(dayIdx: number, taskIdx: number) {
@@ -816,11 +800,11 @@ export function AIRoadmapsView() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <div className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-accent/70">
+              <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-accent/70">
                 CLASSVAULT • AI STUDIO
               </div>
             </div>
-            <h1 className="text-[28px] leading-none font-semibold tracking-[-1.2px] text-ink">
+            <h1 className="text-xl leading-none font-semibold tracking-tight text-ink">
               Your Perfect Study Roadmap
             </h1>
           </div>
@@ -1068,133 +1052,52 @@ export function AIRoadmapsView() {
                   ) : null}
                 </form>
               ) : (
-                /* Stunning, rewarding AI generation experience */
-                <div
-                  key="generating"
-                                                                        className="relative overflow-hidden rounded-md border border-line/70 bg-paper/70 p-6 text-center"
-                >
-                  {/* Subtle living background field */}
-                  <div className="absolute inset-0 bg-[radial-gradient(#635bFF_0.6px,transparent_1px)] bg-[length:3.5px_3.5px] opacity-[0.035]" />
+                /* Minimal generation state */
+                <div key="generating" className="rounded-md border border-line bg-surface p-6">
+                  <div className="text-sm font-semibold text-ink">Building your study path</div>
+                  <div className="mt-0.5 text-xs text-ink-soft">
+                    Generating from your selected sources…
+                  </div>
 
-                  <div className="relative z-10">
-                    {/* Hero AI Orb — beautiful layered animated core */}
-                    <div className="relative mx-auto mb-5 flex h-24 w-24 items-center justify-center">
-                      {/* Outer slow rotating glow ring */}
-                      <div
-                        className="absolute h-24 w-24 rounded-full border border-accent/30"
-                                                                      />
-                      {/* Mid pulsing ring */}
-                      <div
-                        className="absolute h-[78px] w-[78px] rounded-full border-2 border-accent/50"
-                                                                      />
-                      {/* Core glowing orb */}
-                      <div
-                        className="absolute h-12 w-12 rounded-full bg-ink"
-                                                                      />
-                      {/* Inner bright nucleus */}
-                      <div
-                        className="absolute h-5 w-5 rounded-full bg-white/90"
-                                                                      />
-                      {/* Orbiting data nodes — neural feel */}
-                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <div className="mt-4 space-y-1.5">
+                    {[
+                      "Scanning your vault & community notes",
+                      "Mapping prerequisites & difficulty",
+                      "Weighting to your level + goal",
+                      "Injecting high-yield PYQs & resources",
+                    ].map((label, index) => {
+                      const isActive = loaderStep === index;
+                      const isDone = loaderStep > index;
+                      return (
                         <div
-                          key={i}
-                          className="absolute h-1.5 w-1.5 rounded-full bg-accent"
-                          style={{
-                            top: "50%",
-                            left: "50%",
-                            marginTop: -3,
-                            marginLeft: -3,
-                          }}
-                                                                            />
-                      ))}
-                    </div>
-
-                    <div className="text-base font-semibold tracking-tight text-ink">
-                      AI is crafting your perfect study path
-                    </div>
-                    <div className="mt-0.5 text-xs text-ink-soft">
-                      This is personalized to you in real time
-                    </div>
-
-                    {/* Live AI metrics — feel the work happening */}
-                    <div className="mt-4 flex justify-center gap-2">
-                      <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
-                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">
-                          {notesAnalyzed}
-                        </div>
-                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">
-                          notes analyzed
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-line bg-surface px-3 py-1 text-left">
-                        <div className="font-mono text-lg font-semibold tabular-nums text-ink">
-                          {connectionsMapped}
-                        </div>
-                        <div className="text-[9px] font-bold uppercase tracking-widest text-ink-faint -mt-0.5">
-                          connections mapped
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Elegant progressing steps — current step glows & previous complete */}
-                    <div className="mt-5 mx-auto max-w-[300px] space-y-2 text-left">
-                      {[
-                        "Scanning your vault & community notes",
-                        "Mapping prerequisites & difficulty",
-                        "Weighting to your level + goal",
-                        "Injecting high-yield PYQs & resources",
-                      ].map((label, index) => {
-                        const isActive = loaderStep === index;
-                        const isDone = loaderStep > index;
-                        return (
+                          key={index}
+                          className={cx(
+                            "flex items-center gap-3 rounded-md border border-line px-3 py-2 text-xs",
+                            isActive ? "bg-paper text-ink" : isDone ? "text-ink-soft" : "text-ink-faint",
+                          )}
+                        >
                           <div
-                            key={index}
                             className={cx(
-                              "flex items-center gap-3 rounded-xl border px-3 py-2 text-xs font-medium transition-all",
-                              isActive
-                                ? "border-accent bg-accent-soft/60 text-accent shadow-sm scale-[1.01]"
-                                : isDone
-                                  ? "border-emerald-500/30 bg-emerald-50/40 text-emerald-700"
-                                  : "border-line bg-surface text-ink-soft",
+                              "grid h-4 w-4 shrink-0 place-items-center rounded text-[10px] font-medium",
+                              isDone ? "bg-ink text-surface" : isActive ? "border border-ink text-ink" : "border border-line text-ink-faint",
                             )}
                           >
-                            <div
-                              className={cx(
-                                "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black",
-                                isActive
-                                  ? "bg-accent text-surface"
-                                  : isDone
-                                    ? "bg-emerald-500 text-white"
-                                    : "bg-line text-ink-faint",
-                              )}
-                            >
-                              {isDone ? "✓" : index + 1}
-                            </div>
-                            <div className="flex-1 leading-tight">{label}</div>
-                            {isActive && (
-                              <div
-                                className="h-1.5 w-1.5 rounded-full bg-accent"
-                                                                                              />
-                            )}
+                            {isDone ? "✓" : index + 1}
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Beautiful, obvious stop control */}
-                    <button
-                      type="button"
-                      onClick={stopGeneration}
-                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-5 py-2 text-xs font-semibold text-ink-soft transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600 active:scale-[0.985]"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      Stop generation
-                    </button>
-                    <div className="mt-1 text-[10px] text-ink-faint/70">
-                      You can cancel at any time
-                    </div>
+                          <div className="flex-1 leading-tight">{label}</div>
+                        </div>
+                      );
+                    })}
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={stopGeneration}
+                    className="mt-5 inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-soft hover:border-line-strong hover:text-ink"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Stop generation
+                  </button>
                 </div>
               )}
                       </div>
@@ -1203,7 +1106,7 @@ export function AIRoadmapsView() {
           <div className="roadmap-premium-card min-w-0 space-y-5 rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-6 reward-glow">
             <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-md border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[1.5px] text-accent">
+                <span className="inline-flex items-center gap-2 rounded-md border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                   LIVE SANDBOX
                 </span>
@@ -1265,10 +1168,10 @@ export function AIRoadmapsView() {
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
-                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
                       Day {previewRoadmap[activePreviewDay].day} Focus
                     </span>
-                    <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
+                    <h4 className="min-w-0 text-base font-semibold tracking-tight text-ink leading-tight">
                       {previewRoadmap[activePreviewDay].title}
                     </h4>
                   </div>
@@ -1286,7 +1189,7 @@ export function AIRoadmapsView() {
                 </div>
 
                 <div className="rounded-md border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
-                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
                     Core Focus
                   </div>
                   {previewRoadmap[activePreviewDay].topic}
@@ -1295,7 +1198,7 @@ export function AIRoadmapsView() {
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Tasks — matching the gorgeous generated experience */}
                   <div>
-                    <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                    <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
                       <span>Action Checklist</span>
                       <span>
                         {previewRoadmap[activePreviewDay].done.filter(Boolean).length} /{" "}
@@ -1314,9 +1217,9 @@ export function AIRoadmapsView() {
                           <button
                             onClick={() => togglePreviewTaskCheckbox(activePreviewDay, tIdx)}
                             className={cx(
-                              "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                              "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-semibold transition-all active:scale-95",
                               previewRoadmap[activePreviewDay].done[tIdx]
-                                ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                ? "border-neutral-500 bg-neutral-500 text-white shadow-inner"
                                 : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft",
                             )}
                           >
@@ -1339,7 +1242,7 @@ export function AIRoadmapsView() {
 
                   {/* Resources — elegant curated list (matches generated) */}
                   <div>
-                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                    <div className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
                       Curated Resources
                     </div>
                     <div className="space-y-2">
@@ -1375,7 +1278,7 @@ export function AIRoadmapsView() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
+                  <span className="inline-flex items-center rounded-full bg-neutral-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
                     AI GENERATION COMPLETE
                   </span>
                 </div>
@@ -1465,7 +1368,7 @@ export function AIRoadmapsView() {
           <div className="relative min-w-0 overflow-hidden rounded-lg border border-line bg-surface p-5 shadow-sm sm:p-7 roadmap-premium-card">
             <div className="mb-4 flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-faint">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
                   Your Visual Journey
                 </span>
                 <div className="text-lg font-semibold tracking-tight">Timeline & Progress</div>
@@ -1492,10 +1395,10 @@ export function AIRoadmapsView() {
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 flex-col gap-1.5 min-[420px]:flex-row min-[420px]:items-center">
-                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-accent">
+                    <span className="inline-block w-fit rounded-md bg-accent-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
                       Day {roadmap[activeDay].day} Focus
                     </span>
-                    <h4 className="min-w-0 text-[17px] font-semibold tracking-tight text-ink leading-tight">
+                    <h4 className="min-w-0 text-base font-semibold tracking-tight text-ink leading-tight">
                       {roadmap[activeDay].title}
                     </h4>
                   </div>
@@ -1507,7 +1410,7 @@ export function AIRoadmapsView() {
                     >
                       <Zap className="h-3.5 w-3.5" /> Practice Quiz
                     </button>
-                    <div className="rounded-md bg-emerald-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-emerald-600">
+                    <div className="rounded-md bg-neutral-500/10 px-3 py-1.5 text-center font-mono text-xs font-bold text-neutral-600">
                       {Math.round(
                         (roadmap[activeDay].done.filter(Boolean).length /
                           roadmap[activeDay].done.length) *
@@ -1519,7 +1422,7 @@ export function AIRoadmapsView() {
                 </div>
 
                 <div className="rounded-md border border-line bg-paper p-5 text-sm leading-relaxed text-ink-soft">
-                  <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[1px] text-ink-faint">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
                     Core Focus
                   </div>
                   {roadmap[activeDay].topic}
@@ -1528,7 +1431,7 @@ export function AIRoadmapsView() {
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Tasks — ultra satisfying checklist */}
                   <div>
-                    <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                    <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
                       <span>Action Checklist</span>
                       <span>
                         {roadmap[activeDay].done.filter(Boolean).length} /{" "}
@@ -1545,9 +1448,9 @@ export function AIRoadmapsView() {
                             <button
                               onClick={() => toggleTaskCheckbox(activeDay, tIdx)}
                               className={cx(
-                                "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-95",
+                                "mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-lg border text-[10px] font-semibold transition-all active:scale-95",
                                 roadmap[activeDay].done[tIdx]
-                                  ? "border-emerald-500 bg-emerald-500 text-white shadow-inner"
+                                  ? "border-neutral-500 bg-neutral-500 text-white shadow-inner"
                                   : "border-line-strong bg-white group-hover:border-accent group-hover:bg-accent-soft",
                               )}
                             >
@@ -1571,7 +1474,7 @@ export function AIRoadmapsView() {
 
                   {/* Resources — beautiful curated list */}
                   <div>
-                    <div className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">
+                    <div className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
                       Curated Resources
                     </div>
                     <div className="space-y-2">
@@ -1654,8 +1557,8 @@ export function AIRoadmapsView() {
               </div>
 
               {quizScore !== null ? (
-                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded text-center">
-                  <p className="text-xs font-bold text-emerald-800">
+                <div className="p-3 bg-neutral-50 border border-neutral-100 rounded text-center">
+                  <p className="text-xs font-bold text-neutral-800">
                     Quiz Completed! Score: {quizScore} / 2
                   </p>
                 </div>

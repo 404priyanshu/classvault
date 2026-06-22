@@ -293,7 +293,7 @@ function StatusBadge({ status }: { status: ApiNote["status"] }) {
         "shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase",
         status === "PENDING" && "border-line-strong bg-paper text-ink-soft",
         status === "REJECTED" && "border-red-200 bg-red-50 text-red-700",
-        status === "HIDDEN" && "border-amber-200 bg-amber-50 text-amber-700",
+        status === "HIDDEN" && "border-neutral-200 bg-neutral-50 text-neutral-700",
         status === "DELETED" && "border-line bg-paper text-ink-faint",
       )}
     >
@@ -628,7 +628,7 @@ function CommentItem({
               <button
                 type="button"
                 onClick={() => onHide(comment)}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-faint transition hover:text-amber-600"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-faint transition hover:text-neutral-600"
               >
                 <EyeOff className="h-3 w-3" /> Hide
               </button>
@@ -771,7 +771,7 @@ function AddToCollection({
                   >
                     <span className="truncate font-medium text-ink">{collection.title}</span>
                     {added.has(collection.id) ? (
-                      <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                      <Check className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
                     ) : null}
                   </button>
                 ))
