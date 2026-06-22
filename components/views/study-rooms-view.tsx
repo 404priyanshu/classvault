@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Check, X } from "lucide-react";
+import { Button, Card, Input, Modal, Select } from "@/components/ui";
 
 type RoomDetails = {
   id: string;
@@ -136,17 +137,14 @@ export function StudyRoomsView() {
         <div className="space-y-6">
           <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint">Available Rooms</h3>
-            <button
-              onClick={() => setCreateOpen(true)}
-              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-ink px-4 text-xs font-semibold text-surface transition hover:bg-ink/85 min-[420px]:h-8 min-[420px]:w-auto"
-            >
+            <Button onClick={() => setCreateOpen(true)} className="w-full min-[420px]:w-auto">
               Create study room
-            </button>
+            </Button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rooms.map((room) => (
-              <div key={room.id} className="flex flex-col justify-between p-5 rounded-xl border border-line bg-surface hover:shadow-md transition">
+              <Card key={room.id} padded className="flex flex-col justify-between p-5">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded border border-line bg-paper px-1.5 py-0.5 text-[9px] font-bold text-ink-soft uppercase">
@@ -167,19 +165,16 @@ export function StudyRoomsView() {
                     </ul>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleJoinRoom(room)}
-                  className="mt-5 w-full h-8 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition"
-                >
+                <Button size="sm" onClick={() => handleJoinRoom(room)} className="mt-5 w-full">
                   Join Room
-                </button>
-              </div>
+                </Button>
+              </Card>
             ))}
           </div>
         </div>
       ) : (
         /* Active session view */
-        <div className="mx-auto max-w-2xl space-y-6 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-6">
+        <Card padded className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
           <div className="flex flex-col gap-3 border-b border-line pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent leading-none">
@@ -188,7 +183,8 @@ export function StudyRoomsView() {
               <h3 className="text-base font-bold text-ink mt-0.5">{activeRoom.name}</h3>
               <p className="text-xs text-ink-soft font-semibold mt-0.5">{activeRoom.subject}</p>
             </div>
-            <button
+            <Button
+              variant="danger"
               onClick={async () => {
                 if (activeRoom?.id) {
                   try {
@@ -199,10 +195,10 @@ export function StudyRoomsView() {
                 setActiveRoom(null);
                 setTimerRunning(false);
               }}
-              className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-paper hover:text-red-700 min-[420px]:w-auto"
+              className="w-full min-[420px]:w-auto"
             >
               Leave Session
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-4 py-6 text-center">
@@ -210,21 +206,19 @@ export function StudyRoomsView() {
               {formatTimer(timeLeft)}
             </div>
             <div className="flex flex-col justify-center gap-3 min-[380px]:flex-row">
-              <button
-                onClick={() => setTimerRunning(!timerRunning)}
-                className="inline-flex h-9 w-full items-center justify-center rounded bg-ink px-6 text-xs font-bold text-surface transition hover:bg-ink/85 min-[380px]:w-auto"
-              >
+              <Button onClick={() => setTimerRunning(!timerRunning)} className="w-full min-[380px]:w-auto">
                 {timerRunning ? "Pause Timer" : "Start Focus"}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setTimerRunning(false);
                   setTimeLeft(activeRoom.timerVal * 60);
                 }}
-                className="inline-flex h-9 w-full items-center justify-center rounded border border-line bg-paper px-4 text-xs font-semibold text-ink-soft transition hover:bg-surface hover:text-ink min-[380px]:w-auto"
+                className="w-full min-[380px]:w-auto"
               >
                 Reset
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -262,13 +256,12 @@ export function StudyRoomsView() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Complete session modal details */}
-      {completedSession && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 sm:items-center sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-6 text-center">
+      <Modal open={completedSession} onClose={() => setCompletedSession(false)} label="Focus session complete" className="max-w-sm">
+          <div className="space-y-4 p-6 text-center">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
               <Check className="h-6 w-6" />
             </div>
@@ -284,23 +277,21 @@ export function StudyRoomsView() {
                 Add your completed tasks to your AI Study Roadmap, and take a quick 5-min break.
               </p>
             </div>
-            <button
+            <Button
               onClick={() => {
                 setCompletedSession(false);
                 setActiveRoom(null);
               }}
-              className="w-full h-9 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition"
+              className="w-full"
             >
               Awesome
-            </button>
+            </Button>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Room Creation dialog modal */}
-      {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-3 sm:items-center sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-5">
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} label="Create study room" className="max-w-md">
+          <div className="space-y-4 p-5">
             <div className="flex items-center justify-between border-b border-line pb-2.5">
               <h3 className="text-sm font-bold text-ink">Create study room</h3>
               <button onClick={() => setCreateOpen(false)} className="text-ink-faint hover:text-ink">
@@ -312,78 +303,77 @@ export function StudyRoomsView() {
               <div className="space-y-3">
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Room Name</span>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={newRoomName}
                     onChange={(e) => setNewRoomName(e.target.value)}
                     placeholder="e.g. DBMS Exam Sprint"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10"
                   />
                 </label>
 
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Subject</span>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={newSubject}
                     onChange={(e) => setNewSubject(e.target.value)}
                     placeholder="e.g. DBMS"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10"
                   />
                 </label>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="text-xs font-bold text-ink-soft">Timer Mode</span>
-                    <select
+                    <Select
                       value={newTimer}
                       onChange={(e) => setNewTimer(Number(e.target.value))}
-                      className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                      className="mt-1 h-10"
                     >
                       <option value={25}>25 / 5 (Pomodoro)</option>
                       <option value={50}>50 / 10</option>
                       <option value={15}>15m Sprint</option>
-                    </select>
+                    </Select>
                   </label>
 
                   <label className="block">
                     <span className="text-xs font-bold text-ink-soft">Visibility</span>
-                    <select
+                    <Select
                       value={newType}
                       onChange={(e) => setNewType(e.target.value as "College-only" | "Public")}
-                      className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                      className="mt-1 h-10"
                     >
                       <option value="Public">Public Room</option>
                       <option value="College-only">College-Only</option>
-                    </select>
+                    </Select>
                   </label>
                 </div>
 
                 <label className="block">
                   <span className="text-xs font-bold text-ink-soft">Room Goals (comma separated)</span>
-                  <input
+                  <Input
                     type="text"
                     value={newGoals}
                     onChange={(e) => setNewGoals(e.target.value)}
                     placeholder="e.g. Solve 5 PYQs, Finish Normalization notes"
-                    className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm outline-none transition focus:border-line-strong focus:bg-surface"
+                    className="mt-1 h-10"
                   />
                 </label>
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={!newRoomName.trim() || !newSubject.trim()}
-                className="w-full h-10 bg-ink text-surface rounded text-xs font-bold hover:bg-ink/85 transition mt-2 pt-1"
+                className="mt-2 h-10 w-full"
               >
                 Create and Join Room
-              </button>
+              </Button>
             </form>
           </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

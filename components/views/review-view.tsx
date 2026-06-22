@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
 import { LoadingRows, NoteRow, SectionLabel } from "@/components/notes/note-ui";
+import { Button, Card, EmptyState } from "@/components/ui";
 import type { AdminStats } from "@/lib/server/admin-analytics";
 
 type ModerationAction = "approve" | "reject" | "hide" | "restore";
@@ -102,7 +103,7 @@ export function ReviewView() {
 
   return (
     <div className="space-y-8">
-      <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+      <Card padded className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-ink-faint" />
@@ -113,19 +114,18 @@ export function ReviewView() {
             {reports.length === 1 ? "" : "s"}.
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
           onClick={onRefresh}
           disabled={loading}
-          className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-line px-3.5 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink disabled:opacity-60"
+          icon={<RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />}
         >
-          <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
           Refresh
-        </button>
-      </section>
+        </Button>
+      </Card>
 
       {stats && (
-        <section className="rounded-lg border border-line bg-surface p-4 text-sm">
+        <Card padded className="p-4 text-sm">
           <div className="mb-2 flex items-center gap-2">
             <SectionLabel>Analytics (B2B preview)</SectionLabel>
             <span className="text-[10px] text-ink-faint">— key for institutional plans (add ?college= filter to /api/admin/analytics for scoping)</span>
@@ -139,7 +139,7 @@ export function ReviewView() {
             <div>7d downloads: <span className="font-mono font-bold">{stats.recentDownloads}</span></div>
             <div>Active users (30d): <span className="font-mono font-bold">{stats.activeUsers}</span></div>
           </div>
-        </section>
+        </Card>
       )}
 
       <section>
@@ -154,29 +154,23 @@ export function ReviewView() {
               <div key={note.id} className="grid gap-2 rounded-lg border border-line bg-surface p-2 sm:grid-cols-[1fr_auto] sm:items-center">
                 <NoteRow note={note} onOpen={() => onOpenNote(note)} />
                 <div className="grid grid-cols-2 gap-2 sm:flex">
-                  <button
-                    type="button"
-                    onClick={() => onModerate(note, "approve")}
-                    className="inline-flex h-9 items-center justify-center rounded-md bg-ink px-3 text-sm font-medium text-surface transition hover:bg-ink/85"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onModerate(note, "reject")}
-                    className="inline-flex h-9 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-                  >
+                  <Button onClick={() => onModerate(note, "approve")}>Approve</Button>
+                  <Button variant="secondary" onClick={() => onModerate(note, "reject")}>
                     Reject
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-line-strong px-5 py-14 text-center">
-            <p className="text-sm font-medium">No pending uploads</p>
-            <p className="mt-1 text-sm text-ink-faint">New student submissions will appear here before publication.</p>
-          </div>
+          <EmptyState
+            message={
+              <>
+                <span className="block text-sm font-medium text-ink">No pending uploads</span>
+                <span className="mt-1 block">New student submissions will appear here before publication.</span>
+              </>
+            }
+          />
         )}
       </section>
 
@@ -208,37 +202,29 @@ export function ReviewView() {
                     ) : null}
                    </button>
                    <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-                     <button
-                       type="button"
-                       onClick={() => onModerate(report.note, "hide")}
-                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-                     >
+                     <Button variant="secondary" onClick={() => onModerate(report.note, "hide")}>
                        Hide note
-                     </button>
-                     <button
-                       type="button"
-                       onClick={() => onResolveReport(report.id, "RESOLVED")}
-                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-                     >
+                     </Button>
+                     <Button variant="secondary" onClick={() => onResolveReport(report.id, "RESOLVED")}>
                        Resolve
-                     </button>
-                     <button
-                       type="button"
-                       onClick={() => onResolveReport(report.id, "DISMISSED")}
-                       className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-line px-3 text-sm font-medium text-ink-soft transition hover:border-line-strong hover:text-ink"
-                     >
+                     </Button>
+                     <Button variant="secondary" onClick={() => onResolveReport(report.id, "DISMISSED")}>
                        Dismiss
-                     </button>
+                     </Button>
                    </div>
                  </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-line-strong px-5 py-14 text-center">
-            <p className="text-sm font-medium">No open reports</p>
-            <p className="mt-1 text-sm text-ink-faint">Reports from students will collect here for review.</p>
-          </div>
+          <EmptyState
+            message={
+              <>
+                <span className="block text-sm font-medium text-ink">No open reports</span>
+                <span className="mt-1 block">Reports from students will collect here for review.</span>
+              </>
+            }
+          />
         )}
       </section>
     </div>
