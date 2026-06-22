@@ -482,7 +482,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                   className="mt-1 h-12 w-full rounded-md border border-line bg-paper px-3 text-center font-mono text-lg outline-none transition focus:border-line-strong focus:bg-surface"
                 />
               </label>
-              {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
+              {message ? <p className="text-sm font-medium text-neutral-700">{message}</p> : null}
               {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
               <button
                 type="submit"
@@ -518,7 +518,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
               }}
               className="space-y-4"
             >
-              {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
+              {message ? <p className="text-sm font-medium text-neutral-700">{message}</p> : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
                   <span className="text-xs font-semibold text-ink-soft">Full name</span>
@@ -704,7 +704,7 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
                       className="mt-1 h-12 w-full rounded-md border border-line bg-paper text-center font-mono text-lg tracking-widest outline-none transition focus:border-line-strong focus:bg-surface"
                     />
                   </label>
-                  {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
+                  {message ? <p className="text-sm font-medium text-neutral-700">{message}</p> : null}
                   {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
                   <button
                     type="submit"
@@ -718,10 +718,10 @@ export function SignUpForm({ initialUser }: { initialUser: ApiUser | null }) {
 
               {collegeVerifyStep === "success" && (
                 <div className="space-y-4 py-4 text-center">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
                     <Check className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-emerald-800">{message}</p>
+                  <p className="text-sm font-semibold text-neutral-800">{message}</p>
                   <button
                     type="button"
                     onClick={() => completeOnboardingAction()}

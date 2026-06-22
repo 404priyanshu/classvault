@@ -212,7 +212,7 @@ export function CollectionsView() {
                   <span className="flex items-center gap-2">
                     <span className="truncate text-sm font-semibold text-ink">{collection.title}</span>
                     {collection.isPublic ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                      <span className="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-800">
                         <Globe className="h-3 w-3" /> Public
                       </span>
                     ) : (

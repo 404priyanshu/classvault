@@ -122,7 +122,7 @@ export function CollegeVaultView() {
 
       {verified ? (
         <div className="rounded-xl border border-line bg-surface p-6 text-center space-y-4 shadow-sm">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div className="space-y-1">
@@ -134,19 +134,19 @@ export function CollegeVaultView() {
           </div>
           <div className="mx-auto grid max-w-md gap-3 border-t border-line pt-4 text-left text-xs sm:grid-cols-2 sm:gap-4">
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
               <span>Private college notes</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
               <span>College PYQ library</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
               <span>Verified student badge</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
               <span>Peer silent study rooms</span>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function CollegeVaultView() {
           {status === "sent" && (
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <div className="space-y-3">
-                <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 p-2.5 rounded">
+                <p className="text-xs text-neutral-800 bg-neutral-50 border border-neutral-100 p-2.5 rounded">
                   We sent a verification code to <span className="font-bold">{collegeEmail}</span>. Enter it to complete verification.
                 </p>
                 <label className="block">
