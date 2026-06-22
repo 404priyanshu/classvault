@@ -14,6 +14,7 @@ import {
 import type { ApiNote, ApiStudyTask, NotesResponse } from "@/lib/api-types";
 import { cx } from "@/lib/cx";
 import { useAppShell } from "@/components/app-shell/app-shell-context";
+import { Badge, Button, Card, EmptyState, Input, SectionHeading, Skeleton } from "@/components/ui";
 
 type QuickAction = { label: string; detail: string; icon: LucideIcon; action: () => void };
 
@@ -150,13 +151,15 @@ export function DashboardView() {
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         {/* Tasks */}
         <section className="min-w-0">
-          <div className="mb-2.5 flex items-center justify-between">
-            <h2 className="text-sm font-medium">Today&apos;s tasks</h2>
-            <button onClick={onGoToRoadmaps} className="text-xs text-ink-soft hover:text-ink">
-              Roadmaps
-            </button>
-          </div>
-          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+          <SectionHeading
+            title="Today's tasks"
+            action={
+              <button onClick={onGoToRoadmaps} className="text-xs text-ink-soft hover:text-ink">
+                Roadmaps
+              </button>
+            }
+          />
+          <Card>
             <div className="divide-y divide-line">
               {tasks.map((task) => (
                 <div key={task.id} className="group flex items-center gap-3 px-4 py-2.5">
@@ -198,62 +201,58 @@ export function DashboardView() {
               ) : null}
             </div>
             <form onSubmit={onSubmitTask} className="flex gap-2 border-t border-line p-2.5">
-              <input
+              <Input
                 value={newTask}
                 onChange={(event) => setNewTask(event.target.value)}
                 placeholder="Add a task…"
-                className="h-9 min-w-0 flex-1 rounded-md border border-line bg-surface px-3 text-sm outline-none placeholder:text-ink-faint focus:border-ink"
               />
-              <button
-                type="submit"
-                className="inline-flex h-9 items-center rounded-md bg-ink px-3 text-sm font-medium text-surface hover:bg-ink/85"
-              >
-                Add
-              </button>
+              <Button type="submit">Add</Button>
             </form>
-          </div>
+          </Card>
         </section>
 
         {/* Quick actions */}
         <section className="min-w-0">
-          <h2 className="mb-2.5 text-sm font-medium">Quick actions</h2>
-          <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
-            {quickActions.map((action) => (
-              <button
-                key={action.label}
-                type="button"
-                onClick={action.action}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-paper"
-              >
-                <action.icon className="h-4 w-4 shrink-0 text-ink-soft" />
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{action.label}</span>
-                  <span className="block truncate text-xs text-ink-faint">{action.detail}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+          <SectionHeading title="Quick actions" />
+          <Card>
+            <div className="divide-y divide-line">
+              {quickActions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={action.action}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-paper"
+                >
+                  <action.icon className="h-4 w-4 shrink-0 text-ink-soft" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{action.label}</span>
+                    <span className="block truncate text-xs text-ink-faint">{action.detail}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
         </section>
       </div>
 
       {/* Trending */}
       <section className="min-w-0">
-        <div className="mb-2.5 flex items-center justify-between">
-          <h2 className="text-sm font-medium">Trending this week</h2>
-          <button onClick={onGoToLibrary} className="text-xs text-ink-soft hover:text-ink">
-            Browse all
-          </button>
-        </div>
+        <SectionHeading
+          title="Trending this week"
+          action={
+            <button onClick={onGoToLibrary} className="text-xs text-ink-soft hover:text-ink">
+              Browse all
+            </button>
+          }
+        />
         {trendingLoading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }, (_, index) => (
-              <div key={index} className="h-28 animate-pulse rounded-lg border border-line bg-paper" />
+              <Skeleton key={index} className="h-28" />
             ))}
           </div>
         ) : !trendingNotes.length ? (
-          <div className="rounded-lg border border-dashed border-line px-5 py-8 text-center text-sm text-ink-faint">
-            No trending resources yet. New downloads will surface notes here.
-          </div>
+          <EmptyState message="No trending resources yet. New downloads will surface notes here." />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {trendingNotes.map((note) => (
@@ -265,7 +264,7 @@ export function DashboardView() {
               >
                 <div className="flex items-center justify-between">
                   <FileText className="h-4 w-4 text-ink-soft" />
-                  <span className="font-mono text-[10px] uppercase text-ink-faint">{note.fileType}</span>
+                  <Badge mono>{note.fileType}</Badge>
                 </div>
                 <h3 className="mt-3 line-clamp-2 text-sm font-medium leading-snug">{note.title}</h3>
                 <div className="mt-2 flex items-center justify-between gap-2 text-xs text-ink-faint">
