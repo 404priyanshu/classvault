@@ -1,0 +1,2 @@
+-- Intentionally empty.
+-- Add non-sensitive development fixtures here when product tables are created.
