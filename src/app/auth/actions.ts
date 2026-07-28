@@ -88,7 +88,7 @@ export async function signUpAction(formData: FormData) {
       data: {
         full_name: fullName.data,
       },
-      emailRedirectTo: `${getSiteUrl()}/auth/confirm?next=/dashboard`,
+      emailRedirectTo: `${getSiteUrl()}/auth/confirm?next=/onboarding`,
     },
   })
 
@@ -103,7 +103,7 @@ export async function signUpAction(formData: FormData) {
   }
 
   if (data.session) {
-    redirect('/dashboard')
+    redirect('/onboarding')
   }
 
   const params = new URLSearchParams({ email: email.data })

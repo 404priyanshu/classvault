@@ -4,7 +4,9 @@ import type { Database } from './database.types'
 import { getSupabaseConfig, isSupabaseConfigured } from './config'
 
 export async function updateSession(request: NextRequest) {
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/onboarding')
 
   if (!isSupabaseConfigured()) {
     if (isProtectedRoute) {

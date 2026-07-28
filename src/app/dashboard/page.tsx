@@ -1,5 +1,11 @@
 import Link from 'next/link'
-import { BookOpen, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
+import {
+  BookOpen,
+  CheckCircle2,
+  LockKeyhole,
+  Pencil,
+  UserRound,
+} from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { createClient } from '@/lib/supabase/server'
@@ -25,8 +31,20 @@ export default async function DashboardPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, university_name, course, graduation_year')
+    .select(
+      'display_name, university_name, course, graduation_year, onboarding_completed_at',
+    )
     .eq('id', claims.sub)
+    .maybeSingle()
+
+  if (!profile?.onboarding_completed_at) {
+    redirect('/onboarding')
+  }
+
+  const { data: membership } = await supabase
+    .from('university_memberships')
+    .select('status')
+    .eq('user_id', claims.sub)
     .maybeSingle()
 
   const email = typeof claims.email === 'string' ? claims.email : 'Signed-in user'
@@ -45,14 +63,23 @@ export default async function DashboardPage({
               Class<span className="text-[#17453a]">Vault</span>
             </span>
           </Link>
-          <form action={signOutAction}>
-            <button
-              className="rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6] px-5 py-2 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
-              type="submit"
+          <div className="flex items-center gap-3">
+            <Link
+              className="flex items-center gap-2 rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6] px-4 py-2 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+              href="/onboarding?edit=1"
             >
-              Sign out
-            </button>
-          </form>
+              <Pencil className="h-3.5 w-3.5" />
+              Edit profile
+            </Link>
+            <form action={signOutAction}>
+              <button
+                className="rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6] px-5 py-2 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+                type="submit"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </header>
 
         <section className="mt-16">
@@ -82,9 +109,8 @@ export default async function DashboardPage({
             <UserRound className="h-8 w-8 text-[#17453a]" />
             <h2 className="font-display mt-4 text-2xl font-black">Profile ready</h2>
             <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
-              {profile
-                ? 'Your row-level secured profile was loaded.'
-                : 'Apply the database migration to create your secured profile.'}
+              Your onboarding answers are stored in your row-level secured
+              profile.
             </p>
           </article>
           <article className="paper-card bg-[#fffdf6] p-6">
@@ -93,8 +119,9 @@ export default async function DashboardPage({
               Access scoped
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
-              Database policy allows each student to read and update only their
-              own profile.
+              Campus membership is{' '}
+              <strong>{membership?.status || 'pending'}</strong>. Verification
+              is assigned from your confirmed email domain.
             </p>
           </article>
         </section>
