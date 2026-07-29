@@ -47,8 +47,14 @@ export default async function DashboardPage({
     .eq('user_id', claims.sub)
     .maybeSingle()
 
-  const email = typeof claims.email === 'string' ? claims.email : 'Signed-in user'
-  const displayName = profile?.display_name || email.split('@')[0]
+  const email =
+    typeof claims.email === 'string' && claims.email ? claims.email : null
+  const phone =
+    typeof claims.phone === 'string' && claims.phone ? claims.phone : null
+  const accountIdentifier = email || phone || 'Signed-in user'
+  const displayName =
+    profile?.display_name ||
+    (email ? email.split('@')[0] : phone || 'student')
 
   return (
     <main className="paper-grain relative min-h-screen overflow-hidden bg-[#f6f1e5] px-5 py-8 text-[#171512]">
@@ -127,7 +133,7 @@ export default async function DashboardPage({
         </section>
 
         <aside className="mt-10 border-[1.5px] border-dashed border-[#171512]/35 bg-[#f0a202]/15 p-5 text-sm">
-          Signed in as <strong>{email}</strong>
+          Signed in as <strong>{accountIdentifier}</strong>
           {profile?.university_name ? (
             <>
               {' '}

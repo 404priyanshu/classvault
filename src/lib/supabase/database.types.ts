@@ -118,7 +118,7 @@ export type Database = {
       }
       university_memberships: {
         Row: {
-          academic_email: string
+          academic_email: string | null
           joined_at: string
           role: string
           status: string
@@ -128,7 +128,7 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
-          academic_email: string
+          academic_email?: string | null
           joined_at?: string
           role?: string
           status?: string
@@ -138,7 +138,7 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
-          academic_email?: string
+          academic_email?: string | null
           joined_at?: string
           role?: string
           status?: string

@@ -20,6 +20,7 @@ function safeNextPath(value: string | null) {
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
+  const providerError = url.searchParams.get('error')
   const tokenHash = url.searchParams.get('token_hash')
   const type = url.searchParams.get('type') as EmailOtpType | null
   const next = safeNextPath(url.searchParams.get('next'))
@@ -45,7 +46,9 @@ export async function GET(request: NextRequest) {
   const errorUrl = new URL('/auth/error', url.origin)
   errorUrl.searchParams.set(
     'message',
-    'The confirmation link is invalid, expired, or has already been used.',
+    providerError
+      ? 'Sign-in was cancelled or could not be completed. Return to sign in and try again.'
+      : 'The confirmation link is invalid, expired, or has already been used.',
   )
   return NextResponse.redirect(errorUrl)
 }

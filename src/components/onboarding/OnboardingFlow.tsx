@@ -13,6 +13,7 @@ import {
   LockKeyhole,
   Mail,
   Search,
+  Smartphone,
   Sparkles,
   Target,
   UsersRound,
@@ -38,7 +39,8 @@ type University = {
 }
 
 type OnboardingFlowProps = {
-  accountEmail: string
+  accountEmail: string | null
+  accountIdentifier: string
   initialProfile: {
     course: string
     displayName: string
@@ -165,6 +167,7 @@ function SubmitButton() {
 
 export function OnboardingFlow({
   accountEmail,
+  accountIdentifier,
   initialProfile,
   isEditing,
   universities,
@@ -221,7 +224,9 @@ export function OnboardingFlow({
     )
   }, [universities, universityQuery])
 
-  const willVerify = emailMatchesUniversity(accountEmail, activeUniversity)
+  const willVerify = accountEmail
+    ? emailMatchesUniversity(accountEmail, activeUniversity)
+    : false
   const showUniversityResults =
     isUniversitySearchOpen && universityQuery.trim().length >= 2
 
@@ -555,17 +560,28 @@ export function OnboardingFlow({
                       <div className="mt-7 border-[1.5px] border-[#17453a]/55 bg-[#17453a]/5 p-4">
                         <div className="flex items-start gap-3">
                           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#17453a] text-[#f6f1e5]">
-                            <Mail className="h-4 w-4" />
+                            {accountEmail ? (
+                              <Mail className="h-4 w-4" />
+                            ) : (
+                              <Smartphone className="h-4 w-4" />
+                            )}
                           </span>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-[#171512]/50">
-                              Signed in as
+                              Signed in with {accountEmail ? 'email' : 'phone'}
                             </p>
                             <p className="truncate font-black text-[#17453a]">
-                              {accountEmail}
+                              {accountIdentifier}
                             </p>
                             <p className="mt-2 text-xs leading-relaxed text-[#171512]/60">
-                              {activeUniversity ? (
+                              {!accountEmail ? (
+                                <>
+                                  You can continue with your verified phone
+                                  number. University-only access will remain
+                                  pending until a verified academic email is
+                                  added.
+                                </>
+                              ) : activeUniversity ? (
                                 willVerify ? (
                                   <>
                                     Your confirmed email matches{' '}

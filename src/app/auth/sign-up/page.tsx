@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { AuthProviderButtons } from '@/components/auth/AuthProviderButtons'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
 import { signUpAction } from '../actions'
@@ -15,7 +16,7 @@ export default async function SignUpPage({
 
   return (
     <AuthShell
-      description="Start with a personal profile. University verification can be added when communities are implemented."
+      description="Use an email, social account, or phone number. We’ll personalize your study space next."
       eyebrow="Free to start"
       footer={
         <>
@@ -28,6 +29,7 @@ export default async function SignUpPage({
       title="Create your vault."
     >
       <AuthMessage error={error} />
+      <AuthProviderButtons next="/onboarding" source="/auth/sign-up" />
       <form action={signUpAction} className="space-y-5">
         <label className="block">
           <span className="text-sm font-bold">Name</span>

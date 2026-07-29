@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { AuthProviderButtons } from '@/components/auth/AuthProviderButtons'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
 import { signInAction } from '../actions'
@@ -32,6 +33,7 @@ export default async function SignInPage({
       title="Unlock your vault."
     >
       <AuthMessage error={error} status={status} />
+      <AuthProviderButtons next={next || '/dashboard'} source="/auth/sign-in" />
       <form action={signInAction} className="space-y-5">
         <input name="next" type="hidden" value={next || '/dashboard'} />
         <label className="block">

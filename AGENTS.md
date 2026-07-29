@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 4
+  context_version: 6
   last_verified: 2026-07-29
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
@@ -36,6 +36,17 @@ last_pushed_commit_before_onboarding: 47397e2
 deployment_configured: false
 environment_variables_required: true
 authentication_provider: Supabase Auth
+authentication_methods_implemented:
+  - email and password
+  - Google OAuth application flow
+  - GitHub OAuth application flow
+  - phone SMS OTP application flow
+authentication_provider_configuration:
+  email_password: enabled in hosted Supabase
+  google: application code complete; external OAuth client and hosted Supabase provider configuration required
+  github: application code complete; external OAuth app and hosted Supabase provider configuration required
+  phone: application code complete; hosted SMS provider and phone-provider configuration required
+authentication_email_template: Branded ClassVault sign-up confirmation template implemented locally
 database: Supabase Postgres
 supabase_project_ref: uiimhqaejwefahvbcsml
 automated_test_suite: false
@@ -48,6 +59,8 @@ implemented_routes:
     type: dynamic email/password registration page
   - path: /auth/forgot-password
     type: dynamic password-recovery request page
+  - path: /auth/phone
+    type: dynamic phone OTP request and verification page
   - path: /auth/update-password
     type: authenticated password update page
   - path: /auth/confirm
@@ -72,6 +85,21 @@ Auth API was verified reachable on 2026-07-29. Migration
 same date. Migration
 `20260729010000_create_university_onboarding.sql` was also applied and a
 follow-up dry run reported the hosted database up to date.
+
+The canonical sign-up confirmation email is
+`supabase/templates/confirmation.html` and is wired into the local stack through
+`supabase/config.toml`. The hosted project still requires custom SMTP plus the
+template to be applied in the Supabase Dashboard before Gmail will show a
+ClassVault-owned sender instead of `Supabase Auth`.
+
+Google and GitHub OAuth initiation, the PKCE callback, and phone OTP
+request/verification are implemented in application code. The Google OAuth
+client, GitHub OAuth App, and SMS provider have not been configured externally,
+so those methods cannot complete against hosted Supabase yet. Migration
+`20260729030000_allow_phone_onboarding.sql` allows phone-only users to complete
+onboarding with a `pending` university membership. It was applied to the hosted
+database on 2026-07-29, and a follow-up dry run reported the database up to
+date.
 
 ## 2. Product intent
 
@@ -369,6 +397,12 @@ interactions_checked:
   roadmap_generation: pass
   roadmap_checklist_progress: pass
   auth_page_navigation: pass
+  auth_provider_options_desktop_render: pass
+  auth_provider_options_mobile_render: pass
+  phone_auth_route: pass
+  phone_number_validation: pass
+  phone_country_code_selector: pass
+  auth_next_path_preservation: pass
   protected_route_without_session: pass
   hosted_supabase_auth_api: reachable
   hosted_database_migrations: applied and dry-run current
@@ -378,6 +412,9 @@ interactions_checked:
   onboarding_study_preferences: pass
   onboarding_desktop_render: pass
   onboarding_mobile_render: pass
+  confirmation_email_desktop_render: pass
+  confirmation_email_mobile_render: pass
+  confirmation_email_horizontal_mobile_overflow: none observed
 ```
 
 Node tooling currently installed on the machine:

@@ -87,12 +87,17 @@ export default async function OnboardingPage({
     domainsByUniversity.set(universityId, existing)
   })
 
-  const email =
-    typeof claims.email === 'string' ? claims.email : 'Your confirmed email'
+  const accountEmail =
+    typeof claims.email === 'string' && claims.email ? claims.email : null
+  const accountPhone =
+    typeof claims.phone === 'string' && claims.phone ? claims.phone : null
+  const accountIdentifier =
+    accountEmail || accountPhone || 'Authenticated ClassVault account'
 
   return (
     <OnboardingFlow
-      accountEmail={email}
+      accountEmail={accountEmail}
+      accountIdentifier={accountIdentifier}
       initialProfile={{
         course: profile?.course || '',
         displayName: profile?.display_name || '',
