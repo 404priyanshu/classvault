@@ -6,6 +6,7 @@ import Image from 'next/image'
 import ledger from '@/assets/ledger.webp'
 import doodleCalculator from '@/assets/doodle-calculator.webp'
 import doodleStamps from '@/assets/doodle-stamps.webp'
+import { MarkerHighlight, Tape } from '@/components/ui/stationery'
 
 const free = [
   'Upload & share notes (limited storage)',
@@ -39,7 +40,7 @@ export default function Pricing() {
         >
           <span className="stamp text-[#8a5a00]">Pricing</span>
           <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
-            Free to start. <span className="hl">Pro to fly.</span>
+            Free to start. <MarkerHighlight>Pro to fly.</MarkerHighlight>
           </h2>
           <p className="mt-4 text-[#171512]/65">
             University notes and rooms are never paywalled — Pro unlocks power, not access.
@@ -102,7 +103,7 @@ export default function Pricing() {
             transition={{ duration: 0.8, delay: 0.12 }}
             className="relative rounded-2xl border-[1.5px] border-[#171512] bg-[#17453a] p-8 text-[#f6f1e5] shadow-[8px_8px_0_#171512] transition-all duration-200 hover:rotate-0 hover:shadow-[10px_10px_0_#171512]"
           >
-            <div className="tape -top-3 right-10" />
+            <Tape className="-right-1 -top-5 w-32 rotate-[8deg]" />
             <div className="flex items-center justify-between">
               <h3 className="font-display text-2xl font-black">Pro</h3>
               <span className="stamp text-[#f0a202]">

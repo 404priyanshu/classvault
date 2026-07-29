@@ -12,6 +12,7 @@ import spotUniversity from '@/assets/spot-university.webp'
 import spotPomodoro from '@/assets/spot-pomodoro.webp'
 import spotRoadmap from '@/assets/spot-roadmap.webp'
 import doodleChai from '@/assets/doodle-chai.webp'
+import { MarkerHighlight } from '@/components/ui/stationery'
 
 const cardAnim = (i: number) => ({
   initial: { opacity: 0, y: 32 },
@@ -81,7 +82,7 @@ export default function Features() {
       <motion.div {...cardAnim(0)} className="mx-auto max-w-2xl text-center">
         <span className="stamp text-[#8a5a00]">Everything in one vault</span>
         <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
-          Four superpowers for <span className="hl">every semester</span>
+          Four superpowers for <MarkerHighlight>every semester</MarkerHighlight>
         </h2>
         <p className="mt-4 text-[#171512]/65">
           No more scattered PDFs on WhatsApp groups, dead Telegram channels, or studying alone at 2 AM.

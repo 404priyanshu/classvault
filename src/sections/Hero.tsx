@@ -5,6 +5,9 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { ArrowRight, Star, Timer, Users, Play, BadgeCheck } from 'lucide-react'
 import Image from 'next/image'
 import vault from '@/assets/vault.webp'
+import stickyNote from '@/assets/stationery/sticky-note-saffron.webp'
+import tornNotebookPaper from '@/assets/stationery/torn-notebook-paper.webp'
+import { MarkerHighlight } from '@/components/ui/stationery'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -77,7 +80,7 @@ export default function Hero() {
       id="top"
       ref={sectionRef}
       onMouseMove={onMouseMove}
-      className="paper-grain bg-dotgrid relative overflow-hidden pb-24 pt-32 md:pt-40"
+      className="paper-grain bg-dotgrid relative overflow-hidden pb-32 pt-32 md:pb-36 md:pt-40"
     >
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
@@ -96,7 +99,7 @@ export default function Hero() {
             <motion.h1 variants={fadeUp} initial="hidden" animate="show" custom={1}
               className="font-display mt-6 text-5xl font-black leading-[1.02] tracking-tight md:text-6xl xl:text-7xl">
               Your degree,{' '}
-              <span className="hl whitespace-nowrap">decoded.</span>
+              <MarkerHighlight className="whitespace-nowrap">decoded.</MarkerHighlight>
               <br />
               Study <em className="font-display font-bold italic text-[#17453a]">together,</em> smarter.
             </motion.h1>
@@ -139,8 +142,21 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="font-hand pointer-events-none absolute -top-8 right-4 z-10 rotate-[6deg] text-2xl text-[#8a5a00]">
-              every drawer = a subject ↓
+            <div className="pointer-events-none absolute -top-14 right-0 z-10 hidden h-36 w-40 rotate-[5deg] place-items-center sm:grid">
+              <Image
+                src={stickyNote}
+                alt=""
+                aria-hidden
+                fill
+                className="select-none object-contain opacity-95 [filter:drop-shadow(4px_5px_0_rgba(23,21,18,0.18))]"
+                sizes="160px"
+                draggable={false}
+                priority
+                unoptimized
+              />
+              <span className="font-hand relative z-[1] max-w-[108px] -translate-y-1 rotate-[-3deg] text-center text-lg leading-[0.95] text-[#17453a]">
+                every drawer = a subject ↓
+              </span>
             </div>
             <motion.div style={{ x: vaultX, y: vaultY }}>
               <motion.div
@@ -163,8 +179,17 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* torn-paper edge into next section */}
-      <div className="mt-24 border-t-[1.5px] border-dashed border-[#171512]/30" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 overflow-hidden md:h-28">
+        <Image
+          src={tornNotebookPaper}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="absolute -bottom-4 left-1/2 h-auto w-[760px] max-w-none -translate-x-1/2 select-none md:-bottom-10 md:w-[1200px] xl:-bottom-16 xl:w-[1480px]"
+          sizes="100vw"
+          unoptimized
+        />
+      </div>
     </section>
   )
 }

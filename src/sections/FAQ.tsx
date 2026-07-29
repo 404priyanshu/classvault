@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/accordion'
 import owl from '@/assets/owl.webp'
 import pattern from '@/assets/pattern.webp'
+import { MarkerHighlight } from '@/components/ui/stationery'
 
 const faqs = [
   {
@@ -62,7 +63,7 @@ export default function FAQ() {
         />
         <span className="stamp text-[#17453a]">FAQ</span>
         <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-4xl">
-          Questions? <span className="hl">Answered.</span>
+          Questions? <MarkerHighlight>Answered.</MarkerHighlight>
         </h2>
         <p className="font-hand mt-2 text-xl text-[#171512]/55">the archivist has seen it all ↓</p>
       </motion.div>

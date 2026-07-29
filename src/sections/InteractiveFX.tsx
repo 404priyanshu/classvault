@@ -242,12 +242,12 @@ export default function InteractiveFX() {
         onClick={() => setLamp((v) => !v)}
         data-nostamp
         aria-label="Toggle study lamp"
-        className={`fixed bottom-6 right-6 z-[96] flex items-center gap-2 rounded-full border-[1.5px] border-[#171512] px-4 py-2.5 font-bold shadow-[3px_3px_0_#171512] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#171512] ${
+        className={`fixed bottom-4 right-4 z-[96] flex items-center gap-0 rounded-full border-[1.5px] border-[#171512] p-3 font-bold shadow-[3px_3px_0_#171512] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#171512] sm:bottom-6 sm:right-6 sm:gap-2 sm:px-4 sm:py-2.5 ${
           lamp ? 'bg-[#f0a202] text-[#171512]' : 'bg-[#fffdf6] text-[#171512]/70'
         }`}
       >
         <Lightbulb className={`h-4 w-4 ${lamp ? 'fill-[#171512]' : ''}`} />
-        <span className="text-xs">{lamp ? 'lights on' : 'night study'}</span>
+        <span className="hidden text-xs sm:inline">{lamp ? 'lights on' : 'night study'}</span>
       </button>
 
       <StampLayer stamps={stamps} />

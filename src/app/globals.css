@@ -113,23 +113,6 @@ body {
   box-shadow: 2px 2px 0 #171512;
 }
 
-/* marker highlight behind text */
-.hl {
-  background-image: linear-gradient(100deg, rgba(240, 162, 2, 0) 1%, rgba(240, 162, 2, 0.6) 4%, rgba(240, 162, 2, 0.6) 96%, rgba(240, 162, 2, 0) 99%);
-  background-repeat: no-repeat;
-  background-size: 100% 46%;
-  background-position: 0 82%;
-  padding: 0 0.08em;
-}
-
-.hl-green {
-  background-image: linear-gradient(100deg, rgba(23, 69, 58, 0) 1%, rgba(23, 69, 58, 0.22) 4%, rgba(23, 69, 58, 0.22) 96%, rgba(23, 69, 58, 0) 99%);
-  background-repeat: no-repeat;
-  background-size: 100% 46%;
-  background-position: 0 82%;
-  padding: 0 0.08em;
-}
-
 /* dashed stamp badge */
 .stamp {
   border: 1.5px dashed currentColor;
@@ -143,17 +126,6 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transform: rotate(-2deg);
-}
-
-/* washi tape strip */
-.tape {
-  position: absolute;
-  width: 110px;
-  height: 28px;
-  background: rgba(240, 162, 2, 0.55);
-  border-left: 2px dashed rgba(23, 21, 18, 0.15);
-  border-right: 2px dashed rgba(23, 21, 18, 0.15);
-  transform: rotate(-4deg);
 }
 
 /* dotted graph paper */

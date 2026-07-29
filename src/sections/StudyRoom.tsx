@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mic, MicOff, Video, MessageSquare, Timer, Lock, Users } from 'lucide-react'
+import Image from 'next/image'
+
+import indexTab from '@/assets/stationery/index-tab-saffron.webp'
 
 const CHAT = [
   { name: 'Ananya', msg: 'Pomodoro 3 starting — good luck everyone 🍅', color: 'text-[#f0a202]' },
@@ -65,8 +68,24 @@ export default function StudyRoom() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.9, delay: 0.1 }}
-          className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-2xl border-[1.5px] border-[#171512] bg-[#0f3229] shadow-[8px_8px_0_#171512]"
+          className="relative mx-auto mt-16 max-w-4xl rounded-2xl border-[1.5px] border-[#171512] bg-[#0f3229] shadow-[8px_8px_0_#171512]"
         >
+          <div className="pointer-events-none absolute -top-[4.75rem] left-5 z-10 hidden h-20 w-40 -rotate-3 place-items-center md:grid">
+            <Image
+              src={indexTab}
+              alt=""
+              aria-hidden
+              fill
+              draggable={false}
+              className="select-none object-contain"
+              sizes="160px"
+              unoptimized
+            />
+            <span className="font-hand relative z-[1] -translate-y-1 text-lg font-bold text-[#17453a]">
+              interactive preview
+            </span>
+          </div>
+          <div className="overflow-hidden rounded-[calc(1rem-2px)]">
           {/* room header */}
           <div className="flex flex-wrap items-center gap-3 border-b-[1.5px] border-[#171512] bg-[#f6f1e5] px-6 py-4 text-[#171512]">
             <span className="flex items-center gap-2 text-sm font-black">
@@ -139,6 +158,7 @@ export default function StudyRoom() {
                 <span className="ml-auto rounded-md bg-[#f0a202]/20 px-2 py-0.5 text-[10px] font-bold text-[#f0a202]">light chat only</span>
               </div>
             </div>
+          </div>
           </div>
         </motion.div>
 

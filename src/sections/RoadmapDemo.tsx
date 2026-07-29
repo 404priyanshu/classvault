@@ -7,6 +7,7 @@ import Image from 'next/image'
 import owl from '@/assets/owl.webp'
 import doodleSticky from '@/assets/doodle-sticky.webp'
 import { Spinner } from '@/components/ui/spinner'
+import { MarkerHighlight, Tape } from '@/components/ui/stationery'
 
 type Phase = { title: string; tasks: string[]; source: string; weeks: string }
 
@@ -86,7 +87,7 @@ export default function RoadmapDemo() {
             </div>
             <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
               Generate a roadmap.<br />
-              <span className="hl">Right here, right now.</span>
+              <MarkerHighlight>Right here, right now.</MarkerHighlight>
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-[#171512]/70">
               This is a taste of the real thing. On ClassVault, roadmaps are generated from
@@ -154,7 +155,7 @@ export default function RoadmapDemo() {
             transition={{ duration: 0.8, delay: 0.15 }}
             className="paper-card relative min-h-[480px] rounded-2xl p-6 md:p-8"
           >
-            <div className="tape -top-3 left-8" />
+            <Tape className="-top-3 left-8 -rotate-[4deg]" />
             <Image
               src={doodleSticky}
               alt=""
