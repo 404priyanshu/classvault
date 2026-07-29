@@ -2,7 +2,6 @@
 
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Star } from 'lucide-react'
 import Image from 'next/image'
 
 import annotationDoodles from '@/assets/stationery/annotation-doodles.webp'
@@ -12,8 +11,7 @@ import { MarkerHighlight, Tape } from '@/components/ui/stationery'
 
 type MarginNote = {
   quote: string
-  name: string
-  place: string
+  tag: string
   rot: number
   tape: string
   attachment: 'clip' | 'saffron' | 'green'
@@ -21,33 +19,29 @@ type MarginNote = {
 
 const notes: MarginNote[] = [
   {
-    quote: 'I stopped begging for notes in class groups. Everything I needed was already rated.',
-    name: 'Priya S.',
-    place: 'IIT Delhi · CSE',
+    quote: 'Notes scattered across 6 WhatsApp groups, 2 Telegram channels and a dead Drive link.',
+    tag: '— every class group, ever',
     rot: -2.5,
     tape: 'left-6',
     attachment: 'clip',
   },
   {
-    quote: 'The exam-mode roadmap felt like a senior sitting next to me the night before.',
-    name: 'Arjun M.',
-    place: 'VIT Vellore · ECE',
+    quote: 'Downloading ‘final_final_v3.pdf’ at 1 AM and praying it’s the right unit.',
+    tag: '— the end-sem week ritual',
     rot: 1.8,
     tape: 'left-1/2 -translate-x-1/2',
     attachment: 'green',
   },
   {
-    quote: 'Study rooms at 11 PM hit different. 25-minute sprints with strangers who became friends.',
-    name: 'Sneha R.',
-    place: 'Delhi University · B.Com',
+    quote: 'Studying alone the night before end-sems — no timer, no company, no plan.',
+    tag: '— every hostel, every night',
     rot: -1.2,
     tape: 'right-8',
     attachment: 'saffron',
   },
   {
-    quote: 'Found a notes set with 400+ ratings for a subject my prof barely taught. Lifesaver.',
-    name: 'Karthik V.',
-    place: 'Anna University · Mech',
+    quote: 'The best notes in class belong to a senior you’ve never talked to.',
+    tag: '— the oldest problem on campus',
     rot: 2.4,
     tape: 'left-10',
     attachment: 'green',
@@ -87,7 +81,7 @@ export default function MarginNotes() {
         >
           <span className="stamp text-[#8a5a00]">Margin notes</span>
           <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
-            Straight from the <MarkerHighlight>margins</MarkerHighlight>
+            Sound <MarkerHighlight>familiar?</MarkerHighlight>
           </h2>
           <p className="font-hand mt-3 text-xl text-[#171512]/55">
             go ahead — drag the cards around, everyone&apos;s desk is different ✎
@@ -97,7 +91,7 @@ export default function MarginNotes() {
         <div ref={constraintsRef} className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {notes.map((n, i) => (
             <motion.div
-              key={n.name}
+              key={n.tag}
               initial={{ opacity: 0, y: 32, rotate: 0 }}
               whileInView={{ opacity: 1, y: 0, rotate: n.rot }}
               viewport={{ once: true, margin: '-60px' }}
@@ -128,21 +122,30 @@ export default function MarginNotes() {
                   style={{ transform: `rotate(${n.rot * 2}deg)` }}
                 />
               )}
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="h-3.5 w-3.5 fill-[#f0a202] text-[#171512]" />
-                ))}
-              </div>
-              <p className="font-display mt-3 text-[15px] font-medium italic leading-relaxed text-[#171512]/85">
+              <p className="font-display text-[15px] font-medium italic leading-relaxed text-[#171512]/85">
                 “{n.quote}”
               </p>
               <div className="mt-5 border-t-[1.5px] border-dashed border-[#171512]/25 pt-3">
-                <p className="text-sm font-black">{n.name}</p>
-                <p className="text-xs font-medium text-[#171512]/55">{n.place}</p>
+                <p className="font-hand text-lg text-[#171512]/60">{n.tag}</p>
               </div>
             </motion.div>
           ))}
         </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+          className="mt-10 text-center"
+        >
+          <a
+            href="/auth/sign-up"
+            className="font-hand text-xl font-bold text-[#17453a] underline decoration-dashed decoration-2 underline-offset-4 transition-colors hover:text-[#171512]"
+          >
+            ClassVault exists to fix exactly this →
+          </a>
+        </motion.p>
       </div>
     </section>
   )

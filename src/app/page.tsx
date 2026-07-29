@@ -1,7 +1,7 @@
 import Navbar from '../sections/Navbar'
 import Hero from '../sections/Hero'
 import UniversityTicker from '../sections/UniversityTicker'
-import Stats from '../sections/Stats'
+import HowItWorks from '../sections/HowItWorks'
 import Features from '../sections/Features'
 import RoadmapDemo from '../sections/RoadmapDemo'
 import StudyRoom from '../sections/StudyRoom'
@@ -19,7 +19,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <UniversityTicker />
-        <Stats />
+        <HowItWorks />
         <Features />
         <RoadmapDemo />
         <StudyRoom />

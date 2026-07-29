@@ -170,6 +170,21 @@ export default function StudyRoom() {
         >
           pro hosts get room-wide mute, co-hosts, room lock & bigger capacity →
         </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.55 }}
+          className="font-hand mt-2 text-center text-xl"
+        >
+          <a
+            href="/auth/sign-up"
+            className="font-bold text-[#f0a202] underline decoration-dashed decoration-2 underline-offset-4 transition-colors hover:text-[#f6f1e5]"
+          >
+            claim a seat in a real room →
+          </a>
+        </motion.p>
       </div>
     </section>
   )

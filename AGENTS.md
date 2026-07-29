@@ -274,7 +274,7 @@ These are product claims, not implemented or validated system behavior.
   - interactive checklist,
   - calculated progress.
 - Simulated study-room UI with an in-memory timer and fake chat activity.
-- Draggable testimonial cards.
+- Draggable pain-point ("Sound familiar?") cards.
 - FAQ accordion.
 - Decorative global interactions and motion effects.
 - Supabase SSR browser/server clients with cookie-backed sessions.
@@ -346,11 +346,14 @@ Important simulation details:
   generate topic-specific content.
 - `StudyRoom.tsx` uses local/in-memory values. Participants, timer behavior, and
   messages are not connected to other users.
-- The hero live-user counter is randomized.
-- Statistics and testimonials are marketing placeholders, not verified data.
-- Landing-page sign-in and registration calls to action now open the real
-  Supabase-backed auth routes. Other product calls to action still navigate to
-  marketing-page anchors.
+- The hero shows an honest "Early access — free while we build" badge; there are
+  no live-user counters, invented statistics sections, or fabricated testimonials
+  on the page. MarginNotes quotes are anonymous pain-point statements, not
+  endorsements.
+- Landing-page sign-up calls to action (hero, HowItWorks, demo captions,
+  MarginNotes payoff, navbar, footer) open the real Supabase-backed auth routes.
+  Demo teasers such as "Try the roadmap demo" still navigate to marketing-page
+  anchors.
 - The dashboard is an authenticated shell only; it does not yet contain notes,
   roadmaps, or study-room product functionality.
 - All onboarding values are represented by persistent form controls even when
@@ -396,8 +399,8 @@ visual_direction:
     - Handwritten annotations
   motion_language:
     - Framer Motion entry animations and parallax
-    - Marquees and counters
-    - Draggable testimonial cards
+    - Marquees and calculated progress
+    - Draggable margin-note cards
     - Custom cursor
     - Click stamps
     - CTA bursts
@@ -416,7 +419,7 @@ reason.
 1. `Navbar`
 2. `Hero`
 3. `UniversityTicker`
-4. `Stats`
+4. `HowItWorks`
 5. `Features`
 6. `RoadmapDemo`
 7. `StudyRoom`
@@ -440,6 +443,8 @@ important_files:
     role: Global tokens, reusable visual primitives, texture, and animations
   src/sections/RoadmapDemo.tsx:
     role: Client-side simulated AI-roadmap experience
+  src/sections/HowItWorks.tsx:
+    role: Compact three-step signup-journey strip with honest early-access framing
   src/sections/StudyRoom.tsx:
     role: Client-side simulated live-study-room experience
   src/sections/InteractiveFX.tsx:
@@ -562,8 +567,10 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    npm force remediation would downgrade Next.js to 9.3.3 and is not acceptable.
    Re-evaluate on future Next.js upgrades.
 4. Do not run `npm audit fix --force`.
-5. Marketing metrics, testimonials, ratings, user counts, and university counts
-   are placeholder content and must not be treated as real analytics.
+5. Marketing metrics, ratings, user counts, and university counts must not be
+   presented as real analytics. The landing page deliberately uses honest
+   early-access framing instead of invented statistics or fabricated
+   testimonials; keep it that way.
 6. The checked-in database types match the current migration manually. The
    Supabase CLI type generator attempted to require Docker even with a remote
    connection URL on this machine. Regenerate with `npm run db:types` after CLI

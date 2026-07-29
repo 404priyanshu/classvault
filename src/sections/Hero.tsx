@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { ArrowRight, Star, Timer, Users, Play, BadgeCheck } from 'lucide-react'
 import Image from 'next/image'
@@ -41,18 +41,11 @@ function FloatingRoomCard() {
   )
 }
 
-function LiveCounter() {
-  const [count, setCount] = useState(2314)
-  useEffect(() => {
-    const t = setInterval(() => {
-      setCount((c) => Math.max(2000, c + Math.floor(Math.random() * 7) - 2))
-    }, 4000)
-    return () => clearInterval(t)
-  }, [])
+function EarlyAccessBadge() {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-dashed border-[#17453a] bg-[#17453a]/8 px-4 py-1.5 text-xs font-bold text-[#17453a]">
       <span className="h-2 w-2 animate-pulse-dot rounded-full bg-[#17453a]" />
-      <span className="tabular-nums">{count.toLocaleString('en-IN')}</span> students studying right now
+      Early access — free while we build
     </span>
   )
 }
@@ -113,7 +106,7 @@ export default function Hero() {
 
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3}
               className="mt-9 flex flex-col items-center gap-4 sm:flex-row lg:justify-start sm:justify-center">
-              <a href="#cta" data-burst className="btn-ink group flex items-center gap-2 rounded-full px-8 py-3.5 font-bold">
+              <a href="/auth/sign-up" data-burst className="btn-ink group flex items-center gap-2 rounded-full px-8 py-3.5 font-bold">
                 Join your university free
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
@@ -125,7 +118,7 @@ export default function Hero() {
 
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={4}
               className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <LiveCounter />
+              <EarlyAccessBadge />
               <span className="flex items-center gap-1.5 text-xs font-semibold text-[#171512]/60">
                 <Star className="h-3.5 w-3.5 fill-[#f0a202] text-[#171512]" /> Community-rated notes
               </span>

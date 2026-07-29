@@ -249,6 +249,22 @@ export default function RoadmapDemo() {
             </AnimatePresence>
           </motion.div>
         </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.35 }}
+          className="font-hand mt-10 text-center text-xl text-[#171512]/60"
+        >
+          want roadmaps built from your real notes?{' '}
+          <a
+            href="/auth/sign-up"
+            className="font-bold text-[#17453a] underline decoration-dashed decoration-2 underline-offset-4 transition-colors hover:text-[#171512]"
+          >
+            create your vault free →
+          </a>
+        </motion.p>
       </div>
     </section>
   )
