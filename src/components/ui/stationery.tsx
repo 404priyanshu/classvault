@@ -22,11 +22,14 @@ export function Tape({ className, style, variant = 'saffron' }: TapeProps) {
       aria-hidden
       draggable={false}
       className={cn(
-        'pointer-events-none absolute z-10 h-auto w-28 max-w-none select-none',
+        'pointer-events-none absolute z-10 h-auto max-w-none select-none [filter:drop-shadow(1px_2px_0_rgba(23,21,18,0.16))]',
+        // the green asset carries a baked-in diagonal sweep on a tall canvas,
+        // so it needs a smaller width to read as the same strip of tape
+        variant === 'green' ? '-top-5 w-24' : '-top-3 w-32',
         className,
       )}
       style={style}
-      sizes="112px"
+      sizes="128px"
       unoptimized
     />
   )
@@ -46,7 +49,7 @@ export function MarkerHighlight({
         alt=""
         aria-hidden
         draggable={false}
-        className="pointer-events-none absolute -bottom-[0.03em] -left-[0.08em] z-0 h-[0.64em] w-[calc(100%+0.16em)] max-w-none select-none object-fill opacity-95"
+        className="pointer-events-none absolute -bottom-[0.06em] -left-[0.1em] z-0 h-[0.78em] w-[calc(100%+0.2em)] max-w-none select-none object-fill saturate-[1.5]"
         sizes="320px"
         unoptimized
       />

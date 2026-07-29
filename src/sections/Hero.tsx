@@ -142,27 +142,28 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="pointer-events-none absolute -top-14 right-0 z-10 hidden h-36 w-40 rotate-[5deg] place-items-center sm:grid">
-              <Image
-                src={stickyNote}
-                alt=""
-                aria-hidden
-                fill
-                className="select-none object-contain opacity-95 [filter:drop-shadow(4px_5px_0_rgba(23,21,18,0.18))]"
-                sizes="160px"
-                draggable={false}
-                priority
-                unoptimized
-              />
-              <span className="font-hand relative z-[1] max-w-[108px] -translate-y-1 rotate-[-3deg] text-center text-lg leading-[0.95] text-[#17453a]">
-                every drawer = a subject ↓
-              </span>
-            </div>
             <motion.div style={{ x: vaultX, y: vaultY }}>
               <motion.div
                 animate={{ y: [0, -12, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative"
               >
+                <div className="pointer-events-none absolute -top-10 left-[7%] z-10 hidden h-32 w-36 rotate-[-6deg] place-items-center md:grid">
+                  <Image
+                    src={stickyNote}
+                    alt=""
+                    aria-hidden
+                    fill
+                    className="select-none object-contain [filter:drop-shadow(3px_4px_0_rgba(23,21,18,0.16))]"
+                    sizes="144px"
+                    draggable={false}
+                    priority
+                    unoptimized
+                  />
+                  <span className="font-hand relative z-[1] max-w-[100px] -translate-y-1 text-center text-base leading-[1.02] text-[#171512]/80">
+                    every drawer = a subject ↓
+                  </span>
+                </div>
                 <Image
                   src={vault}
                   alt="The ClassVault archive — drawers of rated notes, timers and university pennants"
@@ -179,13 +180,14 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 overflow-hidden md:h-28">
+      {/* torn-paper edge into next section — ragged side sits on the seam */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 overflow-hidden md:h-20">
         <Image
           src={tornNotebookPaper}
           alt=""
           aria-hidden
           draggable={false}
-          className="absolute -bottom-4 left-1/2 h-auto w-[760px] max-w-none -translate-x-1/2 select-none md:-bottom-10 md:w-[1200px] xl:-bottom-16 xl:w-[1480px]"
+          className="absolute bottom-0 left-1/2 h-auto w-[104%] max-w-none -translate-x-1/2 select-none"
           sizes="100vw"
           unoptimized
         />

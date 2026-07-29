@@ -73,8 +73,8 @@ export default function MarginNotes() {
         alt=""
         aria-hidden
         draggable={false}
-        className="pointer-events-none absolute -right-8 bottom-8 hidden w-52 rotate-12 select-none opacity-45 lg:block"
-        sizes="208px"
+        className="pointer-events-none absolute left-[3%] top-[44%] hidden w-40 rotate-12 select-none opacity-60 lg:block"
+        sizes="160px"
         unoptimized
       />
       <div className="mx-auto max-w-7xl px-6">
@@ -117,14 +117,14 @@ export default function MarginNotes() {
                   alt=""
                   aria-hidden
                   draggable={false}
-                  className="pointer-events-none absolute -top-5 left-5 z-10 h-auto w-20 -rotate-6 select-none"
-                  sizes="80px"
+                  className="pointer-events-none absolute -top-3 left-1 z-10 h-auto w-16 rotate-[78deg] select-none [filter:drop-shadow(1px_1px_0_rgba(23,21,18,0.2))]"
+                  sizes="64px"
                   unoptimized
                 />
               ) : (
                 <Tape
                   variant={n.attachment}
-                  className={`-top-3 ${n.tape}`}
+                  className={n.tape}
                   style={{ transform: `rotate(${n.rot * 2}deg)` }}
                 />
               )}

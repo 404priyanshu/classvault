@@ -103,7 +103,7 @@ export default function Pricing() {
             transition={{ duration: 0.8, delay: 0.12 }}
             className="relative rounded-2xl border-[1.5px] border-[#171512] bg-[#17453a] p-8 text-[#f6f1e5] shadow-[8px_8px_0_#171512] transition-all duration-200 hover:rotate-0 hover:shadow-[10px_10px_0_#171512]"
           >
-            <Tape className="-right-1 -top-5 w-32 rotate-[8deg]" />
+            <Tape className="right-12 rotate-[5deg]" />
             <div className="flex items-center justify-between">
               <h3 className="font-display text-2xl font-black">Pro</h3>
               <span className="stamp text-[#f0a202]">

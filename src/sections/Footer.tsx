@@ -17,18 +17,18 @@ export default function Footer() {
           className="animate-float pointer-events-none absolute left-[6%] top-16 hidden w-32 rotate-[-10deg] select-none opacity-90 lg:block" style={{ ['--rot' as string]: '-10deg' }} />
         <Image src={doodleHighlighter} alt="" aria-hidden draggable={false}
           className="animate-float-slow pointer-events-none absolute bottom-16 right-[6%] hidden w-36 rotate-[8deg] select-none opacity-90 lg:block" style={{ ['--rot' as string]: '8deg' }} />
-        <div className="pointer-events-none absolute right-[8%] top-8 hidden h-28 w-28 rotate-12 place-items-center xl:grid">
+        <div className="pointer-events-none absolute right-[9%] top-12 hidden h-32 w-32 rotate-[10deg] place-items-center xl:grid">
           <Image
             src={stampBlankGreen}
             alt=""
             aria-hidden
             fill
             draggable={false}
-            className="select-none object-contain opacity-80"
-            sizes="112px"
+            className="select-none object-contain opacity-85 mix-blend-multiply"
+            sizes="128px"
             unoptimized
           />
-          <span className="font-hand relative z-[1] rotate-[-5deg] text-center text-base font-bold uppercase leading-none text-[#17453a]">
+          <span className="font-hand relative z-[1] rotate-[-4deg] text-center text-lg font-bold uppercase leading-[0.95] text-[#17453a]">
             join<br />free
           </span>
         </div>
