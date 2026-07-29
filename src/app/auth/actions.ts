@@ -22,6 +22,33 @@ const nationalPhoneSchema = z
   .pipe(z.string().min(6).max(14))
 const phoneOtpSchema = z.string().trim().regex(/^\d{6}$/)
 
+type PhoneOtpRequestError = {
+  code?: string
+  message: string
+  name?: string
+  status?: number
+}
+
+function getPhoneOtpRequestErrorMessage(error: PhoneOtpRequestError) {
+  switch (error.code) {
+    case 'over_sms_send_rate_limit':
+      return 'A code was requested too recently. Wait at least 60 seconds, then try again.'
+    case 'over_request_rate_limit':
+      return 'Too many sign-in attempts were made. Wait a few minutes, then try again.'
+    case 'phone_provider_disabled':
+    case 'otp_disabled':
+      return 'Phone sign-in is disabled in Supabase. Enable the Phone provider and phone sign-ups, then try again.'
+    case 'sms_send_failed':
+      return 'The SMS provider rejected this request. Check the Twilio Verify credentials, trial recipient, and country permissions.'
+    case 'request_timeout':
+      return 'The SMS provider took too long to respond. Please try again.'
+    case 'validation_failed':
+      return 'That mobile number could not be accepted. Check the country code and number, then try again.'
+    default:
+      return 'We could not send the code. Please try again, or check the server log for the provider error.'
+  }
+}
+
 function readString(formData: FormData, key: string) {
   const value = formData.get(key)
   return typeof value === 'string' ? value : ''
@@ -136,10 +163,17 @@ export async function requestPhoneOtpAction(formData: FormData) {
   })
 
   if (error) {
+    console.error('Phone OTP request failed', {
+      code: error.code,
+      message: error.message,
+      name: error.name,
+      status: error.status,
+    })
+
     redirect(
       withPhoneMessage(
         'error',
-        'Phone sign-in is not configured yet. An SMS provider must be connected in Supabase.',
+        getPhoneOtpRequestErrorMessage(error),
         { next },
       ),
     )

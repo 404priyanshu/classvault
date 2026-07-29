@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 6
+  context_version: 10
   last_verified: 2026-07-29
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
@@ -32,7 +32,6 @@ canonical_lockfile: package-lock.json
 git_repository: true
 git_branch: main
 git_remote: https://github.com/akrutitwari/classvault.git
-last_pushed_commit_before_onboarding: 47397e2
 deployment_configured: false
 environment_variables_required: true
 authentication_provider: Supabase Auth
@@ -45,8 +44,9 @@ authentication_provider_configuration:
   email_password: enabled in hosted Supabase
   google: application code complete; external OAuth client and hosted Supabase provider configuration required
   github: application code complete; external OAuth app and hosted Supabase provider configuration required
-  phone: application code complete; hosted SMS provider and phone-provider configuration required
+  phone: operational end to end through hosted Supabase and Twilio Verify
 authentication_email_template: Branded ClassVault sign-up confirmation template implemented locally
+authentication_email_sender_status: Custom SMTP deferred until the user owns a domain; hosted mail still identifies Supabase as sender
 database: Supabase Postgres
 supabase_project_ref: uiimhqaejwefahvbcsml
 automated_test_suite: false
@@ -94,12 +94,104 @@ ClassVault-owned sender instead of `Supabase Auth`.
 
 Google and GitHub OAuth initiation, the PKCE callback, and phone OTP
 request/verification are implemented in application code. The Google OAuth
-client, GitHub OAuth App, and SMS provider have not been configured externally,
-so those methods cannot complete against hosted Supabase yet. Migration
+client and GitHub OAuth App have not been configured externally, so those
+methods cannot complete against hosted Supabase yet. The hosted Supabase Phone
+provider is configured with Twilio Verify. Live SMS delivery and six-digit OTP
+verification were confirmed working end to end on 2026-07-29. Migration
 `20260729030000_allow_phone_onboarding.sql` allows phone-only users to complete
 onboarding with a `pending` university membership. It was applied to the hosted
 database on 2026-07-29, and a follow-up dry run reported the database up to
 date.
+
+### Authentication continuation state
+
+```yaml
+email_password:
+  application_status: working
+  hosted_provider_status: enabled
+  sender_branding:
+    local_html_template: supabase/templates/confirmation.html
+    hosted_custom_smtp: deferred
+    reason: User does not own a ClassVault domain yet
+    current_sender_identity: Supabase-hosted sender
+
+oauth:
+  google:
+    application_status: complete
+    external_status: Google OAuth client ID and secret not created/configured
+  github:
+    application_status: complete
+    external_status: GitHub OAuth App client ID and secret not created/configured
+  callback_route: /auth/confirm
+  post_auth_routing:
+    new_users: /onboarding
+    completed_users: /dashboard through existing onboarding/dashboard gates
+
+phone_otp:
+  application_status: complete
+  route: /auth/phone
+  request_action: requestPhoneOtpAction
+  verification_action: verifyPhoneOtpAction
+  otp_length_expected_by_ui: 6
+  number_format_sent_to_supabase: E.164
+  country_selector:
+    source: src/lib/auth/phone.ts
+    default: India (+91)
+    options: 23 commonly relevant countries
+    behavior: Country code and national number are separate controls and are normalized server-side
+  phone_only_onboarding:
+    supported: true
+    campus_membership_status: pending
+    automatic_campus_verification: unavailable until a confirmed academic email exists
+  hosted_sms_status: operational
+  sms_provider: Twilio Verify
+  hosted_provider_status:
+    phone_enabled: true
+    phone_signups_enabled: true
+    validated_from: Supabase public Auth settings endpoint
+    validated_on: 2026-07-29
+  twilio_verify_status:
+    service_credentials_valid: true
+    service_reachable: true
+    configured_code_length: 6
+    validated_on: 2026-07-29
+  hosted_configuration:
+    - Enabled the Supabase Phone provider and phone sign-ups
+    - Selected Twilio Verify rather than regular Twilio Messaging
+    - Added the Twilio Account SID, Auth Token, and Verify Service SID to hosted Supabase
+  acceptance_test:
+    status: pass
+    confirmed_on: 2026-07-29
+    confirmed_by: User
+    verified_behavior:
+      - OTP request accepted through /auth/phone
+      - SMS delivered through Twilio Verify
+      - Six-digit phone OTP successfully verified
+  resolved_incident:
+    symptom: Twilio rejected a VA-prefixed Verify Service SID when it was supplied as a Messaging From sender
+    cause: Hosted Supabase initially used regular Twilio Messaging instead of Twilio Verify
+    resolution: Changed the hosted SMS provider to Twilio Verify and kept the VA-prefixed value in the Verify Service SID field
+  secrets_policy:
+    - Never commit the Twilio Auth Token
+    - Hosted credentials belong in Supabase provider settings
+    - Local Supabase secrets must use environment substitution
+  trial_constraint: A Twilio trial may send only to destination numbers verified in the Twilio account
+  production_requirements:
+    - Upgrade Twilio and enable billing safeguards
+    - Add CAPTCHA to the ClassVault phone flow before enabling CAPTCHA in Supabase
+    - Review Supabase OTP and verification rate limits
+    - Monitor SMS delivery and spend
+    - Review Indian TRAI DLT and sender/template requirements before production delivery to Indian users
+```
+
+Useful official references:
+
+- Supabase phone login: `https://supabase.com/docs/guides/auth/phone-login`
+- Supabase Auth rate limits: `https://supabase.com/docs/guides/auth/rate-limits`
+- Supabase CAPTCHA: `https://supabase.com/docs/guides/auth/auth-captcha`
+- Twilio India SMS guidelines: `https://www.twilio.com/en-us/guidelines/in/sms`
+- Twilio trial restrictions:
+  `https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account`
 
 ## 2. Product intent
 
@@ -177,6 +269,15 @@ These are product claims, not implemented or validated system behavior.
 - Supabase SSR browser/server clients with cookie-backed sessions.
 - Email/password registration, sign-in, sign-out, confirmation, and password
   recovery flows.
+- Google and GitHub OAuth initiation with a cookie-backed PKCE callback through
+  `/auth/confirm`; external provider credentials are still required.
+- Phone OTP request and six-digit verification through `/auth/phone`.
+- A native phone country-code selector backed by `src/lib/auth/phone.ts`,
+  defaulting to India (`+91`) and normalizing the selected code plus national
+  number into E.164 before calling Supabase.
+- Phone-only onboarding support. These accounts may complete a profile and
+  receive a `pending` university membership without inventing an academic
+  email.
 - A protected `/dashboard` route using validated JWT claims.
 - A typed `profiles` table migration with automatic Auth-user profile creation
   and owner-only row-level security.
@@ -206,6 +307,9 @@ These are product claims, not implemented or validated system behavior.
 
 ```yaml
 not_implemented:
+  - Live Google OAuth provider configuration
+  - Live GitHub OAuth provider configuration
+  - CAPTCHA protection for public authentication
   - University-scoped content authorization or tenancy policies
   - Manual review/rejection workflow for pending university memberships
   - Note upload, storage, download, deletion, or recovery
@@ -449,6 +553,13 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    Supabase CLI type generator attempted to require Docker even with a remote
    connection URL on this machine. Regenerate with `npm run db:types` after CLI
    login, or after installing Docker for a local stack.
+7. Phone OTP sends can create direct variable cost and are an abuse target.
+   Do not expose live SMS broadly until CAPTCHA, rate limits, monitoring, and
+   billing safeguards are configured.
+8. Phone numbers can be recycled. Do not treat possession of a phone number as
+   permanent proof of a student's identity or university membership.
+9. Production SMS delivery to Indian users may require TRAI DLT registration
+   and approved sender/template configuration depending on the delivery route.
 
 ## 9. Undecided product and infrastructure choices
 
@@ -475,22 +586,29 @@ or `.openai/hosting.json`.
 
 Do not silently choose irreversible or expensive providers. For early local
 implementation, prefer provider-agnostic boundaries and document assumptions.
+Twilio Verify is the operational SMS provider. Its service credentials, hosted
+Supabase Phone-provider configuration, live SMS delivery, and six-digit OTP
+verification were validated on 2026-07-29.
 
 ## 10. Recommended implementation sequence
 
 Unless the user gives a different priority, continue in this order:
 
-1. Verify email confirmation, onboarding completion, profile editing, and
+1. Create and configure Google and GitHub OAuth applications, then test new-user
+   and returning-user routing through `/auth/confirm`.
+2. Verify email confirmation, onboarding completion, profile editing, and
    password recovery end to end with a real development account; regenerate
    database types when the CLI environment supports it.
-2. Convert the notes-related landing-page claims into an explicit product, data, and permissions
+3. Add CAPTCHA and review Auth/SMS rate limits before exposing phone OTP to
+   untrusted traffic.
+4. Convert the notes-related landing-page claims into an explicit product, data, and permissions
    specification.
-3. Implement note upload, browse, download, rating, soft deletion, and recovery.
-4. Enforce university scoping and note permissions.
-5. Implement indexed full-text search.
-6. Implement permission-aware, source-grounded roadmap generation.
-7. Implement realtime study rooms.
-8. Add billing and moderation.
+5. Implement note upload, browse, download, rating, soft deletion, and recovery.
+6. Enforce university scoping and note permissions.
+7. Implement indexed full-text search.
+8. Implement permission-aware, source-grounded roadmap generation.
+9. Implement realtime study rooms.
+10. Add billing and moderation.
 
 This sequence is guidance, not authorization to build all items at once. Implement
 only the scope requested by the user.
@@ -535,7 +653,11 @@ The correct starting assumption for future work is:
 > Supabase authentication, a protected three-step onboarding flow, secure
 > database-owned university membership assignment, and a protected dashboard.
 > The profile and university-onboarding migrations are applied to the hosted
-> project. Live inbox-dependent account-flow testing is still pending. The core
-> notes, roadmap, and study-room product modules remain demonstrations.
+> project. Email/password works; Google and GitHub auth application flows are
+> implemented but their external providers are not operational yet. Phone OTP
+> is operational through hosted Supabase and Twilio Verify; live SMS delivery
+> and six-digit OTP verification were confirmed working on 2026-07-29.
+> Custom SMTP sender branding is deferred until the user owns a domain. The
+> core notes, roadmap, and study-room product modules remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
