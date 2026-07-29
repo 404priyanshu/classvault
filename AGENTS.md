@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 3
+  context_version: 4
   last_verified: 2026-07-29
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
@@ -161,6 +161,10 @@ These are product claims, not implemented or validated system behavior.
   short name, city, and state; a result must be selected to continue.
 - Curated `universities`, `university_email_domains`, and
   `university_memberships` tables with RLS.
+- The active university directory and its academic-domain reference rows are
+  public read-only data for both `anon` and `authenticated`; all write
+  privileges are revoked. Membership mutation and verification remain
+  server-owned.
 - Server-owned onboarding completion through
   `complete_student_onboarding(...)`, a `SECURITY DEFINER` database function
   that derives membership status from the authenticated user and confirmed Auth

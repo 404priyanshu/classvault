@@ -60,8 +60,23 @@ export default async function OnboardingPage({
     redirect('/dashboard')
   }
 
-  if (universitiesError || domainsError || !universities?.length) {
+  if (universitiesError || !universities?.length) {
+    console.error('Unable to load the university directory.', {
+      code: universitiesError?.code,
+      details: universitiesError?.details,
+      hint: universitiesError?.hint,
+      message: universitiesError?.message,
+    })
     throw new Error('University onboarding data is unavailable.')
+  }
+
+  if (domainsError) {
+    console.error('Unable to load university email domains.', {
+      code: domainsError.code,
+      details: domainsError.details,
+      hint: domainsError.hint,
+      message: domainsError.message,
+    })
   }
 
   const domainsByUniversity = new Map<number, string[]>()
