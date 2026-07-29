@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 10
+  context_version: 11
   last_verified: 2026-07-29
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
@@ -47,6 +47,17 @@ authentication_provider_configuration:
   phone: operational end to end through hosted Supabase and Twilio Verify
 authentication_email_template: Branded ClassVault sign-up confirmation template implemented locally
 authentication_email_sender_status: Custom SMTP deferred until the user owns a domain; hosted mail still identifies Supabase as sender
+loading_feedback:
+  shared_component: src/components/ui/spinner.tsx
+  visual: Animated ClassVault pencil derived from the supplied loader component
+  integration:
+    - Auth form submissions
+    - Dashboard sign-out
+    - Onboarding completion
+    - Interactive roadmap generation
+    - Loading toasts
+    - App Router route loading through src/app/loading.tsx
+  accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: uiimhqaejwefahvbcsml
 automated_test_suite: false
@@ -278,6 +289,10 @@ These are product claims, not implemented or validated system behavior.
 - Phone-only onboarding support. These accounts may complete a profile and
   receive a `pending` university membership without inventing an academic
   email.
+- A reusable, accessible pencil spinner in `src/components/ui/spinner.tsx`,
+  styled in the ClassVault palette and used for auth submissions, sign-out,
+  onboarding completion, roadmap generation, loading toasts, and route-level
+  loading.
 - A protected `/dashboard` route using validated JWT claims.
 - A typed `profiles` table migration with automatic Auth-user profile creation
   and owner-only row-level security.

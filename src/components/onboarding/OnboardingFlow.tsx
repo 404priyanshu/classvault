@@ -23,6 +23,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useActionState, useMemo, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { Spinner } from '@/components/ui/spinner'
 import owl from '@/assets/owl.webp'
 import {
   completeOnboardingAction,
@@ -159,6 +160,9 @@ function SubmitButton() {
       disabled={pending}
       type="submit"
     >
+      {pending ? (
+        <Spinner className="size-6" decorative size={24} />
+      ) : null}
       {pending ? 'Setting up your vault…' : 'Finish setup'}
       {pending ? null : <ArrowRight className="h-4 w-4" />}
     </button>

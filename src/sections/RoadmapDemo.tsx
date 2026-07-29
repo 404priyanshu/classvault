@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpenCheck, BrainCircuit, FileText, Loader2, RotateCcw, Zap } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, FileText, RotateCcw, Zap } from 'lucide-react'
 import Image from 'next/image'
 import owl from '@/assets/owl.webp'
 import doodleSticky from '@/assets/doodle-sticky.webp'
+import { Spinner } from '@/components/ui/spinner'
 
 type Phase = { title: string; tasks: string[]; source: string; weeks: string }
 
@@ -135,7 +136,7 @@ export default function RoadmapDemo() {
               <button onClick={generate} disabled={phase === 'generating'}
                 className="btn-ink flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-bold disabled:opacity-60">
                 {phase === 'generating' ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Reading source notes…</>
+                  <><Spinner className="size-5" decorative size={20} /> Reading source notes…</>
                 ) : phase === 'done' ? (
                   <><RotateCcw className="h-4 w-4" /> Regenerate roadmap</>
                 ) : (

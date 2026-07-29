@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 import { createClient } from '@/lib/supabase/server'
 import { signOutAction } from '../auth/actions'
 
@@ -78,12 +79,7 @@ export default async function DashboardPage({
               Edit profile
             </Link>
             <form action={signOutAction}>
-              <button
-                className="rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6] px-5 py-2 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
-                type="submit"
-              >
-                Sign out
-              </button>
+              <SignOutButton />
             </form>
           </div>
         </header>
