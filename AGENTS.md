@@ -269,9 +269,9 @@ These are product claims, not implemented or validated system behavior.
 - Roadmap demonstration with:
   - topic input,
   - study-mode selection,
-  - staged generation animation,
+  - simulated AI build-log feed, scanning beam, and staged streaming animation,
   - hard-coded phases,
-  - interactive checklist,
+  - interactive checklist with a 100% completion stamp,
   - calculated progress.
 - Simulated study-room UI with an in-memory timer and fake chat activity.
 - Draggable pain-point ("Sound familiar?") cards.
@@ -343,7 +343,8 @@ Important simulation details:
 
 - `RoadmapDemo.tsx` has two hard-coded phase sets: a default plan and an
   exam-revision plan. The entered topic changes displayed text but does not
-  generate topic-specific content.
+  generate topic-specific content. Its build-log status lines are scripted
+  animation theater, not a real generation pipeline.
 - `StudyRoom.tsx` uses local/in-memory values. Participants, timer behavior, and
   messages are not connected to other users.
 - The hero shows an honest "Early access — free while we build" badge; there are
