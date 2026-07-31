@@ -7,6 +7,7 @@ import Image from 'next/image'
 import owl from '@/assets/owl.webp'
 import doodleSticky from '@/assets/doodle-sticky.webp'
 import highlighterSwash from '@/assets/stationery/highlighter-swash-saffron.webp'
+import { ShinyButton } from '@/components/ui/shiny-button'
 import { Spinner } from '@/components/ui/spinner'
 import { MarkerHighlight, Tape } from '@/components/ui/stationery'
 
@@ -206,8 +207,11 @@ export default function RoadmapDemo() {
                 </div>
               </div>
 
-              <motion.button onClick={generate} disabled={phase === 'generating'} whileTap={{ scale: 0.98 }}
-                className="btn-ink flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-bold disabled:opacity-60">
+              <ShinyButton
+                onClick={generate}
+                disabled={phase === 'generating'}
+                className="w-full"
+              >
                 {phase === 'generating' ? (
                   <><Spinner className="size-5" decorative size={20} /> {steps[Math.min(genStep, steps.length - 1)]}…</>
                 ) : phase === 'done' ? (
@@ -215,7 +219,7 @@ export default function RoadmapDemo() {
                 ) : (
                   <><BookOpenCheck className="h-4 w-4" /> Generate my roadmap</>
                 )}
-              </motion.button>
+              </ShinyButton>
             </div>
           </motion.div>
 
