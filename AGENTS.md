@@ -269,9 +269,9 @@ These are product claims, not implemented or validated system behavior.
 - Roadmap demonstration with:
   - topic input,
   - study-mode selection,
-  - simulated AI build-log feed, scanning beam, and staged streaming animation,
-  - hard-coded phases,
-  - interactive checklist with a 100% completion stamp,
+  - simulated AI console with spinning core, typed agent log, and progress beam,
+  - hard-coded phases streamed in with token-style typed tasks,
+  - interactive checklist with a 100% completion badge,
   - calculated progress.
 - Simulated study-room UI with an in-memory timer and fake chat activity.
 - Draggable pain-point ("Sound familiar?") cards.
