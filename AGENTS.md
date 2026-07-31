@@ -269,7 +269,8 @@ These are product claims, not implemented or validated system behavior.
 - Roadmap demonstration with:
   - topic input,
   - study-mode selection,
-  - simulated AI console with spinning core, typed agent log, and progress beam,
+  - simulated AI console with an animated ASCII orb (src/components/ui/ascii-orb.tsx),
+    typed agent log, and progress beam,
   - hard-coded phases streamed in with token-style typed tasks,
   - interactive checklist with a 100% completion badge,
   - calculated progress.

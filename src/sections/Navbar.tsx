@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpen, Menu, X } from 'lucide-react'
 
 const links = [
@@ -48,9 +48,13 @@ export default function Navbar() {
             <a
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-[#171512]/70 transition-colors hover:text-[#17453a]"
+              className="group relative text-sm font-medium text-[#171512]/70 transition-colors hover:text-[#17453a]"
             >
               {l.label}
+              <span
+                aria-hidden
+                className="absolute -bottom-1 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-[#17453a] transition-transform duration-300 ease-out group-hover:scale-x-100"
+              />
             </a>
           ))}
         </div>
@@ -73,27 +77,40 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {open && (
-        <div className="border-t-[1.5px] border-[#171512] bg-[#f6f1e5] px-6 py-4 md:hidden">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="block py-2.5 text-sm font-medium text-[#171512]/80"
-            >
-              {l.label}
-            </a>
-          ))}
-          <a
-            href="/auth/sign-up"
-            onClick={() => setOpen(false)}
-            className="btn-saffron mt-2 block rounded-full px-5 py-2.5 text-center text-sm font-bold"
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t-[1.5px] border-[#171512] bg-[#f6f1e5] md:hidden"
           >
-            Get started free
-          </a>
-        </div>
-      )}
+            <div className="px-6 py-4">
+              {links.map((l, i) => (
+                <motion.a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.06 + i * 0.05, duration: 0.25 }}
+                  className="block py-2.5 text-sm font-medium text-[#171512]/80"
+                >
+                  {l.label}
+                </motion.a>
+              ))}
+              <a
+                href="/auth/sign-up"
+                onClick={() => setOpen(false)}
+                className="btn-saffron mt-2 block rounded-full px-5 py-2.5 text-center text-sm font-bold"
+              >
+                Get started free
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   )
 }

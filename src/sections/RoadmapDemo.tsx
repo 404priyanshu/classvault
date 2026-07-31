@@ -11,7 +11,6 @@ import {
   useTransform,
 } from 'framer-motion'
 import {
-  BookOpenCheck,
   BrainCircuit,
   Check,
   FileText,
@@ -21,7 +20,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import owl from '@/assets/owl.webp'
-import { ShinyButton } from '@/components/ui/shiny-button'
+import { AsciiOrb } from '@/components/ui/ascii-orb'
 import { Spinner } from '@/components/ui/spinner'
 import { MarkerHighlight } from '@/components/ui/stationery'
 
@@ -94,26 +93,69 @@ function Typed({
   )
 }
 
-/** The pulsing "AI core" — a spinning conic ring around a spark. */
-function AICore({ active }: { active: boolean }) {
+/** The generate CTA — ink pill with saffron hard shadow, shine sweep, and morphing label. */
+function GenerateButton({
+  phase,
+  onClick,
+}: {
+  phase: 'idle' | 'generating' | 'done'
+  onClick: () => void
+}) {
   return (
-    <div className="relative h-11 w-11 shrink-0">
-      <motion.div
+    <motion.button
+      onClick={onClick}
+      disabled={phase === 'generating'}
+      whileHover={phase === 'generating' ? undefined : { y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+      className="group relative w-full overflow-hidden rounded-xl border-[1.5px] border-[#171512] bg-[#171512] px-6 py-3.5 text-sm font-bold text-[#f6f1e5] shadow-[4px_4px_0_#f0a202] transition-shadow duration-300 hover:shadow-[6px_6px_0_#f0a202,0_0_28px_rgba(240,162,2,0.3)] disabled:cursor-wait disabled:opacity-80"
+    >
+      <motion.span
         aria-hidden
-        className="absolute -inset-1.5 rounded-full bg-[conic-gradient(from_0deg,#f0a202,#8fd6b4,#6cb4ee,#f0a202)] opacity-70 blur-[6px]"
-        animate={active ? { rotate: 360 } : { rotate: 0, opacity: 0.35 }}
-        transition={active ? { duration: 3.2, repeat: Infinity, ease: 'linear' } : { duration: 0.4 }}
+        className="absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+        animate={{ x: ['-160%', '460%'] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.4 }}
       />
-      <motion.div
-        aria-hidden
-        className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#f0a202,#8fd6b4,#6cb4ee,#f0a202)]"
-        animate={active ? { rotate: 360 } : { rotate: 0 }}
-        transition={active ? { duration: 2.2, repeat: Infinity, ease: 'linear' } : { duration: 0.4 }}
-      />
-      <div className="absolute inset-[3px] grid place-items-center rounded-full bg-[#0b1e19]">
-        <Sparkles className="h-4 w-4 text-[#f0a202]" />
-      </div>
-    </div>
+      <span className="relative flex items-center justify-center gap-2">
+        <AnimatePresence mode="wait" initial={false}>
+          {phase === 'generating' ? (
+            <motion.span
+              key="building"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-2"
+            >
+              <Spinner className="size-4" decorative size={16} /> Building sample roadmap…
+            </motion.span>
+          ) : phase === 'done' ? (
+            <motion.span
+              key="regen"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4 transition-transform duration-500 group-hover:-rotate-180" /> Regenerate roadmap
+            </motion.span>
+          ) : (
+            <motion.span
+              key="generate"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-2"
+            >
+              <Sparkles className="h-4 w-4 text-[#f0a202] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
+              Generate my roadmap
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </span>
+    </motion.button>
   )
 }
 
@@ -155,7 +197,12 @@ function ConsoleHeader({
     <div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3.5">
-          <AICore active={phase === 'generating'} />
+          <AsciiOrb
+            active={phase === 'generating'}
+            cols={18}
+            rows={9}
+            className="shrink-0 text-[5px]"
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">ClassVault AI</p>
@@ -534,19 +581,7 @@ export default function RoadmapDemo() {
                 </div>
               </div>
 
-              <ShinyButton
-                onClick={generate}
-                disabled={phase === 'generating'}
-                className="w-full"
-              >
-                {phase === 'generating' ? (
-                  <><Spinner className="size-5" decorative size={20} /> Building sample roadmap…</>
-                ) : phase === 'done' ? (
-                  <><RotateCcw className="h-4 w-4" /> Regenerate roadmap</>
-                ) : (
-                  <><BookOpenCheck className="h-4 w-4" /> Generate my roadmap</>
-                )}
-              </ShinyButton>
+              <GenerateButton phase={phase} onClick={generate} />
             </div>
           </motion.div>
 
@@ -582,11 +617,11 @@ export default function RoadmapDemo() {
                   <div className="relative">
                     <motion.div
                       aria-hidden
-                      className="absolute -inset-4 rounded-full border border-white/10"
+                      className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"
                       animate={{ scale: [1, 1.25], opacity: [0.5, 0] }}
                       transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
                     />
-                    <AICore active={false} />
+                    <AsciiOrb cols={26} rows={13} className="text-[7px]" />
                   </div>
                   <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-white/35">Ready when you are</p>
                   <p className="mt-2 max-w-[240px] text-sm font-medium leading-relaxed text-white/60">

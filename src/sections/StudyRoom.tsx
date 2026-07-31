@@ -28,6 +28,7 @@ const PARTICIPANTS = [
 export default function StudyRoom() {
   const [seconds, setSeconds] = useState(24 * 60 + 47)
   const [chatCount, setChatCount] = useState(3)
+  const [speaker, setSpeaker] = useState(0)
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 25 * 60)), 1000)
@@ -36,6 +37,16 @@ export default function StudyRoom() {
 
   useEffect(() => {
     const t = setInterval(() => setChatCount((c) => (c >= CHAT.length ? 1 : c + 1)), 3200)
+    return () => clearInterval(t)
+  }, [])
+
+  // Cycle a fake "active speaker" glow across the unmuted participants.
+  useEffect(() => {
+    const audible = PARTICIPANTS.map((p, i) => (p.muted ? -1 : i)).filter((i) => i >= 0)
+    const t = setInterval(
+      () => setSpeaker((s) => audible[(audible.indexOf(s) + 1) % audible.length]),
+      2600,
+    )
     return () => clearInterval(t)
   }, [])
 
@@ -104,16 +115,45 @@ export default function StudyRoom() {
             {/* video grid + timer */}
             <div className="border-b-[1.5px] border-[#f6f1e5]/15 p-6 md:border-b-0 md:border-r-[1.5px]">
               <div className="grid grid-cols-3 gap-3">
-                {PARTICIPANTS.map((p) => (
-                  <div key={p.initials} className="relative aspect-video overflow-hidden rounded-lg border-[1.5px] border-[#f6f1e5]/25">
-                    <div className={`absolute inset-0 grid place-items-center ${p.color}`}>
-                      <span className="font-display text-lg font-black text-[#171512]">{p.initials}</span>
-                    </div>
-                    <span className="absolute bottom-1.5 right-1.5 grid h-5 w-5 place-items-center rounded-md border border-[#171512]/30 bg-[#171512]/70">
-                      {p.muted ? <MicOff className="h-3 w-3 text-[#e8890c]" /> : <Mic className="h-3 w-3 text-[#7fb5a3]" />}
-                    </span>
-                  </div>
-                ))}
+                {PARTICIPANTS.map((p, i) => {
+                  const speaking = i === speaker
+                  return (
+                    <motion.div
+                      key={p.initials}
+                      animate={speaking ? { scale: 1.04 } : { scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 320, damping: 20 }}
+                      className={`relative aspect-video overflow-hidden rounded-xl border-[1.5px] transition-shadow duration-500 ${
+                        speaking
+                          ? 'border-[#f0a202] shadow-[0_0_0_3px_rgba(240,162,2,0.25),0_0_24px_rgba(240,162,2,0.3)]'
+                          : 'border-[#f6f1e5]/15'
+                      }`}
+                    >
+                      <div className={`absolute inset-0 grid place-items-center ${p.color}`}>
+                        <span className="font-display text-lg font-black text-[#171512]">{p.initials}</span>
+                      </div>
+                      {speaking && (
+                        <motion.span
+                          aria-hidden
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="absolute left-1.5 top-1.5 flex items-end gap-[2.5px] rounded-md bg-[#171512]/70 px-1.5 py-1"
+                        >
+                          {[0, 1, 2].map((b) => (
+                            <motion.span
+                              key={b}
+                              className="w-[2.5px] rounded-full bg-[#f0a202]"
+                              animate={{ height: [3, 8, 3] }}
+                              transition={{ duration: 0.7, repeat: Infinity, delay: b * 0.15, ease: 'easeInOut' }}
+                            />
+                          ))}
+                        </motion.span>
+                      )}
+                      <span className="absolute bottom-1.5 right-1.5 grid h-5 w-5 place-items-center rounded-md border border-[#171512]/30 bg-[#171512]/70">
+                        {p.muted ? <MicOff className="h-3 w-3 text-[#e8890c]" /> : <Mic className="h-3 w-3 text-[#7fb5a3]" />}
+                      </span>
+                    </motion.div>
+                  )
+                })}
               </div>
 
               {/* synced timer */}
@@ -122,10 +162,15 @@ export default function StudyRoom() {
                   <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#f6f1e5]/60">
                     <Timer className="h-4 w-4 text-[#f0a202]" /> Synced focus timer
                   </span>
-                  <span className="font-display text-3xl font-black tabular-nums text-[#f0a202]">{mm}:{ss}</span>
+                  <span className="font-mono text-3xl font-bold tabular-nums text-[#f0a202] drop-shadow-[0_0_14px_rgba(240,162,2,0.45)]">
+                    {mm}:{ss}
+                  </span>
                 </div>
-                <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-[#f6f1e5]/30 bg-[#0f3229]">
-                  <div className="h-full bg-[#f0a202] transition-all duration-1000" style={{ width: `${progress * 100}%` }} />
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#0f3229]">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#f0a202,#ffd166)] shadow-[0_0_12px_rgba(240,162,2,0.55)] transition-all duration-1000"
+                    style={{ width: `${progress * 100}%` }}
+                  />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-md border border-[#f0a202]/50 bg-[#f0a202]/15 px-3 py-1 text-[10px] font-bold text-[#f0a202]">25 min focus</span>
@@ -144,12 +189,17 @@ export default function StudyRoom() {
               </p>
               <div className="flex-1 space-y-3 overflow-hidden">
                 {CHAT.slice(0, chatCount).map((c, i) => (
-                  <div key={`${i}-${c.name}`} className="chat-bubble">
+                  <motion.div
+                    key={`${i}-${c.name}`}
+                    initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  >
                     <p className={`text-[11px] font-black ${c.color}`}>{c.name}</p>
                     <p className="mt-0.5 inline-block rounded-lg rounded-tl-sm border border-[#f6f1e5]/20 bg-[#f6f1e5]/10 px-3 py-1.5 text-xs text-[#f6f1e5]/85">
                       {c.msg}
                     </p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <div className="mt-4 flex items-center gap-2 rounded-lg border-[1.5px] border-[#f6f1e5]/25 bg-[#17453a] px-3 py-2.5">
