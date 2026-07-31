@@ -82,8 +82,7 @@ export function ShinyButton({
         }
 
         .shiny-cta::before,
-        .shiny-cta::after,
-        .shiny-cta span::before {
+        .shiny-cta::after {
           content: '';
           pointer-events: none;
           position: absolute;
@@ -145,16 +144,6 @@ export function ShinyButton({
           gap: 0.5rem;
         }
 
-        .shiny-cta span::before {
-          --size: calc(100% + 1rem);
-          width: var(--size);
-          height: var(--size);
-          box-shadow: inset 0 -1ex 2rem 4px var(--shiny-cta-highlight);
-          opacity: 0;
-          transition: opacity var(--transition);
-          animation: calc(var(--duration) * 1.5) shiny-button-breathe linear infinite;
-        }
-
         .shiny-cta,
         .shiny-cta::before,
         .shiny-cta::after {
@@ -176,10 +165,6 @@ export function ShinyButton({
           animation-play-state: running;
         }
 
-        .shiny-cta:not(:disabled):is(:hover, :focus-visible) span::before {
-          opacity: 1;
-        }
-
         .shiny-cta:disabled {
           cursor: wait;
           opacity: 0.6;
@@ -187,8 +172,7 @@ export function ShinyButton({
 
         .shiny-cta:disabled,
         .shiny-cta:disabled::before,
-        .shiny-cta:disabled::after,
-        .shiny-cta:disabled span::before {
+        .shiny-cta:disabled::after {
           animation-play-state: paused;
         }
 
@@ -204,16 +188,6 @@ export function ShinyButton({
           }
         }
 
-        @keyframes shiny-button-breathe {
-          from,
-          to {
-            scale: 1;
-          }
-          50% {
-            scale: 1.2;
-          }
-        }
-
         @media (max-width: 480px) {
           .shiny-cta {
             padding: 1rem 1.25rem;
@@ -224,8 +198,7 @@ export function ShinyButton({
         @media (prefers-reduced-motion: reduce) {
           .shiny-cta,
           .shiny-cta::before,
-          .shiny-cta::after,
-          .shiny-cta span::before {
+          .shiny-cta::after {
             animation: none;
           }
         }
