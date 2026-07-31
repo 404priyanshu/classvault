@@ -10,7 +10,7 @@ export default function UniversityTicker() {
   const row = [...universities, ...universities]
   return (
     <section
-      className="border-y-[1.5px] border-[#171512]/20 bg-[#efe8d8] py-7"
+      className="border-b-[1.5px] border-[#171512]/20 bg-[#efe8d8] py-7"
       style={{ backgroundImage: `url(${pattern.src})`, backgroundSize: '768px' }}
     >
       <p className="mb-4 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#171512]/55">

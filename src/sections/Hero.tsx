@@ -173,14 +173,21 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* torn-paper edge into next section — ragged side sits on the seam */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 overflow-hidden md:h-20">
+      {/* A narrow torn edge anchors the hero sheet directly to the ticker seam. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-7 overflow-hidden md:h-9"
+        style={{
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 42%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 42%)',
+        }}
+      >
         <Image
           src={tornNotebookPaper}
           alt=""
           aria-hidden
           draggable={false}
-          className="absolute bottom-0 left-1/2 h-auto w-[104%] max-w-none -translate-x-1/2 select-none"
+          className="absolute left-1/2 h-auto w-[104%] max-w-none -translate-x-1/2 select-none [filter:drop-shadow(0_4px_3px_rgba(23,21,18,0.14))]"
+          style={{ bottom: 'clamp(-72px, -3.6vw, -14px)' }}
           sizes="100vw"
           unoptimized
         />
