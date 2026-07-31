@@ -102,7 +102,6 @@ export default function MarginNotes() {
               dragConstraints={constraintsRef}
               dragElastic={0.25}
               dragTransition={{ bounceStiffness: 300, bounceDamping: 18 }}
-              data-nostamp
               className="paper-card-sm bg-ruled relative cursor-grab touch-none rounded-lg p-6 pt-9"
             >
               {n.attachment === 'clip' ? (

@@ -4,55 +4,6 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion'
 import { Lightbulb } from 'lucide-react'
 
-/* ---------- rubber stamps on background clicks ---------- */
-const STAMP_DEFS = [
-  { text: 'VERIFIED ✓', color: '#17453a' },
-  { text: 'A+', color: '#e8890c' },
-  { text: 'TOP RATED ★', color: '#17453a' },
-  { text: '★ STAR NOTE', color: '#8a5a00' },
-  { text: 'ARCHIVED', color: '#8a5a00' },
-]
-
-type Stamp = {
-  id: number
-  x: number
-  y: number
-  rot: number
-  def: (typeof STAMP_DEFS)[number]
-  small?: boolean
-}
-
-let stampId = 0
-
-function StampLayer({ stamps }: { stamps: Stamp[] }) {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[90]">
-      <AnimatePresence>
-        {stamps.map((s) => (
-          <motion.div
-            key={s.id}
-            initial={{ scale: 2.4, opacity: 0, rotate: s.rot * 3 }}
-            animate={{ scale: 1, opacity: 1, rotate: s.rot }}
-            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.35 } }}
-            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-            className="absolute"
-            style={{ left: s.x, top: s.y, translateX: '-50%', translateY: '-50%', mixBlendMode: 'multiply' }}
-          >
-            <span
-              className={`inline-block whitespace-nowrap rounded-md font-black uppercase tracking-widest ${
-                s.small ? 'border-2 px-2 py-0.5 text-[10px]' : 'border-[3px] px-3 py-1 text-sm'
-              }`}
-              style={{ borderColor: s.def.color, color: s.def.color, opacity: 0.85 }}
-            >
-              {s.def.text}
-            </span>
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
-  )
-}
-
 /* ---------- burst particles from CTAs ---------- */
 type Burst = {
   id: number
@@ -63,6 +14,8 @@ type Burst = {
   rot: number
   color: string
 }
+
+let burstId = 0
 
 function BurstLayer({ bursts }: { bursts: Burst[] }) {
   return (
@@ -113,48 +66,31 @@ export default function InteractiveFX() {
     return () => window.removeEventListener('mousemove', move)
   }, [lamp])
 
-  /* stamps + bursts */
-  const [stamps, setStamps] = useState<Stamp[]>([])
+  /* CTA bursts */
   const [bursts, setBursts] = useState<Burst[]>([])
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
 
-      // CTA burst
       const burstEl = target.closest('[data-burst]')
-      if (burstEl) {
-        const fresh: Burst[] = Array.from({ length: 12 }, () => {
-          const angle = Math.random() * Math.PI * 2
-          const dist = 60 + Math.random() * 110
-          return {
-            id: ++stampId,
-            x: e.clientX,
-            y: e.clientY,
-            dx: Math.cos(angle) * dist,
-            dy: Math.sin(angle) * dist - 40,
-            rot: (Math.random() - 0.5) * 300,
-            color: Math.random() > 0.5 ? '#e8890c' : '#17453a',
-          }
-        })
-        setBursts((p) => [...p, ...fresh])
-        setTimeout(() => setBursts((p) => p.filter((b) => !fresh.includes(b))), 1000)
-        return
-      }
+      if (!burstEl) return
 
-      // ignore interactive elements
-      if (target.closest('a, button, input, textarea, select, label, summary, [role="button"], [data-nostamp]')) return
-
-      const def = STAMP_DEFS[Math.floor(Math.random() * STAMP_DEFS.length)]
-      const s: Stamp = {
-        id: ++stampId,
-        x: e.clientX,
-        y: e.clientY,
-        rot: (Math.random() - 0.5) * 24,
-        def,
-      }
-      setStamps((p) => [...p.slice(-6), s])
-      setTimeout(() => setStamps((p) => p.filter((x) => x.id !== s.id)), 1600)
+      const fresh: Burst[] = Array.from({ length: 12 }, () => {
+        const angle = Math.random() * Math.PI * 2
+        const dist = 60 + Math.random() * 110
+        return {
+          id: ++burstId,
+          x: e.clientX,
+          y: e.clientY,
+          dx: Math.cos(angle) * dist,
+          dy: Math.sin(angle) * dist - 40,
+          rot: (Math.random() - 0.5) * 300,
+          color: Math.random() > 0.5 ? '#e8890c' : '#17453a',
+        }
+      })
+      setBursts((p) => [...p, ...fresh])
+      setTimeout(() => setBursts((p) => p.filter((b) => !fresh.includes(b))), 1000)
     }
     document.addEventListener('click', onClick)
     return () => document.removeEventListener('click', onClick)
@@ -240,7 +176,6 @@ export default function InteractiveFX() {
       {/* lamp toggle */}
       <button
         onClick={() => setLamp((v) => !v)}
-        data-nostamp
         aria-label="Toggle study lamp"
         className={`fixed bottom-4 right-4 z-[96] flex items-center gap-0 rounded-full border-[1.5px] border-[#171512] p-3 font-bold shadow-[3px_3px_0_#171512] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#171512] sm:bottom-6 sm:right-6 sm:gap-2 sm:px-4 sm:py-2.5 ${
           lamp ? 'bg-[#f0a202] text-[#171512]' : 'bg-[#fffdf6] text-[#171512]/70'
@@ -250,7 +185,6 @@ export default function InteractiveFX() {
         <span className="hidden text-xs sm:inline">{lamp ? 'lights on' : 'night study'}</span>
       </button>
 
-      <StampLayer stamps={stamps} />
       <BurstLayer bursts={bursts} />
     </>
   )

@@ -403,7 +403,6 @@ visual_direction:
     - Marquees and calculated progress
     - Draggable margin-note cards
     - Custom cursor
-    - Click stamps
     - CTA bursts
     - Scroll pencil
     - Night-study lamp effect
