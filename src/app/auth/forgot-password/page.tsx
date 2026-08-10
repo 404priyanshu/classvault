@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { CaptchaWidget } from '@/components/auth/CaptchaWidget'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
+import { getTurnstileSiteKey } from '@/lib/auth/captcha'
 import { requestPasswordResetAction } from '../actions'
 
 type ForgotPasswordPageProps = {
@@ -25,7 +27,16 @@ export default async function ForgotPasswordPage({
       title="Find your key."
     >
       <AuthMessage error={error} status={status} />
-      <form action={requestPasswordResetAction} className="space-y-5">
+      <CaptchaWidget
+        action="password_reset"
+        formIds={['password-reset-form']}
+        siteKey={getTurnstileSiteKey()}
+      />
+      <form
+        action={requestPasswordResetAction}
+        className="space-y-5"
+        id="password-reset-form"
+      >
         <label className="block">
           <span className="text-sm font-bold">Account email</span>
           <input

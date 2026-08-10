@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { CaptchaWidget } from '@/components/auth/CaptchaWidget'
 import { AuthProviderButtons } from '@/components/auth/AuthProviderButtons'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
+import { getTurnstileSiteKey } from '@/lib/auth/captcha'
 import { signUpAction } from '../actions'
 
 type SignUpPageProps = {
@@ -29,8 +31,21 @@ export default async function SignUpPage({
       title="Create your vault."
     >
       <AuthMessage error={error} />
-      <AuthProviderButtons next="/onboarding" source="/auth/sign-up" />
-      <form action={signUpAction} className="space-y-5">
+      <AuthProviderButtons
+        formId="sign-up-oauth-form"
+        next="/onboarding"
+        source="/auth/sign-up"
+      />
+      <CaptchaWidget
+        action="sign_up"
+        formIds={['sign-up-password-form']}
+        siteKey={getTurnstileSiteKey()}
+      />
+      <form
+        action={signUpAction}
+        className="space-y-5"
+        id="sign-up-password-form"
+      >
         <label className="block">
           <span className="text-sm font-bold">Name</span>
           <input

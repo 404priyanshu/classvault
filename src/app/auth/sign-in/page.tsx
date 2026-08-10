@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { CaptchaWidget } from '@/components/auth/CaptchaWidget'
 import { AuthProviderButtons } from '@/components/auth/AuthProviderButtons'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
+import { getTurnstileSiteKey } from '@/lib/auth/captcha'
 import { signInAction } from '../actions'
 
 type SignInPageProps = {
@@ -33,8 +35,21 @@ export default async function SignInPage({
       title="Unlock your vault."
     >
       <AuthMessage error={error} status={status} />
-      <AuthProviderButtons next={next || '/dashboard'} source="/auth/sign-in" />
-      <form action={signInAction} className="space-y-5">
+      <AuthProviderButtons
+        formId="sign-in-oauth-form"
+        next={next || '/dashboard'}
+        source="/auth/sign-in"
+      />
+      <CaptchaWidget
+        action="sign_in"
+        formIds={['sign-in-password-form']}
+        siteKey={getTurnstileSiteKey()}
+      />
+      <form
+        action={signInAction}
+        className="space-y-5"
+        id="sign-in-password-form"
+      >
         <input name="next" type="hidden" value={next || '/dashboard'} />
         <label className="block">
           <span className="text-sm font-bold">Email</span>

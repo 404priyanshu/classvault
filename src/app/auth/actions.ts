@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import { readCaptchaToken } from '@/lib/auth/captcha'
 import { isSupportedPhoneCountryCode } from '@/lib/auth/phone'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/supabase/config'
@@ -29,8 +30,20 @@ type PhoneOtpRequestError = {
   status?: number
 }
 
+const CAPTCHA_ERROR_MESSAGE =
+  'Complete the security check, then submit the form again.'
+
+function isCaptchaError(error: PhoneOtpRequestError) {
+  return (
+    error.code === 'captcha_failed' ||
+    error.message.toLowerCase().includes('captcha')
+  )
+}
+
 function getPhoneOtpRequestErrorMessage(error: PhoneOtpRequestError) {
   switch (error.code) {
+    case 'captcha_failed':
+      return CAPTCHA_ERROR_MESSAGE
     case 'over_sms_send_rate_limit':
       return 'A code was requested too recently. Wait at least 60 seconds, then try again.'
     case 'over_request_rate_limit':
@@ -62,8 +75,10 @@ function withMessage(
   pathname: string,
   kind: 'error' | 'status',
   message: string,
+  additionalParams: Record<string, string> = {},
 ) {
-  const params = new URLSearchParams({ [kind]: message })
+  const params = new URLSearchParams(additionalParams)
+  params.set(kind, message)
   return `${pathname}?${params.toString()}`
 }
 
@@ -135,7 +150,10 @@ export async function signInWithOAuthAction(formData: FormData) {
       withMessage(
         source,
         'error',
-        `${provider.data === 'google' ? 'Google' : 'GitHub'} sign-in is not configured yet.`,
+        error && isCaptchaError(error)
+          ? CAPTCHA_ERROR_MESSAGE
+          : `${provider.data === 'google' ? 'Google' : 'GitHub'} sign-in is not configured yet.`,
+        { next },
       ),
     )
   }
@@ -157,9 +175,23 @@ export async function requestPhoneOtpAction(formData: FormData) {
     )
   }
 
+  const captchaToken = readCaptchaToken(formData)
+
+  if (captchaToken === null) {
+    redirect(
+      withPhoneMessage('error', CAPTCHA_ERROR_MESSAGE, {
+        next,
+        phone: phone.data,
+      }),
+    )
+  }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithOtp({
     phone: phone.data,
+    options: {
+      captchaToken,
+    },
   })
 
   if (error) {
@@ -239,13 +271,25 @@ export async function signInAction(formData: FormData) {
         '/auth/sign-in',
         'error',
         'Enter a valid email and a password of at least 8 characters.',
+        { next },
       ),
+    )
+  }
+
+  const captchaToken = readCaptchaToken(formData)
+
+  if (captchaToken === null) {
+    redirect(
+      withMessage('/auth/sign-in', 'error', CAPTCHA_ERROR_MESSAGE, { next }),
     )
   }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({
     email: email.data,
+    options: {
+      captchaToken,
+    },
     password: password.data,
   })
 
@@ -254,7 +298,10 @@ export async function signInAction(formData: FormData) {
       withMessage(
         '/auth/sign-in',
         'error',
-        'The email or password is incorrect.',
+        isCaptchaError(error)
+          ? CAPTCHA_ERROR_MESSAGE
+          : 'The email or password is incorrect.',
+        { next },
       ),
     )
   }
@@ -282,11 +329,20 @@ export async function signUpAction(formData: FormData) {
     )
   }
 
+  const captchaToken = readCaptchaToken(formData)
+
+  if (captchaToken === null) {
+    redirect(
+      withMessage('/auth/sign-up', 'error', CAPTCHA_ERROR_MESSAGE),
+    )
+  }
+
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email: email.data,
     password: password.data,
     options: {
+      captchaToken,
       data: {
         full_name: fullName.data,
       },
@@ -299,7 +355,9 @@ export async function signUpAction(formData: FormData) {
       withMessage(
         '/auth/sign-up',
         'error',
-        'We could not create the account. Please try again shortly.',
+        isCaptchaError(error)
+          ? CAPTCHA_ERROR_MESSAGE
+          : 'We could not create the account. Please try again shortly.',
       ),
     )
   }
@@ -325,10 +383,33 @@ export async function requestPasswordResetAction(formData: FormData) {
     )
   }
 
+  const captchaToken = readCaptchaToken(formData)
+
+  if (captchaToken === null) {
+    redirect(
+      withMessage(
+        '/auth/forgot-password',
+        'error',
+        CAPTCHA_ERROR_MESSAGE,
+      ),
+    )
+  }
+
   const supabase = await createClient()
-  await supabase.auth.resetPasswordForEmail(email.data, {
+  const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
+    captchaToken,
     redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/update-password`,
   })
+
+  if (error && isCaptchaError(error)) {
+    redirect(
+      withMessage(
+        '/auth/forgot-password',
+        'error',
+        CAPTCHA_ERROR_MESSAGE,
+      ),
+    )
+  }
 
   redirect(
     withMessage(

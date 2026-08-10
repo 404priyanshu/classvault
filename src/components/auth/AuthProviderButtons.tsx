@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { signInWithOAuthAction } from '@/app/auth/actions'
 
 type AuthProviderButtonsProps = {
+  formId: string
   next?: string
   source: '/auth/sign-in' | '/auth/sign-up'
 }
@@ -35,6 +36,7 @@ function GoogleMark() {
 }
 
 export function AuthProviderButtons({
+  formId,
   next = '/dashboard',
   source,
 }: AuthProviderButtonsProps) {
@@ -42,8 +44,8 @@ export function AuthProviderButtons({
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <form action={signInWithOAuthAction}>
+      <form action={signInWithOAuthAction} id={formId}>
+        <div className="grid grid-cols-2 gap-3">
           <input name="next" type="hidden" value={next} />
           <input name="source" type="hidden" value={source} />
           <button
@@ -55,11 +57,6 @@ export function AuthProviderButtons({
             <GoogleMark />
             Google
           </button>
-        </form>
-
-        <form action={signInWithOAuthAction}>
-          <input name="next" type="hidden" value={next} />
-          <input name="source" type="hidden" value={source} />
           <button
             className="flex h-11 w-full items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-white px-3 text-sm font-black shadow-[2px_2px_0_#171512] transition-transform hover:-translate-y-0.5"
             name="provider"
@@ -69,8 +66,8 @@ export function AuthProviderButtons({
             <Github className="h-4 w-4" />
             GitHub
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
 
       <Link
         className="mt-3 flex h-11 w-full items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-[#f6f1e5] px-3 text-sm font-black shadow-[2px_2px_0_#171512] transition-transform hover:-translate-y-0.5"

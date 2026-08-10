@@ -35,6 +35,7 @@ The application expects these variables in `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 ```
 
 Use the project URL and publishable key from the Supabase project's Connect
@@ -98,7 +99,8 @@ Completed profiles enter `/dashboard` and can be edited at
 
 ### Google, GitHub, and phone sign-in
 
-The application-side flows are implemented:
+The application-side flows are implemented, and the hosted development project
+has Google, GitHub, and Twilio Verify providers configured:
 
 - Google and GitHub use Supabase OAuth with the existing PKCE callback at
   `/auth/confirm`.
@@ -108,8 +110,8 @@ The application-side flows are implemented:
   complete onboarding, but campus membership remains `pending` until an
   academic email can be verified.
 
-Each provider must also be enabled in the hosted Supabase project before its
-button can complete authentication.
+Each provider must also be configured in any new Supabase environment before
+its button can complete authentication.
 
 For Google and GitHub:
 
@@ -127,19 +129,37 @@ For phone OTP:
    settings.
 2. Enable the Phone provider.
 3. Apply `20260729030000_allow_phone_onboarding.sql`.
-4. Configure CAPTCHA and appropriate Auth rate limits before production.
+4. Configure CAPTCHA and appropriate Auth rate limits. The hosted development
+   project uses Cloudflare Turnstile and a 10-SMS-per-hour project limit.
 
 SMS delivery has a direct cost. A production launch aimed at Indian numbers
 must also account for applicable TRAI DLT registration and message-template
 requirements.
 
+## Notes module specification
+
+The canonical implementation baseline for note upload, university boundaries,
+private downloads, ratings, ranking, deletion, recovery, moderation, search,
+and future roadmap authorization is
+[`docs/notes-product-data-permissions-spec.md`](docs/notes-product-data-permissions-spec.md).
+The hosted schema/RLS foundation is implemented through migrations
+`20260810000000_create_notes_foundation.sql` and
+`20260810010000_harden_notes_function_privileges.sql`, with 38 transactional
+pgTAP tests in `supabase/tests/notes_rls.sql`. Note storage and product routes
+are not yet implemented.
+
 ## Checks
 
 ```bash
+npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run db:test
 ```
+
+`npm run db:test` requires a running local Supabase/Postgres stack or a connected
+test database.
 
 ## Structure
 
@@ -153,5 +173,7 @@ npm run build
 - `src/components/ui` — reusable shadcn/Radix UI primitives
 - `src/lib/supabase` — typed browser/server clients and session utilities
 - `src/assets` — local ClassVault illustrations and textures
+- `docs/notes-product-data-permissions-spec.md` — notes product, data model,
+  permissions, lifecycle, and acceptance criteria
 - `supabase` — local config, branded auth email templates, seed file, and
   versioned database migrations

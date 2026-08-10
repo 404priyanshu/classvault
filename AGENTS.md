@@ -3,8 +3,8 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 11
-  last_verified: 2026-07-29
+  context_version: 17
+  last_verified: 2026-08-10
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
   source_of_truth_priority:
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding foundation
-production_application_status: Auth, secure onboarding, and authenticated shell implemented; core product modules not implemented
+product_stage: Interactive landing-page prototype plus authenticated onboarding and notes data foundations
+production_application_status: Auth, secure onboarding, authenticated shell, and notes schema/RLS foundation implemented; notes UI and file pipeline not implemented
 framework: Next.js 16.2.12
 router: Next.js App Router
 language: TypeScript
@@ -42,9 +42,12 @@ authentication_methods_implemented:
   - phone SMS OTP application flow
 authentication_provider_configuration:
   email_password: enabled in hosted Supabase
-  google: application code complete; external OAuth client and hosted Supabase provider configuration required
-  github: application code complete; external OAuth app and hosted Supabase provider configuration required
+  google: operational end to end through a dedicated Google OAuth client and hosted Supabase
+  github: operational end to end through a dedicated GitHub OAuth App and hosted Supabase
   phone: operational end to end through hosted Supabase and Twilio Verify
+authentication_protection:
+  captcha: Cloudflare Turnstile enabled in hosted Supabase for public email/password, password-recovery, and phone-OTP requests
+  sms_rate_limit: 10 messages per hour across the hosted project
 authentication_email_template: Branded ClassVault sign-up confirmation template implemented locally
 authentication_email_sender_status: Custom SMTP deferred until the user owns a domain; hosted mail still identifies Supabase as sender
 loading_feedback:
@@ -60,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: uiimhqaejwefahvbcsml
-automated_test_suite: false
+automated_test_suite: 12 Vitest tests plus 38 hosted pgTAP notes authorization and constraint tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -97,6 +100,15 @@ same date. Migration
 `20260729010000_create_university_onboarding.sql` was also applied and a
 follow-up dry run reported the hosted database up to date.
 
+Migration `20260810000000_create_notes_foundation.sql` and follow-up hardening
+migration `20260810010000_harden_notes_function_privileges.sql` were applied to
+the hosted database on 2026-08-10 and recorded in migration history. They add
+the notes relational foundation, private asset/search metadata boundaries,
+rating/report/moderation tables, indexes, forced RLS, and reusable authorization
+helpers. The follow-up migration explicitly removes hosted Supabase's default
+`anon` function grants before granting only the intended helpers to
+`authenticated`. The hosted 38-test pgTAP suite passed after hardening.
+
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
 `supabase/config.toml`. The hosted project still requires custom SMTP plus the
@@ -104,15 +116,37 @@ template to be applied in the Supabase Dashboard before Gmail will show a
 ClassVault-owned sender instead of `Supabase Auth`.
 
 Google and GitHub OAuth initiation, the PKCE callback, and phone OTP
-request/verification are implemented in application code. The Google OAuth
-client and GitHub OAuth App have not been configured externally, so those
-methods cannot complete against hosted Supabase yet. The hosted Supabase Phone
-provider is configured with Twilio Verify. Live SMS delivery and six-digit OTP
-verification were confirmed working end to end on 2026-07-29. Migration
+request/verification are implemented in application code. Google OAuth is
+configured through the dedicated `ClassVault Supabase` web client in Google
+Cloud project `classvault-499208`; its hosted Supabase provider is enabled and
+the returning-user flow through `/auth/confirm` to `/dashboard` passed on
+2026-08-10. The Google consent screen remains external and in Testing status,
+so access is limited to its configured test users. A brand-new Google user's
+account creation, confirmation, onboarding completion, and university
+membership assignment were verified on 2026-08-10. GitHub OAuth is configured
+through the dedicated `ClassVault` OAuth App owned by the repository owner; its
+hosted Supabase provider is enabled and a fresh GitHub identity successfully
+reached `/onboarding` through `/auth/confirm` on 2026-08-10. After completing
+onboarding, the same account signed out and returned directly to `/dashboard`;
+its confirmed academic email produced the expected `verified` Bennett
+University membership. The hosted Supabase Phone provider is configured with
+Twilio Verify. Live SMS
+delivery and six-digit OTP verification were confirmed working end to end on
+2026-07-29. Migration
 `20260729030000_allow_phone_onboarding.sql` allows phone-only users to complete
 onboarding with a `pending` university membership. It was applied to the hosted
 database on 2026-07-29, and a follow-up dry run reported the database up to
 date.
+
+Cloudflare Turnstile is integrated into the email sign-in, email sign-up,
+password-recovery, initial phone-OTP request, and phone-OTP resend forms. Hosted
+Supabase CAPTCHA enforcement is enabled with the Turnstile provider. On
+2026-08-10, a request without a CAPTCHA token was rejected with
+`captcha_failed`, while a token generated by the localhost ClassVault widget
+passed CAPTCHA enforcement and reached normal credential validation. The
+current Cloudflare widget allows `localhost`; deployment requires adding the
+production hostname or creating a production widget and updating the public
+site key. The hosted project-wide SMS send limit is 10 messages per hour.
 
 ### Authentication continuation state
 
@@ -129,14 +163,81 @@ email_password:
 oauth:
   google:
     application_status: complete
-    external_status: Google OAuth client ID and secret not created/configured
+    external_status: operational through dedicated Google web client and hosted Supabase provider
+    google_cloud_project: classvault-499208
+    google_oauth_client_name: ClassVault Supabase
+    consent_screen_status: Testing
+    hosted_provider_status: enabled
+    returning_user_acceptance_test:
+      status: pass
+      confirmed_on: 2026-08-10
+      verified_behavior:
+        - OAuth initiation used the dedicated ClassVault client
+        - Google redirected through the hosted Supabase callback
+        - /auth/confirm exchanged the PKCE code for a cookie-backed session
+        - A completed returning user reached /dashboard
+    new_user_acceptance_test:
+      status: pass
+      confirmed_on: 2026-08-10
+      verified_behavior:
+        - A fresh Google identity created a confirmed Supabase Auth user
+        - The user completed the protected onboarding flow
+        - The profile stored the selected academic path, goal, and study preference
+        - A non-academic Gmail address received the expected pending university membership
+    secrets_policy:
+      - The client secret is stored only in hosted Supabase provider settings
+      - Never commit or expose the Google client secret
   github:
     application_status: complete
-    external_status: GitHub OAuth App client ID and secret not created/configured
+    external_status: operational end to end through dedicated GitHub OAuth App and hosted Supabase provider
+    github_oauth_app_name: ClassVault
+    homepage_url: http://localhost:3000
+    hosted_provider_status: enabled
+    new_user_acceptance_test:
+      status: pass
+      confirmed_on: 2026-08-10
+      verified_behavior:
+        - GitHub displayed the ClassVault authorization screen with read-only email access
+        - GitHub redirected through the hosted Supabase callback
+        - /auth/confirm exchanged the PKCE code for a cookie-backed session
+        - A fresh GitHub identity reached /onboarding
+    returning_user_acceptance_test:
+      status: pass
+      confirmed_on: 2026-08-10
+      verified_behavior:
+        - The GitHub user completed onboarding and reached /dashboard
+        - The confirmed academic email received a verified university membership
+        - Sign-out cleared the application session
+        - Returning GitHub sign-in routed directly through /auth/confirm to /dashboard
+    secrets_policy:
+      - The client secret is stored only in hosted Supabase provider settings
+      - Never commit or expose the GitHub client secret
   callback_route: /auth/confirm
   post_auth_routing:
     new_users: /onboarding
     completed_users: /dashboard through existing onboarding/dashboard gates
+
+captcha:
+  provider: Cloudflare Turnstile
+  hosted_supabase_status: enabled
+  application_status: complete for password, recovery, and phone OTP requests
+  protected_actions:
+    - email/password sign-in
+    - email/password sign-up
+    - password-recovery request
+    - initial phone OTP request
+    - phone OTP resend
+  development_hostname: localhost
+  acceptance_test:
+    status: pass
+    confirmed_on: 2026-08-10
+    verified_behavior:
+      - Hosted Supabase rejects protected requests without a CAPTCHA token
+      - The ClassVault localhost widget produces a token accepted by hosted Supabase
+      - Accepted CAPTCHA submissions continue to normal Auth credential validation
+  production_requirement:
+    - Register the production hostname with Cloudflare Turnstile before deployment
+    - Keep the Turnstile secret only in hosted Supabase or server-only local environment variables
 
 phone_otp:
   application_status: complete
@@ -155,6 +256,7 @@ phone_otp:
     campus_membership_status: pending
     automatic_campus_verification: unavailable until a confirmed academic email exists
   hosted_sms_status: operational
+  hosted_sms_hourly_limit: 10
   sms_provider: Twilio Verify
   hosted_provider_status:
     phone_enabled: true
@@ -223,13 +325,13 @@ product_pillars:
       - Upload, discover, download, and rate student notes
       - Rank quality using rating count and recency, not raw average alone
       - Support full-text search
-    implementation_status: Marketing concept only
+    implementation_status: Specification and hosted schema/RLS foundation complete; application routes and file pipeline not implemented
 
   verified_university_communities:
     intent:
       - Scope communities and content to universities
       - Verify membership using institution email domains
-    implementation_status: University selection and membership verification implemented; university-scoped content is not implemented
+    implementation_status: Membership verification and notes authorization foundation implemented; university-scoped product UI is not implemented
 
   live_study_rooms:
     intent:
@@ -281,9 +383,11 @@ These are product claims, not implemented or validated system behavior.
 - Supabase SSR browser/server clients with cookie-backed sessions.
 - Email/password registration, sign-in, sign-out, confirmation, and password
   recovery flows.
-- Google and GitHub OAuth initiation with a cookie-backed PKCE callback through
-  `/auth/confirm`; external provider credentials are still required.
+- Google and GitHub OAuth initiation with cookie-backed PKCE callbacks through
+  `/auth/confirm`; both hosted providers are configured and operational.
 - Phone OTP request and six-digit verification through `/auth/phone`.
+- Cloudflare Turnstile protection for public password, recovery, and phone-OTP
+  request forms, with server actions forwarding the token to hosted Supabase.
 - A native phone country-code selector backed by `src/lib/auth/phone.ts`,
   defaulting to India (`+91`) and normalizing the selected code plus national
   number into E.164 before calling Supabase.
@@ -318,15 +422,28 @@ These are product claims, not implemented or validated system behavior.
   selected university; otherwise the membership remains `pending`.
 - Dashboard gating: signed-in users without `onboarding_completed_at` are sent
   to `/onboarding`; completed users may edit at `/onboarding?edit=1`.
+- A Vitest foundation with 12 tests covering authentication server actions,
+  onboarding completion, safe redirects, CAPTCHA forwarding, and session-proxy
+  route protection.
+- A hosted notes database foundation covering subjects, notes, private asset
+  metadata, derived search documents, ratings and summaries, reports, platform
+  roles, and append-only moderation actions.
+- Forced RLS and least-privilege grants for notes metadata. Eligible students
+  can read public notes; university notes require a current verified membership;
+  owners retain Trash metadata; flagged content is visible only to appropriately
+  scoped campus or platform moderators.
+- Private `note_assets`, `note_search_documents`, and `platform_roles` tables
+  have no direct authenticated read grant, and critical notes mutations have no
+  direct client write grant.
+- A 38-test hosted pgTAP suite covering table/function privileges, pending and
+  incomplete users, cross-university direct-ID isolation, owner Trash access,
+  private ratings/reports, moderator scope, and published-file/scope
+  immutability.
 
 ### Simulated or absent
 
 ```yaml
 not_implemented:
-  - Live Google OAuth provider configuration
-  - Live GitHub OAuth provider configuration
-  - CAPTCHA protection for public authentication
-  - University-scoped content authorization or tenancy policies
   - Manual review/rejection workflow for pending university memberships
   - Note upload, storage, download, deletion, or recovery
   - Real search or indexing
@@ -436,6 +553,14 @@ interaction effects.
 
 ```yaml
 important_files:
+  docs/notes-product-data-permissions-spec.md:
+    role: Canonical notes-module product rules, relational model, RLS boundaries, ranking formula, lifecycle, and acceptance criteria
+  supabase/migrations/20260810000000_create_notes_foundation.sql:
+    role: Hosted notes tables, constraints, indexes, authorization helpers, privileges, seed subjects, and forced RLS policies
+  supabase/migrations/20260810010000_harden_notes_function_privileges.sql:
+    role: Explicit hosted removal of default anon/authenticated function grants and narrow authenticated helper grants
+  supabase/tests/notes_rls.sql:
+    role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   src/app/layout.tsx:
     role: Root layout, metadata, and next/font setup
   src/app/page.tsx:
@@ -501,14 +626,22 @@ Default development URL: `http://localhost:3000`
 Required verification before handing off code changes:
 
 ```bash
+npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run db:test
 ```
 
-Last verified baseline on 2026-07-29:
+`npm run db:test` requires a running local Supabase/Postgres stack or an
+explicitly connected test database. The canonical pgTAP suite was also run
+transactionally against the hosted development project on 2026-08-10.
+
+Last verified baseline on 2026-08-10:
 
 ```yaml
+vitest_tests: 12 passed
+hosted_pgtap_tests: 38 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -531,6 +664,10 @@ interactions_checked:
   protected_route_without_session: pass
   hosted_supabase_auth_api: reachable
   hosted_database_migrations: applied and dry-run current
+  hosted_notes_foundation_tables: 9
+  hosted_notes_forced_rls_tables: 9
+  hosted_notes_rls_policies: 6
+  hosted_notes_seeded_subjects: 9
   onboarding_identity_step: pass
   onboarding_university_search: pass
   onboarding_email_domain_state: pass
@@ -540,6 +677,9 @@ interactions_checked:
   confirmation_email_desktop_render: pass
   confirmation_email_mobile_render: pass
   confirmation_email_horizontal_mobile_overflow: none observed
+  hosted_turnstile_missing_token_rejection: pass
+  hosted_turnstile_valid_token_acceptance: pass
+  hosted_sms_hourly_limit: 10
 ```
 
 Node tooling currently installed on the machine:
@@ -557,7 +697,8 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. There is no automated test suite.
+1. Automated coverage includes 12 Vitest tests and 38 notes pgTAP tests. There
+   is still no full browser end-to-end suite or file-storage integration suite.
 2. Some currently unused shadcn-style components may contain Tailwind syntax
    associated with newer Tailwind versions, including forms such as
    `origin-(--...)` or `outline-hidden`. The current landing page builds because
@@ -572,13 +713,14 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    presented as real analytics. The landing page deliberately uses honest
    early-access framing instead of invented statistics or fabricated
    testimonials; keep it that way.
-6. The checked-in database types match the current migration manually. The
+6. The checked-in database types match the current hosted migrations manually. The
    Supabase CLI type generator attempted to require Docker even with a remote
    connection URL on this machine. Regenerate with `npm run db:types` after CLI
    login, or after installing Docker for a local stack.
-7. Phone OTP sends can create direct variable cost and are an abuse target.
-   Do not expose live SMS broadly until CAPTCHA, rate limits, monitoring, and
-   billing safeguards are configured.
+7. Phone OTP sends can create direct variable cost and remain an abuse target.
+   CAPTCHA and a 10-per-hour hosted SMS limit are configured; production still
+   needs delivery/spend monitoring, billing safeguards, and a production
+   Turnstile hostname.
 8. Phone numbers can be recycled. Do not treat possession of a phone number as
    permanent proof of a student's identity or university membership.
 9. Production SMS delivery to Indian users may require TRAI DLT registration
@@ -591,7 +733,6 @@ No decision has been made for any of the following:
 ```yaml
 open_decisions:
   - Manual review and evidence process for pending university memberships
-  - University-scoped authorization rules for future content
   - File/object storage
   - Search engine
   - AI provider, models, prompting, evaluation, and grounding strategy
@@ -617,21 +758,20 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Create and configure Google and GitHub OAuth applications, then test new-user
-   and returning-user routing through `/auth/confirm`.
-2. Verify email confirmation, onboarding completion, profile editing, and
-   password recovery end to end with a real development account; regenerate
-   database types when the CLI environment supports it.
-3. Add CAPTCHA and review Auth/SMS rate limits before exposing phone OTP to
-   untrusted traffic.
-4. Convert the notes-related landing-page claims into an explicit product, data, and permissions
-   specification.
-5. Implement note upload, browse, download, rating, soft deletion, and recovery.
-6. Enforce university scoping and note permissions.
-7. Implement indexed full-text search.
-8. Implement permission-aware, source-grounded roadmap generation.
-9. Implement realtime study rooms.
-10. Add billing and moderation.
+1. Implement the private draft/upload/publication pipeline behind a
+   provider-agnostic storage boundary.
+2. Implement authorized browse, detail, preview, and download flows.
+3. Implement ratings and deterministic recency-weighted ranking.
+4. Implement Trash, 30-day restoration, and idempotent purge.
+5. Implement report intake and scoped moderation operations/tooling on the
+   existing schema foundation.
+6. Implement indexed, permission-safe full-text search.
+7. Implement permission-aware, source-grounded roadmap generation.
+8. Implement realtime study rooms.
+9. Add billing and expanded moderation tooling.
+
+Regenerate database types when the CLI environment supports it, and expand the
+automated suite alongside each new product module.
 
 This sequence is guidance, not authorization to build all items at once. Implement
 only the scope requested by the user.
@@ -676,11 +816,28 @@ The correct starting assumption for future work is:
 > Supabase authentication, a protected three-step onboarding flow, secure
 > database-owned university membership assignment, and a protected dashboard.
 > The profile and university-onboarding migrations are applied to the hosted
-> project. Email/password works; Google and GitHub auth application flows are
-> implemented but their external providers are not operational yet. Phone OTP
+> project. Email/password works; Google OAuth is operational for both new and
+> returning users through a dedicated Google client and hosted Supabase
+> provider. GitHub OAuth is operational for both new and returning users through
+> a dedicated OAuth App and hosted Supabase provider. Phone OTP
 > is operational through hosted Supabase and Twilio Verify; live SMS delivery
 > and six-digit OTP verification were confirmed working on 2026-07-29.
+> Cloudflare Turnstile is enforced by hosted Supabase for public password,
+> recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
+> The repository has a 12-test Vitest foundation for Auth, onboarding, and
+> protected-route behavior. The current Turnstile widget is registered for
+> localhost, so deployment must add the production hostname or use a separate
+> production widget.
 > Custom SMTP sender branding is deferred until the user owns a domain. The
-> core notes, roadmap, and study-room product modules remain demonstrations.
+> notes product, relational model, access matrix, ranking formula, storage
+> boundary, lifecycle, and acceptance criteria are specified in
+> `docs/notes-product-data-permissions-spec.md`. The notes foundation and
+> function-privilege hardening migrations are applied to hosted Supabase: nine
+> forced-RLS tables, six read policies, reusable authorization helpers, and nine
+> seeded global subjects passed 38 hosted pgTAP tests. No note upload, storage,
+> browse, download, rating mutation, Trash, or moderation UI is implemented yet.
+> The next slice is the private draft/upload/publication pipeline behind a
+> provider-agnostic storage boundary. The core notes, roadmap, and study-room
+> product experiences remain absent or demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.

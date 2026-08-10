@@ -49,6 +49,11 @@ enable_signup = true
 enable_anonymous_sign_ins = false
 minimum_password_length = 8
 
+[auth.captcha]
+enabled = false
+provider = "turnstile"
+secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
+
 [auth.email]
 enable_signup = true
 double_confirm_changes = true

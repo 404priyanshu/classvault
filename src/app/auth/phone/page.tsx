@@ -1,8 +1,10 @@
 import { ArrowLeft, Smartphone } from 'lucide-react'
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { CaptchaWidget } from '@/components/auth/CaptchaWidget'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { SubmitButton } from '@/components/auth/SubmitButton'
+import { getTurnstileSiteKey } from '@/lib/auth/captcha'
 import {
   DEFAULT_PHONE_COUNTRY_CODE,
   PHONE_COUNTRIES,
@@ -77,7 +79,7 @@ export default async function PhoneAuthPage({
           </form>
 
           <div className="mt-6 flex items-center justify-between gap-4 text-sm">
-            <form action={requestPhoneOtpAction}>
+            <form action={requestPhoneOtpAction} id="phone-resend-form">
               <input name="next" type="hidden" value={next} />
               <input name="phone" type="hidden" value={phone} />
               <button
@@ -94,9 +96,18 @@ export default async function PhoneAuthPage({
               Change number
             </Link>
           </div>
+          <CaptchaWidget
+            action="phone_otp_resend"
+            formIds={['phone-resend-form']}
+            siteKey={getTurnstileSiteKey()}
+          />
         </>
       ) : (
-        <form action={requestPhoneOtpAction} className="space-y-5">
+        <form
+          action={requestPhoneOtpAction}
+          className="space-y-5"
+          id="phone-otp-request-form"
+        >
           <input name="next" type="hidden" value={next} />
           <fieldset>
             <legend className="text-sm font-bold">Mobile number</legend>
@@ -139,6 +150,11 @@ export default async function PhoneAuthPage({
               Standard SMS charges may apply.
             </span>
           </fieldset>
+          <CaptchaWidget
+            action="phone_otp_request"
+            formIds={['phone-otp-request-form']}
+            siteKey={getTurnstileSiteKey()}
+          />
           <SubmitButton idleLabel="Send OTP" pendingLabel="Sending code…" />
         </form>
       )}
