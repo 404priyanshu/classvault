@@ -5,7 +5,7 @@ contains an interactive product landing page plus the initial authenticated
 application foundation: Supabase email/password auth, application flows for
 Google, GitHub, and phone OTP authentication, a protected three-step student
 onboarding flow, verified-or-pending university membership, and a protected
-dashboard.
+dashboard with the first private note-upload workflow.
 
 ## Stack
 
@@ -92,6 +92,8 @@ The migrations create:
 - A secure onboarding database function that assigns `verified` only when the
   selected university matches the user's confirmed Auth email domain; all other
   memberships remain `pending`.
+- The notes data/RLS foundation plus a private `note-files` bucket and
+  owner-derived draft/upload/publication functions.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
 Completed profiles enter `/dashboard` and can be edited at
@@ -145,8 +147,17 @@ and future roadmap authorization is
 The hosted schema/RLS foundation is implemented through migrations
 `20260810000000_create_notes_foundation.sql` and
 `20260810010000_harden_notes_function_privileges.sql`, with 38 transactional
-pgTAP tests in `supabase/tests/notes_rls.sql`. Note storage and product routes
-are not yet implemented.
+pgTAP tests in `supabase/tests/notes_rls.sql`.
+
+The first product route is `/dashboard/notes/new`. It accepts one PDF, JPEG,
+PNG, or WebP file up to 25 MiB, checks the file signature and SHA-256, uploads
+through a private signed Supabase Storage intent, and saves a draft or publishes
+the note through server-owned database functions. The adapter is isolated
+behind `src/lib/notes/storage` and does not require a service-role key.
+
+Migration `20260810020000_create_note_upload_pipeline.sql` and its 18 pgTAP
+tests in `supabase/tests/note_upload_pipeline.sql` must be applied/run against
+hosted Supabase before the live upload action is operational.
 
 ## Checks
 
@@ -168,6 +179,9 @@ test database.
 - `src/app/auth/phone` — phone OTP request and verification flow
 - `src/app/onboarding` — protected onboarding route and completion server action
 - `src/app/dashboard` — authenticated application entry point
+- `src/app/dashboard/notes/new` — note upload actions and protected route
+- `src/components/notes` — responsive note-upload workflow
+- `src/lib/notes/storage` — replaceable storage contract and Supabase adapters
 - `src/components/onboarding` — responsive onboarding experience
 - `src/sections` — landing-page sections and interactive demonstrations
 - `src/components/ui` — reusable shadcn/Radix UI primitives

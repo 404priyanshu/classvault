@@ -612,6 +612,24 @@ export type Database = {
         Args: { target_note_id: string }
         Returns: boolean
       }
+      can_upload_note_object: {
+        Args: { target_object_key: string }
+        Returns: boolean
+      }
+      complete_note_upload: {
+        Args: {
+          p_note_id: string
+          p_publish: boolean
+          p_verified_byte_size: number
+          p_verified_mime_type: string
+          p_verified_sha256: string
+        }
+        Returns: {
+          note_id: string
+          publication_status: string
+          published_at: string | null
+        }[]
+      }
       complete_student_onboarding: {
         Args: {
           p_course: string
@@ -625,6 +643,29 @@ export type Database = {
           membership_status: string
           selected_university_name: string
         }[]
+      }
+      create_note_upload_draft: {
+        Args: {
+          p_byte_size: number
+          p_description: string
+          p_detected_mime_type: string
+          p_note_type: string
+          p_original_filename: string
+          p_sha256: string
+          p_subject_id: number
+          p_tags: string[]
+          p_title: string
+          p_visibility: string
+        }
+        Returns: {
+          asset_id: string
+          note_id: string
+          object_key: string
+        }[]
+      }
+      discard_note_upload_draft: {
+        Args: { p_note_id: string }
+        Returns: boolean
       }
       has_platform_notes_role: {
         Args: { accepted_roles: string[] }

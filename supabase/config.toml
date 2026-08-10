@@ -70,3 +70,8 @@ content_path = "./supabase/templates/confirmation.html"
 [storage]
 enabled = true
 file_size_limit = "50MiB"
+
+[storage.buckets.note-files]
+public = false
+file_size_limit = "25MiB"
+allowed_mime_types = ["application/pdf", "image/jpeg", "image/png", "image/webp"]

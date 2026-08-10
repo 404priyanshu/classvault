@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   LockKeyhole,
   Pencil,
+  Upload,
   UserRound,
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
@@ -92,10 +93,32 @@ export default async function DashboardPage({
             <span className="italic text-[#17453a]">{displayName}.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#171512]/65">
-            Authentication and your private profile are connected. Product
-            modules will appear here as notes, roadmaps, and study rooms move
-            beyond the landing-page prototype.
+            Your private profile and campus access are connected. You can now
+            add your first real note to ClassVault; roadmaps and study rooms are
+            still demonstrations while we build them.
           </p>
+        </section>
+
+        <section className="paper-card-green mt-10 flex flex-col gap-6 rounded-sm p-6 text-[#f6f1e5] sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <p className="font-hand text-2xl font-bold text-[#f0a202]">
+              Start the archive
+            </p>
+            <h2 className="font-display mt-1 text-3xl font-black">
+              Add a note to your vault
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#f6f1e5]/70">
+              Upload a PDF or image, add its academic details, then keep it as a
+              private draft or publish it for eligible students.
+            </p>
+          </div>
+          <Link
+            className="btn-saffron inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-sm px-6 font-black"
+            href="/dashboard/notes/new"
+          >
+            <Upload className="h-4 w-4" />
+            Upload a note
+          </Link>
         </section>
 
         <section className="mt-12 grid gap-6 md:grid-cols-3">

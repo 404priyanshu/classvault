@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 17
+  context_version: 18
   last_verified: 2026-08-10
   scope: Entire repository
   repository_root: /Users/akruti/projects/classvault
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding and notes data foundations
-production_application_status: Auth, secure onboarding, authenticated shell, and notes schema/RLS foundation implemented; notes UI and file pipeline not implemented
+product_stage: Interactive landing-page prototype plus authenticated onboarding and first notes upload slice
+production_application_status: Auth, secure onboarding, notes schema/RLS foundation, and local draft/upload/publication flow implemented; hosted upload migration activation pending
 framework: Next.js 16.2.12
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: uiimhqaejwefahvbcsml
-automated_test_suite: 12 Vitest tests plus 38 hosted pgTAP notes authorization and constraint tests
+automated_test_suite: 22 Vitest tests, 38 hosted pgTAP foundation tests, and 18 parsed upload-pipeline pgTAP tests pending hosted execution
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -81,6 +81,8 @@ implemented_routes:
     type: PKCE/OTP confirmation route handler
   - path: /dashboard
     type: protected authenticated application shell
+  - path: /dashboard/notes/new
+    type: protected responsive note draft/upload/publication workflow; requires pending upload migration on hosted Supabase
   - path: /onboarding
     type: protected three-step student onboarding and profile editor
 ```
@@ -108,6 +110,12 @@ rating/report/moderation tables, indexes, forced RLS, and reusable authorization
 helpers. The follow-up migration explicitly removes hosted Supabase's default
 `anon` function grants before granting only the intended helpers to
 `authenticated`. The hosted 38-test pgTAP suite passed after hardening.
+
+Migration `20260810020000_create_note_upload_pipeline.sql` is implemented
+locally but not yet applied to hosted Supabase. It adds the private `note-files`
+bucket, Storage RLS, and owner-derived draft/upload/completion functions used by
+`/dashboard/notes/new`. Its 18-test pgTAP suite parses locally and awaits hosted
+execution.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -439,13 +447,33 @@ These are product claims, not implemented or validated system behavior.
   incomplete users, cross-university direct-ID isolation, owner Trash access,
   private ratings/reports, moderator scope, and published-file/scope
   immutability.
+- A protected `/dashboard/notes/new` workflow for PDF/JPEG/PNG/WebP notes up to
+  25 MiB, with title, subject, note type, public-or-university scope,
+  description, and normalized tags.
+- A provider-agnostic browser/server storage boundary with Supabase Storage as
+  the first private adapter. Files upload through a signed upload intent; no
+  service-role key is used.
+- Browser and server file-signature detection for PDF/JPEG/PNG/WebP plus
+  server-side byte-size and SHA-256 verification before save or publication.
+- Migration `20260810020000_create_note_upload_pipeline.sql` defines the private
+  `note-files` bucket, exact-object Storage RLS, and server-owned create,
+  completion, and cleanup functions. The SQL parses locally but has not yet
+  been applied to hosted Supabase.
+- An 18-test upload-pipeline pgTAP suite covering privileges, onboarding and
+  university eligibility, exact-object upload authorization, storage presence,
+  checksum matching, publication, and search-document creation. It parses
+  locally and awaits execution after the hosted migration is applied.
+- A 22-test Vitest suite covering Auth, onboarding, route protection, file
+  signatures, upload preparation, signed-upload intent creation, server-side
+  completion, and rejected-file cleanup.
 
 ### Simulated or absent
 
 ```yaml
 not_implemented:
   - Manual review/rejection workflow for pending university memberships
-  - Note upload, storage, download, deletion, or recovery
+  - Hosted activation and live acceptance test of the note upload migration
+  - Note browse, preview, download, deletion, or recovery
   - Real search or indexing
   - Payments or subscriptions
   - AI model calls
@@ -559,8 +587,18 @@ important_files:
     role: Hosted notes tables, constraints, indexes, authorization helpers, privileges, seed subjects, and forced RLS policies
   supabase/migrations/20260810010000_harden_notes_function_privileges.sql:
     role: Explicit hosted removal of default anon/authenticated function grants and narrow authenticated helper grants
+  supabase/migrations/20260810020000_create_note_upload_pipeline.sql:
+    role: Pending hosted private bucket, exact-object Storage RLS, and server-owned draft/upload/completion operations
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
+  supabase/tests/note_upload_pipeline.sql:
+    role: 18 parsed pgTAP tests for upload privileges, eligibility, object ownership, verification, and publication
+  src/app/dashboard/notes/new:
+    role: Protected note-upload route and validated server actions
+  src/components/notes/UploadNoteForm.tsx:
+    role: Responsive private file, metadata, draft, and publication workflow
+  src/lib/notes/storage:
+    role: Provider-agnostic note-file contract, file signatures, and Supabase browser/server adapters
   src/app/layout.tsx:
     role: Root layout, metadata, and next/font setup
   src/app/page.tsx:
@@ -680,6 +718,14 @@ interactions_checked:
   hosted_turnstile_missing_token_rejection: pass
   hosted_turnstile_valid_token_acceptance: pass
   hosted_sms_hourly_limit: 10
+  note_upload_desktop_render: pass in external Chrome
+  note_upload_mobile_400px_render: pass in external Chrome device mode
+  note_upload_horizontal_mobile_overflow: none observed
+  note_upload_browser_console_errors: none observed
+  note_upload_native_required_field_validation: pass
+  note_upload_sql_parser: pass
+  note_upload_hosted_migration: pending
+  note_upload_pgtap_execution: pending
 ```
 
 Node tooling currently installed on the machine:
@@ -697,8 +743,9 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 12 Vitest tests and 38 notes pgTAP tests. There
-   is still no full browser end-to-end suite or file-storage integration suite.
+1. Automated coverage includes 22 Vitest tests, 38 hosted notes-foundation
+   pgTAP tests, and 18 parsed upload-pipeline pgTAP tests pending hosted
+  execution. There is still no full browser end-to-end suite.
 2. Some currently unused shadcn-style components may contain Tailwind syntax
    associated with newer Tailwind versions, including forms such as
    `origin-(--...)` or `outline-hidden`. The current landing page builds because
@@ -758,8 +805,9 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Implement the private draft/upload/publication pipeline behind a
-   provider-agnostic storage boundary.
+1. Apply `20260810020000_create_note_upload_pipeline.sql` to hosted Supabase,
+   run the 18 upload-pipeline pgTAP tests, and complete one live PDF/image draft
+   and publication acceptance test.
 2. Implement authorized browse, detail, preview, and download flows.
 3. Implement ratings and deterministic recency-weighted ranking.
 4. Implement Trash, 30-day restoration, and idempotent purge.
@@ -824,8 +872,9 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 12-test Vitest foundation for Auth, onboarding, and
-> protected-route behavior. The current Turnstile widget is registered for
+> The repository has a 22-test Vitest foundation for Auth, onboarding,
+> protected routes, file signatures, and note-upload server actions. The
+> current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
 > production widget.
 > Custom SMTP sender branding is deferred until the user owns a domain. The
@@ -834,10 +883,17 @@ The correct starting assumption for future work is:
 > `docs/notes-product-data-permissions-spec.md`. The notes foundation and
 > function-privilege hardening migrations are applied to hosted Supabase: nine
 > forced-RLS tables, six read policies, reusable authorization helpers, and nine
-> seeded global subjects passed 38 hosted pgTAP tests. No note upload, storage,
-> browse, download, rating mutation, Trash, or moderation UI is implemented yet.
-> The next slice is the private draft/upload/publication pipeline behind a
-> provider-agnostic storage boundary. The core notes, roadmap, and study-room
-> product experiences remain absent or demonstrations.
+> seeded global subjects passed 38 hosted pgTAP tests. The first notes UI now
+> exists at `/dashboard/notes/new`: it creates owner-derived upload intents,
+> uploads one private PDF/JPEG/PNG/WebP file through a provider boundary,
+> validates file signatures and SHA-256 on the server, and saves a private
+> draft or atomically publishes it. Migration
+> `20260810020000_create_note_upload_pipeline.sql` and its 18 pgTAP tests parse
+> locally but are not yet applied/executed on hosted Supabase, so the live
+> upload path is not operational until that migration is deployed. No browse,
+> preview, download, rating mutation, Trash, or moderation UI is implemented.
+> The immediate continuation is hosted migration/test activation, followed by
+> authorized browse/detail/preview/download. Roadmaps and study rooms remain
+> demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.

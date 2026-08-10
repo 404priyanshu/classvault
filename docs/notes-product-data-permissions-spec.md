@@ -5,15 +5,18 @@ status: Implementation baseline
 version: 2
 date: 2026-08-10
 scope: Notes upload, discovery, download, rating, deletion, recovery, and moderation boundaries
-implementation_status: Hosted schema/RLS foundation complete; storage pipeline and product routes do not exist yet
+implementation_status: Hosted schema/RLS foundation complete; local upload pipeline and product route implemented; hosted activation pending
 ```
 
 Foundation migrations `20260810000000_create_notes_foundation.sql` and
 `20260810010000_harden_notes_function_privileges.sql` are applied to hosted
 Supabase. The schema and authorization boundary passed 38 transactional hosted
-pgTAP tests. Sections describing upload, download, rating mutation, deletion,
-purge, moderation operations, and search remain implementation contracts rather
-than user-facing functionality.
+pgTAP tests. Migration `20260810020000_create_note_upload_pipeline.sql`, the
+protected `/dashboard/notes/new` route, and 18 upload-pipeline pgTAP tests are
+implemented locally. The new SQL parses cleanly but has not yet been applied or
+executed against hosted Supabase. Sections describing download, rating
+mutation, deletion, purge, moderation operations, and search remain
+implementation contracts rather than user-facing functionality.
 
 ## 1. Purpose
 
