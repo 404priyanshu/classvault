@@ -113,13 +113,48 @@ function safeUploadError(message?: string) {
 async function discardPreparedUpload(
   supabase: Awaited<ReturnType<typeof createClient>>,
   noteId: string,
-  objectKey?: string,
+  objectKey: string,
 ) {
-  if (objectKey) {
-    await supabase.storage.from(NOTE_FILE_BUCKET).remove([objectKey])
+  const { data: discardStarted, error: discardStartError } = await supabase.rpc(
+    'begin_note_upload_discard',
+    {
+      p_note_id: noteId,
+      p_object_key: objectKey,
+    },
+  )
+
+  if (discardStartError || !discardStarted) {
+    return false
   }
 
-  await supabase.rpc('discard_note_upload_draft', { p_note_id: noteId })
+  const { error: removeError } = await supabase.storage
+    .from(NOTE_FILE_BUCKET)
+    .remove([objectKey])
+
+  if (removeError) {
+    return false
+  }
+
+  const { data: discarded, error: discardError } = await supabase.rpc(
+    'discard_note_upload_draft',
+    { p_note_id: noteId },
+  )
+
+  return !discardError && discarded === true
+}
+
+async function readCompletedUpload(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  noteId: string,
+) {
+  const { data, error } = await supabase.rpc('get_note_upload_status', {
+    p_note_id: noteId,
+  })
+  const status = data?.[0]
+
+  return !error && status?.processing_status === 'ready'
+    ? status.publication_status
+    : null
 }
 
 export async function prepareNoteUploadAction(
@@ -179,7 +214,11 @@ export async function prepareNoteUploadAction(
     .createSignedUploadUrl(draft.object_key, { upsert: false })
 
   if (signedUploadError || !signedUpload) {
-    await discardPreparedUpload(supabase, draft.note_id)
+    await discardPreparedUpload(
+      supabase,
+      draft.note_id,
+      draft.object_key,
+    )
     return {
       error: 'A secure upload link could not be created. Please try again.',
       ok: false,
@@ -262,11 +301,22 @@ export async function completeNoteUploadAction(input: {
       publicationStatus: completed.publication_status,
     }
   } catch (error) {
-    await discardPreparedUpload(
+    const discarded = await discardPreparedUpload(
       supabase,
       parsed.data.noteId,
       parsed.data.objectKey,
     )
+
+    if (!discarded) {
+      const publicationStatus = await readCompletedUpload(
+        supabase,
+        parsed.data.noteId,
+      )
+
+      if (publicationStatus) {
+        return { ok: true, publicationStatus }
+      }
+    }
 
     return {
       error:
