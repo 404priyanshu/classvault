@@ -11,10 +11,13 @@ import {
   useTransform,
 } from 'framer-motion'
 import {
+  BookOpenCheck,
   BrainCircuit,
   Check,
   FileText,
+  Layers3,
   RotateCcw,
+  ShieldCheck,
   Sparkles,
   Zap,
 } from 'lucide-react'
@@ -44,6 +47,10 @@ const TOPICS: Record<string, Phase[]> = {
 }
 
 const SUGGESTIONS = ['Operating Systems', 'Thermodynamics', 'Data Structures', 'Microeconomics']
+const STUDY_MODES = [
+  { id: 'indepth' as const, label: 'In-depth study', icon: BrainCircuit },
+  { id: 'exam' as const, label: 'Exam revision', icon: Zap },
+]
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
 
@@ -96,26 +103,26 @@ function Typed({
 /** The generate CTA — ink pill with saffron hard shadow, shine sweep, and morphing label. */
 function GenerateButton({
   phase,
-  onClick,
 }: {
   phase: 'idle' | 'generating' | 'done'
-  onClick: () => void
 }) {
   return (
     <motion.button
-      onClick={onClick}
+      type="submit"
       disabled={phase === 'generating'}
       whileHover={phase === 'generating' ? undefined : { y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-      className="group relative w-full overflow-hidden rounded-xl border-[1.5px] border-[#171512] bg-[#171512] px-6 py-3.5 text-sm font-bold text-[#f6f1e5] shadow-[4px_4px_0_#f0a202] transition-shadow duration-300 hover:shadow-[6px_6px_0_#f0a202,0_0_28px_rgba(240,162,2,0.3)] disabled:cursor-wait disabled:opacity-80"
+      whileTap={phase === 'generating' ? undefined : { scale: 0.985 }}
+      transition={{ duration: 0.24, ease: EASE_OUT }}
+      className="group relative min-h-12 w-full overflow-hidden rounded-xl border-[1.5px] border-[#171512] bg-[#171512] px-6 py-3.5 text-sm font-bold text-[#f6f1e5] shadow-[4px_4px_0_#f0a202] outline-none transition-[box-shadow,opacity] duration-300 hover:shadow-[6px_6px_0_#f0a202,0_0_22px_rgba(240,162,2,0.22)] focus-visible:ring-2 focus-visible:ring-[#17453a] focus-visible:ring-offset-4 focus-visible:ring-offset-[#efe8d8] disabled:cursor-wait disabled:opacity-80"
     >
-      <motion.span
-        aria-hidden
-        className="absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-        animate={{ x: ['-160%', '460%'] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.4 }}
-      />
+      {phase === 'generating' ? (
+        <motion.span
+          aria-hidden
+          className="absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+          animate={{ x: ['-160%', '460%'] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: EASE_OUT }}
+        />
+      ) : null}
       <span className="relative flex items-center justify-center gap-2">
         <AnimatePresence mode="wait" initial={false}>
           {phase === 'generating' ? (
@@ -156,6 +163,35 @@ function GenerateButton({
         </AnimatePresence>
       </span>
     </motion.button>
+  )
+}
+
+function ConsoleFrameHeader({ phase }: { phase: 'idle' | 'generating' | 'done' }) {
+  const status =
+    phase === 'idle' ? 'Awaiting a topic' : phase === 'generating' ? 'Building live' : 'Plan ready'
+
+  return (
+    <div className="relative z-10 flex min-h-12 items-center justify-between gap-3 border-b border-white/[0.09] bg-black/10 px-4 py-2.5 sm:px-5">
+      <div className="flex min-w-0 items-center gap-3">
+        <div aria-hidden className="flex gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-[#f0a202]/80" />
+          <span className="h-2 w-2 rounded-full bg-[#8fd6b4]/55" />
+          <span className="h-2 w-2 rounded-full bg-white/20" />
+        </div>
+        <span className="truncate font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+          roadmap.workspace
+        </span>
+      </div>
+      <div className="flex shrink-0 items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
+        <motion.span
+          aria-hidden
+          className="h-1.5 w-1.5 rounded-full bg-[#8fd6b4]"
+          animate={phase === 'generating' ? { opacity: [0.35, 1, 0.35] } : { opacity: 0.8 }}
+          transition={{ duration: 1.2, repeat: phase === 'generating' ? Infinity : 0, ease: EASE_OUT }}
+        />
+        {status}
+      </div>
+    </div>
   )
 }
 
@@ -286,6 +322,114 @@ function ConsoleHeader({
   )
 }
 
+function PhaseRail({
+  phases,
+  visible,
+  buildingPhase,
+  done,
+}: {
+  phases: Phase[]
+  visible: number
+  buildingPhase: number
+  done: boolean
+}) {
+  return (
+    <ol className="mt-5 grid grid-cols-4 gap-1" aria-label="Roadmap phase generation status">
+      {phases.map((roadmapPhase, index) => {
+        const complete = done || index < visible - 1
+        const active = !done && (index === buildingPhase || (visible === 0 && index === 0))
+        const reached = complete || active
+
+        return (
+          <li key={roadmapPhase.title} className="relative min-w-0">
+            <div className="flex items-center">
+              <motion.span
+                className={`relative z-[1] grid h-5 w-5 shrink-0 place-items-center rounded-full border font-mono text-[9px] font-bold ${
+                  complete
+                    ? 'border-[#8fd6b4] bg-[#8fd6b4] text-[#0b1e19]'
+                    : active
+                      ? 'border-[#f0a202] bg-[#f0a202]/15 text-[#f0a202]'
+                      : 'border-white/15 bg-[#0b1e19] text-white/30'
+                }`}
+                animate={active ? { boxShadow: ['0 0 0 0 rgba(240,162,2,0)', '0 0 0 5px rgba(240,162,2,0.12)', '0 0 0 0 rgba(240,162,2,0)'] } : { boxShadow: '0 0 0 0 rgba(240,162,2,0)' }}
+                transition={{ duration: 1.5, repeat: active ? Infinity : 0, ease: EASE_OUT }}
+              >
+                {complete ? <Check className="h-3 w-3" strokeWidth={3.5} /> : index + 1}
+              </motion.span>
+              {index < phases.length - 1 ? (
+                <span className="relative mx-1 h-px flex-1 overflow-hidden bg-white/10">
+                  <motion.span
+                    className="absolute inset-y-0 left-0 bg-[#8fd6b4]/70"
+                    animate={{ width: complete ? '100%' : reached ? '35%' : '0%' }}
+                    transition={{ duration: 0.45, ease: EASE_OUT }}
+                  />
+                </span>
+              ) : null}
+            </div>
+            <span
+              className={`mt-1.5 block truncate pr-1 font-mono text-[9px] ${
+                reached || done ? 'text-white/55' : 'text-white/25'
+              }`}
+            >
+              {roadmapPhase.title}
+            </span>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function IdlePreview({ topic }: { topic: string }) {
+  return (
+    <div className="mx-auto flex min-h-[490px] w-full max-w-md flex-col items-center justify-center text-center">
+      <div className="relative grid h-36 w-36 place-items-center">
+        <motion.div
+          aria-hidden
+          className="absolute inset-2 rounded-full border border-[#f0a202]/20"
+          animate={{ scale: [0.92, 1.08], opacity: [0.65, 0.18, 0.65] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: EASE_OUT }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 rounded-full border border-dashed border-white/10"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+        />
+        <AsciiOrb cols={26} rows={13} className="relative text-[7px]" />
+      </div>
+
+      <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#f0a202]/70">
+        Previewing your build
+      </p>
+      <p className="mt-2 max-w-[300px] text-base font-semibold leading-snug text-[#f6f1e5]">
+        {topic}
+      </p>
+      <p className="mt-2 max-w-[310px] text-sm leading-relaxed text-white/55">
+        Choose a mode, then watch an access-aware study plan assemble phase by phase.
+      </p>
+
+      <div className="mt-7 grid w-full grid-cols-2 gap-2 text-left">
+        <div className="rounded-xl border border-white/10 bg-white/[0.035] p-3.5">
+          <Layers3 className="h-4 w-4 text-[#f0a202]" />
+          <p className="mt-2 text-sm font-bold text-[#f6f1e5]">4 focused phases</p>
+          <p className="mt-1 text-xs leading-relaxed text-white/40">From foundations to final review</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.035] p-3.5">
+          <BookOpenCheck className="h-4 w-4 text-[#8fd6b4]" />
+          <p className="mt-2 text-sm font-bold text-[#f6f1e5]">Source-aware</p>
+          <p className="mt-1 text-xs leading-relaxed text-white/40">Built around notes you can access</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/30">
+        <ShieldCheck className="h-3.5 w-3.5 text-[#8fd6b4]/65" />
+        Sample output · no real generation yet
+      </div>
+    </div>
+  )
+}
+
 function LogStream({ logs, done }: { logs: string[]; done: boolean }) {
   const shown = logs.slice(-3)
   return (
@@ -348,8 +492,8 @@ function PhaseCard({
       layout
       initial={{ opacity: 0, y: 18, scale: 0.98, filter: 'blur(6px)' }}
       animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-      transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-      className="relative"
+      transition={{ duration: 0.48, ease: EASE_OUT }}
+      className="relative h-full"
     >
       {building && (
         <motion.div
@@ -359,14 +503,14 @@ function PhaseCard({
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
-      <div className="relative rounded-xl border border-white/10 bg-[#0e231d] p-4">
+      <div className="relative flex h-full flex-col rounded-xl border border-white/10 bg-[#0e231d] p-4 transition-colors duration-300 hover:border-white/20">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#f0a202]/15 font-mono text-[11px] font-bold text-[#f0a202]">
               {index + 1}
             </span>
-            <p className="truncate text-sm font-bold text-[#f6f1e5]">
-              {building ? <Typed text={phase.title} speed={16} /> : phase.title}
+            <p className="text-pretty text-sm font-bold leading-snug text-[#f6f1e5]">
+              {building ? <Typed text={phase.title} speed={12} /> : phase.title}
             </p>
           </div>
           <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-mono text-[10px] text-white/55">
@@ -374,31 +518,38 @@ function PhaseCard({
           </span>
         </div>
 
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 flex-1 space-y-1">
           {phase.tasks.map((task, ti) => {
             const key = `${index}-${ti}`
             const isChecked = checked.has(key)
             return (
-              <li key={`${runId}-${key}`} className="flex items-center gap-2.5">
+              <li key={`${runId}-${key}`} className="flex min-h-9 items-center gap-1.5">
                 <button
+                  type="button"
                   onClick={() => onToggle(key)}
                   disabled={!interactive}
                   aria-label={isChecked ? `Mark "${task}" as not done` : `Mark "${task}" as done`}
-                  className={`grid h-[17px] w-[17px] shrink-0 place-items-center rounded-[5px] border transition-all duration-200 disabled:cursor-default ${
-                    isChecked
-                      ? 'border-[#f0a202] bg-[#f0a202] text-[#171512]'
-                      : 'border-white/25 bg-transparent hover:border-[#f0a202]/70'
-                  }`}
+                  className="group/check relative grid h-9 w-9 shrink-0 place-items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#f0a202]/80 disabled:cursor-default"
                 >
-                  {isChecked && <Check className="h-3 w-3" strokeWidth={3.5} />}
+                  <motion.span
+                    className={`grid h-[18px] w-[18px] place-items-center rounded-[5px] border transition-colors duration-200 ${
+                      isChecked
+                        ? 'border-[#f0a202] bg-[#f0a202] text-[#171512]'
+                        : 'border-white/25 bg-transparent group-hover/check:border-[#f0a202]/70'
+                    }`}
+                    animate={{ scale: isChecked ? [0.86, 1] : 1 }}
+                    transition={{ duration: 0.24, ease: EASE_OUT }}
+                  >
+                    {isChecked && <Check className="h-3 w-3" strokeWidth={3.5} />}
+                  </motion.span>
                 </button>
                 <span
-                  className={`text-xs transition-colors duration-200 ${
+                  className={`text-pretty text-xs leading-relaxed transition-colors duration-200 ${
                     isChecked ? 'text-white/30 line-through' : 'text-white/75'
                   }`}
                 >
                   {building ? (
-                    <Typed text={task} delay={220 + ti * 260} speed={11} caret={ti === phase.tasks.length - 1} />
+                    <Typed text={task} delay={140 + ti * 140} speed={8} caret={ti === phase.tasks.length - 1} />
                   ) : (
                     task
                   )}
@@ -408,7 +559,7 @@ function PhaseCard({
           })}
         </ul>
 
-        <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.07] pt-2.5 font-mono text-[10px] text-white/40">
+        <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.07] pt-2.5 font-mono text-[10px] leading-relaxed text-white/40">
           <FileText className="h-3 w-3 text-[#8fd6b4]/70" />
           sources: {phase.source}
         </div>
@@ -440,23 +591,23 @@ export default function RoadmapDemo() {
   // roadmap phase, then a finalize beat. Demo data only — not a real pipeline.
   const steps = useMemo<GenStep[]>(() => {
     const timeline: GenStep[] = [
-      { log: `Parsing topic “${activeTopic}”`, progress: 10, phases: 0, duration: 650 },
-      { log: 'Scanning 128 rated notes · 6 collections', progress: 26, phases: 0, duration: 850 },
-      { log: 'Verifying trust signals and access scope', progress: 42, phases: 0, duration: 750 },
+      { log: `Parsing topic “${activeTopic}”`, progress: 10, phases: 0, duration: 450 },
+      { log: 'Scanning 128 rated notes · 6 collections', progress: 26, phases: 0, duration: 600 },
+      { log: 'Verifying trust signals and access scope', progress: 42, phases: 0, duration: 500 },
     ]
     phases.forEach((p, i) => {
       timeline.push({
         log: `Composing phase ${i + 1} — ${p.title.toLowerCase()}`,
         progress: Math.round(42 + ((i + 1) / phases.length) * 52),
         phases: i + 1,
-        duration: 1500,
+        duration: 1050,
       })
     })
     timeline.push({
       log: `Finalizing · ${totalTasks} tasks across ${phases.length} phases`,
       progress: 100,
       phases: phases.length,
-      duration: 650,
+      duration: 500,
     })
     return timeline
   }, [activeTopic, phases, totalTasks])
@@ -470,10 +621,10 @@ export default function RoadmapDemo() {
   useEffect(() => {
     if (phase !== 'generating') return
     if (genStep < steps.length - 1) {
-      const t = setTimeout(() => setGenStep((s) => s + 1), reduceMotion ? 90 : currentStep.duration)
+      const t = setTimeout(() => setGenStep((s) => s + 1), reduceMotion ? 60 : currentStep.duration)
       return () => clearTimeout(t)
     }
-    const t = setTimeout(() => setPhase('done'), reduceMotion ? 90 : currentStep.duration)
+    const t = setTimeout(() => setPhase('done'), reduceMotion ? 60 : currentStep.duration)
     return () => clearTimeout(t)
   }, [phase, genStep, steps.length, reduceMotion, currentStep.duration])
 
@@ -494,10 +645,6 @@ export default function RoadmapDemo() {
     })
 
   const taskProgress = Math.round((checked.size / totalTasks) * 100)
-  const modes = [
-    { id: 'indepth' as const, label: 'In-depth study', icon: BrainCircuit },
-    { id: 'exam' as const, label: 'Exam revision', icon: Zap },
-  ]
 
   return (
     <MotionConfig reducedMotion="user">
@@ -510,65 +657,87 @@ export default function RoadmapDemo() {
             initial={{ opacity: 0, x: -32 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.72, ease: EASE_OUT }}
           >
             <div className="flex items-center gap-4">
               <span className="stamp text-[#17453a]">Interactive demo</span>
               <Image
                 src={owl}
                 alt="The ClassVault archivist owl"
-                className="animate-wobble pointer-events-none hidden h-20 w-auto select-none sm:block"
+                className="animate-wobble pointer-events-none hidden h-20 w-auto select-none motion-reduce:animate-none sm:block"
                 draggable={false}
               />
             </div>
-            <h2 id="roadmap-heading" className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
+            <h2 id="roadmap-heading" className="font-display mt-5 text-wrap-balance text-3xl font-black tracking-[-0.035em] md:text-5xl">
               Generate a roadmap.<br />
               <MarkerHighlight>Right here, right now.</MarkerHighlight>
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[#171512]/70">
+            <p className="mt-4 max-w-[62ch] text-pretty text-sm leading-relaxed text-[#171512]/75">
               This is a taste of the real thing. On ClassVault, roadmaps are generated from
               notes your plan can actually use — your uploads, public notes, and (on Pro)
               top university notes too.
             </p>
 
-            <div className="mt-8 space-y-5">
+            <form
+              className="mt-8 space-y-5"
+              onSubmit={(event) => {
+                event.preventDefault()
+                generate()
+              }}
+            >
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#171512]/60">Your topic</label>
+                <label htmlFor="roadmap-topic" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#171512]/65">Your topic</label>
                 <input
+                  id="roadmap-topic"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g. Operating Systems"
-                  className="w-full rounded-xl border-[1.5px] border-[#171512] bg-[#fffdf6] px-4 py-3 text-sm font-medium shadow-[3px_3px_0_#171512] outline-none transition-all placeholder:text-[#171512]/40 focus:shadow-[5px_5px_0_#171512]"
+                  className="min-h-12 w-full rounded-xl border-[1.5px] border-[#171512] bg-[#fffdf6] px-4 py-3 text-sm font-medium shadow-[3px_3px_0_#171512] outline-none transition-[box-shadow,transform] duration-200 placeholder:text-[#171512]/55 focus:-translate-y-0.5 focus:shadow-[5px_5px_0_#171512] focus-visible:ring-2 focus-visible:ring-[#17453a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#efe8d8]"
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <motion.button key={s} onClick={() => setTopic(s)} whileTap={{ scale: 0.94 }}
-                      className="rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 py-1 text-xs font-semibold transition-all hover:bg-[#f0a202] hover:shadow-[2px_2px_0_#171512]">
-                      {s}
-                    </motion.button>
-                  ))}
+                  {SUGGESTIONS.map((suggestion) => {
+                    const selected = displayTopic === suggestion
+
+                    return (
+                      <motion.button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setTopic(suggestion)}
+                        whileTap={{ scale: 0.96 }}
+                        aria-pressed={selected}
+                        className={`min-h-10 rounded-full border-[1.5px] border-[#171512] px-3 py-1 text-xs font-semibold outline-none transition-[background-color,box-shadow,color] duration-200 focus-visible:ring-2 focus-visible:ring-[#17453a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#efe8d8] ${
+                          selected
+                            ? 'bg-[#f0a202] shadow-[2px_2px_0_#171512]'
+                            : 'bg-[#fffdf6] hover:bg-[#f0a202]/35 hover:shadow-[2px_2px_0_#171512]'
+                        }`}
+                      >
+                        {suggestion}
+                      </motion.button>
+                    )
+                  })}
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#171512]/60">Study mode</label>
+                <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#171512]/65">Study mode</span>
                 <div className="grid grid-cols-2 gap-1 rounded-xl border-[1.5px] border-[#171512] bg-[#fffdf6] p-1 shadow-[3px_3px_0_#171512]">
-                  {modes.map((m) => {
+                  {STUDY_MODES.map((m) => {
                     const Icon = m.icon
                     const selected = mode === m.id
                     return (
                       <motion.button
                         key={m.id}
+                        type="button"
                         onClick={() => setMode(m.id)}
                         whileTap={{ scale: 0.97 }}
                         aria-pressed={selected}
-                        className="relative rounded-lg px-4 py-2.5 text-sm font-semibold"
+                        className="relative min-h-11 rounded-lg px-2 py-2.5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-[#f0a202] sm:px-4 sm:text-sm"
                       >
                         {selected && (
                           <motion.span
                             layoutId="mode-pill"
                             className="absolute inset-0 rounded-lg bg-[#17453a]"
-                            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                            transition={{ duration: 0.26, ease: EASE_OUT }}
                           />
                         )}
                         <span className={`relative z-[1] flex items-center justify-center gap-2 transition-colors ${selected ? 'text-[#f6f1e5]' : 'text-[#171512]/55'}`}>
@@ -581,8 +750,19 @@ export default function RoadmapDemo() {
                 </div>
               </div>
 
-              <GenerateButton phase={phase} onClick={generate} />
-            </div>
+              <GenerateButton phase={phase} />
+
+              <div className="grid gap-2 text-xs text-[#171512]/65 sm:grid-cols-2">
+                <span className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-[#17453a]" />
+                  Access-safe sources
+                </span>
+                <span className="flex items-center gap-2 sm:justify-end">
+                  <BookOpenCheck className="h-4 w-4 shrink-0 text-[#17453a]" />
+                  Sample data only
+                </span>
+              </div>
+            </form>
           </motion.div>
 
           {/* right: AI console */}
@@ -590,8 +770,8 @@ export default function RoadmapDemo() {
             initial={{ opacity: 0, x: 32 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8, delay: 0.15 }}
-            className="relative min-h-[560px] overflow-hidden rounded-2xl border border-[#171512]/60 bg-[linear-gradient(160deg,#0d211c_0%,#0b1e19_55%,#091a15_100%)] p-5 shadow-[8px_8px_0_rgba(23,21,18,0.18)] md:p-7"
+            transition={{ duration: 0.72, delay: 0.12, ease: EASE_OUT }}
+            className="relative min-h-[590px] overflow-hidden rounded-2xl border-[1.5px] border-[#171512] bg-[linear-gradient(160deg,#0d211c_0%,#0b1e19_55%,#091a15_100%)] shadow-[8px_8px_0_rgba(23,21,18,0.18)]"
             role="region"
             aria-labelledby="roadmap-heading"
             aria-busy={phase === 'generating'}
@@ -605,28 +785,19 @@ export default function RoadmapDemo() {
               className="pointer-events-none absolute -top-24 left-1/2 h-48 w-2/3 -translate-x-1/2 rounded-full bg-[#f0a202]/[0.07] blur-3xl"
             />
 
-            <AnimatePresence mode="wait">
+            <ConsoleFrameHeader phase={phase} />
+
+            <div className="relative z-[1] p-5 sm:p-6">
+            <AnimatePresence mode="wait" initial={false}>
               {phase === 'idle' && (
                 <motion.div
                   key="idle"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, transition: { duration: 0.25 } }}
-                  className="relative flex h-[520px] flex-col items-center justify-center text-center"
+                  className="relative"
                 >
-                  <div className="relative">
-                    <motion.div
-                      aria-hidden
-                      className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"
-                      animate={{ scale: [1, 1.25], opacity: [0.5, 0] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
-                    />
-                    <AsciiOrb cols={26} rows={13} className="text-[7px]" />
-                  </div>
-                  <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-white/35">Ready when you are</p>
-                  <p className="mt-2 max-w-[240px] text-sm font-medium leading-relaxed text-white/60">
-                    Pick a topic and mode — your generated roadmap streams in here.
-                  </p>
+                  <IdlePreview topic={activeTopic} />
                 </motion.div>
               )}
 
@@ -643,6 +814,13 @@ export default function RoadmapDemo() {
                     progressTarget={generationProgress}
                     topic={activeTopic}
                     mode={activeMode}
+                  />
+
+                  <PhaseRail
+                    phases={phases}
+                    visible={visible}
+                    buildingPhase={buildingPhase}
+                    done={phase === 'done'}
                   />
 
                   <LogStream logs={logs} done={phase === 'done'} />
@@ -669,13 +847,13 @@ export default function RoadmapDemo() {
                         <motion.div
                           className="h-full rounded-full bg-[linear-gradient(90deg,#8fd6b4,#f0a202)]"
                           animate={{ width: `${taskProgress}%` }}
-                          transition={{ type: 'spring', stiffness: 130, damping: 22 }}
+                          transition={{ duration: 0.45, ease: EASE_OUT }}
                         />
                       </div>
                     </motion.div>
                   )}
 
-                  <div className="mt-5 space-y-3">
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     {phases.slice(0, visible).map((p, pi) => (
                       <PhaseCard
                         key={`${runId}-${p.title}`}
@@ -696,7 +874,7 @@ export default function RoadmapDemo() {
                         initial={{ opacity: 0, y: 10, scale: 0.94 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.94 }}
-                        transition={{ type: 'spring', stiffness: 320, damping: 20 }}
+                        transition={{ duration: 0.36, ease: EASE_OUT }}
                         className="mt-6 flex justify-center"
                       >
                         <span className="flex items-center gap-2 rounded-full border border-[#f0a202]/30 bg-[#f0a202]/10 px-4 py-1.5 text-xs font-semibold text-[#f0a202]">
@@ -709,6 +887,7 @@ export default function RoadmapDemo() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </div>
           </motion.div>
         </div>
 
