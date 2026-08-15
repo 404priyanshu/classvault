@@ -1,0 +1,3 @@
+# Keep Personal Note Roadmap Eligibility After Membership Change
+
+For the MVP, ClassVault allows a student's own uploaded notes to remain eligible for that student's study roadmap generation even after they switch universities and lose normal view, edit, delete, restore, or rating access to old university-scoped uploads. Source links to those old notes still show an unavailable message to the owner rather than opening the note; if a shared roadmap includes old university personal notes, only the owner can see the full cross-university roadmap, while shared viewers see only the university-derived sources and derived sections for communities they currently belong to and see all other university-derived content hidden or replaced by an access-restriction placeholder.

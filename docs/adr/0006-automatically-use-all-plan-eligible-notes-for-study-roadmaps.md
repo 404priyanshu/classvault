@@ -1,0 +1,3 @@
+# Automatically Use All Plan-Eligible Notes for Study Roadmaps
+
+For the MVP, ClassVault generates study roadmaps from all notes eligible under the student's plan, without offering a manual source picker. Free tier roadmaps use the student's personal notes plus public notes, where personal notes are the student's own uploads even when uploaded inside a past or current university community, while Pro tier roadmaps can also use other accessible university notes when the student is verified. Verified free students can still browse, download, and rate university notes, because Pro gates advanced roadmap use of other students' university notes rather than ordinary community access.

@@ -1,0 +1,3 @@
+# Use Razorpay for Paid Subscriptions
+
+For the MVP, ClassVault uses Razorpay as the required payment provider for the paid Pro tier. Successful payments must be reconciled into Pro entitlements through retryable server-side fulfillment rather than relying only on the client payment return path; if entitlement activation remains delayed, the student sees a pending/error state with receipt and support options, and platform administrators can manually grant Pro without automatically refunding the payment. Failed renewal payments immediately move the student back to free tier rules while billing notifications and provider retries continue, and the student stays on free tier if the subscription is cancelled after failed retries.

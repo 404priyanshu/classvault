@@ -1,0 +1,3 @@
+# Keep Study Rooms Ephemeral
+
+For the MVP, ClassVault study rooms are temporary live spaces: when a room ends, the room, chat history, and timer are deleted, and no recording or persistent room archive is kept. Moderation events such as kicks, mutes, and participant reports are persisted as a deliberate safety exception for audit and platform administrator review, but reports retain metadata only and do not retain chat message content, full chat history, timer data, or video data. This trades full room reviewability for stronger student privacy, lower moderation burden, and a simpler live-study experience.
