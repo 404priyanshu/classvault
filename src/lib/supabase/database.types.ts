@@ -641,6 +641,10 @@ export type Database = {
         Args: { target_object_key: string }
         Returns: boolean
       }
+      can_download_note_object: {
+        Args: { target_object_key: string }
+        Returns: boolean
+      }
       can_moderate_note: { Args: { target_note_id: string }; Returns: boolean }
       can_upload_note_object: {
         Args: { target_object_key: string }
@@ -700,6 +704,26 @@ export type Database = {
       discard_note_upload_draft: {
         Args: { p_note_id: string }
         Returns: boolean
+      }
+      get_accessible_note_contributors: {
+        Args: { p_note_ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          note_id: string
+          owner_id: string
+        }[]
+      }
+      get_accessible_note_file: {
+        Args: { p_note_id: string }
+        Returns: {
+          byte_size: number
+          detected_mime_type: string
+          note_id: string
+          object_key: string
+          original_filename: string
+          page_count: number
+        }[]
       }
       get_note_upload_status: {
         Args: { p_note_id: string }

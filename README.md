@@ -163,6 +163,15 @@ idempotent, stalled responses recover through owner-only status polling, and
 cleanup atomically claims incomplete uploads before removing their exact
 Storage object.
 
+The responsive Notes Library is available at `/dashboard/notes`. It queries
+published notes through the signed-in user's existing RLS boundary, with title
+search, subject/type/access filters, sorting, and pagination. Authorized note
+details at `/dashboard/notes/[noteId]` include safe pseudonymous contributor
+metadata, rating summaries, a five-minute private preview URL, and an expiring
+download. Migration `20260816000000_add_note_library_access.sql` and the 13
+transactional assertions in `supabase/tests/note_library_access.sql` protect
+that private-file boundary.
+
 ## Checks
 
 ```bash
@@ -183,8 +192,9 @@ test database.
 - `src/app/auth/phone` — phone OTP request and verification flow
 - `src/app/onboarding` — protected onboarding route and completion server action
 - `src/app/dashboard` — authenticated application entry point
+- `src/app/dashboard/notes` — RLS-filtered Notes Library and protected note detail
 - `src/app/dashboard/notes/new` — note upload actions and protected route
-- `src/components/notes` — responsive note-upload workflow
+- `src/components/notes` — responsive note-library and note-upload interfaces
 - `src/lib/notes/storage` — replaceable storage contract and Supabase adapters
 - `src/components/onboarding` — responsive onboarding experience
 - `src/sections` — landing-page sections and interactive demonstrations

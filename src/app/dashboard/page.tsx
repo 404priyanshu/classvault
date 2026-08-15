@@ -43,7 +43,10 @@ function formatNoteType(value: string) {
 
 function NoteCard({ note }: { note: RecentNote }) {
   return (
-    <article className="group flex min-h-[214px] flex-col border border-[#cfc4ae] bg-[#fffdf6] transition-transform hover:-translate-y-1 hover:shadow-[4px_4px_0_rgba(23,21,18,0.13)]">
+    <Link
+      className="group flex min-h-[214px] flex-col border border-[#cfc4ae] bg-[#fffdf6] outline-none transition-transform hover:-translate-y-1 hover:shadow-[4px_4px_0_rgba(23,21,18,0.13)] focus-visible:ring-2 focus-visible:ring-[#17453a]"
+      href={`/dashboard/notes/${note.id}`}
+    >
       <div className="bg-ruled relative h-24 overflow-hidden border-b border-[#d9cfbc] bg-[#f2ecde] p-4">
         <div className="absolute left-4 top-4 h-2 w-16 rounded-full bg-[#17453a]/15" />
         <div className="absolute left-4 top-9 h-1.5 w-3/4 rounded-full bg-[#171512]/10" />
@@ -67,7 +70,7 @@ function NoteCard({ note }: { note: RecentNote }) {
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }
 
@@ -140,14 +143,14 @@ export default async function DashboardPage({
           </p>
         </div>
 
-        <form className="relative" role="search">
+        <form action="/dashboard/notes" className="relative" role="search">
           <Search
             aria-hidden
             className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#171512]/60"
             strokeWidth={1.8}
           />
           <input
-            aria-label="Search recent notes"
+            aria-label="Search Notes Library"
             className="h-14 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] pl-12 pr-24 text-sm outline-none transition-shadow placeholder:text-[#171512]/40 focus:border-[#17453a] focus:shadow-[3px_3px_0_rgba(23,69,58,0.22)]"
             defaultValue={query}
             name="q"
@@ -202,12 +205,21 @@ export default async function DashboardPage({
                 RLS-filtered for your public and verified campus access.
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
-              <ShieldCheck className="h-4 w-4" />
-              {membershipResult.data?.status === 'verified'
-                ? 'Campus verified'
-                : 'Public notes only'}
-            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
+                <ShieldCheck className="h-4 w-4" />
+                {membershipResult.data?.status === 'verified'
+                  ? 'Campus verified'
+                  : 'Public notes only'}
+              </span>
+              <Link
+                className="inline-flex items-center gap-1 text-xs font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+                href="/dashboard/notes"
+              >
+                View library
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
 
           {notes.length > 0 ? (
@@ -357,7 +369,7 @@ export default async function DashboardPage({
           <Star className="h-5 w-5 text-[#f0a202]" />
           <div>
             <p className="text-xs font-black">Trust features next</p>
-            <p className="text-[11px] text-[#171512]/50">Ratings UI follows notes browsing</p>
+            <p className="text-[11px] text-[#171512]/50">Rating submissions are the next trust slice</p>
           </div>
         </div>
       </section>
