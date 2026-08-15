@@ -50,7 +50,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: #17453a;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .font-display {
