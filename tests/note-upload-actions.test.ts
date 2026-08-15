@@ -199,8 +199,103 @@ describe('note upload server actions', () => {
     expect(storage.remove).toHaveBeenCalledWith([
       'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
     ])
+    expect(rpc).toHaveBeenCalledWith('begin_note_upload_discard', {
+      p_note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      p_object_key:
+        'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    })
     expect(rpc).toHaveBeenCalledWith('discard_note_upload_draft', {
       p_note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     })
+  })
+
+  it('does not remove a file when the upload can no longer be cancelled', async () => {
+    const rpc = vi.fn().mockImplementation((operation: string) => {
+      if (operation === 'begin_note_upload_discard') {
+        return Promise.resolve({ data: false, error: null })
+      }
+
+      if (operation === 'get_note_upload_status') {
+        return Promise.resolve({ data: [], error: null })
+      }
+
+      throw new Error(`Unexpected RPC: ${operation}`)
+    })
+    const storage = signedStorage()
+    createClientMock.mockResolvedValue({
+      auth: {
+        getClaims: vi.fn().mockResolvedValue({
+          data: { claims: { sub: 'student-id' } },
+        }),
+      },
+      rpc,
+      storage: { from: storage.from },
+    })
+    verifyStoredNoteFileMock.mockRejectedValue(new Error('Verification failed.'))
+
+    const result = await completeNoteUploadAction({
+      noteId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      objectKey:
+        'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      publish: true,
+    })
+
+    expect(result).toEqual({ error: 'Verification failed.', ok: false })
+    expect(storage.remove).not.toHaveBeenCalled()
+    expect(rpc).not.toHaveBeenCalledWith('discard_note_upload_draft', {
+      p_note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    })
+  })
+
+  it('recovers success when completion committed before its response failed', async () => {
+    const rpc = vi.fn().mockImplementation((operation: string) => {
+      if (operation === 'complete_note_upload') {
+        return Promise.resolve({ data: null, error: { message: 'timeout' } })
+      }
+
+      if (operation === 'begin_note_upload_discard') {
+        return Promise.resolve({ data: false, error: null })
+      }
+
+      if (operation === 'get_note_upload_status') {
+        return Promise.resolve({
+          data: [
+            {
+              note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              processing_status: 'ready',
+              publication_status: 'published',
+            },
+          ],
+          error: null,
+        })
+      }
+
+      throw new Error(`Unexpected RPC: ${operation}`)
+    })
+    const storage = signedStorage()
+    createClientMock.mockResolvedValue({
+      auth: {
+        getClaims: vi.fn().mockResolvedValue({
+          data: { claims: { sub: 'student-id' } },
+        }),
+      },
+      rpc,
+      storage: { from: storage.from },
+    })
+    verifyStoredNoteFileMock.mockResolvedValue({
+      byteSize: 1024,
+      mimeType: 'application/pdf',
+      sha256: 'a'.repeat(64),
+    })
+
+    const result = await completeNoteUploadAction({
+      noteId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      objectKey:
+        'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      publish: true,
+    })
+
+    expect(result).toEqual({ ok: true, publicationStatus: 'published' })
+    expect(storage.remove).not.toHaveBeenCalled()
   })
 })

@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Info,
   LockKeyhole,
+  RotateCcw,
   Save,
   Send,
   Upload,
@@ -35,6 +36,11 @@ import {
 } from '@/lib/notes/storage/contracts'
 import { detectNoteFileMimeType } from '@/lib/notes/storage/file-signature'
 import { createNoteFileUploadStorage } from '@/lib/notes/storage/supabase-browser'
+import {
+  createNoteUploadStatusReader,
+  NoteUploadCompletionPendingError,
+  settleNoteUploadCompletion,
+} from '@/lib/notes/upload-recovery'
 import { cn } from '@/lib/utils'
 
 type SubjectOption = {
@@ -56,12 +62,19 @@ type UploadStage =
   | 'preparing'
   | 'uploading'
   | 'verifying'
+  | 'recovering'
+
+type PendingCompletion = {
+  prepared: PreparedNoteUpload
+  publish: boolean
+}
 
 const stageLabels: Record<Exclude<UploadStage, 'idle'>, string> = {
   checking: 'Checking your file…',
   preparing: 'Preparing a private upload…',
   uploading: 'Uploading to your vault…',
   verifying: 'Verifying and saving…',
+  recovering: 'Confirming your saved note…',
 }
 
 const accept = 'application/pdf,image/jpeg,image/png,image/webp'
@@ -114,10 +127,13 @@ export function UploadNoteForm({
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [pendingCompletion, setPendingCompletion] =
+    useState<PendingCompletion | null>(null)
   const [stage, setStage] = useState<UploadStage>('idle')
   const [tags, setTags] = useState('')
 
   const isPending = stage !== 'idle'
+  const isLocked = isPending || pendingCompletion !== null
   const tagCount = [
     ...new Set(
       tags
@@ -128,6 +144,8 @@ export function UploadNoteForm({
   ].length
 
   function chooseFile(nextFile: File | null) {
+    if (isLocked) return
+
     if (!nextFile) {
       setFile(null)
       return
@@ -149,51 +167,79 @@ export function UploadNoteForm({
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault()
     setDragActive(false)
+    if (isLocked) return
     chooseFile(event.dataTransfer.files.item(0))
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!file) {
+    if (!file && !pendingCompletion) {
       setError('Choose the note file you want to add.')
       return
     }
 
     const submitter = (event.nativeEvent as SubmitEvent)
       .submitter as HTMLButtonElement | null
-    const publish = submitter?.value === 'publish'
+    const publish = pendingCompletion
+      ? pendingCompletion.publish
+      : submitter?.value === 'publish'
     // React only guarantees currentTarget during the synchronous event handler.
     const form = event.currentTarget
-    let preparedUpload: PreparedNoteUpload | null = null
+    let preparedUpload = pendingCompletion?.prepared || null
     setError(null)
 
     try {
-      const formData = new FormData(form)
-      setStage('checking')
-      const fingerprint = await fingerprintFile(file)
-      formData.set('byteSize', String(file.size))
-      formData.set('mimeType', fingerprint.mimeType satisfies NoteFileMimeType)
-      formData.set('originalFilename', file.name)
-      formData.set('sha256', fingerprint.sha256)
+      if (!preparedUpload) {
+        const selectedFile = file
 
-      setStage('preparing')
-      const preparedResult = await prepareNoteUploadAction(formData)
+        if (!selectedFile) {
+          throw new Error('Choose the note file you want to add.')
+        }
 
-      if (!preparedResult.ok) {
-        throw new Error(preparedResult.error)
+        const formData = new FormData(form)
+        setStage('checking')
+        const fingerprint = await fingerprintFile(selectedFile)
+        formData.set('byteSize', String(selectedFile.size))
+        formData.set(
+          'mimeType',
+          fingerprint.mimeType satisfies NoteFileMimeType,
+        )
+        formData.set('originalFilename', selectedFile.name)
+        formData.set('sha256', fingerprint.sha256)
+
+        setStage('preparing')
+        const preparedResult = await prepareNoteUploadAction(formData)
+
+        if (!preparedResult.ok) {
+          throw new Error(preparedResult.error)
+        }
+
+        preparedUpload = preparedResult.prepared
+        setStage('uploading')
+        const storage = createNoteFileUploadStorage()
+        await storage.upload(selectedFile, preparedUpload)
+        setPendingCompletion({ prepared: preparedUpload, publish })
       }
 
-      preparedUpload = preparedResult.prepared
-      setStage('uploading')
-      const storage = createNoteFileUploadStorage()
-      await storage.upload(file, preparedUpload)
+      if (!preparedUpload) {
+        throw new Error('The upload details were lost. Please try again.')
+      }
+
+      const uploadToComplete = preparedUpload
 
       setStage('verifying')
-      const completedResult = await completeNoteUploadAction({
-        noteId: preparedUpload.noteId,
-        objectKey: preparedUpload.objectKey,
-        publish,
+      const completedResult = await settleNoteUploadCompletion({
+        complete: () =>
+          completeNoteUploadAction({
+            noteId: uploadToComplete.noteId,
+            objectKey: uploadToComplete.objectKey,
+            publish,
+          }),
+        expectedPublicationStatus: publish ? 'published' : 'draft',
+        noteId: uploadToComplete.noteId,
+        onRecovering: () => setStage('recovering'),
+        readStatus: createNoteUploadStatusReader(),
       })
 
       if (!completedResult.ok) {
@@ -203,14 +249,19 @@ export function UploadNoteForm({
       const status = publish
         ? 'Your note is published.'
         : 'Your note is saved as a private draft.'
+      setPendingCompletion(null)
       router.push(`/dashboard?status=${encodeURIComponent(status)}`)
       router.refresh()
     } catch (caughtError) {
-      if (preparedUpload) {
+      const preserveUpload =
+        caughtError instanceof NoteUploadCompletionPendingError
+
+      if (preparedUpload && !preserveUpload) {
         await discardNoteUploadAction({
           noteId: preparedUpload.noteId,
           objectKey: preparedUpload.objectKey,
         })
+        setPendingCompletion(null)
       }
 
       setError(
@@ -255,6 +306,7 @@ export function UploadNoteForm({
       </section>
 
       <form
+        aria-busy={isPending}
         className="paper-card relative mt-8 overflow-hidden bg-[#fffdf6]"
         onSubmit={handleSubmit}
       >
@@ -262,8 +314,9 @@ export function UploadNoteForm({
           share knowledge
         </div>
 
-        <div className="grid lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="border-b-[1.5px] border-[#171512] p-5 sm:p-8 lg:border-b-0 lg:border-r-[1.5px]">
+        <fieldset className="contents" disabled={isLocked}>
+          <div className="grid lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="border-b-[1.5px] border-[#171512] p-5 sm:p-8 lg:border-b-0 lg:border-r-[1.5px]">
             <div
               className={cn(
                 'bg-ruled flex min-h-[390px] flex-col items-center justify-center rounded-sm border-2 border-dashed border-[#17453a] px-5 py-9 text-center transition-colors',
@@ -290,7 +343,7 @@ export function UploadNoteForm({
                   </p>
                   <button
                     className="mt-6 inline-flex items-center gap-2 rounded-md border-[1.5px] border-[#171512] bg-[#fffdf6] px-4 py-2 text-sm font-black shadow-[3px_3px_0_#171512] disabled:opacity-50"
-                    disabled={isPending}
+                    disabled={isLocked}
                     onClick={() => {
                       setFile(null)
                       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -328,6 +381,7 @@ export function UploadNoteForm({
               <input
                 accept={accept}
                 className="sr-only"
+                disabled={isLocked}
                 id={fileInputId}
                 onChange={(event) => chooseFile(event.target.files?.item(0) || null)}
                 ref={fileInputRef}
@@ -339,10 +393,10 @@ export function UploadNoteForm({
               <LockKeyhole className="h-4 w-4" />
               Your file stays private until you publish.
             </p>
-          </div>
+            </div>
 
-          <div className="bg-ruled p-5 sm:p-8">
-            <div className="grid gap-5">
+            <div className="bg-ruled p-5 sm:p-8">
+              <div className="grid gap-5">
               <label className="grid gap-2 text-sm font-black">
                 Title
                 <input
@@ -484,9 +538,10 @@ export function UploadNoteForm({
                   Separate up to 10 lowercase tags with commas.
                 </span>
               </label>
+              </div>
             </div>
           </div>
-        </div>
+        </fieldset>
 
         <div className="flex flex-col gap-4 border-t-[1.5px] border-[#171512] bg-[#fffaf0] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div aria-live="polite" className="min-h-6 text-sm font-bold">
@@ -507,24 +562,38 @@ export function UploadNoteForm({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-6 font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
-              disabled={isPending || tagCount > 10}
-              name="intent"
-              type="submit"
-              value="draft"
-            >
-              <Save className="h-4 w-4" /> Save draft
-            </button>
-            <button
-              className="btn-saffron inline-flex min-h-12 items-center justify-center gap-2 rounded-sm px-6 font-black disabled:cursor-wait disabled:opacity-60"
-              disabled={isPending || tagCount > 10}
-              name="intent"
-              type="submit"
-              value="publish"
-            >
-              <Send className="h-4 w-4" /> Publish note
-            </button>
+            {pendingCompletion ? (
+              <button
+                className="btn-saffron inline-flex min-h-12 items-center justify-center gap-2 rounded-sm px-6 font-black disabled:cursor-wait disabled:opacity-60 sm:col-span-2"
+                disabled={isPending}
+                name="intent"
+                type="submit"
+                value="retry"
+              >
+                <RotateCcw className="h-4 w-4" /> Retry verification
+              </button>
+            ) : (
+              <>
+                <button
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-6 font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+                  disabled={isPending || tagCount > 10}
+                  name="intent"
+                  type="submit"
+                  value="draft"
+                >
+                  <Save className="h-4 w-4" /> Save draft
+                </button>
+                <button
+                  className="btn-saffron inline-flex min-h-12 items-center justify-center gap-2 rounded-sm px-6 font-black disabled:cursor-wait disabled:opacity-60"
+                  disabled={isPending || tagCount > 10}
+                  name="intent"
+                  type="submit"
+                  value="publish"
+                >
+                  <Send className="h-4 w-4" /> Publish note
+                </button>
+              </>
+            )}
           </div>
         </div>
       </form>

@@ -155,9 +155,13 @@ through a private signed Supabase Storage intent, and saves a draft or publishes
 the note through server-owned database functions. The adapter is isolated
 behind `src/lib/notes/storage` and does not require a service-role key.
 
-Migration `20260810020000_create_note_upload_pipeline.sql` and its 18 pgTAP
-tests in `supabase/tests/note_upload_pipeline.sql` must be applied/run against
-hosted Supabase before the live upload action is operational.
+Migration `20260810020000_create_note_upload_pipeline.sql` and the upload
+recovery migrations dated `20260815` are applied to hosted Supabase. The 38
+pgTAP assertions in `supabase/tests/note_upload_pipeline.sql` passed
+transactionally against hosted development on 2026-08-15. Upload completion is
+idempotent, stalled responses recover through owner-only status polling, and
+cleanup atomically claims incomplete uploads before removing their exact
+Storage object.
 
 ## Checks
 

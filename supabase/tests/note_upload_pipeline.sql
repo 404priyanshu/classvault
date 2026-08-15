@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(18);
+select extensions.plan(38);
 
 select extensions.ok(
   exists (
@@ -31,6 +31,60 @@ select extensions.ok(
     'EXECUTE'
   ),
   'authenticated users can call the draft upload operation'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'anon',
+    'public.get_note_upload_status(uuid)',
+    'EXECUTE'
+  ),
+  'anonymous users cannot read upload recovery status'
+);
+
+select extensions.ok(
+  has_function_privilege(
+    'authenticated',
+    'public.get_note_upload_status(uuid)',
+    'EXECUTE'
+  ),
+  'authenticated users can read their upload recovery status'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'anon',
+    'public.begin_note_upload_discard(uuid,text)',
+    'EXECUTE'
+  ),
+  'anonymous users cannot claim note uploads for cleanup'
+);
+
+select extensions.ok(
+  has_function_privilege(
+    'authenticated',
+    'public.begin_note_upload_discard(uuid,text)',
+    'EXECUTE'
+  ),
+  'authenticated users can claim their incomplete uploads for cleanup'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'anon',
+    'public.can_delete_cancelled_note_object(text)',
+    'EXECUTE'
+  ),
+  'anonymous users cannot authorize cancelled object deletion'
+);
+
+select extensions.ok(
+  has_function_privilege(
+    'authenticated',
+    'public.can_delete_cancelled_note_object(text)',
+    'EXECUTE'
+  ),
+  'authenticated users can authorize their cancelled object deletion'
 );
 
 select extensions.ok(
@@ -425,6 +479,249 @@ select extensions.is(
 select extensions.ok(
   not public.can_upload_note_object(current_setting('test.upload_object_key')),
   'published source objects cannot receive another upload token'
+);
+
+select extensions.lives_ok(
+  format(
+    $$
+      select *
+      from public.complete_note_upload(
+        %L::uuid,
+        true,
+        'application/pdf',
+        1024,
+        %L
+      )
+    $$,
+    current_setting('test.upload_note_id'),
+    repeat('c', 64)
+  ),
+  'repeating completion after publication is idempotent'
+);
+
+select extensions.is(
+  (
+    select count(*)
+    from public.note_search_documents as document
+    where document.note_id = current_setting('test.upload_note_id')::uuid
+  ),
+  1::bigint,
+  'repeated completion does not duplicate the search document'
+);
+
+select extensions.is(
+  (
+    select status.processing_status
+    from public.get_note_upload_status(
+      current_setting('test.upload_note_id')::uuid
+    ) as status
+  ),
+  'ready',
+  'the owner can recover a ready upload status'
+);
+
+select extensions.ok(
+  not public.begin_note_upload_discard(
+    current_setting('test.upload_note_id')::uuid,
+    current_setting('test.upload_object_key')
+  ),
+  'a ready published upload cannot be claimed for cleanup'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '88888888-8888-4888-8888-888888888888',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"88888888-8888-4888-8888-888888888888","role":"authenticated"}',
+  true
+);
+
+select extensions.is(
+  (
+    select count(*)
+    from public.get_note_upload_status(
+      current_setting('test.upload_note_id')::uuid
+    )
+  ),
+  0::bigint,
+  'another student cannot recover the owner upload status'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '77777777-7777-4777-8777-777777777777',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"77777777-7777-4777-8777-777777777777","role":"authenticated"}',
+  true
+);
+
+select extensions.lives_ok(
+  $$
+    select *
+    from public.create_note_upload_draft(
+      'Cancelled public upload',
+      'A cancellation race test',
+      (select id from public.subjects where slug = 'operating-systems'),
+      'summary',
+      '{}'::text[],
+      'public',
+      'cancelled.pdf',
+      'application/pdf',
+      2048,
+      repeat('e', 64)
+    )
+  $$,
+  'an eligible owner can create a second upload for cancellation testing'
+);
+
+reset role;
+
+select set_config(
+  'test.cancelled_object_key',
+  (
+    select asset.object_key
+    from public.note_assets as asset
+    join public.notes as note on note.id = asset.note_id
+    where note.title = 'Cancelled public upload'
+  ),
+  true
+);
+select set_config(
+  'test.cancelled_note_id',
+  (
+    select note.id::text
+    from public.notes as note
+    where note.title = 'Cancelled public upload'
+  ),
+  true
+);
+
+insert into storage.objects (bucket_id, name, owner_id, metadata)
+values (
+  'note-files',
+  current_setting('test.cancelled_object_key'),
+  '77777777-7777-4777-8777-777777777777',
+  jsonb_build_object('mimetype', 'application/pdf', 'size', 2048)
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '77777777-7777-4777-8777-777777777777',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"77777777-7777-4777-8777-777777777777","role":"authenticated"}',
+  true
+);
+
+select extensions.ok(
+  public.begin_note_upload_discard(
+    current_setting('test.cancelled_note_id')::uuid,
+    current_setting('test.cancelled_object_key')
+  ),
+  'the owner can atomically claim an uploading draft for cleanup'
+);
+
+select extensions.ok(
+  public.can_delete_cancelled_note_object(
+    current_setting('test.cancelled_object_key')
+  ),
+  'the cancellation claim authorizes deletion of the exact owner object'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '88888888-8888-4888-8888-888888888888',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"88888888-8888-4888-8888-888888888888","role":"authenticated"}',
+  true
+);
+
+select extensions.ok(
+  not public.begin_note_upload_discard(
+    current_setting('test.cancelled_note_id')::uuid,
+    current_setting('test.cancelled_object_key')
+  ),
+  'another student cannot claim the owner cancellation'
+);
+
+select extensions.ok(
+  not public.can_delete_cancelled_note_object(
+    current_setting('test.cancelled_object_key')
+  ),
+  'another student cannot authorize deletion of the cancelled owner object'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '77777777-7777-4777-8777-777777777777',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"77777777-7777-4777-8777-777777777777","role":"authenticated"}',
+  true
+);
+
+select extensions.throws_ok(
+  format(
+    $$
+      select *
+      from public.complete_note_upload(
+        %L::uuid,
+        true,
+        'application/pdf',
+        2048,
+        %L
+      )
+    $$,
+    current_setting('test.cancelled_note_id'),
+    repeat('e', 64)
+  ),
+  '23514',
+  'Note upload cannot be completed in its current state',
+  'completion cannot race past a cancellation claim'
+);
+
+select extensions.throws_ok(
+  format(
+    $$
+      select public.discard_note_upload_draft(%L::uuid)
+    $$,
+    current_setting('test.cancelled_note_id')
+  ),
+  '23514',
+  'Remove the stored file before discarding its upload intent',
+  'the cancelled draft remains until its storage object is absent'
+);
+
+select set_config('storage.allow_delete_query', 'true', true);
+
+select extensions.lives_ok(
+  $$
+    delete from storage.objects as object
+    where object.bucket_id = 'note-files'
+      and object.name = current_setting('test.cancelled_object_key')
+  $$,
+  'the owner can delete the exact object after claiming cancellation'
+);
+
+select extensions.ok(
+  public.discard_note_upload_draft(
+    current_setting('test.cancelled_note_id')::uuid
+  ),
+  'the owner can discard the cancelled draft after object deletion'
 );
 
 select * from extensions.finish();
