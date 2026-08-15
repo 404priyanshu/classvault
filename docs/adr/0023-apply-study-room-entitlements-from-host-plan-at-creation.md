@@ -1,0 +1,3 @@
+# Apply Study Room Entitlements from Host Plan at Creation
+
+For the MVP, ClassVault applies configured study room duration, capacity, and enhanced host moderation benefits from the room creator's plan at the moment the room is created. Pro-hosted rooms keep those benefits until the room naturally ends even if the host later downgrades or a renewal payment fails, while free students can still join Pro-hosted rooms when they satisfy normal public or university scope rules. If the original host leaves, the first co-host becomes the new host; if there is no co-host, the room continues without active host controls until the last participant leaves or the duration limit is reached.
