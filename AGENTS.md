@@ -3,8 +3,8 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 19
-  last_verified: 2026-08-15
+  context_version: 20
+  last_verified: 2026-08-16
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
   source_of_truth_priority:
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding and first notes upload slice
-production_application_status: Auth, secure onboarding, notes schema/RLS foundation, and recoverable hosted draft/upload/publication flow implemented
+product_stage: Interactive landing-page prototype plus authenticated onboarding, note upload, Notes Library, and note-detail slices
+production_application_status: Auth, secure onboarding, notes schema/RLS foundation, recoverable hosted upload/publication, RLS-filtered browsing, private preview, and signed download implemented
 framework: Next.js 16.2.12
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 32 Vitest tests, 38 hosted pgTAP foundation tests, and 38 hosted upload-pipeline pgTAP tests
+automated_test_suite: 37 Vitest tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted library-access pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -81,6 +81,12 @@ implemented_routes:
     type: PKCE/OTP confirmation route handler
   - path: /dashboard
     type: protected authenticated application shell
+  - path: /dashboard/notes
+    type: protected responsive RLS-filtered Notes Library with title search, subject/type/access filters, sorting, and pagination
+  - path: /dashboard/notes/[noteId]
+    type: protected note-detail route with safe contributor metadata and a five-minute private file preview
+  - path: /dashboard/notes/[noteId]/download
+    type: protected route handler issuing an authorized short-lived private download
   - path: /dashboard/notes/new
     type: protected responsive note draft/upload/publication workflow with stalled-response recovery
   - path: /onboarding
@@ -119,6 +125,12 @@ completion idempotent, expose owner-only status checks, atomically claim failed
 uploads before cleanup, and authorize exact cancelled-object removal. The
 38-test upload pgTAP suite passed transactionally against hosted development on
 2026-08-15.
+
+Migration `20260816000000_add_note_library_access.sql` is applied to hosted
+Supabase. It adds narrowly scoped authenticated functions for safe contributor
+labels and ready-file metadata plus a private Storage select policy gated by
+`can_consume_note(...)`. The 13-test library-access pgTAP suite passed
+transactionally against hosted development on 2026-08-16.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -470,17 +482,28 @@ These are product claims, not implemented or validated system behavior.
   checksum matching, idempotent publication, recovery isolation, cancellation
   races, and exact-object cleanup. It passed transactionally against hosted
   development on 2026-08-15.
-- A 32-test Vitest suite covering Auth, onboarding, route protection, file
+- A responsive `/dashboard/notes` library backed by the authenticated Supabase
+  session and existing note RLS. It supports title search, subject/type/access
+  filters, newest/oldest sorting, exact RLS-scoped counts, and pagination.
+- A protected `/dashboard/notes/[noteId]` detail experience with pseudonymous
+  contributor data, rating summaries, scope metadata, a real private PDF/image
+  preview, and an authorized five-minute signed download route.
+- Library access helpers expose only safe contributor and ready-file fields
+  after `can_consume_note(...)` succeeds. Raw `note_assets` and other students'
+  profile rows remain unavailable to direct authenticated reads.
+- A 13-test hosted library-access pgTAP suite covering function privileges,
+  the Storage policy, eligible consumption, and onboarding-incomplete denial.
+- A 37-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
-  cleanup.
+  cleanup, plus Notes Library query normalization.
 
 ### Simulated or absent
 
 ```yaml
 not_implemented:
   - Manual review/rejection workflow for pending university memberships
-  - Note browse, preview, download, deletion, or recovery
+  - Note deletion or recovery UI
   - Real search or indexing
   - Payments or subscriptions
   - AI model calls
@@ -598,10 +621,16 @@ important_files:
     role: Hosted private bucket, exact-object Storage RLS, and server-owned draft/upload/completion operations
   supabase/migrations/20260815000000_harden_note_upload_recovery.sql:
     role: Idempotent completion, owner-only status recovery, and atomic cleanup claims
+  supabase/migrations/20260816000000_add_note_library_access.sql:
+    role: Safe note contributor/file metadata functions and consumable-note private Storage reads
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
     role: 38 hosted pgTAP tests for upload privileges, eligibility, recovery, cancellation races, verification, and publication
+  supabase/tests/note_library_access.sql:
+    role: 13 hosted pgTAP tests for contributor labels, ready-file metadata, and private download authorization
+  src/app/dashboard/notes:
+    role: Protected Notes Library, note-detail, private preview, and signed-download routes
   src/app/dashboard/notes/new:
     role: Protected note-upload route and validated server actions
   src/components/notes/UploadNoteForm.tsx:
@@ -681,15 +710,16 @@ npm run db:test
 ```
 
 `npm run db:test` requires a running local Supabase/Postgres stack or an
-explicitly connected test database. The canonical pgTAP suite was also run
-transactionally against the hosted development project on 2026-08-15.
+explicitly connected test database. The canonical pgTAP suites were also run
+transactionally against the hosted development project through 2026-08-16.
 
-Last verified baseline on 2026-08-15:
+Last verified baseline on 2026-08-16:
 
 ```yaml
-vitest_tests: 32 passed
+vitest_tests: 37 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
+hosted_note_library_access_pgtap_tests: 13 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -738,6 +768,15 @@ interactions_checked:
   note_upload_pgtap_execution: 38 passed transactionally against hosted development
   note_upload_live_publication: pass with acceptance artifact removed afterward
   note_upload_stalled_response_recovery: pass through automated hung-response coverage
+  notes_library_desktop_1440x1000_render: pass in external Chrome
+  notes_library_mobile_400x900_render: pass in external Chrome device mode
+  notes_library_filters_and_empty_state: pass
+  notes_library_horizontal_mobile_overflow: none observed
+  note_detail_desktop_1440x1000_render: pass in external Chrome
+  note_detail_mobile_400x900_render: pass in external Chrome device mode
+  note_detail_private_pdf_preview: pass
+  note_detail_signed_download: pass
+  notes_library_browser_console_errors: none observed
 ```
 
 Node tooling currently installed on the machine:
@@ -755,10 +794,10 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 32 Vitest tests, 38 hosted notes-foundation
-   pgTAP tests, and 38 hosted upload-pipeline pgTAP tests. Live upload
-   publication passed manually, but there is still no committed browser
-   end-to-end suite.
+1. Automated coverage includes 37 Vitest tests, 38 hosted notes-foundation
+   pgTAP tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted
+   library-access pgTAP tests. Live upload and download behavior passed
+   manually, but there is still no committed browser end-to-end suite.
 2. Some currently unused shadcn-style components may contain Tailwind syntax
    associated with newer Tailwind versions, including forms such as
    `origin-(--...)` or `outline-hidden`. The current landing page builds because
@@ -818,15 +857,14 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Implement authorized browse, detail, preview, and download flows.
-2. Implement ratings and deterministic recency-weighted ranking.
-3. Implement Trash, 30-day restoration, and idempotent purge.
-4. Implement report intake and scoped moderation operations/tooling on the
+1. Implement ratings and deterministic recency-weighted ranking.
+2. Implement Trash, 30-day restoration, and idempotent purge.
+3. Implement report intake and scoped moderation operations/tooling on the
    existing schema foundation.
-5. Implement indexed, permission-safe full-text search.
-6. Implement permission-aware, source-grounded roadmap generation.
-7. Implement realtime study rooms.
-8. Add billing and expanded moderation tooling.
+4. Implement indexed, permission-safe full-text search.
+5. Implement permission-aware, source-grounded roadmap generation.
+6. Implement realtime study rooms.
+7. Add billing and expanded moderation tooling.
 
 Regenerate database types when the CLI environment supports it, and expand the
 automated suite alongside each new product module.
@@ -883,7 +921,7 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 32-test Vitest foundation for Auth, onboarding,
+> The repository has a 37-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, and stalled
 > completion recovery. The
 > current Turnstile widget is registered for
@@ -903,9 +941,12 @@ The correct starting assumption for future work is:
 > migrations are applied to hosted Supabase. Completion is idempotent, an
 > owner-only status RPC recovers stalled responses, and cleanup cannot remove a
 > ready/published object. The 38-test upload pgTAP suite and a live image
-> publication acceptance test passed on 2026-08-15. No browse,
-> preview, download, rating mutation, Trash, or moderation UI is implemented.
-> The immediate continuation is authorized browse/detail/preview/download.
+> publication acceptance test passed on 2026-08-15. The responsive Notes
+> Library, note detail, private preview, and signed download are implemented
+> through the existing RLS boundary; 13 hosted library-access pgTAP tests and
+> live Chrome acceptance passed on 2026-08-16. Rating mutation, Trash, and
+> moderation UI are not implemented. The immediate continuation is ratings and
+> deterministic recency-weighted ranking.
 > Roadmaps and study rooms remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
