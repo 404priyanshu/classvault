@@ -842,6 +842,7 @@ invariants:
   - Do not use placeholder metrics as factual evidence.
   - Do not run npm audit fix --force.
   - Run typecheck, lint, and build after code changes.
+  - Commit completed code and configuration changes after verification unless the user explicitly asks not to; do not create commits for read-only investigation.
 ```
 
 When adding real application behavior, clearly separate:
