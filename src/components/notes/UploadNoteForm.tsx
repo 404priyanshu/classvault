@@ -163,13 +163,15 @@ export function UploadNoteForm({
     const submitter = (event.nativeEvent as SubmitEvent)
       .submitter as HTMLButtonElement | null
     const publish = submitter?.value === 'publish'
+    // React only guarantees currentTarget during the synchronous event handler.
+    const form = event.currentTarget
     let preparedUpload: PreparedNoteUpload | null = null
     setError(null)
 
     try {
+      const formData = new FormData(form)
       setStage('checking')
       const fingerprint = await fingerprintFile(file)
-      const formData = new FormData(event.currentTarget)
       formData.set('byteSize', String(file.size))
       formData.set('mimeType', fingerprint.mimeType satisfies NoteFileMimeType)
       formData.set('originalFilename', file.name)
