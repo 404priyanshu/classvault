@@ -19,7 +19,7 @@ document:
 ```yaml
 project_name: ClassVault
 product_stage: Interactive landing-page prototype plus authenticated onboarding, note upload, Notes Library, and note-detail slices
-production_application_status: Auth, secure onboarding, notes schema/RLS foundation, recoverable hosted upload/publication, RLS-filtered browsing, private preview, and signed download implemented
+production_application_status: Auth, secure onboarding, notes schema/RLS foundation, recoverable hosted upload/publication, RLS-filtered browsing, private preview, signed download, rating mutation, and recency-weighted ranking implemented
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 42 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted library-access pgTAP tests
+automated_test_suite: 50 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, and 29 hosted rating/ranking pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -493,10 +493,25 @@ These are product claims, not implemented or validated system behavior.
   profile rows remain unavailable to direct authenticated reads.
 - A 13-test hosted library-access pgTAP suite covering function privileges,
   the Storage policy, eligible consumption, and onboarding-incomplete denial.
-- A 42-test Vitest suite covering Auth, onboarding, route protection, file
+- Rating mutation and deterministic recency-weighted ranking. `rate_note(...)`
+  rechecks consumption access, rejects self-ratings, upserts one 1-5 rating
+  per student, and a private `refresh_note_rating_summary(...)` maintains
+  Bayesian weighted summaries (365-day half-life, prior strength 8, cohort
+  mean from raw peer ratings, 3.5 default) deterministically regardless of
+  refresh order. An interactive star control with optimistic updates lives on
+  the note-detail page.
+- `list_notes_for_library(...)` applies access before ranking, filtering,
+  exact counts, and pagination; it powers the Notes Library including the new
+  "Top rated" sort with fully deterministic tie-breaking.
+- A 29-test hosted rating pgTAP suite covering privileges, eligibility,
+  self-rating rejection, draft/campus denial, upsert semantics, exact summary
+  math with cohort priors, ranked ordering, pagination, and lost-access
+  revocation.
+- A 50-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
-  cleanup, plus Notes Library query normalization and onboarding helpers.
+  cleanup, plus Notes Library query normalization, onboarding helpers, and
+  rating-action validation and error mapping.
 - An 8-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
   redirects for protected routes, and the interactive roadmap demo.
@@ -626,18 +641,26 @@ important_files:
     role: Idempotent completion, owner-only status recovery, and atomic cleanup claims
   supabase/migrations/20260816000000_add_note_library_access.sql:
     role: Safe note contributor/file metadata functions and consumable-note private Storage reads
+  supabase/migrations/20260821000000_create_note_rating_mutation.sql:
+    role: rate_note mutation, private deterministic summary refresh, and the access-first ranked library listing
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
     role: 38 hosted pgTAP tests for upload privileges, eligibility, recovery, cancellation races, verification, and publication
   supabase/tests/note_library_access.sql:
     role: 13 hosted pgTAP tests for contributor labels, ready-file metadata, and private download authorization
+  supabase/tests/note_ratings.sql:
+    role: 29 hosted pgTAP tests for rating eligibility, self-rating rejection, upsert semantics, summary math, cohort priors, deterministic ranking, pagination, and lost-access revocation
+  scripts/run-pgtap-hosted.py:
+    role: Runs pgTAP suites against the linked hosted project with full TAP output when Docker is unavailable
   src/app/dashboard/notes:
     role: Protected Notes Library, note-detail, private preview, and signed-download routes
   src/app/dashboard/notes/new:
     role: Protected note-upload route and validated server actions
   src/components/notes/UploadNoteForm.tsx:
     role: Responsive private file, metadata, draft, and publication workflow
+  src/components/notes/RatingStars.tsx:
+    role: Client star-rating control with optimistic updates on note detail
   src/lib/notes/storage:
     role: Provider-agnostic note-file contract, file signatures, and Supabase browser/server adapters
   src/app/layout.tsx:
@@ -718,17 +741,22 @@ npm run db:test
 port 3100, so run `npm run build` first (the script order above does).
 
 `npm run db:test` requires a running local Supabase/Postgres stack or an
-explicitly connected test database. The canonical pgTAP suites were also run
-transactionally against the hosted development project through 2026-08-16.
+explicitly connected test database. Without Docker, the pgTAP suites run
+against the linked hosted project through
+`python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
+the Supabase CLI access token from the macOS keychain and prints full TAP
+output. All canonical suites were last run transactionally against the hosted
+development project on 2026-08-21.
 
 Last verified baseline on 2026-08-21:
 
 ```yaml
-vitest_tests: 42 passed
+vitest_tests: 50 passed
 e2e_smoke_tests: 8 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
+hosted_note_rating_pgtap_tests: 29 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -803,11 +831,11 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 42 Vitest tests, an 8-test Playwright smoke
+1. Automated coverage includes 50 Vitest tests, an 8-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
-   notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, and 13
-   hosted library-access pgTAP tests. Authenticated upload/download journeys
-   still rely on manual acceptance runs.
+   notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
+   hosted library-access pgTAP tests, and 29 hosted rating pgTAP tests.
+   Authenticated upload/download journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
    deliberate in-range upgrade verified by the full suite.
@@ -923,9 +951,10 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 42-test Vitest foundation for Auth, onboarding,
-> protected routes, file signatures, note-upload server actions, and stalled
-> completion recovery, plus an 8-test Playwright smoke suite for public
+> The repository has a 50-test Vitest foundation for Auth, onboarding,
+> protected routes, file signatures, note-upload server actions, stalled
+> completion recovery, rating actions, and library query normalization, plus
+> an 8-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
@@ -947,9 +976,16 @@ The correct starting assumption for future work is:
 > publication acceptance test passed on 2026-08-15. The responsive Notes
 > Library, note detail, private preview, and signed download are implemented
 > through the existing RLS boundary; 13 hosted library-access pgTAP tests and
-> live Chrome acceptance passed on 2026-08-16. Rating mutation, Trash, and
-> moderation UI are not implemented. The immediate continuation is ratings and
-> deterministic recency-weighted ranking.
+> live Chrome acceptance passed on 2026-08-16. Rating mutation and
+> deterministic recency-weighted ranking are implemented: `rate_note` enforces
+> eligibility, rejects self-ratings, upserts one 1-5 rating per student, and a
+> private refresh maintains Bayesian weighted summaries (365-day half-life,
+> prior strength 8, cohort mean from raw peer ratings with a 3.5 default).
+> `list_notes_for_library` applies access before ranking and powers the
+> library's "Top rated" sort. The 29-test rating pgTAP suite passed
+> transactionally against hosted development on 2026-08-21. Trash,
+> 30-day restoration, and moderation UI are not implemented. The immediate
+> continuation is Trash with idempotent purge and restoration.
 > Roadmaps and study rooms remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.

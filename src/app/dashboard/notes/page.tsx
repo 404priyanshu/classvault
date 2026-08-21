@@ -20,14 +20,18 @@ type NotesLibraryPageProps = {
 }
 
 type NoteRow = {
+  average_rating: string | number | null
   description: string | null
   id: string
   note_type: string
   owner_id: string
   published_at: string | null
-  subjects: { code: string | null; name: string } | null
+  rating_count: number | null
+  subject_code: string | null
+  subject_name: string | null
   tags: string[]
   title: string
+  total_count: number | null
   visibility: string
 }
 
@@ -37,39 +41,17 @@ export default async function NotesLibraryPage({
   const query = normalizeNoteLibraryQuery(await searchParams)
   const supabase = await createClient()
   const from = (query.page - 1) * NOTE_LIBRARY_PAGE_SIZE
-  const to = from + NOTE_LIBRARY_PAGE_SIZE - 1
-
-  let notesQuery = supabase
-    .from('notes')
-    .select(
-      'id, owner_id, title, description, note_type, tags, visibility, published_at, subjects(code, name)',
-      { count: 'exact' },
-    )
-    .eq('publication_status', 'published')
-    .in('moderation_status', ['clear', 'under_review'])
-    .is('deleted_at', null)
-    .order('published_at', { ascending: query.sort === 'oldest' })
-    .order('id', { ascending: query.sort === 'oldest' })
-    .range(from, to)
-
-  if (query.query) {
-    notesQuery = notesQuery.ilike('title', `%${query.query}%`)
-  }
-
-  if (query.subjectId) {
-    notesQuery = notesQuery.eq('subject_id', query.subjectId)
-  }
-
-  if (query.noteType !== 'all') {
-    notesQuery = notesQuery.eq('note_type', query.noteType)
-  }
-
-  if (query.access !== 'all') {
-    notesQuery = notesQuery.eq('visibility', query.access)
-  }
 
   const [notesResult, subjectsResult] = await Promise.all([
-    notesQuery,
+    supabase.rpc('list_notes_for_library', {
+      p_access: query.access,
+      p_limit: NOTE_LIBRARY_PAGE_SIZE,
+      p_note_type: query.noteType,
+      p_offset: from,
+      p_query: query.query,
+      p_sort: query.sort,
+      p_subject_id: query.subjectId as number,
+    }),
     supabase
       .from('subjects')
       .select('code, id, name')
@@ -82,35 +64,24 @@ export default async function NotesLibraryPage({
   }
 
   const rawNotes = (notesResult.data || []) as NoteRow[]
+  const totalCount = Number(rawNotes[0]?.total_count || 0)
   const noteIds = rawNotes.map((note) => note.id)
-  const [contributorsResult, ratingsResult] = noteIds.length
-    ? await Promise.all([
-        supabase.rpc('get_accessible_note_contributors', {
+  const contributorRows = noteIds.length
+    ? ((
+        await supabase.rpc('get_accessible_note_contributors', {
           p_note_ids: noteIds,
-        }),
-        supabase
-          .from('note_rating_summaries')
-          .select('average_rating, note_id, rating_count')
-          .in('note_id', noteIds),
-      ])
-    : [
-        { data: [], error: null },
-        { data: [], error: null },
-      ]
+        })
+      ).data ?? [])
+    : []
 
   const contributors = new Map(
-    (contributorsResult.data || []).map((contributor) => [
+    contributorRows.map((contributor) => [
       contributor.note_id,
       contributor.display_name,
     ]),
   )
-  const ratings = new Map(
-    (ratingsResult.data || []).map((rating) => [rating.note_id, rating]),
-  )
   const notes: LibraryNoteItem[] = rawNotes.flatMap((note) => {
-    if (!note.published_at || !note.subjects) return []
-
-    const rating = ratings.get(note.id)
+    if (!note.published_at || !note.subject_name) return []
 
     return [
       {
@@ -120,19 +91,18 @@ export default async function NotesLibraryPage({
         noteType: note.note_type,
         publishedAt: note.published_at,
         rating:
-          rating?.average_rating === null || rating?.average_rating === undefined
+          note.average_rating === null || note.average_rating === undefined
             ? null
-            : Number(rating.average_rating),
-        ratingCount: Number(rating?.rating_count || 0),
-        subjectCode: note.subjects.code,
-        subjectName: note.subjects.name,
+            : Number(note.average_rating),
+        ratingCount: Number(note.rating_count || 0),
+        subjectCode: note.subject_code,
+        subjectName: note.subject_name,
         tags: note.tags,
         title: note.title,
         visibility: note.visibility,
       },
     ]
   })
-  const totalCount = notesResult.count || 0
   const pageCount = Math.max(1, Math.ceil(totalCount / NOTE_LIBRARY_PAGE_SIZE))
 
   if (query.page > pageCount && totalCount > 0) {
@@ -259,6 +229,7 @@ export default async function NotesLibraryPage({
               name="sort"
             >
               <option value="newest">Newest first</option>
+              <option value="top">Top rated</option>
               <option value="oldest">Oldest first</option>
             </select>
           </label>

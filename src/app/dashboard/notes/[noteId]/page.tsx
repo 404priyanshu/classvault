@@ -16,6 +16,7 @@ import {
   createAccessibleNoteFileUrl,
   getAccessibleNoteFile,
 } from '@/lib/notes/storage/access'
+import { RatingStars } from '@/components/notes/RatingStars'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -62,23 +63,32 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
   const note = data as NoteDetailRow
   if (!note.published_at || !note.subjects) notFound()
 
-  const [contributorResult, ratingResult, file] = await Promise.all([
-    supabase.rpc('get_accessible_note_contributors', {
-      p_note_ids: [note.id],
-    }),
-    supabase
-      .from('note_rating_summaries')
-      .select('average_rating, rating_count')
-      .eq('note_id', note.id)
-      .maybeSingle(),
-    getAccessibleNoteFile(supabase, note.id),
-  ])
+  const [contributorResult, ratingResult, ownRatingResult, claimsResult, file] =
+    await Promise.all([
+      supabase.rpc('get_accessible_note_contributors', {
+        p_note_ids: [note.id],
+      }),
+      supabase
+        .from('note_rating_summaries')
+        .select('average_rating, rating_count')
+        .eq('note_id', note.id)
+        .maybeSingle(),
+      supabase
+        .from('note_ratings')
+        .select('rating')
+        .eq('note_id', note.id)
+        .maybeSingle(),
+      supabase.auth.getClaims(),
+      getAccessibleNoteFile(supabase, note.id),
+    ])
   const contributor = contributorResult.data?.[0]
   const rating = ratingResult.data
   const averageRating =
     rating?.average_rating === null || rating?.average_rating === undefined
       ? null
       : Number(rating.average_rating)
+  const viewerId = claimsResult.data?.claims?.sub ?? null
+  const canRate = viewerId !== null && viewerId !== note.owner_id
   let previewUrl: string | null = null
 
   if (file) {
@@ -208,6 +218,14 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
         </section>
 
         <aside className="space-y-4" aria-label="Note details">
+          <RatingStars
+            canRate={canRate}
+            initialAverage={averageRating}
+            initialCount={Number(rating?.rating_count || 0)}
+            initialUserRating={ownRatingResult.data?.rating ?? null}
+            noteId={note.id}
+          />
+
           <section className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
             <h2 className="font-display text-xl font-black">About this note</h2>
             <p className="mt-3 text-sm leading-relaxed text-[#171512]/65">

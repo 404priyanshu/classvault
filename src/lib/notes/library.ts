@@ -11,7 +11,7 @@ export const NOTE_TYPE_LABELS = {
 
 export type NoteType = keyof typeof NOTE_TYPE_LABELS
 export type NoteAccess = 'all' | 'public' | 'university'
-export type NoteSort = 'newest' | 'oldest'
+export type NoteSort = 'newest' | 'oldest' | 'top'
 
 export type NoteLibraryQuery = {
   access: NoteAccess
@@ -59,7 +59,8 @@ export function normalizeNoteLibraryQuery(
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 80),
-    sort: rawSort === 'oldest' ? 'oldest' : 'newest',
+    sort:
+      rawSort === 'oldest' || rawSort === 'top' ? rawSort : 'newest',
     subjectId:
       Number.isSafeInteger(rawSubject) && rawSubject > 0 ? rawSubject : null,
   }
