@@ -54,6 +54,27 @@ test.describe('authentication routes', () => {
   })
 })
 
+test.describe('roadmap demo', () => {
+  test('generates the sample plan and reveals interactive phases', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    await page.getByLabel('Your topic').fill('Operating Systems')
+    await page.getByRole('button', { name: 'Generate my roadmap' }).click()
+
+    await expect(page.getByText('Roadmap ready')).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(page.getByText('Foundations').first()).toBeVisible()
+    await expect(page.getByText('sources:').first()).toBeVisible()
+
+    const firstTask = page.getByRole('button', { name: /Mark "Skim overview notes/ })
+    await firstTask.click()
+    await expect(firstTask).toHaveAccessibleName(/as not done/)
+  })
+})
+
 test.describe('protected routes', () => {
   test('dashboard redirects unauthenticated visitors to sign-in', async ({
     page,
