@@ -742,6 +742,47 @@ export type Database = {
         Returns: boolean
       }
       is_notes_eligible: { Args: never; Returns: boolean }
+      list_notes_for_library: {
+        Args: {
+          p_access: string
+          p_limit: number
+          p_note_type: string
+          p_offset: number
+          p_query: string
+          p_sort: string
+          p_subject_id: number
+        }
+        Returns: {
+          average_rating: number
+          description: string
+          id: string
+          note_type: string
+          owner_id: string
+          published_at: string
+          rating_count: number
+          subject_code: string
+          subject_name: string
+          tags: string[]
+          title: string
+          total_count: number
+          visibility: string
+        }[]
+      }
+      rate_note: {
+        Args: { p_note_id: string; p_rating: number }
+        Returns: {
+          average_rating: number
+          effective_rating_count: number
+          error_code: string
+          rating_count: number
+          success: boolean
+          weighted_score: number
+        }[]
+      }
+      refresh_note_rating_summary: {
+        Args: { p_note_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

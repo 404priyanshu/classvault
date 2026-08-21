@@ -56,6 +56,11 @@ describe('normalizeNoteLibraryQuery', () => {
       'dbms title _',
     )
   })
+
+  it('accepts the recency-weighted top sort and rejects unknown sorts', () => {
+    expect(normalizeNoteLibraryQuery({ sort: 'top' }).sort).toBe('top')
+    expect(normalizeNoteLibraryQuery({ sort: 'rating' }).sort).toBe('newest')
+  })
 })
 describe('noteLibrarySearchParams', () => {
   it('omits default values and resets pagination through an override', () => {
