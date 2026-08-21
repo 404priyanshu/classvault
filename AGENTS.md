@@ -3,8 +3,8 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 20
-  last_verified: 2026-08-16
+  context_version: 21
+  last_verified: 2026-08-21
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
   source_of_truth_priority:
@@ -20,7 +20,7 @@ document:
 project_name: ClassVault
 product_stage: Interactive landing-page prototype plus authenticated onboarding, note upload, Notes Library, and note-detail slices
 production_application_status: Auth, secure onboarding, notes schema/RLS foundation, recoverable hosted upload/publication, RLS-filtered browsing, private preview, and signed download implemented
-framework: Next.js 16.2.12
+framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
 react: 19.2.0
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 37 Vitest tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted library-access pgTAP tests
+automated_test_suite: 42 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted library-access pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -493,10 +493,13 @@ These are product claims, not implemented or validated system behavior.
   profile rows remain unavailable to direct authenticated reads.
 - A 13-test hosted library-access pgTAP suite covering function privileges,
   the Storage policy, eligible consumption, and onboarding-incomplete denial.
-- A 37-test Vitest suite covering Auth, onboarding, route protection, file
+- A 42-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
-  cleanup, plus Notes Library query normalization.
+  cleanup, plus Notes Library query normalization and onboarding helpers.
+- An 8-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+  page, security headers, sign-in/sign-up/phone routes, unauthenticated
+  redirects for protected routes, and the interactive roadmap demo.
 
 ### Simulated or absent
 
@@ -686,9 +689,10 @@ Architecture notes:
 - Local images use static imports with `next/image`.
 - `components.json` identifies the component setup as shadcn-compatible with RSC
   and Next.js.
-- Most files in `src/components/ui` are unused scaffolding. The landing page
-  currently depends directly on only a small subset, notably the accordion.
-  Preserve the scaffold unless the user asks for cleanup.
+- `src/components/ui` contains only the primitives the app actually uses:
+  accordion, ascii-orb, spinner, and stationery. The unused shadcn scaffold
+  was removed on 2026-08-21 along with its dependencies. Re-add individual
+  primitives deliberately if a new UI needs them.
 
 ## 7. Local development
 
@@ -706,17 +710,22 @@ npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run test:e2e
 npm run db:test
 ```
+
+`npm run test:e2e` builds nothing itself; it starts the production server on
+port 3100, so run `npm run build` first (the script order above does).
 
 `npm run db:test` requires a running local Supabase/Postgres stack or an
 explicitly connected test database. The canonical pgTAP suites were also run
 transactionally against the hosted development project through 2026-08-16.
 
-Last verified baseline on 2026-08-16:
+Last verified baseline on 2026-08-21:
 
 ```yaml
-vitest_tests: 37 passed
+vitest_tests: 42 passed
+e2e_smoke_tests: 8 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
@@ -794,28 +803,21 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 37 Vitest tests, 38 hosted notes-foundation
-   pgTAP tests, 38 hosted upload-pipeline pgTAP tests, and 13 hosted
-   library-access pgTAP tests. Live upload and download behavior passed
-   manually, but there is still no committed browser end-to-end suite.
-2. Some currently unused shadcn-style components may contain Tailwind syntax
-   associated with newer Tailwind versions, including forms such as
-   `origin-(--...)` or `outline-hidden`. The current landing page builds because
-   these components are not materially used. Normalize and verify a component
-   before introducing it into a user-facing route.
-3. `npm audit --omit=dev` previously reported three high-severity advisories in
-   Next.js transitive dependencies involving `postcss` and `sharp`. The suggested
-   npm force remediation would downgrade Next.js to 9.3.3 and is not acceptable.
-   Re-evaluate on future Next.js upgrades.
-4. Do not run `npm audit fix --force`.
-5. Marketing metrics, ratings, user counts, and university counts must not be
+1. Automated coverage includes 42 Vitest tests, an 8-test Playwright smoke
+   suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
+   notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, and 13
+   hosted library-access pgTAP tests. Authenticated upload/download journeys
+   still rely on manual acceptance runs.
+2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
+   the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
+   deliberate in-range upgrade verified by the full suite.
+3. Marketing metrics, ratings, user counts, and university counts must not be
    presented as real analytics. The landing page deliberately uses honest
    early-access framing instead of invented statistics or fabricated
    testimonials; keep it that way.
-6. The checked-in database types match the current hosted migrations manually. The
-   Supabase CLI type generator attempted to require Docker even with a remote
-   connection URL on this machine. Regenerate with `npm run db:types` after CLI
-   login, or after installing Docker for a local stack.
+4. The checked-in database types were regenerated through the linked Supabase
+   CLI on 2026-08-21 and matched the previous file byte for byte. Regenerate
+   with `npm run db:types` whenever migrations change.
 7. Phone OTP sends can create direct variable cost and remain an abuse target.
    CAPTCHA and a 10-per-hour hosted SMS limit are configured; production still
    needs delivery/spend monitoring, billing safeguards, and a production
@@ -921,9 +923,10 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 37-test Vitest foundation for Auth, onboarding,
+> The repository has a 42-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, and stalled
-> completion recovery. The
+> completion recovery, plus an 8-test Playwright smoke suite for public
+> routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
 > production widget.
