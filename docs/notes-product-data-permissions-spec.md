@@ -196,6 +196,7 @@ Authoritative note metadata and lifecycle state.
 | `published_at` | `timestamptz null` | Set only by publication operation |
 | `deleted_at` | `timestamptz null` | Soft-deletion time |
 | `purge_after` | `timestamptz null` | Exactly 30 days after deletion |
+| `purge_claimed_at` | `timestamptz null` | Short-lived server-only claim while expired storage is being removed |
 | `retention_hold` | `boolean` | Server/moderator-owned; default false |
 | `superseded_by_note_id` | `uuid null` | Optional link to a corrected replacement |
 | `created_at`, `updated_at` | `timestamptz` | Server timestamps |
@@ -206,6 +207,8 @@ Required checks:
 - `visibility = 'university'` requires `university_id is not null`.
 - `deleted_at` and `purge_after` are either both null or both present.
 - `purge_after = deleted_at + interval '30 days'` is assigned by server code.
+- `purge_claimed_at` is never client-writable and may be set only by the
+  idempotent scheduled purge claim step.
 - `published_at` is present only after a successful publication transition.
 - A publication RPC verifies the related asset is ready; a client cannot make a
   note published with a direct column update.
