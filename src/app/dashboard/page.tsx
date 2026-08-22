@@ -368,8 +368,8 @@ export default async function DashboardPage({
         <div className="flex items-center gap-3 border-t border-[#cfc4ae] py-4">
           <Star className="h-5 w-5 text-[#f0a202]" />
           <div>
-            <p className="text-xs font-black">Trust features next</p>
-            <p className="text-[11px] text-[#171512]/50">Rating submissions are the next trust slice</p>
+            <p className="text-xs font-black">Vault controls live</p>
+            <p className="text-[11px] text-[#171512]/50">Manage, delete, and recover your notes</p>
           </div>
         </div>
       </section>

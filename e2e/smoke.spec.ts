@@ -91,4 +91,23 @@ test.describe('protected routes', () => {
 
     await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fdashboard%2Fnotes/)
   })
+
+  test('My Vault redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/vault?view=trash')
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Fvault%3Fview%3Dtrash/,
+    )
+  })
+
+  test('purge endpoint rejects requests without its scheduler secret', async ({
+    request,
+  }) => {
+    const response = await request.get('/api/cron/purge-notes')
+
+    expect(response.status()).toBe(401)
+    await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
+  })
 })

@@ -39,8 +39,9 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 ```
 
 Use the project URL and publishable key from the Supabase project's Connect
-dialog. A service-role key is not required and must not be exposed to the
-browser.
+dialog. The service-role key is only needed by the server-side scheduled purge
+job; it must never be exposed to the browser or stored in a `NEXT_PUBLIC_`
+variable.
 
 Link the repository to the hosted project and apply the database migrations:
 
@@ -94,6 +95,9 @@ The migrations create:
   memberships remain `pending`.
 - The notes data/RLS foundation plus a private `note-files` bucket and
   owner-derived draft/upload/publication functions.
+- Owner-only My Vault controls at `/dashboard/vault`, including soft deletion,
+  a 30-day Trash recovery window, restoration, and a privileged purge route at
+  `/api/cron/purge-notes`.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
 Completed profiles enter `/dashboard` and can be edited at
@@ -163,6 +167,13 @@ idempotent, stalled responses recover through owner-only status polling, and
 cleanup atomically claims incomplete uploads before removing their exact
 Storage object.
 
+Migration `20260823000000_create_note_lifecycle.sql` adds the owner lifecycle
+RPCs and purge-claim boundary. The 22 assertions in
+`supabase/tests/note_lifecycle.sql` pass against hosted development. Configure
+the server-only `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET`, then schedule a
+GET or POST request to `/api/cron/purge-notes` with `Authorization: Bearer
+<CRON_SECRET>` to remove expired note storage and metadata safely.
+
 The responsive Notes Library is available at `/dashboard/notes`. It queries
 published notes through the signed-in user's existing RLS boundary, with title
 search, subject/type/access filters, sorting, and pagination. Authorized note
@@ -194,6 +205,8 @@ test database.
 - `src/app/dashboard` — authenticated application entry point
 - `src/app/dashboard/notes` — RLS-filtered Notes Library and protected note detail
 - `src/app/dashboard/notes/new` — note upload actions and protected route
+- `src/app/dashboard/vault` — owner uploads, Trash, delete, and restore actions
+- `src/app/api/cron/purge-notes` — authenticated scheduler boundary for expired-note purge
 - `src/components/notes` — responsive note-library and note-upload interfaces
 - `src/lib/notes/storage` — replaceable storage contract and Supabase adapters
 - `src/components/onboarding` — responsive onboarding experience

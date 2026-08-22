@@ -49,13 +49,14 @@ const primaryNavigation: NavigationItem[] = [
 
 const secondaryNavigation: NavigationItem[] = [
   { disabled: true, icon: BookMarked, label: 'Bookmarks' },
-  { disabled: true, icon: BookOpen, label: 'My uploads' },
+  { href: '/dashboard/vault', icon: BookOpen, label: 'My uploads' },
   { disabled: true, icon: Share2, label: 'Shared with me' },
-  { disabled: true, icon: Trash2, label: 'Trash' },
+  { href: '/dashboard/vault?view=trash', icon: Trash2, label: 'Trash' },
 ]
 
 function getPageTitle(pathname: string) {
   if (pathname === '/dashboard/notes/new') return 'Upload notes'
+  if (pathname.startsWith('/dashboard/vault')) return 'My Vault'
   if (pathname.startsWith('/dashboard/notes')) return 'Notes'
   if (pathname.startsWith('/dashboard/roadmaps')) return 'Roadmaps'
   if (pathname.startsWith('/dashboard/study-rooms')) return 'Study rooms'
@@ -80,7 +81,7 @@ function SidebarNavigation({
 }) {
   const renderItem = (item: NavigationItem) => {
     const Icon = item.icon
-    const baseHref = item.href?.split('#')[0]
+    const baseHref = item.href?.split(/[?#]/)[0]
     const isActive =
       item.href === '/dashboard'
         ? pathname === '/dashboard'

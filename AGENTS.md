@@ -348,7 +348,7 @@ product_pillars:
       - Upload, discover, download, and rate student notes
       - Rank quality using rating count and recency, not raw average alone
       - Support full-text search
-    implementation_status: Specification and hosted schema/RLS foundation complete; application routes and file pipeline not implemented
+    implementation_status: Upload, publication, browsing, private preview/download, ratings, ranking, owner My Vault, Trash recovery, and scheduled purge are implemented; full-text search remains deferred
 
   verified_university_communities:
     intent:
@@ -466,8 +466,9 @@ These are product claims, not implemented or validated system behavior.
   25 MiB, with title, subject, note type, public-or-university scope,
   description, and normalized tags.
 - A provider-agnostic browser/server storage boundary with Supabase Storage as
-  the first private adapter. Files upload through a signed upload intent; no
-  service-role key is used.
+  the first private adapter. Files upload through a signed upload intent; the
+  service-role key is used only by the server-side scheduled purge route and is
+  never exposed to the browser.
 - Browser and server file-signature detection for PDF/JPEG/PNG/WebP plus
   server-side byte-size and SHA-256 verification before save or publication.
 - Migration `20260810020000_create_note_upload_pipeline.sql` defines the private
@@ -503,11 +504,15 @@ These are product claims, not implemented or validated system behavior.
 - `list_notes_for_library(...)` applies access before ranking, filtering,
   exact counts, and pagination; it powers the Notes Library including the new
   "Top rated" sort with fully deterministic tie-breaking.
+- Owner-only My Vault lifecycle is implemented at `/dashboard/vault`: active
+  uploads, Trash, soft deletion, 30-day restoration, and safe status metadata.
+  A server-only `/api/cron/purge-notes` route claims expired notes, removes
+  private Storage objects, and finalizes metadata purge behind a cron secret.
 - A 29-test hosted rating pgTAP suite covering privileges, eligibility,
   self-rating rejection, draft/campus denial, upsert semantics, exact summary
   math with cohort priors, ranked ordering, pagination, and lost-access
   revocation.
-- A 50-test Vitest suite covering Auth, onboarding, route protection, file
+- A 53-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
@@ -521,7 +526,6 @@ These are product claims, not implemented or validated system behavior.
 ```yaml
 not_implemented:
   - Manual review/rejection workflow for pending university memberships
-  - Note deletion or recovery UI
   - Real search or indexing
   - Payments or subscriptions
   - AI model calls
@@ -873,9 +877,10 @@ open_decisions:
 ```
 
 The app requires the project URL and publishable key documented in `.env.example`.
-`.env.local` contains working hosted-project values and is ignored by Git. No
-service-role key is required by the application. There is no deployment manifest
-or `.openai/hosting.json`.
+The server-side scheduled purge route additionally requires the
+`SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET`; neither may be exposed through a
+`NEXT_PUBLIC_` variable. `.env.local` contains working hosted-project values and
+is ignored by Git. There is no deployment manifest or `.openai/hosting.json`.
 
 Do not silently choose irreversible or expensive providers. For early local
 implementation, prefer provider-agnostic boundaries and document assumptions.
@@ -887,14 +892,12 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Implement ratings and deterministic recency-weighted ranking.
-2. Implement Trash, 30-day restoration, and idempotent purge.
-3. Implement report intake and scoped moderation operations/tooling on the
+1. Implement report intake and scoped moderation operations/tooling on the
    existing schema foundation.
-4. Implement indexed, permission-safe full-text search.
-5. Implement permission-aware, source-grounded roadmap generation.
-6. Implement realtime study rooms.
-7. Add billing and expanded moderation tooling.
+2. Implement indexed, permission-safe full-text search.
+3. Implement permission-aware, source-grounded roadmap generation.
+4. Implement realtime study rooms.
+5. Add billing and expanded moderation tooling.
 
 Regenerate database types when the CLI environment supports it, and expand the
 automated suite alongside each new product module.
@@ -951,7 +954,7 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 50-test Vitest foundation for Auth, onboarding,
+> The repository has a 53-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
 > an 8-test Playwright smoke suite for public
@@ -983,9 +986,22 @@ The correct starting assumption for future work is:
 > prior strength 8, cohort mean from raw peer ratings with a 3.5 default).
 > `list_notes_for_library` applies access before ranking and powers the
 > library's "Top rated" sort. The 29-test rating pgTAP suite passed
-> transactionally against hosted development on 2026-08-21. Trash,
-> 30-day restoration, and moderation UI are not implemented. The immediate
-> continuation is Trash with idempotent purge and restoration.
+> transactionally against hosted development on 2026-08-21. My Vault now
+> provides owner-only active uploads and Trash views, soft deletion, 30-day
+> restoration, and a server-only scheduled purge boundary. The 22-test
+> lifecycle pgTAP suite passed against hosted development on 2026-08-23.
+> Report intake and moderation UI are not implemented; the immediate
+> continuation is scoped moderation.
 > Roadmaps and study rooms remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

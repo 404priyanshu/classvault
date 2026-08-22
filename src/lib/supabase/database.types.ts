@@ -314,6 +314,7 @@ export type Database = {
           owner_id: string
           publication_status: string
           published_at: string | null
+          purge_claimed_at: string | null
           purge_after: string | null
           retention_hold: boolean
           subject_id: number | null
@@ -334,6 +335,7 @@ export type Database = {
           owner_id: string
           publication_status?: string
           published_at?: string | null
+          purge_claimed_at?: string | null
           purge_after?: string | null
           retention_hold?: boolean
           subject_id?: number | null
@@ -354,6 +356,7 @@ export type Database = {
           owner_id?: string
           publication_status?: string
           published_at?: string | null
+          purge_claimed_at?: string | null
           purge_after?: string | null
           retention_hold?: boolean
           subject_id?: number | null
@@ -654,6 +657,14 @@ export type Database = {
         Args: { target_note_id: string }
         Returns: boolean
       }
+      claim_expired_note_purges: {
+        Args: { p_limit?: number }
+        Returns: {
+          note_id: string
+          object_key: string | null
+          preview_object_key: string | null
+        }[]
+      }
       complete_note_upload: {
         Args: {
           p_note_id: string
@@ -705,6 +716,18 @@ export type Database = {
         Args: { p_note_id: string }
         Returns: boolean
       }
+      delete_note: {
+        Args: { p_note_id: string }
+        Returns: {
+          deleted_at: string
+          note_id: string
+          purge_after: string
+        }[]
+      }
+      finalize_note_purge: {
+        Args: { p_note_id: string }
+        Returns: boolean
+      }
       get_accessible_note_contributors: {
         Args: { p_note_ids: string[] }
         Returns: {
@@ -742,6 +765,32 @@ export type Database = {
         Returns: boolean
       }
       is_notes_eligible: { Args: never; Returns: boolean }
+      list_owned_notes: {
+        Args: { p_include_deleted?: boolean }
+        Returns: {
+          average_rating: number | null
+          byte_size: number | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          detected_mime_type: string | null
+          moderation_status: string
+          note_id: string
+          note_type: string
+          original_filename: string | null
+          processing_status: string | null
+          publication_status: string
+          published_at: string | null
+          purge_after: string | null
+          rating_count: number
+          retention_hold: boolean
+          subject_code: string | null
+          subject_name: string | null
+          title: string
+          updated_at: string
+          visibility: string
+        }[]
+      }
       list_notes_for_library: {
         Args: {
           p_access: string
@@ -782,6 +831,15 @@ export type Database = {
       refresh_note_rating_summary: {
         Args: { p_note_id: string }
         Returns: undefined
+      }
+      restore_note: {
+        Args: { p_note_id: string }
+        Returns: {
+          error_code: string | null
+          note_id: string | null
+          publication_status: string | null
+          success: boolean
+        }[]
       }
     }
     Enums: {
