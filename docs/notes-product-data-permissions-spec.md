@@ -13,10 +13,10 @@ moderation, search, and roadmap migrations are versioned in
 `supabase/migrations`. The protected routes now include upload,
 library/detail/download, My Vault, the scoped `/dashboard/moderation` queue,
 and `/dashboard/roadmaps`. The search, search-worker hardening, roadmap
-foundation/generation, and moderation report-state fix migrations are applied
-to the linked hosted project; local typecheck, lint, production build, 72 unit
-tests, 12 browser smoke tests, and the transactional hosted
-moderation/search/roadmap pgTAP suites pass.
+foundation/generation, profile-avatar, and moderation report-state fix
+migrations are applied to the linked hosted project; local typecheck, lint,
+production build, 80 unit tests, 13 browser smoke tests, and the transactional
+hosted moderation/search/roadmap pgTAP suites pass.
 
 ## 1. Purpose
 

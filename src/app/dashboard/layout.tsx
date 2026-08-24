@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   const [profileResult, membershipResult, platformRoleResult] = await Promise.all([
     supabase
       .from('profiles')
-      .select('display_name, university_name, course, onboarding_completed_at')
+      .select('avatar_url, display_name, university_name, course, onboarding_completed_at')
       .eq('id', claims.sub)
       .maybeSingle(),
     supabase
@@ -51,6 +51,7 @@ export default async function DashboardLayout({
 
   return (
     <DashboardShell
+      avatarUrl={profile.avatar_url}
       course={profile.course}
       displayName={displayName}
       membershipStatus={membershipResult.data?.status || 'pending'}
