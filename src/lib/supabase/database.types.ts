@@ -665,6 +665,24 @@ export type Database = {
           preview_object_key: string | null
         }[]
       }
+      claim_pending_note_extractions: {
+        Args: { p_limit?: number }
+        Returns: {
+          detected_mime_type: string
+          note_id: string
+          object_key: string
+          title: string
+        }[]
+      }
+      complete_note_extraction: {
+        Args: {
+          p_extracted_text?: string | null
+          p_extractor_version: string
+          p_extraction_status: string
+          p_note_id: string
+        }
+        Returns: boolean
+      }
       complete_note_upload: {
         Args: {
           p_note_id: string
@@ -791,6 +809,34 @@ export type Database = {
           visibility: string
         }[]
       }
+      list_moderation_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          category: string
+          created_at: string
+          details: string | null
+          moderation_status: string
+          note_id: string
+          note_title: string
+          note_visibility: string
+          owner_label: string
+          report_id: string
+          report_status: string
+          reporter_label: string
+          university_name: string | null
+        }[]
+      }
+      list_owned_note_moderation_notices: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          created_at: string
+          moderation_status: string
+          note_id: string
+          note_title: string
+          safe_owner_message: string
+        }[]
+      }
       list_notes_for_library: {
         Args: {
           p_access: string
@@ -804,11 +850,14 @@ export type Database = {
         Returns: {
           average_rating: number
           description: string
+          extraction_status: string
           id: string
           note_type: string
           owner_id: string
           published_at: string
           rating_count: number
+          search_rank: number
+          search_snippet: string | null
           subject_code: string
           subject_name: string
           tags: string[]
@@ -826,6 +875,32 @@ export type Database = {
           rating_count: number
           success: boolean
           weighted_score: number
+        }[]
+      }
+      moderate_note: {
+        Args: {
+          p_action: string
+          p_note_id: string
+          p_reason_code: string
+          p_safe_owner_message?: string
+        }
+        Returns: {
+          error_code: string | null
+          moderation_status: string | null
+          note_id: string | null
+          success: boolean
+        }[]
+      }
+      report_note: {
+        Args: {
+          p_category: string
+          p_details?: string
+          p_note_id: string
+        }
+        Returns: {
+          error_code: string | null
+          report_id: string | null
+          success: boolean
         }[]
       }
       refresh_note_rating_summary: {

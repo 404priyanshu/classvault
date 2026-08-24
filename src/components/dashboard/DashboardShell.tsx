@@ -16,6 +16,7 @@ import {
   Route,
   Settings,
   Share2,
+  ShieldAlert,
   Trash2,
   Upload,
   UsersRound,
@@ -30,6 +31,7 @@ type DashboardShellProps = {
   membershipStatus: string
   signOutControl: ReactNode
   universityName: string | null
+  isModerator?: boolean
 }
 
 type NavigationItem = {
@@ -54,9 +56,16 @@ const secondaryNavigation: NavigationItem[] = [
   { href: '/dashboard/vault?view=trash', icon: Trash2, label: 'Trash' },
 ]
 
+const moderationNavigation: NavigationItem = {
+  href: '/dashboard/moderation',
+  icon: ShieldAlert,
+  label: 'Moderation',
+}
+
 function getPageTitle(pathname: string) {
   if (pathname === '/dashboard/notes/new') return 'Upload notes'
   if (pathname.startsWith('/dashboard/vault')) return 'My Vault'
+  if (pathname.startsWith('/dashboard/moderation')) return 'Moderation'
   if (pathname.startsWith('/dashboard/notes')) return 'Notes'
   if (pathname.startsWith('/dashboard/roadmaps')) return 'Roadmaps'
   if (pathname.startsWith('/dashboard/study-rooms')) return 'Study rooms'
@@ -74,9 +83,11 @@ function initialsFor(name: string) {
 
 function SidebarNavigation({
   closeMenu,
+  isModerator,
   pathname,
 }: {
   closeMenu: () => void
+  isModerator: boolean
   pathname: string
 }) {
   const renderItem = (item: NavigationItem) => {
@@ -131,6 +142,12 @@ function SidebarNavigation({
       <div className="space-y-1">{primaryNavigation.map(renderItem)}</div>
       <div className="my-4 border-t border-[#f6f1e5]/25" />
       <div className="space-y-0.5">{secondaryNavigation.map(renderItem)}</div>
+      {isModerator ? (
+        <>
+          <div className="my-4 border-t border-[#f6f1e5]/25" />
+          <div className="space-y-0.5">{renderItem(moderationNavigation)}</div>
+        </>
+      ) : null}
     </nav>
   )
 }
@@ -142,6 +159,7 @@ export function DashboardShell({
   membershipStatus,
   signOutControl,
   universityName,
+  isModerator = false,
 }: DashboardShellProps) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -180,6 +198,7 @@ export function DashboardShell({
 
       <SidebarNavigation
         closeMenu={() => setMenuOpen(false)}
+        isModerator={isModerator}
         pathname={pathname}
       />
 

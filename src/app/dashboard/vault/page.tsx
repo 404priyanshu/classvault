@@ -19,6 +19,7 @@ import {
   formatVaultFileSize,
   formatVaultStatus,
   type OwnedNote,
+  type OwnedModerationNotice,
 } from '@/lib/notes/vault'
 import { createClient } from '@/lib/supabase/server'
 import { deleteNoteAction, restoreNoteAction } from './actions'
@@ -47,15 +48,36 @@ function LifecycleBadge({ note }: { note: OwnedNote }) {
   const tone =
     status === 'Published'
       ? 'text-[#2d7c58]'
-      : status === 'Upload needs attention'
+      : status === 'Upload needs attention' || status.includes('moderation')
         ? 'text-[#9a3f2f]'
         : 'text-[#b56d00]'
 
   return <span className={`text-xs font-black ${tone}`}>{status}</span>
 }
 
+function ModerationNotice({ notice }: { notice: OwnedModerationNotice }) {
+  return (
+    <article className="flex flex-col gap-3 border border-[#b56d00]/40 bg-[#fff7dc] p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
+      <div>
+        <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#9a3f2f]">
+          Moderation update · {notice.note_title}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-[#171512]/75">
+          {notice.safe_owner_message}
+        </p>
+      </div>
+      <span className="shrink-0 text-xs font-black capitalize text-[#9a3f2f]">
+        {notice.moderation_status.replace('_', ' ')}
+      </span>
+    </article>
+  )
+}
+
 function OwnedNoteRow({ note }: { note: OwnedNote }) {
-  const canOpen = note.publication_status === 'published' && !note.deleted_at
+  const canOpen =
+    note.publication_status === 'published' &&
+    !note.deleted_at &&
+    ['clear', 'under_review'].includes(note.moderation_status)
   const subject = note.subject_code || note.subject_name || 'General notes'
   const recoveryDays = daysUntilPurge(note.purge_after)
 
@@ -129,18 +151,30 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
 
   if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/vault')
 
-  const { data, error } = await supabase.rpc('list_owned_notes', {
-    p_include_deleted: isTrash,
-  })
+  const [{ data, error }, noticesResult] = await Promise.all([
+    supabase.rpc('list_owned_notes', {
+      p_include_deleted: isTrash,
+    }),
+    supabase.rpc('list_owned_note_moderation_notices'),
+  ])
 
   if (error) throw new Error('Your note vault could not be loaded.')
 
   const notes = (data || []) as OwnedNote[]
+  const notices = (noticesResult.data || []) as OwnedModerationNotice[]
   const message = statusMessage(params.status)
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
       <AuthMessage status={message || undefined} />
+
+      {!isTrash && notices.length > 0 ? (
+        <section className="space-y-3" aria-label="Moderation updates">
+          {notices.map((notice) => (
+            <ModerationNotice key={`${notice.note_id}-${notice.created_at}`} notice={notice} />
+          ))}
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>

@@ -22,11 +22,14 @@ type NotesLibraryPageProps = {
 type NoteRow = {
   average_rating: string | number | null
   description: string | null
+  extraction_status: string | null
   id: string
   note_type: string
   owner_id: string
   published_at: string | null
   rating_count: number | null
+  search_rank: string | number | null
+  search_snippet: string | null
   subject_code: string | null
   subject_name: string | null
   tags: string[]
@@ -87,6 +90,7 @@ export default async function NotesLibraryPage({
       {
         contributorName: contributors.get(note.id) || 'ClassVault student',
         description: note.description,
+        extractionStatus: note.extraction_status || 'pending',
         id: note.id,
         noteType: note.note_type,
         publishedAt: note.published_at,
@@ -95,6 +99,7 @@ export default async function NotesLibraryPage({
             ? null
             : Number(note.average_rating),
         ratingCount: Number(note.rating_count || 0),
+        searchSnippet: note.search_snippet,
         subjectCode: note.subject_code,
         subjectName: note.subject_name,
         tags: note.tags,

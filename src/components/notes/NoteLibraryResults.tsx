@@ -18,16 +18,22 @@ import {
 export type LibraryNoteItem = {
   contributorName: string
   description: string | null
+  extractionStatus: string
   id: string
   noteType: string
   publishedAt: string
   rating: number | null
   ratingCount: number
+  searchSnippet: string | null
   subjectCode: string | null
   subjectName: string
   tags: string[]
   title: string
   visibility: string
+}
+
+function plainSearchSnippet(value: string) {
+  return value.replace(/<\/?mark>/gi, '')
 }
 
 type NoteLibraryResultsProps = {
@@ -83,6 +89,11 @@ function NoteRow({ note }: { note: LibraryNoteItem }) {
               {note.description}
             </p>
           ) : null}
+          {note.searchSnippet ? (
+            <p className="mt-2 line-clamp-2 border-l-2 border-[#f0a202] pl-2 text-xs leading-relaxed text-[#171512]/65">
+              Match: {plainSearchSnippet(note.searchSnippet)}
+            </p>
+          ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-[#171512]/55">
             <span>by {note.contributorName}</span>
             <span aria-hidden className="h-1 w-1 bg-[#171512]/25" />
@@ -97,6 +108,9 @@ function NoteRow({ note }: { note: LibraryNoteItem }) {
                 #{tag}
               </span>
             ))}
+            {note.extractionStatus === 'unsupported' || note.extractionStatus === 'failed' ? (
+              <span className="text-[#b56d00]">Text search limited</span>
+            ) : null}
           </div>
         </div>
 

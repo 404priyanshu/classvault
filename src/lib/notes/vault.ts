@@ -22,6 +22,15 @@ export type OwnedNote = {
   visibility: string
 }
 
+export type OwnedModerationNotice = {
+  action: string
+  created_at: string
+  moderation_status: string
+  note_id: string
+  note_title: string
+  safe_owner_message: string
+}
+
 export function formatVaultFileSize(bytes: number | null) {
   if (!bytes || bytes < 1) return 'File pending'
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
@@ -35,6 +44,8 @@ export function daysUntilPurge(purgeAfter: string | null, now = new Date()) {
 }
 
 export function formatVaultStatus(note: OwnedNote) {
+  if (note.moderation_status === 'restricted') return 'Restricted by moderation'
+  if (note.moderation_status === 'removed') return 'Removed by moderation'
   if (note.publication_status === 'published') return 'Published'
   if (note.publication_status === 'processing') return 'Processing'
   if (note.publication_status === 'failed') return 'Upload needs attention'

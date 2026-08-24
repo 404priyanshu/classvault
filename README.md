@@ -98,6 +98,15 @@ The migrations create:
 - Owner-only My Vault controls at `/dashboard/vault`, including soft deletion,
   a 30-day Trash recovery window, restoration, and a privileged purge route at
   `/api/cron/purge-notes`.
+- Private note reporting and scoped moderation at `/dashboard/moderation`.
+  Students can report accessible notes without exposing their identity;
+  campus/platform moderators can review, restrict, remove, restore, or hold
+  notes through audited server-owned actions. Owners see only safe moderation
+  messages in My Vault.
+- Permission-safe full-text search across note titles, descriptions, tags, and
+  extractable PDF text. The server-only `/api/cron/extract-notes` route claims
+  private ready files, indexes PDF text, and marks image notes as
+  metadata-searchable but OCR-unsupported.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
 Completed profiles enter `/dashboard` and can be edited at
@@ -183,6 +192,21 @@ download. Migration `20260816000000_add_note_library_access.sql` and the 13
 transactional assertions in `supabase/tests/note_library_access.sql` protect
 that private-file boundary.
 
+The moderation workflow is available at `/dashboard/moderation`. Its report and
+action mutations are exposed only through security-definer functions, with
+moderator scope rechecked in the database. Migration
+`20260824000000_create_note_moderation_workflow.sql` adds the workflow and the
+20 assertions in `supabase/tests/note_moderation.sql` cover duplicate reports,
+self-report rejection, scoped state transitions, restricted-note denial, and
+safe owner notices.
+
+The Notes Library now searches titles, descriptions, tags, subjects, and
+extracted PDF text through the same access-filtered database function. Migration
+`20260825000000_create_note_search_pipeline.sql` adds weighted search vectors,
+safe snippets, extraction claims, and explicit extraction states. Schedule
+`/api/cron/extract-notes` with the existing `CRON_SECRET` after uploads are
+published; it requires the server-only `SUPABASE_SERVICE_ROLE_KEY`.
+
 ## Checks
 
 ```bash
@@ -206,6 +230,7 @@ test database.
 - `src/app/dashboard/notes` — RLS-filtered Notes Library and protected note detail
 - `src/app/dashboard/notes/new` — note upload actions and protected route
 - `src/app/dashboard/vault` — owner uploads, Trash, delete, and restore actions
+- `src/app/api/cron/extract-notes` — authenticated scheduled PDF extraction worker
 - `src/app/api/cron/purge-notes` — authenticated scheduler boundary for expired-note purge
 - `src/components/notes` — responsive note-library and note-upload interfaces
 - `src/lib/notes/storage` — replaceable storage contract and Supabase adapters
