@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import type { RoadmapGenerationActionState } from '@/lib/roadmaps/action-state'
 import { generateRoadmapForOwner, isRoadmapWorkerConfigured } from '@/lib/roadmaps/worker'
 import { createClient } from '@/lib/supabase/server'
 
@@ -17,17 +18,6 @@ const taskProgressSchema = z.object({
   roadmapId: z.string().uuid(),
   taskId: z.coerce.number().int().positive(),
 })
-
-export type RoadmapGenerationActionState = {
-  kind: 'error' | 'idle' | 'pending' | 'success'
-  message: string
-  roadmapId?: string
-}
-
-export const initialRoadmapGenerationState: RoadmapGenerationActionState = {
-  kind: 'idle',
-  message: '',
-}
 
 async function authenticatedOwner() {
   const supabase = await createClient()

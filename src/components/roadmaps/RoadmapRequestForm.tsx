@@ -3,11 +3,9 @@
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BookOpenCheck, Route, Sparkles } from 'lucide-react'
-import {
-  createRoadmapAction,
-  initialRoadmapGenerationState,
-} from '@/app/dashboard/roadmaps/actions'
+import { createRoadmapAction } from '@/app/dashboard/roadmaps/actions'
 import { Spinner } from '@/components/ui/spinner'
+import { initialRoadmapGenerationState } from '@/lib/roadmaps/action-state'
 
 type RoadmapRequestFormProps = {
   sourceCount: number

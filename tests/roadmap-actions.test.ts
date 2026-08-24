@@ -19,11 +19,10 @@ vi.mock('@/lib/roadmaps/worker', () => ({
 }))
 vi.mock('next/cache', () => ({ revalidatePath: revalidatePathMock }))
 
-import {
-  createRoadmapAction,
-  initialRoadmapGenerationState,
-  retryRoadmapAction,
-} from '@/app/dashboard/roadmaps/actions'
+import * as roadmapActions from '@/app/dashboard/roadmaps/actions'
+import { initialRoadmapGenerationState } from '@/lib/roadmaps/action-state'
+
+const { createRoadmapAction, retryRoadmapAction } = roadmapActions
 
 const OWNER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const ROADMAP_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -53,6 +52,19 @@ describe('roadmap generation actions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     isRoadmapWorkerConfiguredMock.mockReturnValue(true)
+  })
+
+  it('keeps the use-server module limited to async function exports', () => {
+    expect(Object.values(roadmapActions)).toEqual([
+      createRoadmapAction,
+      retryRoadmapAction,
+      roadmapActions.setRoadmapTaskProgressAction,
+    ])
+    expect(
+      Object.values(roadmapActions).every(
+        (exportedValue) => typeof exportedValue === 'function',
+      ),
+    ).toBe(true)
   })
 
   it('rejects malformed requests before creating a database client', async () => {
