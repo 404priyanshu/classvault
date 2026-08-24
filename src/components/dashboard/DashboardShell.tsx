@@ -47,7 +47,7 @@ const primaryNavigation: NavigationItem[] = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
   { href: '/dashboard/roadmaps', icon: Route, label: 'Roadmaps' },
-  { href: '/dashboard#room-preview', icon: UsersRound, label: 'Study rooms' },
+  { href: '/dashboard/study-rooms', icon: UsersRound, label: 'Study rooms' },
   { href: '/dashboard/notes/new', icon: Upload, label: 'Upload notes' },
 ]
 

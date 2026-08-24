@@ -17,6 +17,10 @@ import { redirect } from 'next/navigation'
 import spotNote from '@/assets/spot-note.webp'
 import spotPomodoro from '@/assets/spot-pomodoro.webp'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import {
+  formatTimerSeconds,
+  type StudyRoomListItem,
+} from '@/lib/study-rooms/types'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -119,7 +123,10 @@ export default async function DashboardPage({
     notesQuery = notesQuery.ilike('title', `%${query}%`)
   }
 
-  const { data: recentNotes } = await notesQuery
+  const [{ data: recentNotes }, { data: roomRows }] = await Promise.all([
+    notesQuery,
+    supabase.rpc('list_study_rooms'),
+  ])
   const email =
     typeof claims.email === 'string' && claims.email ? claims.email : null
   const phone =
@@ -128,6 +135,7 @@ export default async function DashboardPage({
     profile.display_name || (email ? email.split('@')[0] : phone || 'Student')
   const firstName = displayName.split(/\s+/)[0]
   const notes = (recentNotes || []) as RecentNote[]
+  const suggestedRoom = ((roomRows || []) as StudyRoomListItem[])[0] || null
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -265,7 +273,7 @@ export default async function DashboardPage({
                 <h2 className="font-display text-2xl font-black">AI roadmap preview</h2>
               </div>
               <p className="mt-1 text-xs text-[#171512]/50">
-                Demonstration only — no API generation is connected yet.
+                Source-cited plans generated from notes you may access.
               </p>
             </div>
             <Link
@@ -314,35 +322,47 @@ export default async function DashboardPage({
             <h2 className="font-display text-2xl font-black">Study-room preview</h2>
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2d7c58]">
               <span className="h-2 w-2 rounded-full bg-[#2d7c58]" />
-              Demo
+              {suggestedRoom ? 'Open now' : 'Ready'}
             </span>
           </div>
           <div className="mt-5 grid gap-5 sm:grid-cols-[120px_1fr]">
             <div className="grid min-h-28 place-items-center overflow-hidden border border-[#cfc4ae] bg-[#f6f1e5]">
               <Image
-                alt="Illustration for the simulated collaborative study room"
+                alt="Illustration for a focused collaborative study room"
                 className="h-auto w-full object-contain"
                 src={spotPomodoro}
               />
             </div>
             <div>
-              <h3 className="font-display text-xl font-black">OS Study Squad</h3>
+              <h3 className="font-display text-xl font-black">
+                {suggestedRoom?.room_name || 'Open a focused room'}
+              </h3>
               <p className="mt-1 text-xs font-semibold text-[#171512]/60">
-                Simulated room · local interactions only
+                {suggestedRoom?.subject_tag || 'Set a topic and shared Pomodoro rhythm'}
               </p>
               <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#171512]/60">
                 <span className="inline-flex items-center gap-1.5">
-                  <UsersRound className="h-3.5 w-3.5" /> Fake participants
+                  <UsersRound className="h-3.5 w-3.5" />{' '}
+                  {suggestedRoom
+                    ? `${suggestedRoom.member_count}/${suggestedRoom.member_capacity} members`
+                    : 'Public or campus access'}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Clock3 className="h-3.5 w-3.5" /> Pomodoro demo
+                  <Clock3 className="h-3.5 w-3.5" />{' '}
+                  {suggestedRoom
+                    ? `${suggestedRoom.timer_phase} ${formatTimerSeconds(suggestedRoom.timer_remaining_seconds)}`
+                    : 'Synchronized Pomodoro'}
                 </span>
               </div>
               <Link
                 className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-sm bg-[#17453a] px-4 text-xs font-bold text-[#fffdf6]"
-                href="/#study-room"
+                href={
+                  suggestedRoom?.current_user_joined
+                    ? `/dashboard/study-rooms/${suggestedRoom.room_id}`
+                    : '/dashboard/study-rooms'
+                }
               >
-                Try the landing-page demo
+                {suggestedRoom?.current_user_joined ? 'Return to room' : 'Explore study rooms'}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

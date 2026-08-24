@@ -122,6 +122,28 @@ test.describe('protected routes', () => {
     )
   })
 
+  test('study-room lobby redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/study-rooms')
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Fstudy-rooms/,
+    )
+  })
+
+  test('study-room detail redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto(
+      '/dashboard/study-rooms/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    )
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Fstudy-rooms%2Faaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/,
+    )
+  })
+
   test('My Vault redirects unauthenticated visitors to sign-in', async ({
     page,
   }) => {
@@ -136,6 +158,15 @@ test.describe('protected routes', () => {
     request,
   }) => {
     const response = await request.get('/api/cron/purge-notes')
+
+    expect(response.status()).toBe(401)
+    await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
+  })
+
+  test('study-room purge rejects requests without its scheduler secret', async ({
+    request,
+  }) => {
+    const response = await request.get('/api/cron/purge-study-rooms')
 
     expect(response.status()).toBe(401)
     await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
