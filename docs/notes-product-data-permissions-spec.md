@@ -2,20 +2,21 @@
 
 ```yaml
 status: Implementation baseline
-version: 3
+version: 4
 date: 2026-08-24
-scope: Notes upload, discovery, download, rating, deletion, recovery, moderation, search, and roadmap-authorization boundaries
-implementation_status: Upload, browse/detail/download, ratings/ranking, Trash recovery, report/moderation, permission-safe metadata/PDF full-text search, and the static roadmap authorization foundation are implemented; OCR, external search, and AI roadmap generation remain deferred
+scope: Notes upload, discovery, download, rating, deletion, recovery, moderation, search, and roadmap-generation authorization boundaries
+implementation_status: Upload, browse/detail/download, ratings/ranking, Trash recovery, report/moderation, permission-safe metadata/PDF full-text search, and deterministic source-cited roadmap generation are implemented; OCR, external search, and live AI model calls remain deferred
 ```
 
 The foundation, upload pipeline, library access, rating/ranking, lifecycle, and
-moderation, search, and roadmap-foundation migrations are versioned in
+moderation, search, and roadmap migrations are versioned in
 `supabase/migrations`. The protected routes now include upload,
 library/detail/download, My Vault, the scoped `/dashboard/moderation` queue,
-and `/dashboard/roadmaps`. The search, search-worker hardening, roadmap, and
-moderation report-state fix migrations are applied to the linked hosted
-project; local typecheck, lint, production build, unit tests, and the
-transactional hosted moderation/search/roadmap pgTAP suites pass.
+and `/dashboard/roadmaps`. The search, search-worker hardening, roadmap
+foundation/generation, and moderation report-state fix migrations are applied
+to the linked hosted project; local typecheck, lint, production build, 71 unit
+tests, 12 browser smoke tests, and the transactional hosted
+moderation/search/roadmap pgTAP suites pass.
 
 ## 1. Purpose
 
@@ -61,7 +62,8 @@ The module must preserve these ClassVault principles:
 - Collaborative editing or shared ownership.
 - Comments, followers, direct messaging, or profile discovery.
 - Paid access to university notes.
-- AI-generated summaries or roadmaps.
+- Live AI-generated summaries or roadmaps; the first roadmap provider is
+  intentionally deterministic.
 - An external search, OCR, antivirus, or object-storage provider commitment.
 - Copyright adjudication, legal-hold policy, or a complete moderator console.
 
@@ -533,9 +535,9 @@ student emails, phone numbers, display names, or university names.
 - Moderation actions are auditable and include a safe reason visible to the
   owner. Reporter identity remains private.
 
-## 14. Roadmap authorization foundation
+## 14. Roadmap generation and authorization
 
-The static roadmap authorization boundary is implemented in
+The roadmap authorization boundary is implemented in
 `20260826000000_create_study_roadmap_foundation.sql`. Roadmap creation snapshots
 the complete server-selected note pool; the browser cannot choose a source
 owner, plan, or note list. Free snapshots include the owner's active published
@@ -553,8 +555,24 @@ Task progress is private to the roadmap owner. Share tokens are revocable;
 anonymous viewers can see only sections derived entirely from public notes,
 and authenticated campus viewers must still satisfy every university-source
 boundary. Static content can be saved only through the service-role worker
-boundary. AI prompting, source-text retrieval, model calls, and evaluation are
-not implemented.
+boundary.
+
+`20260826030000_create_roadmap_generation_worker.sql` implements the first
+generation workflow. Its service-role-only claim function locks one retryable
+roadmap, rechecks every snapshotted source, and returns bounded private text
+excerpts only to the server worker. The browser cannot supply an owner, source
+ID, plan, generated section, failure detail, or citation. Safe failures are
+stored as codes, active claims become retryable after two minutes, and no
+ordinary authenticated role can invoke the claim or failure functions.
+
+The current `deterministic-v1` provider converts the authorized snapshot into a
+validated, source-cited plan. Strict output validation rejects unauthorized
+citations, duplicate citations inside a section, and output that omits any
+selected source. This provider is deterministic and does not make an AI model
+call. Live AI provider/model selection, prompting, and evaluation remain
+deferred behind the same provider boundary. The worker requires the server-only
+`SUPABASE_SERVICE_ROLE_KEY`; the application disables generation when the key
+is absent and never exposes a privileged fallback to the browser.
 
 ## 15. Acceptance criteria
 
@@ -588,6 +606,10 @@ of the following:
     academic identity.
 14. Search and roadmap source selection produce the same authorization
     result as direct note reads.
+15. Only the service role can claim or fail roadmap generation, and a claim
+    rechecks every snapshotted source before returning private excerpts.
+16. Generated output cites every selected source, cannot cite any other source,
+    and cannot duplicate a citation inside one section.
 
 Tests must exercise RLS with at least: two verified users in different
 universities, one pending user, one note owner, one ordinary reader, one campus
@@ -615,7 +637,11 @@ moderator, and one platform moderator.
 8. **Roadmap authorization foundation — complete locally 2026-08-24** —
    private static snapshots, automatic plan-aware source selection, cited
    sections/tasks, owner-only progress, revocable shares, and view-time source
-   reauthorization. AI generation remains deferred.
+   reauthorization.
+9. **Deterministic roadmap generation — complete 2026-08-24** — service-only
+   source claiming and excerpt access, provider-agnostic generation, strict
+   citation validation, retry/stale-claim recovery, private progress UI, and
+   hosted authorization tests. Live AI model calls remain deferred.
 
 Every slice includes typecheck, lint, production build, unit tests, and RLS
 integration tests. Storage and search providers remain behind replaceable

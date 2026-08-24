@@ -5,19 +5,24 @@ import {
   BookOpenCheck,
   CheckCircle2,
   FileText,
-  LockKeyhole,
   Route,
   ShieldCheck,
   Sparkles,
   UsersRound,
 } from 'lucide-react'
 import spotRoadmap from '@/assets/spot-roadmap.webp'
+import { RoadmapRequestForm } from '@/components/roadmaps/RoadmapRequestForm'
+import {
+  RetryRoadmapButton,
+  RoadmapGenerationWatcher,
+} from '@/components/roadmaps/RoadmapStatusControls'
 import {
   formatRoadmapStatus,
   formatRoadmapStudyMode,
   type OwnedRoadmapSummary,
   type RoadmapSourceEligibility,
 } from '@/lib/roadmaps/foundation'
+import { isRoadmapWorkerConfigured } from '@/lib/roadmaps/worker'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -44,7 +49,16 @@ function RoadmapRow({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
           <span aria-hidden className="text-[#171512]/25">/</span>
           <span className="text-[#171512]/55">{formatRoadmapStatus(roadmap.status)}</span>
         </div>
-        <h2 className="font-display mt-1 text-xl font-black">{roadmap.title}</h2>
+        {roadmap.status === 'ready' ? (
+          <Link
+            className="font-display mt-1 block text-xl font-black underline decoration-[#f0a202] decoration-2 underline-offset-4"
+            href={`/dashboard/roadmaps/${roadmap.roadmap_id}`}
+          >
+            {roadmap.title}
+          </Link>
+        ) : (
+          <h2 className="font-display mt-1 text-xl font-black">{roadmap.title}</h2>
+        )}
         <p className="mt-2 text-xs text-[#171512]/55">
           {roadmap.source_count} sources · {roadmap.section_count} sections · created{' '}
           {dateFormatter.format(new Date(roadmap.created_at))}
@@ -55,6 +69,9 @@ function RoadmapRow({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
         <p className="mt-1 text-[11px] text-[#171512]/45">
           {roadmap.sharing_enabled ? 'Sharing enabled' : 'Private'}
         </p>
+        {roadmap.status === 'failed' || roadmap.status === 'draft' ? (
+          <RetryRoadmapButton roadmapId={roadmap.roadmap_id} />
+        ) : null}
       </div>
     </article>
   )
@@ -75,6 +92,10 @@ export default async function RoadmapsPage() {
     | RoadmapSourceEligibility
     | undefined
   const roadmaps = (roadmapsResult.data || []) as OwnedRoadmapSummary[]
+  const hasActiveGeneration = roadmaps.some(
+    (roadmap) => roadmap.status === 'generating',
+  )
+  const workerConfigured = isRoadmapWorkerConfigured()
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
@@ -82,28 +103,31 @@ export default async function RoadmapsPage() {
         <div className="relative z-10 max-w-3xl">
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#b56d00]">
             <Sparkles aria-hidden className="h-4 w-4" />
-            Authorization foundation ready
+            Grounded generation pipeline
           </p>
           <h1 className="font-display mt-3 text-4xl font-black leading-none sm:text-5xl">
             Study roadmaps
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#171512]/65 sm:text-base">
-            ClassVault can now snapshot only the notes your plan allows, preserve
-            private progress, and hide source-derived sections whenever a viewer
-            loses access. The AI generation worker is the next integration step.
+            Build a deterministic study plan from only the notes your plan
+            allows. Every output is source-cited, schema-validated, and saved as
+            a private static snapshot with revocable sharing boundaries.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               className="inline-flex min-h-11 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+              href="#generate-roadmap"
+            >
+              <Sparkles aria-hidden className="h-4 w-4" />
+              Build a roadmap
+            </Link>
+            <Link
+              className="inline-flex min-h-11 items-center gap-2 border border-[#bfb39d] bg-[#f8f2e5] px-4 text-sm font-bold text-[#171512]/65"
               href="/dashboard/notes"
             >
               <FileText aria-hidden className="h-4 w-4" />
               Review eligible notes
             </Link>
-            <span className="inline-flex min-h-11 items-center gap-2 border border-[#bfb39d] bg-[#f8f2e5] px-4 text-sm font-bold text-[#171512]/55">
-              <LockKeyhole aria-hidden className="h-4 w-4" />
-              Generation not connected yet
-            </span>
           </div>
         </div>
         <Image
@@ -112,6 +136,13 @@ export default async function RoadmapsPage() {
           src={spotRoadmap}
         />
       </section>
+
+      <div id="generate-roadmap">
+        <RoadmapRequestForm
+          sourceCount={Number(eligibility?.total_eligible_count || 0)}
+          workerConfigured={workerConfigured}
+        />
+      </div>
 
       <section aria-labelledby="source-boundary-heading">
         <div className="mb-3 flex items-end justify-between gap-4">
@@ -189,18 +220,20 @@ export default async function RoadmapsPage() {
             <div className="bg-ruled grid min-h-[300px] place-items-center px-6 py-12 text-center">
               <div className="max-w-md">
                 <CheckCircle2 aria-hidden className="mx-auto h-11 w-11 text-[#2d7c58]" strokeWidth={1.4} />
-                <h3 className="font-display mt-4 text-2xl font-black">Foundation is ready</h3>
+                <h3 className="font-display mt-4 text-2xl font-black">Ready for your first roadmap</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
-                  No real roadmap has been generated yet. The next worker can create a server-owned source snapshot and save cited sections here.
+                  Generate a deterministic, source-cited plan above. Saved
+                  roadmaps appear here with private progress and retry states.
                 </p>
-                <Link className="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4" href="/#roadmap">
-                  Open the sample demo <ArrowRight aria-hidden className="h-4 w-4" />
+                <Link className="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4" href="#generate-roadmap">
+                  Build your roadmap <ArrowRight aria-hidden className="h-4 w-4" />
                 </Link>
               </div>
             </div>
           )}
         </div>
       </section>
+      <RoadmapGenerationWatcher active={hasActiveGeneration} />
     </div>
   )
 }

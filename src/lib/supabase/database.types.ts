@@ -698,7 +698,9 @@ export type Database = {
           created_at: string
           failure_code: string | null
           generated_at: string | null
+          generation_attempts: number
           generation_plan: string
+          generator_key: string | null
           id: string
           owner_id: string
           status: string
@@ -711,7 +713,9 @@ export type Database = {
           created_at?: string
           failure_code?: string | null
           generated_at?: string | null
+          generation_attempts?: number
           generation_plan?: string
+          generator_key?: string | null
           id?: string
           owner_id: string
           status?: string
@@ -724,7 +728,9 @@ export type Database = {
           created_at?: string
           failure_code?: string | null
           generated_at?: string | null
+          generation_attempts?: number
           generation_plan?: string
+          generator_key?: string | null
           id?: string
           owner_id?: string
           status?: string
@@ -949,6 +955,21 @@ export type Database = {
           title: string
         }[]
       }
+      claim_roadmap_generation: {
+        Args: {
+          p_generator_key: string
+          p_owner_id: string
+          p_roadmap_id: string
+        }
+        Returns: {
+          claim_status: string
+          roadmap_id: string
+          source_count: number
+          sources: Json
+          study_mode: string | null
+          topic: string | null
+        }[]
+      }
       complete_note_extraction: {
         Args: {
           p_extracted_text?: string | null
@@ -1124,6 +1145,14 @@ export type Database = {
           title_snapshot: string
           visibility_snapshot: string
         }[]
+      }
+      mark_roadmap_generation_failed: {
+        Args: {
+          p_failure_code: string
+          p_owner_id: string
+          p_roadmap_id: string
+        }
+        Returns: boolean
       }
       list_moderation_queue: {
         Args: { p_limit?: number }

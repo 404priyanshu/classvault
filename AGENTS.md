@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 22
+  context_version: 23
   last_verified: 2026-08-24
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, and study-roadmap authorization slices
-production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and the static study-roadmap authorization foundation are implemented and applied to hosted development
+product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, and deterministic study-roadmap generation slices
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and deterministic source-cited study-roadmap generation are implemented and applied to hosted development
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 61 Vitest tests, 11 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, and 39 hosted roadmap-authorization pgTAP tests
+automated_test_suite: 71 Vitest tests, 12 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25 hosted roadmap-generation pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -96,7 +96,9 @@ implemented_routes:
   - path: /dashboard/moderation
     type: protected scoped moderator queue for private reports and audited note actions
   - path: /dashboard/roadmaps
-    type: protected static-roadmap workspace with server-derived source eligibility and private saved summaries
+    type: protected deterministic roadmap request workspace with server-derived sources, generation recovery, and private saved summaries
+  - path: /dashboard/roadmaps/[roadmapId]
+    type: protected owner-only roadmap detail with source citations, withheld-section handling, and private task progress
   - path: /onboarding
     type: protected three-step student onboarding and profile editor
 ```
@@ -142,15 +144,18 @@ transactionally against hosted development on 2026-08-16.
 
 The note rating, lifecycle, moderation, permission-safe search, and study
 roadmap migrations through
-`20260826020000_fix_moderation_report_status_updates.sql` are applied to hosted
+`20260826030000_create_roadmap_generation_worker.sql` are applied to hosted
 development. The search hardening migration explicitly grants its private
 claim/completion RPCs to `service_role` while keeping them unavailable to
 ordinary clients. The moderation follow-up qualifies report columns that
 conflicted with `moderate_note(...)` output parameters.
 The roadmap migration adds force-RLS static snapshots, automatic Free/Pro-ready
 source selection, cited sections/tasks, private owner progress, and revocable
-share tokens. The 17-test search and 39-test roadmap pgTAP suites passed
-transactionally against hosted development on 2026-08-24.
+share tokens. The generation follow-up adds service-only claim/failure
+transitions, private bounded source excerpts, source reauthorization, retry and
+stale-claim handling, and deterministic provider tracking. The 17-test search,
+39-test roadmap-authorization, and 25-test roadmap-generation pgTAP suites
+passed transactionally against hosted development on 2026-08-24.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -386,7 +391,7 @@ product_pillars:
     intent:
       - Generate study plans grounded in notes the student may access
       - Respect content permissions and university boundaries
-    implementation_status: Static snapshot/source authorization, owner progress, and revocable sharing foundation implemented; AI generation remains a hard-coded landing-page simulation
+    implementation_status: Deterministic source-cited generation, static snapshot/source authorization, retry recovery, owner progress, and revocable sharing are implemented; live AI model calls remain deferred and the landing-page demo remains scripted
 ```
 
 Additional product concepts currently expressed in page copy:
@@ -546,27 +551,42 @@ These are product claims, not implemented or validated system behavior.
   `ready`, `failed`, or `unsupported` states. Library search returns snippets
   only after the existing note access predicate is applied. Image OCR remains
   deferred and image notes are searchable by metadata only.
-- A protected `/dashboard/roadmaps` foundation exposes the authenticated
+- A protected `/dashboard/roadmaps` workflow exposes the authenticated
   student's automatically derived Free source pool and Pro-ready campus pool,
-  plus private summaries for saved static snapshots. Roadmap source selection
-  is database-owned; the browser cannot supply note IDs or choose a plan.
+  accepts topic/study-mode requests, runs the server worker inline, polls active
+  generation, and supports safe retries. Roadmap source selection is
+  database-owned; the browser cannot supply note IDs, an owner, or a plan.
 - Private roadmap tables store immutable source/title/scope snapshots, cited
   sections and tasks, owner-only progress, and revocable share tokens. Every
   owner/shared view rechecks each source: an unavailable source withholds the
   entire derived section, anonymous viewers can see public-only sections, and
-  shared viewers never receive owner progress. AI generation is not connected.
+  shared viewers never receive owner progress.
+- The first provider-agnostic roadmap worker is implemented with the
+  deterministic `deterministic-v1` provider. A service-role-only claim rechecks
+  every source and returns bounded private excerpts only to the worker; strict
+  Zod validation rejects unauthorized, duplicated, or omitted citations before
+  saving. Live AI provider/model calls, prompting, and evaluation remain
+  deferred.
+- `/dashboard/roadmaps/[roadmapId]` renders the owner-only generated plan,
+  cited sources, private checklist progress, and whole-section placeholders
+  when a cited source is no longer authorized.
 - A 39-test roadmap pgTAP suite covers least privilege, Free/Pro-ready source
   selection, old-campus owner sources, service-role snapshot saving,
   university isolation, anonymous public sections, progress privacy, token
   revocation, restricted-source hiding, and incomplete-user denial.
-- A 61-test Vitest suite covering Auth, onboarding, route protection, file
+- A 25-test roadmap-generation pgTAP suite covers service-only function access,
+  atomic claiming, private excerpts, source changes, no-source and retry states,
+  stale claims, attempt limits, and safe failure transitions.
+- A 71-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
-  rating-action validation, search/moderation helpers, and roadmap formatting.
-- An 11-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+  rating-action validation, search/moderation helpers, roadmap formatting,
+  deterministic output validation, worker behavior, and roadmap actions.
+- A 12-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
-  redirects for protected routes, and the interactive roadmap demo.
+  redirects for protected routes including roadmap detail, and the interactive
+  roadmap demo.
 
 ### Simulated or absent
 
@@ -574,8 +594,7 @@ These are product claims, not implemented or validated system behavior.
 not_implemented:
   - Manual review/rejection workflow for pending university memberships
   - Payments or subscriptions
-  - AI model calls
-  - Retrieval-augmented generation or source grounding
+  - Live AI model calls, prompt orchestration, or model evaluation
   - Realtime infrastructure
   - WebRTC video/audio
   - Persistent chat
@@ -598,8 +617,9 @@ Important simulation details:
   MarginNotes payoff, navbar, footer) open the real Supabase-backed auth routes.
   Demo teasers such as "Try the roadmap demo" still navigate to marketing-page
   anchors.
-- The dashboard contains real note, moderation, search, and roadmap-foundation
-  slices. Study-room behavior and AI roadmap generation remain demonstrations.
+- The dashboard contains real note, moderation, search, and deterministic
+  roadmap-generation slices. Study-room behavior and live AI roadmap generation
+  remain demonstrations or deferred.
 - All onboarding values are represented by persistent form controls even when
   their visual step is unmounted. Do not remove the hidden name, degree,
   graduation-year, university, goal, or study-preference fields: the final
@@ -694,6 +714,8 @@ important_files:
     role: rate_note mutation, private deterministic summary refresh, and the access-first ranked library listing
   supabase/migrations/20260826000000_create_study_roadmap_foundation.sql:
     role: Private static roadmap snapshots, automatic plan-aware note selection, cited sections/tasks, progress privacy, revocable sharing, and view-time source authorization
+  supabase/migrations/20260826030000_create_roadmap_generation_worker.sql:
+    role: Service-role-only roadmap claims and safe failures with source reauthorization, bounded private excerpts, retry recovery, and generator tracking
   supabase/migrations/20260826010000_grant_note_search_worker_privileges.sql:
     role: Explicit service-role-only grants for search extraction claims and completion
   supabase/migrations/20260826020000_fix_moderation_report_status_updates.sql:
@@ -708,6 +730,8 @@ important_files:
     role: 29 hosted pgTAP tests for rating eligibility, self-rating rejection, upsert semantics, summary math, cohort priors, deterministic ranking, pagination, and lost-access revocation
   supabase/tests/roadmap_authorization.sql:
     role: 39 transactional pgTAP tests for roadmap privileges, source selection, service-role snapshots, old-campus owner behavior, campus/public shares, progress privacy, revocation, and source-lifecycle denial
+  supabase/tests/roadmap_generation.sql:
+    role: 25 transactional pgTAP tests for service-only generation claims, private excerpts, retry/stale states, source changes, attempt limits, and safe failures
   scripts/run-pgtap-hosted.py:
     role: Runs pgTAP suites against the linked hosted project with full TAP output when Docker is unavailable
   src/app/dashboard/notes:
@@ -715,7 +739,15 @@ important_files:
   src/app/dashboard/notes/new:
     role: Protected note-upload route and validated server actions
   src/app/dashboard/roadmaps:
-    role: Protected roadmap-foundation workspace with source eligibility and saved static-snapshot summaries
+    role: Protected roadmap request/list/detail workflow with source eligibility, generation recovery, citations, and private progress
+  src/app/dashboard/roadmaps/actions.ts:
+    role: Authenticated create/retry/progress server actions with server-derived ownership
+  src/components/roadmaps:
+    role: Roadmap request, retry/polling, and private task-progress controls
+  src/lib/roadmaps/generation.ts:
+    role: Provider contract, deterministic provider, strict output schema, and complete authorized-source citation validation
+  src/lib/roadmaps/worker.ts:
+    role: Service-role claim, generation, validation, snapshot save, and safe failure orchestration
   src/components/notes/UploadNoteForm.tsx:
     role: Responsive private file, metadata, draft, and publication workflow
   src/components/notes/RatingStars.tsx:
@@ -804,20 +836,21 @@ explicitly connected test database. Without Docker, the pgTAP suites run
 against the linked hosted project through
 `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
 the Supabase CLI access token from the macOS keychain and prints full TAP
-output. Search and roadmap suites were last run transactionally against the
-applied hosted schema on 2026-08-24.
+output. Search and both roadmap suites were last run transactionally against
+the applied hosted schema on 2026-08-24.
 
 Last verified baseline on 2026-08-24:
 
 ```yaml
-vitest_tests: 61 passed
-e2e_smoke_tests: 11 passed
+vitest_tests: 71 passed
+e2e_smoke_tests: 12 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
 hosted_note_rating_pgtap_tests: 29 passed
 hosted_note_search_pgtap_tests: 17 passed
 hosted_roadmap_authorization_pgtap_tests: 39 passed
+hosted_roadmap_generation_pgtap_tests: 25 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -892,11 +925,12 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 61 Vitest tests, an 11-test Playwright smoke
+1. Automated coverage includes 71 Vitest tests, a 12-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
    hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 17 hosted
-   search pgTAP tests, and 39 hosted roadmap-authorization pgTAP tests.
+   search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25
+   hosted roadmap-generation pgTAP tests.
    Authenticated upload/download journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
@@ -905,9 +939,10 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    presented as real analytics. The landing page deliberately uses honest
    early-access framing instead of invented statistics or fabricated
    testimonials; keep it that way.
-4. The checked-in database types were regenerated through the linked Supabase
-   CLI on 2026-08-21 and matched the previous file byte for byte. Regenerate
-   with `npm run db:types` whenever migrations change.
+4. The checked-in database types include the roadmap generation migration and
+   preserve stricter application-known nullability where the Supabase CLI
+   generator is more permissive. Compare against `npm run db:types` whenever
+   migrations change; do not mechanically replace more accurate types.
 7. Phone OTP sends can create direct variable cost and remain an abuse target.
    CAPTCHA and a 10-per-hour hosted SMS limit are configured; production still
    needs delivery/spend monitoring, billing safeguards, and a production
@@ -929,16 +964,18 @@ open_decisions:
   - AI provider, models, prompting, evaluation, and grounding strategy
   - Realtime transport and video provider
   - Payment provider
-  - Moderation workflow
   - Analytics
   - Hosting and deployment
 ```
 
 The app requires the project URL and publishable key documented in `.env.example`.
-The server-side scheduled purge route additionally requires the
-`SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET`; neither may be exposed through a
-`NEXT_PUBLIC_` variable. `.env.local` contains working hosted-project values and
-is ignored by Git. There is no deployment manifest or `.openai/hosting.json`.
+The server-side note purge/extraction workers and roadmap generation require the
+`SUPABASE_SERVICE_ROLE_KEY`; scheduled note workers additionally require
+`CRON_SECRET`. Neither may be exposed through a `NEXT_PUBLIC_` variable.
+`.env.local` contains working public hosted-project values but does not
+currently contain the service-role key, so the roadmap UI intentionally disables
+generation until the server is configured. `.env.local` is ignored by Git.
+There is no deployment manifest or `.openai/hosting.json`.
 
 Do not silently choose irreversible or expensive providers. For early local
 implementation, prefer provider-agnostic boundaries and document assumptions.
@@ -950,12 +987,13 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Implement report intake and scoped moderation operations/tooling on the
-   existing schema foundation.
-2. Implement indexed, permission-safe full-text search.
-3. Connect a permission-aware AI generation worker to the roadmap foundation.
-4. Implement realtime study rooms.
-5. Add billing and expanded moderation tooling.
+1. Implement the durable realtime study-room foundation: room lifecycle,
+   synchronized Pomodoro state, membership, and persistent chat boundaries.
+2. Add manual review/rejection tooling for pending university memberships.
+3. Evaluate and connect a live AI roadmap provider behind the existing worker
+   contract only after choosing model, prompt, evaluation, cost, and privacy
+   requirements.
+4. Add billing and expanded moderation tooling.
 
 Regenerate database types when the CLI environment supports it, and expand the
 automated suite alongside each new product module.
@@ -1012,10 +1050,10 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 61-test Vitest foundation for Auth, onboarding,
+> The repository has a 71-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
-> an 11-test Playwright smoke suite for public
+> a 12-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
@@ -1050,12 +1088,17 @@ The correct starting assumption for future work is:
 > lifecycle pgTAP suite passed against hosted development on 2026-08-23.
 > Report intake, scoped moderation, and permission-safe metadata/PDF search are
 > implemented in the repository and applied to hosted development. The
-> study-roadmap authorization foundation now provides
-> server-selected static source snapshots, cited sections/tasks, private owner
-> progress, revocable share tokens, and view-time source reauthorization at
-> `/dashboard/roadmaps`; 17 search and 39 roadmap pgTAP assertions passed
-> transactionally against hosted development on 2026-08-24. AI roadmap generation and
-> study rooms remain demonstrations.
+> study-roadmap workflow now provides server-selected static source snapshots,
+> deterministic provider-agnostic generation, strict complete-source citation
+> validation, private owner progress, retry recovery, revocable share tokens,
+> and view-time source reauthorization at `/dashboard/roadmaps` and its detail
+> route. The generation claim is service-role-only and private source excerpts
+> never cross into the browser. The 17 search, 39 roadmap-authorization, and 25
+> roadmap-generation pgTAP assertions passed transactionally against hosted
+> development on 2026-08-24. The local server currently lacks
+> `SUPABASE_SERVICE_ROLE_KEY`, so the UI safely disables generation until that
+> secret is configured. Live AI model calls and study rooms remain deferred or
+> demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
 
