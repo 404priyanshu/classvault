@@ -14,7 +14,7 @@ moderation, search, and roadmap migrations are versioned in
 library/detail/download, My Vault, the scoped `/dashboard/moderation` queue,
 and `/dashboard/roadmaps`. The search, search-worker hardening, roadmap
 foundation/generation, and moderation report-state fix migrations are applied
-to the linked hosted project; local typecheck, lint, production build, 71 unit
+to the linked hosted project; local typecheck, lint, production build, 72 unit
 tests, 12 browser smoke tests, and the transactional hosted
 moderation/search/roadmap pgTAP suites pass.
 

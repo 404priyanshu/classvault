@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 23
+  context_version: 24
   last_verified: 2026-08-24
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 71 Vitest tests, 12 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25 hosted roadmap-generation pgTAP tests
+automated_test_suite: 72 Vitest tests, 12 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25 hosted roadmap-generation pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -577,7 +577,7 @@ These are product claims, not implemented or validated system behavior.
 - A 25-test roadmap-generation pgTAP suite covers service-only function access,
   atomic claiming, private excerpts, source changes, no-source and retry states,
   stale claims, attempt limits, and safe failure transitions.
-- A 71-test Vitest suite covering Auth, onboarding, route protection, file
+- A 72-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
@@ -842,7 +842,7 @@ the applied hosted schema on 2026-08-24.
 Last verified baseline on 2026-08-24:
 
 ```yaml
-vitest_tests: 71 passed
+vitest_tests: 72 passed
 e2e_smoke_tests: 12 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
@@ -925,7 +925,7 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 71 Vitest tests, a 12-test Playwright smoke
+1. Automated coverage includes 72 Vitest tests, a 12-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
    hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 17 hosted
@@ -1050,7 +1050,7 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 71-test Vitest foundation for Auth, onboarding,
+> The repository has a 72-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
 > a 12-test Playwright smoke suite for public

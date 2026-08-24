@@ -3,11 +3,9 @@
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
-import {
-  initialRoadmapGenerationState,
-  retryRoadmapAction,
-} from '@/app/dashboard/roadmaps/actions'
+import { retryRoadmapAction } from '@/app/dashboard/roadmaps/actions'
 import { Spinner } from '@/components/ui/spinner'
+import { initialRoadmapGenerationState } from '@/lib/roadmaps/action-state'
 
 export function RoadmapGenerationWatcher({ active }: { active: boolean }) {
   const router = useRouter()
