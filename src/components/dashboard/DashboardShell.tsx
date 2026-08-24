@@ -22,9 +22,11 @@ import {
   UsersRound,
   X,
 } from 'lucide-react'
+import { ProfileAvatar } from '@/components/settings/ProfileAvatar'
 import { cn } from '@/lib/utils'
 
 type DashboardShellProps = {
+  avatarUrl: string | null
   children: ReactNode
   course: string | null
   displayName: string
@@ -54,6 +56,7 @@ const secondaryNavigation: NavigationItem[] = [
   { href: '/dashboard/vault', icon: BookOpen, label: 'My uploads' },
   { disabled: true, icon: Share2, label: 'Shared with me' },
   { href: '/dashboard/vault?view=trash', icon: Trash2, label: 'Trash' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]
 
 const moderationNavigation: NavigationItem = {
@@ -68,17 +71,9 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith('/dashboard/moderation')) return 'Moderation'
   if (pathname.startsWith('/dashboard/notes')) return 'Notes'
   if (pathname.startsWith('/dashboard/roadmaps')) return 'Roadmaps'
+  if (pathname.startsWith('/dashboard/settings')) return 'Settings'
   if (pathname.startsWith('/dashboard/study-rooms')) return 'Study rooms'
   return 'Dashboard'
-}
-
-function initialsFor(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
 }
 
 function SidebarNavigation({
@@ -153,6 +148,7 @@ function SidebarNavigation({
 }
 
 export function DashboardShell({
+  avatarUrl,
   children,
   course,
   displayName,
@@ -203,10 +199,16 @@ export function DashboardShell({
       />
 
       <div className="mt-5 border-t border-[#f6f1e5]/25 pt-5">
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#171512] bg-[#f0a202] font-display text-sm font-black text-[#171512] shadow-[2px_2px_0_#171512]">
-            {initialsFor(displayName) || 'CV'}
-          </span>
+        <Link
+          className="flex items-center gap-3 rounded-md p-1 transition hover:bg-[#f6f1e5]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6f1e5]"
+          href="/dashboard/settings"
+          onClick={() => setMenuOpen(false)}
+        >
+          <ProfileAvatar
+            avatarUrl={avatarUrl}
+            className="h-11 w-11 rounded-lg text-sm shadow-[2px_2px_0_#171512]"
+            displayName={displayName}
+          />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-bold text-[#fffdf6]">
               {displayName}
@@ -216,7 +218,7 @@ export function DashboardShell({
             </span>
           </span>
           <ChevronDown className="h-4 w-4 text-[#f6f1e5]/70" />
-        </div>
+        </Link>
       </div>
     </div>
   )
@@ -285,7 +287,7 @@ export function DashboardShell({
             <Link
               aria-label="Edit profile settings"
               className="grid h-10 w-10 place-items-center rounded-sm text-[#171512]/70 transition-colors hover:bg-[#f0a202]/15 hover:text-[#171512]"
-              href="/onboarding?edit=1"
+              href="/dashboard/settings"
             >
               <Settings className="h-[19px] w-[19px]" strokeWidth={1.8} />
             </Link>

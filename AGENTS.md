@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 24
+  context_version: 25
   last_verified: 2026-08-24
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 72 Vitest tests, 12 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25 hosted roadmap-generation pgTAP tests
+automated_test_suite: 80 Vitest tests, 13 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, and 13 hosted profile-avatar pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -99,8 +99,10 @@ implemented_routes:
     type: protected deterministic roadmap request workspace with server-derived sources, generation recovery, and private saved summaries
   - path: /dashboard/roadmaps/[roadmapId]
     type: protected owner-only roadmap detail with source citations, withheld-section handling, and private task progress
+  - path: /dashboard/settings
+    type: protected conventional account settings for profile photo, display details, account identity, study preferences, and password security
   - path: /onboarding
-    type: protected three-step student onboarding and profile editor
+    type: protected three-step first-run student onboarding flow
 ```
 
 The repository is already flattened into `/Users/ainz/projects/classvault`. There
@@ -469,7 +471,21 @@ These are product claims, not implemented or validated system behavior.
 - Automatic `verified` membership when the confirmed email domain matches the
   selected university; otherwise the membership remains `pending`.
 - Dashboard gating: signed-in users without `onboarding_completed_at` are sent
-  to `/onboarding`; completed users may edit at `/onboarding?edit=1`.
+  to `/onboarding`; completed users manage their account at
+  `/dashboard/settings`.
+- A dedicated conventional settings experience at `/dashboard/settings`
+  separates ongoing account management from first-run onboarding. It supports
+  real display-name, degree, graduation-year, study-goal, study-style, and
+  password updates; shows the immutable ClassVault ID and verified account and
+  university details; and is linked from the dashboard navigation and profile
+  controls.
+- Public profile-photo upload, replacement, and removal are implemented through
+  the `profile-avatars` Supabase Storage bucket. JPG, PNG, and WebP signatures
+  are verified server-side, files are limited to 2 MiB, and Storage RLS permits
+  each authenticated student to mutate only the exact stable
+  `<auth.uid()>/avatar` object. Migration
+  `20260827000000_create_profile_avatar_storage.sql` is applied to hosted
+  development, where all 13 avatar pgTAP assertions pass.
 - A Vitest foundation with 12 tests covering authentication server actions,
   onboarding completion, safe redirects, CAPTCHA forwarding, and session-proxy
   route protection.
@@ -577,16 +593,17 @@ These are product claims, not implemented or validated system behavior.
 - A 25-test roadmap-generation pgTAP suite covers service-only function access,
   atomic claiming, private excerpts, source changes, no-source and retry states,
   stale claims, attempt limits, and safe failure transitions.
-- A 72-test Vitest suite covering Auth, onboarding, route protection, file
+- An 80-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
   rating-action validation, search/moderation helpers, roadmap formatting,
-  deterministic output validation, worker behavior, and roadmap actions.
-- A 12-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+  deterministic output validation, worker behavior, roadmap actions, and
+  validated settings/profile/avatar/password server actions.
+- A 13-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
-  redirects for protected routes including roadmap detail, and the interactive
-  roadmap demo.
+  redirects for protected routes including roadmap detail and settings, and
+  the interactive roadmap demo.
 
 ### Simulated or absent
 
@@ -720,6 +737,8 @@ important_files:
     role: Explicit service-role-only grants for search extraction claims and completion
   supabase/migrations/20260826020000_fix_moderation_report_status_updates.sql:
     role: Qualified report-state updates for reliable scoped moderation transitions
+  supabase/migrations/20260827000000_create_profile_avatar_storage.sql:
+    role: Public profile-avatar bucket configuration plus exact owner-object insert, update, and delete Storage RLS
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
@@ -732,6 +751,8 @@ important_files:
     role: 39 transactional pgTAP tests for roadmap privileges, source selection, service-role snapshots, old-campus owner behavior, campus/public shares, progress privacy, revocation, and source-lifecycle denial
   supabase/tests/roadmap_generation.sql:
     role: 25 transactional pgTAP tests for service-only generation claims, private excerpts, retry/stale states, source changes, attempt limits, and safe failures
+  supabase/tests/profile_avatar_storage.sql:
+    role: 13 transactional pgTAP tests for avatar bucket constraints, anonymous denial, and exact owner-object Storage RLS
   scripts/run-pgtap-hosted.py:
     role: Runs pgTAP suites against the linked hosted project with full TAP output when Docker is unavailable
   src/app/dashboard/notes:
@@ -742,6 +763,10 @@ important_files:
     role: Protected roadmap request/list/detail workflow with source eligibility, generation recovery, citations, and private progress
   src/app/dashboard/roadmaps/actions.ts:
     role: Authenticated create/retry/progress server actions with server-derived ownership
+  src/app/dashboard/settings:
+    role: Protected conventional profile, account, study-preference, avatar, and password settings page and validated server actions
+  src/components/settings:
+    role: Focused avatar, profile details, account-ID, study-preference, password, status, and submit controls
   src/components/roadmaps:
     role: Roadmap request, retry/polling, and private task-progress controls
   src/lib/roadmaps/generation.ts:
@@ -842,15 +867,18 @@ the applied hosted schema on 2026-08-24.
 Last verified baseline on 2026-08-24:
 
 ```yaml
-vitest_tests: 72 passed
-e2e_smoke_tests: 12 passed
+vitest_tests: 80 passed
+e2e_smoke_tests: 13 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
 hosted_note_rating_pgtap_tests: 29 passed
+hosted_note_lifecycle_pgtap_tests: 22 passed
+hosted_note_moderation_pgtap_tests: 20 passed
 hosted_note_search_pgtap_tests: 17 passed
 hosted_roadmap_authorization_pgtap_tests: 39 passed
 hosted_roadmap_generation_pgtap_tests: 25 passed
+hosted_profile_avatar_pgtap_tests: 13 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -883,6 +911,11 @@ interactions_checked:
   onboarding_study_preferences: pass
   onboarding_desktop_render: pass
   onboarding_mobile_render: pass
+  settings_desktop_render: pass in authenticated external Chrome
+  settings_account_id_copy: pass
+  settings_browser_console_errors: none observed
+  profile_avatar_hosted_migration: pass
+  profile_avatar_pgtap_execution: 13 passed transactionally against hosted development
   confirmation_email_desktop_render: pass
   confirmation_email_mobile_render: pass
   confirmation_email_horizontal_mobile_overflow: none observed
@@ -925,12 +958,13 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 72 Vitest tests, a 12-test Playwright smoke
+1. Automated coverage includes 80 Vitest tests, a 13-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
-   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 17 hosted
-   search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, and 25
-   hosted roadmap-generation pgTAP tests.
+   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 22 hosted
+   lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search
+   pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted
+   roadmap-generation pgTAP tests, and 13 hosted profile-avatar pgTAP tests.
    Authenticated upload/download journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
@@ -1050,14 +1084,19 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 72-test Vitest foundation for Auth, onboarding,
+> The repository has an 80-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
-> a 12-test Playwright smoke suite for public
+> a 13-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
 > production widget.
+> Completed students manage their ongoing profile at the dedicated
+> `/dashboard/settings` route, including their display identity, degree,
+> graduation year, study preferences, password, and a real public profile
+> photo. The hosted `profile-avatars` bucket limits supported images to 2 MiB
+> and exact owner-object mutations; its 13-test pgTAP suite passes.
 > Custom SMTP sender branding is deferred until the user owns a domain. The
 > notes product, relational model, access matrix, ranking formula, storage
 > boundary, lifecycle, and acceptance criteria are specified in

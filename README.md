@@ -116,8 +116,11 @@ The migrations create:
   private task progress, and view-time source reauthorization.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
-Completed profiles enter `/dashboard` and can be edited at
-`/onboarding?edit=1`.
+Completed profiles enter `/dashboard` and can manage their account at
+`/dashboard/settings`. The settings page provides conventional profile-photo,
+display-name, degree, graduation-year, account-identity, study-preference, and
+password controls. Profile photos use a public Supabase Storage bucket with a
+2 MiB JPG/PNG/WebP limit and exact owner-object write policies.
 
 ### Google, GitHub, and phone sign-in
 

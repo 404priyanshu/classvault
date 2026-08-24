@@ -39,6 +39,20 @@ const productionContentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb',
+    },
+  },
+  images: {
+    remotePatterns: [
+      {
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/profile-avatars/**',
+        protocol: 'https',
+      },
+    ],
+  },
   async headers() {
     return [
       {

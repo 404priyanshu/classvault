@@ -112,6 +112,16 @@ test.describe('protected routes', () => {
     )
   })
 
+  test('settings redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/settings')
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Fsettings/,
+    )
+  })
+
   test('My Vault redirects unauthenticated visitors to sign-in', async ({
     page,
   }) => {
