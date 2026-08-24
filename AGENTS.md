@@ -3,8 +3,8 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 21
-  last_verified: 2026-08-21
+  context_version: 22
+  last_verified: 2026-08-24
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
   source_of_truth_priority:
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding, note upload, Notes Library, and note-detail slices
-production_application_status: Auth, secure onboarding, notes schema/RLS foundation, recoverable hosted upload/publication, RLS-filtered browsing, private preview, signed download, rating mutation, and recency-weighted ranking implemented
+product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, and study-roadmap authorization slices
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and the static study-roadmap authorization foundation are implemented; the two newest migrations remain pending on hosted development
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 59 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, and 16 hosted search pgTAP tests
+automated_test_suite: 61 Vitest tests, 11 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 16 hosted search pgTAP tests, and 39 rollback-only hosted roadmap-authorization pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -89,10 +89,14 @@ implemented_routes:
     type: protected route handler issuing an authorized short-lived private download
   - path: /dashboard/notes/new
     type: protected responsive note draft/upload/publication workflow with stalled-response recovery
+  - path: /dashboard/vault
+    type: protected owner-only active uploads and 30-day Trash lifecycle
   - path: /api/cron/extract-notes
     type: server-only scheduled PDF extraction and permission-safe search indexing route
   - path: /dashboard/moderation
     type: protected scoped moderator queue for private reports and audited note actions
+  - path: /dashboard/roadmaps
+    type: protected static-roadmap workspace with server-derived source eligibility and private saved summaries
   - path: /onboarding
     type: protected three-step student onboarding and profile editor
 ```
@@ -135,6 +139,15 @@ Supabase. It adds narrowly scoped authenticated functions for safe contributor
 labels and ready-file metadata plus a private Storage select policy gated by
 `can_consume_note(...)`. The 13-test library-access pgTAP suite passed
 transactionally against hosted development on 2026-08-16.
+
+The note rating, lifecycle, and moderation migrations through
+`20260824000000_create_note_moderation_workflow.sql` are applied to hosted
+development. The permission-safe search migration dated `20260825000000` and
+the study-roadmap foundation migration dated `20260826000000` remain pending.
+The roadmap migration adds force-RLS static snapshots, automatic Free/Pro-ready
+source selection, cited sections/tasks, private owner progress, and revocable
+share tokens. Its 39-test pgTAP suite passed on 2026-08-24 by applying the
+migration and tests together inside a hosted rollback-only transaction.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -352,7 +365,7 @@ product_pillars:
       - Upload, discover, download, and rate student notes
       - Rank quality using rating count and recency, not raw average alone
       - Support full-text search
-    implementation_status: Upload, publication, browsing, private preview/download, ratings, ranking, owner My Vault, Trash recovery, and scheduled purge are implemented; full-text search remains deferred
+    implementation_status: Upload, publication, browsing, private preview/download, ratings, ranking, owner My Vault, Trash recovery, scheduled purge, moderation, and permission-safe metadata/PDF full-text search are implemented; image OCR remains deferred
 
   verified_university_communities:
     intent:
@@ -370,7 +383,7 @@ product_pillars:
     intent:
       - Generate study plans grounded in notes the student may access
       - Respect content permissions and university boundaries
-    implementation_status: UI simulation with hard-coded plan data
+    implementation_status: Static snapshot/source authorization, owner progress, and revocable sharing foundation implemented; AI generation remains a hard-coded landing-page simulation
 ```
 
 Additional product concepts currently expressed in page copy:
@@ -530,12 +543,25 @@ These are product claims, not implemented or validated system behavior.
   `ready`, `failed`, or `unsupported` states. Library search returns snippets
   only after the existing note access predicate is applied. Image OCR remains
   deferred and image notes are searchable by metadata only.
-- A 53-test Vitest suite covering Auth, onboarding, route protection, file
+- A protected `/dashboard/roadmaps` foundation exposes the authenticated
+  student's automatically derived Free source pool and Pro-ready campus pool,
+  plus private summaries for saved static snapshots. Roadmap source selection
+  is database-owned; the browser cannot supply note IDs or choose a plan.
+- Private roadmap tables store immutable source/title/scope snapshots, cited
+  sections and tasks, owner-only progress, and revocable share tokens. Every
+  owner/shared view rechecks each source: an unavailable source withholds the
+  entire derived section, anonymous viewers can see public-only sections, and
+  shared viewers never receive owner progress. AI generation is not connected.
+- A 39-test roadmap pgTAP suite covers least privilege, Free/Pro-ready source
+  selection, old-campus owner sources, service-role snapshot saving,
+  university isolation, anonymous public sections, progress privacy, token
+  revocation, restricted-source hiding, and incomplete-user denial.
+- A 61-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
-  rating-action validation and error mapping.
-- An 8-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+  rating-action validation, search/moderation helpers, and roadmap formatting.
+- An 11-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
   redirects for protected routes, and the interactive roadmap demo.
 
@@ -569,8 +595,8 @@ Important simulation details:
   MarginNotes payoff, navbar, footer) open the real Supabase-backed auth routes.
   Demo teasers such as "Try the roadmap demo" still navigate to marketing-page
   anchors.
-- The dashboard is an authenticated shell only; it does not yet contain notes,
-  roadmaps, or study-room product functionality.
+- The dashboard contains real note, moderation, search, and roadmap-foundation
+  slices. Study-room behavior and AI roadmap generation remain demonstrations.
 - All onboarding values are represented by persistent form controls even when
   their visual step is unmounted. Do not remove the hidden name, degree,
   graduation-year, university, goal, or study-preference fields: the final
@@ -663,6 +689,8 @@ important_files:
     role: Safe note contributor/file metadata functions and consumable-note private Storage reads
   supabase/migrations/20260821000000_create_note_rating_mutation.sql:
     role: rate_note mutation, private deterministic summary refresh, and the access-first ranked library listing
+  supabase/migrations/20260826000000_create_study_roadmap_foundation.sql:
+    role: Private static roadmap snapshots, automatic plan-aware note selection, cited sections/tasks, progress privacy, revocable sharing, and view-time source authorization
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
@@ -671,12 +699,16 @@ important_files:
     role: 13 hosted pgTAP tests for contributor labels, ready-file metadata, and private download authorization
   supabase/tests/note_ratings.sql:
     role: 29 hosted pgTAP tests for rating eligibility, self-rating rejection, upsert semantics, summary math, cohort priors, deterministic ranking, pagination, and lost-access revocation
+  supabase/tests/roadmap_authorization.sql:
+    role: 39 transactional pgTAP tests for roadmap privileges, source selection, service-role snapshots, old-campus owner behavior, campus/public shares, progress privacy, revocation, and source-lifecycle denial
   scripts/run-pgtap-hosted.py:
     role: Runs pgTAP suites against the linked hosted project with full TAP output when Docker is unavailable
   src/app/dashboard/notes:
     role: Protected Notes Library, note-detail, private preview, and signed-download routes
   src/app/dashboard/notes/new:
     role: Protected note-upload route and validated server actions
+  src/app/dashboard/roadmaps:
+    role: Protected roadmap-foundation workspace with source eligibility and saved static-snapshot summaries
   src/components/notes/UploadNoteForm.tsx:
     role: Responsive private file, metadata, draft, and publication workflow
   src/components/notes/RatingStars.tsx:
@@ -765,18 +797,19 @@ explicitly connected test database. Without Docker, the pgTAP suites run
 against the linked hosted project through
 `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
 the Supabase CLI access token from the macOS keychain and prints full TAP
-output. All canonical suites were last run transactionally against the hosted
-development project on 2026-08-21.
+output. The roadmap suite was last run with its pending migration inside a
+rollback-only hosted transaction on 2026-08-24.
 
-Last verified baseline on 2026-08-21:
+Last verified baseline on 2026-08-24:
 
 ```yaml
-vitest_tests: 50 passed
-e2e_smoke_tests: 8 passed
+vitest_tests: 61 passed
+e2e_smoke_tests: 11 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
 hosted_note_rating_pgtap_tests: 29 passed
+hosted_roadmap_authorization_pgtap_tests: 39 passed in a rollback-only transaction
 typecheck: pass
 lint: pass
 production_build: pass
@@ -851,10 +884,11 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 50 Vitest tests, an 8-test Playwright smoke
+1. Automated coverage includes 61 Vitest tests, an 11-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
-   hosted library-access pgTAP tests, and 29 hosted rating pgTAP tests.
+   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, and 39
+   rollback-only hosted roadmap-authorization pgTAP tests.
    Authenticated upload/download journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
@@ -911,7 +945,7 @@ Unless the user gives a different priority, continue in this order:
 1. Implement report intake and scoped moderation operations/tooling on the
    existing schema foundation.
 2. Implement indexed, permission-safe full-text search.
-3. Implement permission-aware, source-grounded roadmap generation.
+3. Connect a permission-aware AI generation worker to the roadmap foundation.
 4. Implement realtime study rooms.
 5. Add billing and expanded moderation tooling.
 
@@ -970,10 +1004,10 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has a 53-test Vitest foundation for Auth, onboarding,
+> The repository has a 61-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
-> an 8-test Playwright smoke suite for public
+> an 11-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
@@ -1006,9 +1040,14 @@ The correct starting assumption for future work is:
 > provides owner-only active uploads and Trash views, soft deletion, 30-day
 > restoration, and a server-only scheduled purge boundary. The 22-test
 > lifecycle pgTAP suite passed against hosted development on 2026-08-23.
-> Report intake and moderation UI are not implemented; the immediate
-> continuation is scoped moderation.
-> Roadmaps and study rooms remain demonstrations.
+> Report intake, scoped moderation, and permission-safe metadata/PDF search are
+> implemented in the repository. The search migration remains pending on
+> hosted development. The study-roadmap authorization foundation now provides
+> server-selected static source snapshots, cited sections/tasks, private owner
+> progress, revocable share tokens, and view-time source reauthorization at
+> `/dashboard/roadmaps`; its pending migration passed 39 hosted pgTAP assertions
+> inside a rollback-only transaction on 2026-08-24. AI roadmap generation and
+> study rooms remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
 

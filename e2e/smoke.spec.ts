@@ -92,6 +92,16 @@ test.describe('protected routes', () => {
     await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fdashboard%2Fnotes/)
   })
 
+  test('roadmap workspace redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/roadmaps')
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Froadmaps/,
+    )
+  })
+
   test('My Vault redirects unauthenticated visitors to sign-in', async ({
     page,
   }) => {

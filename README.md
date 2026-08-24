@@ -155,7 +155,7 @@ requirements.
 
 The canonical implementation baseline for note upload, university boundaries,
 private downloads, ratings, ranking, deletion, recovery, moderation, search,
-and future roadmap authorization is
+and roadmap authorization is
 [`docs/notes-product-data-permissions-spec.md`](docs/notes-product-data-permissions-spec.md).
 The hosted schema/RLS foundation is implemented through migrations
 `20260810000000_create_notes_foundation.sql` and
@@ -207,6 +207,19 @@ safe snippets, extraction claims, and explicit extraction states. Schedule
 `/api/cron/extract-notes` with the existing `CRON_SECRET` after uploads are
 published; it requires the server-only `SUPABASE_SERVICE_ROLE_KEY`.
 
+The study-roadmap authorization foundation is available at
+`/dashboard/roadmaps`. Migration
+`20260826000000_create_study_roadmap_foundation.sql` adds private static
+roadmap snapshots, server-selected source-note boundaries, owner-only progress,
+and revocable share tokens. Every saved or shared view rechecks current source
+authorization and withholds an entire derived section if any cited note is no
+longer available. Free source snapshots include personal uploads and public
+notes; the entitlement boundary is ready to add accessible same-university peer
+notes for Pro. AI generation, prompting, and provider calls are not connected.
+The 39 transactional assertions in
+`supabase/tests/roadmap_authorization.sql` pass against hosted development when
+the migration and suite run together in a rollback-only transaction.
+
 ## Checks
 
 ```bash
@@ -230,6 +243,7 @@ test database.
 - `src/app/dashboard/notes` — RLS-filtered Notes Library and protected note detail
 - `src/app/dashboard/notes/new` — note upload actions and protected route
 - `src/app/dashboard/vault` — owner uploads, Trash, delete, and restore actions
+- `src/app/dashboard/roadmaps` — private roadmap workspace and source-eligibility summary
 - `src/app/api/cron/extract-notes` — authenticated scheduled PDF extraction worker
 - `src/app/api/cron/purge-notes` — authenticated scheduler boundary for expired-note purge
 - `src/components/notes` — responsive note-library and note-upload interfaces

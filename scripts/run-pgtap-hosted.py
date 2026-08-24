@@ -33,8 +33,8 @@ def transform(sql: str) -> str:
         marker,
         marker
         + "\ncreate temp table tap_log (ord serial primary key, line text);"
-        + "\ngrant all on tap_log to authenticated;"
-        + "\ngrant all on sequence tap_log_ord_seq to authenticated;",
+        + "\ngrant all on tap_log to authenticated, anon, service_role;"
+        + "\ngrant all on sequence tap_log_ord_seq to authenticated, anon, service_role;",
         1,
     )
     sql = re.sub(
