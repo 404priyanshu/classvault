@@ -198,14 +198,19 @@ moderator scope rechecked in the database. Migration
 `20260824000000_create_note_moderation_workflow.sql` adds the workflow and the
 20 assertions in `supabase/tests/note_moderation.sql` cover duplicate reports,
 self-report rejection, scoped state transitions, restricted-note denial, and
-safe owner notices.
+safe owner notices. Follow-up migration
+`20260826020000_fix_moderation_report_status_updates.sql` qualifies report-state
+updates that otherwise conflicted with the function's output parameters.
 
 The Notes Library now searches titles, descriptions, tags, subjects, and
 extracted PDF text through the same access-filtered database function. Migration
 `20260825000000_create_note_search_pipeline.sql` adds weighted search vectors,
 safe snippets, extraction claims, and explicit extraction states. Schedule
 `/api/cron/extract-notes` with the existing `CRON_SECRET` after uploads are
-published; it requires the server-only `SUPABASE_SERVICE_ROLE_KEY`.
+published; it requires the server-only `SUPABASE_SERVICE_ROLE_KEY`. Follow-up
+migration `20260826010000_grant_note_search_worker_privileges.sql` grants only
+that service role access to the extraction claim/completion RPCs. All 17 hosted
+search pgTAP assertions pass.
 
 The study-roadmap authorization foundation is available at
 `/dashboard/roadmaps`. Migration
@@ -217,8 +222,8 @@ longer available. Free source snapshots include personal uploads and public
 notes; the entitlement boundary is ready to add accessible same-university peer
 notes for Pro. AI generation, prompting, and provider calls are not connected.
 The 39 transactional assertions in
-`supabase/tests/roadmap_authorization.sql` pass against hosted development when
-the migration and suite run together in a rollback-only transaction.
+`supabase/tests/roadmap_authorization.sql` pass against the applied hosted
+development schema.
 
 ## Checks
 

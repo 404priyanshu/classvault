@@ -3,7 +3,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(16);
+select extensions.plan(17);
 
 select extensions.ok(
   has_function_privilege('authenticated', 'public.list_notes_for_library(text,bigint,text,text,text,integer,integer)', 'EXECUTE'),
@@ -20,6 +20,14 @@ select extensions.ok(
 select extensions.ok(
   not has_function_privilege('authenticated', 'public.complete_note_extraction(text,text,text,uuid)', 'EXECUTE'),
   'authenticated users cannot write extracted text'
+);
+select extensions.ok(
+  has_function_privilege('service_role', 'public.claim_pending_note_extractions(integer)', 'EXECUTE'),
+  'the extraction worker can claim pending jobs'
+);
+select extensions.ok(
+  has_function_privilege('service_role', 'public.complete_note_extraction(text,text,text,uuid)', 'EXECUTE'),
+  'the extraction worker can complete pending jobs'
 );
 
 insert into auth.users (
@@ -101,15 +109,8 @@ select extensions.is(
   'cross-university extracted/search terms remain hidden'
 );
 
-select extensions.throws_ok(
-  $$select public.claim_pending_note_extractions(10)$$,
-  '42501',
-  'Extraction workers require the service role',
-  'authenticated users cannot claim extraction jobs'
-);
-
-set local role postgres;
-select set_config('request.jwt.claims', '{"sub":"88888888-8888-4888-8888-888888888882","role":"postgres"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select extensions.is(
   (select count(*) from public.claim_pending_note_extractions(10) where note_id = '88888888-8888-4888-8888-888888888880'),
   1::bigint,
@@ -141,7 +142,12 @@ select extensions.is(
   'extracted PDF text is searchable'
 );
 select extensions.ok(
-  (select search_snippet like '%round robin%' from public.list_notes_for_library('round robin', null, 'all', 'all', 'newest', 10, 0) where id = '88888888-8888-4888-8888-888888888880'),
+  (
+    select search_snippet like '%<mark>round</mark>%'
+      and search_snippet like '%<mark>robin</mark>%'
+    from public.list_notes_for_library('round robin', null, 'all', 'all', 'newest', 10, 0)
+    where id = '88888888-8888-4888-8888-888888888880'
+  ),
   'search returns a snippet only for an accessible note'
 );
 
@@ -154,8 +160,8 @@ select extensions.is(
   'onboarding-incomplete users cannot search notes'
 );
 
-set local role postgres;
-select set_config('request.jwt.claims', '{"sub":"88888888-8888-4888-8888-888888888881","role":"postgres"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select extensions.is(
   (select public.complete_note_extraction('unsupported', null, 'test-extractor-v1', '88888888-8888-4888-8888-888888888879')),
   true,
