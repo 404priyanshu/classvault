@@ -1,11 +1,10 @@
 # ClassVault
 
 ClassVault is a study platform concept for Indian college students. The repository
-contains an interactive product landing page plus the initial authenticated
-application foundation: Supabase email/password auth, application flows for
-Google, GitHub, and phone OTP authentication, a protected three-step student
-onboarding flow, verified-or-pending university membership, and a protected
-dashboard with the first private note-upload workflow.
+contains an interactive product landing page plus authenticated application
+slices for Supabase authentication, student onboarding, university membership,
+private note upload and discovery, moderation, permission-safe search, and
+deterministic source-cited study roadmaps.
 
 ## Stack
 
@@ -36,12 +35,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+# Server-only: required by note workers and roadmap generation.
+SUPABASE_SERVICE_ROLE_KEY=service_role_REPLACE_ME
+# Server-only scheduler authentication for note purge and extraction routes.
+CRON_SECRET=REPLACE_WITH_A_LONG_RANDOM_SECRET
 ```
 
 Use the project URL and publishable key from the Supabase project's Connect
-dialog. The service-role key is only needed by the server-side scheduled purge
-job; it must never be exposed to the browser or stored in a `NEXT_PUBLIC_`
-variable.
+dialog. The service-role key is required by the server-side note purge and text
+extraction workers and by authenticated roadmap generation. It must never be
+exposed to the browser or stored in a `NEXT_PUBLIC_` variable. The roadmap UI
+remains safely disabled when this server-only key is not configured.
 
 Link the repository to the hosted project and apply the database migrations:
 
@@ -107,6 +111,9 @@ The migrations create:
   extractable PDF text. The server-only `/api/cron/extract-notes` route claims
   private ready files, indexes PDF text, and marks image notes as
   metadata-searchable but OCR-unsupported.
+- A deterministic, source-cited roadmap workflow with server-selected notes,
+  service-role-only access to private excerpts, retryable generation state,
+  private task progress, and view-time source reauthorization.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
 Completed profiles enter `/dashboard` and can be edited at
@@ -155,7 +162,7 @@ requirements.
 
 The canonical implementation baseline for note upload, university boundaries,
 private downloads, ratings, ranking, deletion, recovery, moderation, search,
-and roadmap authorization is
+and roadmap generation authorization is
 [`docs/notes-product-data-permissions-spec.md`](docs/notes-product-data-permissions-spec.md).
 The hosted schema/RLS foundation is implemented through migrations
 `20260810000000_create_notes_foundation.sql` and
@@ -212,7 +219,7 @@ migration `20260826010000_grant_note_search_worker_privileges.sql` grants only
 that service role access to the extraction claim/completion RPCs. All 17 hosted
 search pgTAP assertions pass.
 
-The study-roadmap authorization foundation is available at
+The study-roadmap workflow is available at
 `/dashboard/roadmaps`. Migration
 `20260826000000_create_study_roadmap_foundation.sql` adds private static
 roadmap snapshots, server-selected source-note boundaries, owner-only progress,
@@ -220,8 +227,19 @@ and revocable share tokens. Every saved or shared view rechecks current source
 authorization and withholds an entire derived section if any cited note is no
 longer available. Free source snapshots include personal uploads and public
 notes; the entitlement boundary is ready to add accessible same-university peer
-notes for Pro. AI generation, prompting, and provider calls are not connected.
-The 39 transactional assertions in
+notes for Pro.
+
+Migration `20260826030000_create_roadmap_generation_worker.sql` is applied to
+hosted development. It adds service-role-only generation claims and safe
+failure transitions, rechecks every selected source before returning private
+excerpts to the worker, and supports retry and stale-claim recovery. The current
+provider is deterministic and provider-agnostic: it produces a validated,
+source-cited study plan without making an AI model call. Live AI provider,
+prompting, model, and evaluation choices remain deferred. Generation requires
+the server-only `SUPABASE_SERVICE_ROLE_KEY`; without it, the roadmap form stays
+disabled instead of falling back to a client or authenticated content-writing
+path. The 25 assertions in `supabase/tests/roadmap_generation.sql` and the 39
+transactional assertions in
 `supabase/tests/roadmap_authorization.sql` pass against the applied hosted
 development schema.
 
@@ -248,7 +266,9 @@ test database.
 - `src/app/dashboard/notes` — RLS-filtered Notes Library and protected note detail
 - `src/app/dashboard/notes/new` — note upload actions and protected route
 - `src/app/dashboard/vault` — owner uploads, Trash, delete, and restore actions
-- `src/app/dashboard/roadmaps` — private roadmap workspace and source-eligibility summary
+- `src/app/dashboard/roadmaps` — private roadmap generation workspace and detail routes
+- `src/components/roadmaps` — roadmap request, retry/polling, and task-progress controls
+- `src/lib/roadmaps` — source snapshots, deterministic provider, validation, and server worker
 - `src/app/api/cron/extract-notes` — authenticated scheduled PDF extraction worker
 - `src/app/api/cron/purge-notes` — authenticated scheduler boundary for expired-note purge
 - `src/components/notes` — responsive note-library and note-upload interfaces
