@@ -270,9 +270,9 @@ export default async function DashboardPage({
             </div>
             <Link
               className="inline-flex items-center gap-1 text-xs font-black text-[#b56d00]"
-              href="/#roadmap"
+              href="/dashboard/roadmaps"
             >
-              Open demo <ArrowRight className="h-3.5 w-3.5" />
+              Open workspace <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 

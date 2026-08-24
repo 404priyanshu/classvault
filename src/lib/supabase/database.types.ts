@@ -476,6 +476,273 @@ export type Database = {
         }
         Relationships: []
       }
+      roadmap_section_sources: {
+        Row: {
+          section_id: number
+          source_id: number
+        }
+        Insert: {
+          section_id: number
+          source_id: number
+        }
+        Update: {
+          section_id?: number
+          source_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_section_sources_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_section_sources_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_sections: {
+        Row: {
+          created_at: string
+          id: number
+          position: number
+          roadmap_id: string
+          summary: string
+          timeframe_label: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          position: number
+          roadmap_id: string
+          summary: string
+          timeframe_label: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          position?: number
+          roadmap_id?: string
+          summary?: string
+          timeframe_label?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_sections_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "study_roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_share_links: {
+        Row: {
+          enabled_at: string
+          revoked_at: string | null
+          roadmap_id: string
+          share_token: string
+        }
+        Insert: {
+          enabled_at?: string
+          revoked_at?: string | null
+          roadmap_id: string
+          share_token?: string
+        }
+        Update: {
+          enabled_at?: string
+          revoked_at?: string | null
+          roadmap_id?: string
+          share_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_share_links_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: true
+            referencedRelation: "study_roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_sources: {
+        Row: {
+          created_at: string
+          id: number
+          note_id: string | null
+          roadmap_id: string
+          source_scope: string
+          source_university_id: number | null
+          title_snapshot: string
+          visibility_snapshot: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          note_id?: string | null
+          roadmap_id: string
+          source_scope: string
+          source_university_id?: number | null
+          title_snapshot: string
+          visibility_snapshot: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          note_id?: string | null
+          roadmap_id?: string
+          source_scope?: string
+          source_university_id?: number | null
+          title_snapshot?: string
+          visibility_snapshot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_sources_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_sources_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "study_roadmaps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_sources_source_university_id_fkey"
+            columns: ["source_university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_task_progress: {
+        Row: {
+          completed_at: string
+          owner_id: string
+          task_id: number
+        }
+        Insert: {
+          completed_at?: string
+          owner_id: string
+          task_id: number
+        }
+        Update: {
+          completed_at?: string
+          owner_id?: string
+          task_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_task_progress_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_task_progress_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: true
+            referencedRelation: "roadmap_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_tasks: {
+        Row: {
+          created_at: string
+          id: number
+          position: number
+          section_id: number
+          task_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          position: number
+          section_id: number
+          task_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          position?: number
+          section_id?: number
+          task_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_tasks_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_roadmaps: {
+        Row: {
+          created_at: string
+          failure_code: string | null
+          generated_at: string | null
+          generation_plan: string
+          id: string
+          owner_id: string
+          status: string
+          study_mode: string
+          title: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          failure_code?: string | null
+          generated_at?: string | null
+          generation_plan?: string
+          id?: string
+          owner_id: string
+          status?: string
+          study_mode: string
+          title: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          failure_code?: string | null
+          generated_at?: string | null
+          generation_plan?: string
+          id?: string
+          owner_id?: string
+          status?: string
+          study_mode?: string
+          title?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_roadmaps_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           code: string | null
@@ -649,6 +916,14 @@ export type Database = {
         Returns: boolean
       }
       can_moderate_note: { Args: { target_note_id: string }; Returns: boolean }
+      can_view_roadmap_section: {
+        Args: { p_section_id: number; p_viewer_id: string | null }
+        Returns: boolean
+      }
+      can_view_roadmap_source: {
+        Args: { p_source_id: number; p_viewer_id: string | null }
+        Returns: boolean
+      }
       can_upload_note_object: {
         Args: { target_object_key: string }
         Returns: boolean
@@ -730,6 +1005,15 @@ export type Database = {
           object_key: string
         }[]
       }
+      create_roadmap_source_snapshot: {
+        Args: { p_study_mode: string; p_topic: string }
+        Returns: {
+          generation_plan: string
+          roadmap_id: string
+          source_count: number
+        }[]
+      }
+      current_roadmap_plan: { Args: never; Returns: string }
       discard_note_upload_draft: {
         Args: { p_note_id: string }
         Returns: boolean
@@ -774,6 +1058,10 @@ export type Database = {
           publication_status: string
         }[]
       }
+      get_roadmap_snapshot: {
+        Args: { p_roadmap_id: string; p_share_token?: string }
+        Returns: Json
+      }
       has_platform_notes_role: {
         Args: { accepted_roles: string[] }
         Returns: boolean
@@ -807,6 +1095,34 @@ export type Database = {
           title: string
           updated_at: string
           visibility: string
+        }[]
+      }
+      list_owned_roadmaps: {
+        Args: never
+        Returns: {
+          completed_task_count: number
+          created_at: string
+          generated_at: string | null
+          generation_plan: string
+          roadmap_id: string
+          section_count: number
+          sharing_enabled: boolean
+          source_count: number
+          status: string
+          study_mode: string
+          title: string
+          topic: string
+          total_task_count: number
+        }[]
+      }
+      list_plan_eligible_roadmap_sources: {
+        Args: { p_owner_id: string; p_plan: string }
+        Returns: {
+          note_id: string
+          source_scope: string
+          source_university_id: number | null
+          title_snapshot: string
+          visibility_snapshot: string
         }[]
       }
       list_moderation_queue: {
@@ -877,6 +1193,17 @@ export type Database = {
           weighted_score: number
         }[]
       }
+      preview_roadmap_source_eligibility: {
+        Args: never
+        Returns: {
+          eligible_university_count: number
+          generation_plan: string
+          personal_count: number
+          pro_university_count: number
+          public_count: number
+          total_eligible_count: number
+        }[]
+      }
       moderate_note: {
         Args: {
           p_action: string
@@ -915,6 +1242,18 @@ export type Database = {
           publication_status: string | null
           success: boolean
         }[]
+      }
+      save_roadmap_snapshot: {
+        Args: { p_roadmap_id: string; p_sections: Json; p_title: string }
+        Returns: boolean
+      }
+      set_roadmap_sharing: {
+        Args: { p_enabled: boolean; p_roadmap_id: string }
+        Returns: string | null
+      }
+      set_roadmap_task_progress: {
+        Args: { p_completed: boolean; p_task_id: number }
+        Returns: boolean
       }
     }
     Enums: {

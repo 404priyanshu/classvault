@@ -2,18 +2,19 @@
 
 ```yaml
 status: Implementation baseline
-version: 2
-date: 2026-08-10
-scope: Notes upload, discovery, download, rating, deletion, recovery, and moderation boundaries
-implementation_status: Upload, browse/detail/download, ratings/ranking, Trash recovery, report/moderation, and permission-safe metadata/PDF full-text search implemented; OCR, external search, and roadmap authorization remain deferred
+version: 3
+date: 2026-08-24
+scope: Notes upload, discovery, download, rating, deletion, recovery, moderation, search, and roadmap-authorization boundaries
+implementation_status: Upload, browse/detail/download, ratings/ranking, Trash recovery, report/moderation, permission-safe metadata/PDF full-text search, and the static roadmap authorization foundation are implemented; OCR, external search, and AI roadmap generation remain deferred
 ```
 
 The foundation, upload pipeline, library access, rating/ranking, lifecycle, and
-moderation migrations are versioned in `supabase/migrations`. The protected
-routes now include upload, library/detail/download, My Vault, and the scoped
-`/dashboard/moderation` queue. The newest moderation migration and its
-transactional pgTAP suite are ready to push to the linked hosted project; local
-typecheck, lint, production build, and unit tests pass.
+moderation, search, and roadmap-foundation migrations are versioned in
+`supabase/migrations`. The protected routes now include upload,
+library/detail/download, My Vault, the scoped `/dashboard/moderation` queue,
+and `/dashboard/roadmaps`. The search and roadmap migrations are ready to push
+to the linked hosted project; local typecheck, lint, production build, unit
+tests, and the rollback-only hosted roadmap pgTAP run pass.
 
 ## 1. Purpose
 
@@ -32,7 +33,7 @@ The module must preserve these ClassVault principles:
 - Public profile identity is pseudonymous. Account emails and phone numbers are
   never exposed with uploaded notes, ratings, reports, or search results.
 - A deleted note is recoverable for 30 days with its ratings intact.
-- Search, downloads, future AI roadmaps, and moderation all reuse the same note
+- Search, downloads, roadmap source authorization, and moderation all reuse the same note
   authorization decision.
 
 ## 2. MVP boundary
@@ -531,16 +532,28 @@ student emails, phone numbers, display names, or university names.
 - Moderation actions are auditable and include a safe reason visible to the
   owner. Reporter identity remains private.
 
-## 14. Future roadmap authorization
+## 14. Roadmap authorization foundation
 
-Future AI roadmaps may reference only notes that the requesting user can read at
-generation time. Each roadmap source stores the note ID and the authorization
-scope used, not copied unrestricted source text.
+The static roadmap authorization boundary is implemented in
+`20260826000000_create_study_roadmap_foundation.sql`. Roadmap creation snapshots
+the complete server-selected note pool; the browser cannot choose a source
+owner, plan, or note list. Free snapshots include the owner's active published
+uploads plus accessible public notes. The Pro-ready entitlement branch also
+includes accessible same-university peer notes, but billing is not connected.
 
-Authorization is rechecked when a saved or shared roadmap is viewed. If a note
-is deleted, restricted, removed, or no longer accessible after a university
-membership change, its title, snippet, source link, and derived protected
-content must be withheld. Hiding a link in the browser is insufficient.
+Each saved section cites one or more snapshotted note IDs. Authorization is
+rechecked whenever an owner or share-token viewer opens the roadmap. If any
+cited note is deleted, purged, restricted, removed, or inaccessible to that
+viewer, the entire derived section is withheld. Owners retain roadmap access to
+their own active old-university uploads after a membership change, while a
+source link is shown only when ordinary note consumption is still authorized.
+
+Task progress is private to the roadmap owner. Share tokens are revocable;
+anonymous viewers can see only sections derived entirely from public notes,
+and authenticated campus viewers must still satisfy every university-source
+boundary. Static content can be saved only through the service-role worker
+boundary. AI prompting, source-text retrieval, model calls, and evaluation are
+not implemented.
 
 ## 15. Acceptance criteria
 
@@ -572,7 +585,7 @@ of the following:
     visibility and university membership would otherwise allow access.
 13. Public views expose only pseudonymous profile fields and never Auth or
     academic identity.
-14. Search and future roadmap source selection produce the same authorization
+14. Search and roadmap source selection produce the same authorization
     result as direct note reads.
 
 Tests must exercise RLS with at least: two verified users in different
@@ -598,6 +611,10 @@ moderator, and one platform moderator.
    service-role extraction worker, weighted Postgres search, permission-safe
    snippets, and explicit failed/unsupported states. OCR for image notes and an
    external search engine remain deferred.
+8. **Roadmap authorization foundation — complete locally 2026-08-24** —
+   private static snapshots, automatic plan-aware source selection, cited
+   sections/tasks, owner-only progress, revocable shares, and view-time source
+   reauthorization. AI generation remains deferred.
 
 Every slice includes typecheck, lint, production build, unit tests, and RLS
 integration tests. Storage and search providers remain behind replaceable
