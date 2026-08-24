@@ -4,7 +4,7 @@ ClassVault is a study platform concept for Indian college students. The reposito
 contains an interactive product landing page plus authenticated application
 slices for Supabase authentication, student onboarding, university membership,
 private note upload and discovery, moderation, permission-safe search, and
-deterministic source-cited study roadmaps.
+deterministic source-cited study roadmaps, plus temporary realtime study rooms.
 
 ## Stack
 
@@ -37,7 +37,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 # Server-only: required by note workers and roadmap generation.
 SUPABASE_SERVICE_ROLE_KEY=service_role_REPLACE_ME
-# Server-only scheduler authentication for note purge and extraction routes.
+# Server-only scheduler authentication for note and study-room workers.
 CRON_SECRET=REPLACE_WITH_A_LONG_RANDOM_SECRET
 ```
 
@@ -114,6 +114,9 @@ The migrations create:
 - A deterministic, source-cited roadmap workflow with server-selected notes,
   service-role-only access to private excerpts, retryable generation state,
   private task progress, and view-time source reauthorization.
+- Temporary public and verified-campus study rooms with server-owned plan
+  limits, membership roles, a revision-checked synchronized Pomodoro timer,
+  room-scoped chat, Supabase Realtime refresh, and scheduled expiry cleanup.
 
 After sign-up and email confirmation, users are sent through `/onboarding`.
 Completed profiles enter `/dashboard` and can manage their account at
@@ -246,6 +249,32 @@ transactional assertions in
 `supabase/tests/roadmap_authorization.sql` pass against the applied hosted
 development schema.
 
+## Study rooms
+
+The authenticated study-room lobby is available at `/dashboard/study-rooms`.
+Onboarding-complete students can create and join public rooms; university rooms
+require a current verified membership at the same university. Room detail
+provides a shared focus/break timer, host and co-host roles, pseudonymous member
+snapshots, and temporary chat. The landing-page `StudyRoom` section remains a
+separate visual demonstration.
+
+Migrations `20260828000000_create_study_room_foundation.sql`,
+`20260828010000_touch_rooms_on_membership_changes.sql`, and
+`20260828020000_fix_study_room_timer_clock.sql`, plus the access-recheck
+hardening migration `20260828030000_recheck_study_room_member_access.sql`, are applied to hosted
+development. All writes use owner-derived database RPCs; direct table writes
+are unavailable to authenticated clients. Forced RLS rechecks public/campus
+access, and room/member/message Realtime events act only as refresh signals.
+All 57 transactional assertions in `supabase/tests/study_rooms.sql` pass.
+
+Rooms and their chat are ephemeral. They are deleted when ended, when the last
+member leaves, or after expiry. Configure `SUPABASE_SERVICE_ROLE_KEY` and
+`CRON_SECRET`, then schedule GET or POST requests to
+`/api/cron/purge-study-rooms` with `Authorization: Bearer <CRON_SECRET>`.
+Video/audio, durable chat, room moderation controls, and real Pro billing remain
+deferred. The canonical access and lifecycle contract is
+[`docs/study-room-product-data-permissions-spec.md`](docs/study-room-product-data-permissions-spec.md).
+
 ## Checks
 
 ```bash
@@ -253,6 +282,7 @@ npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run test:e2e
 npm run db:test
 ```
 

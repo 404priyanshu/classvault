@@ -3,7 +3,7 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 25
+  context_version: 26
   last_verified: 2026-08-24
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
@@ -18,8 +18,8 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, and deterministic study-roadmap generation slices
-production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and deterministic source-cited study-roadmap generation are implemented and applied to hosted development
+product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study-room slices
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and applied to hosted development
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 80 Vitest tests, 13 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, and 13 hosted profile-avatar pgTAP tests
+automated_test_suite: 90 Vitest tests, 16 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57 hosted study-room pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -101,6 +101,12 @@ implemented_routes:
     type: protected owner-only roadmap detail with source citations, withheld-section handling, and private task progress
   - path: /dashboard/settings
     type: protected conventional account settings for profile photo, display details, account identity, study preferences, and password security
+  - path: /dashboard/study-rooms
+    type: protected RLS-filtered realtime room lobby with creation, joining, filters, and joined-room summaries
+  - path: /dashboard/study-rooms/[roomId]
+    type: protected member-only live room with synchronized timer, roles, temporary chat, and lifecycle controls
+  - path: /api/cron/purge-study-rooms
+    type: server-only scheduled expired-room cleanup route
   - path: /onboarding
     type: protected three-step first-run student onboarding flow
 ```
@@ -158,6 +164,17 @@ transitions, private bounded source excerpts, source reauthorization, retry and
 stale-claim handling, and deterministic provider tracking. The 17-test search,
 39-test roadmap-authorization, and 25-test roadmap-generation pgTAP suites
 passed transactionally against hosted development on 2026-08-24.
+
+Study-room migrations `20260828000000_create_study_room_foundation.sql`,
+`20260828010000_touch_rooms_on_membership_changes.sql`, and
+`20260828020000_fix_study_room_timer_clock.sql`, and
+`20260828030000_recheck_study_room_member_access.sql` are applied to hosted
+development. They add forced-RLS temporary public/campus rooms, owner-derived
+membership, host/co-host transfer, revision-checked Pomodoro state, temporary
+room chat, Realtime publication, lobby aggregate refresh signals, and a
+service-role-only expiry purge, plus immediate revocation when campus access is
+lost. All 57 hosted study-room pgTAP assertions pass
+transactionally.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -387,7 +404,7 @@ product_pillars:
     intent:
       - Video, audio, chat, and synchronized Pomodoro sessions
       - Keep a room active if its original host leaves
-    implementation_status: UI simulation only
+    implementation_status: Temporary public/campus rooms, membership and host transfer, synchronized Pomodoro state, room-scoped chat, Realtime refresh, and expiry cleanup are implemented; video/audio and moderation controls remain deferred, while the landing-page demo remains simulated
 
   ai_study_roadmaps:
     intent:
@@ -426,7 +443,8 @@ These are product claims, not implemented or validated system behavior.
   - hard-coded phases streamed in with token-style typed tasks,
   - interactive checklist with a 100% completion badge,
   - calculated progress.
-- Simulated study-room UI with an in-memory timer and fake chat activity.
+- A separate landing-page study-room demonstration with an in-memory timer and
+  fake chat activity; it is not connected to the authenticated product route.
 - Draggable pain-point ("Sound familiar?") cards.
 - FAQ accordion.
 - Decorative global interactions and motion effects.
@@ -593,17 +611,35 @@ These are product claims, not implemented or validated system behavior.
 - A 25-test roadmap-generation pgTAP suite covers service-only function access,
   atomic claiming, private excerpts, source changes, no-source and retry states,
   stale claims, attempt limits, and safe failure transitions.
-- An 80-test Vitest suite covering Auth, onboarding, route protection, file
+- Protected realtime study rooms are implemented at `/dashboard/study-rooms`.
+  Onboarding-complete students can create or join temporary public rooms;
+  university rooms require a current same-campus verified membership. The
+  lobby is RLS-filtered and supports visibility/subject/availability filters
+  plus joined-room summaries.
+- Room detail provides a revision-checked synchronized focus/break timer,
+  pseudonymous member/avatar snapshots, host and co-host controls, deterministic
+  host promotion, hostless continuation, and temporary room-scoped chat.
+  Supabase Realtime publishes room, member, and message changes as refresh
+  signals without bypassing RLS or the server-owned RPC mutation boundary.
+- Rooms delete with their messages when ended, when the last member leaves, or
+  through the service-role-only `/api/cron/purge-study-rooms` expiry worker.
+  Plan capacity/duration values are server-owned snapshots; all users currently
+  resolve to Free until billing supplies real entitlements. The 57-test hosted
+  study-room pgTAP suite covers privileges, campus isolation, lifecycle, role
+  transfer, timer concurrency, chat scope, cleanup, and Realtime publication.
+- A 90-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
   cleanup, plus Notes Library query normalization, onboarding helpers, and
   rating-action validation, search/moderation helpers, roadmap formatting,
   deterministic output validation, worker behavior, roadmap actions, and
-  validated settings/profile/avatar/password server actions.
-- A 13-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+  validated settings/profile/avatar/password server actions, and validated
+  study-room mutations.
+- A 16-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
-  redirects for protected routes including roadmap detail and settings, and
-  the interactive roadmap demo.
+  redirects for protected routes including roadmap detail, settings, and both
+  study-room routes, scheduler-secret rejection, and the interactive roadmap
+  demo.
 
 ### Simulated or absent
 
@@ -612,9 +648,9 @@ not_implemented:
   - Manual review/rejection workflow for pending university memberships
   - Payments or subscriptions
   - Live AI model calls, prompt orchestration, or model evaluation
-  - Realtime infrastructure
   - WebRTC video/audio
-  - Persistent chat
+  - Durable cross-room chat or message history
+  - Study-room kick, mute, report, and moderation controls
   - Analytics
 ```
 
@@ -624,8 +660,9 @@ Important simulation details:
   exam-revision plan. The entered topic changes displayed text but does not
   generate topic-specific content. Its build-log status lines are scripted
   animation theater, not a real generation pipeline.
-- `StudyRoom.tsx` uses local/in-memory values. Participants, timer behavior, and
-  messages are not connected to other users.
+- The marketing `StudyRoom.tsx` section uses local/in-memory values. Its
+  participants, timer, and messages are not connected to the real authenticated
+  room product under `/dashboard/study-rooms`.
 - The hero shows an honest "Early access — free while we build" badge; there are
   no live-user counters, invented statistics sections, or fabricated testimonials
   on the page. MarginNotes quotes are anonymous pain-point statements, not
@@ -634,9 +671,9 @@ Important simulation details:
   MarginNotes payoff, navbar, footer) open the real Supabase-backed auth routes.
   Demo teasers such as "Try the roadmap demo" still navigate to marketing-page
   anchors.
-- The dashboard contains real note, moderation, search, and deterministic
-  roadmap-generation slices. Study-room behavior and live AI roadmap generation
-  remain demonstrations or deferred.
+- The dashboard contains real note, moderation, search, deterministic roadmap,
+  and realtime study-room slices. Live AI roadmap generation and study-room
+  video/audio remain deferred.
 - All onboarding values are represented by persistent form controls even when
   their visual step is unmounted. Do not remove the hidden name, degree,
   graduation-year, university, goal, or study-preference fields: the final
@@ -717,6 +754,8 @@ interaction effects.
 important_files:
   docs/notes-product-data-permissions-spec.md:
     role: Canonical notes-module product rules, relational model, RLS boundaries, ranking formula, lifecycle, and acceptance criteria
+  docs/study-room-product-data-permissions-spec.md:
+    role: Canonical study-room lifecycle, data model, access matrix, timer concurrency, Realtime, cleanup, and deferred-scope contract
   supabase/migrations/20260810000000_create_notes_foundation.sql:
     role: Hosted notes tables, constraints, indexes, authorization helpers, privileges, seed subjects, and forced RLS policies
   supabase/migrations/20260810010000_harden_notes_function_privileges.sql:
@@ -739,6 +778,14 @@ important_files:
     role: Qualified report-state updates for reliable scoped moderation transitions
   supabase/migrations/20260827000000_create_profile_avatar_storage.sql:
     role: Public profile-avatar bucket configuration plus exact owner-object insert, update, and delete Storage RLS
+  supabase/migrations/20260828000000_create_study_room_foundation.sql:
+    role: Forced-RLS temporary room, membership, timer, chat, role-transfer, Realtime, and service-only purge foundation
+  supabase/migrations/20260828010000_touch_rooms_on_membership_changes.sql:
+    role: Safe parent-room Realtime refresh signal for membership-count changes
+  supabase/migrations/20260828020000_fix_study_room_timer_clock.sql:
+    role: Transaction-stable timer calculation using PostgreSQL now()
+  supabase/migrations/20260828030000_recheck_study_room_member_access.sql:
+    role: Immediate protected-read, chat, timer, role-control, and room-end revocation when current campus access is lost
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
@@ -753,6 +800,8 @@ important_files:
     role: 25 transactional pgTAP tests for service-only generation claims, private excerpts, retry/stale states, source changes, attempt limits, and safe failures
   supabase/tests/profile_avatar_storage.sql:
     role: 13 transactional pgTAP tests for avatar bucket constraints, anonymous denial, and exact owner-object Storage RLS
+  supabase/tests/study_rooms.sql:
+    role: 57 transactional pgTAP tests for room privileges, campus isolation and revocation, roles, timer concurrency, chat scope, lifecycle cleanup, and Realtime publication
   scripts/run-pgtap-hosted.py:
     role: Runs pgTAP suites against the linked hosted project with full TAP output when Docker is unavailable
   src/app/dashboard/notes:
@@ -765,10 +814,18 @@ important_files:
     role: Authenticated create/retry/progress server actions with server-derived ownership
   src/app/dashboard/settings:
     role: Protected conventional profile, account, study-preference, avatar, and password settings page and validated server actions
+  src/app/dashboard/study-rooms:
+    role: Protected RLS-filtered realtime lobby, member-only room detail, and validated server actions
+  src/app/api/cron/purge-study-rooms/route.ts:
+    role: CRON_SECRET-authenticated service worker boundary for expired temporary rooms
   src/components/settings:
     role: Focused avatar, profile details, account-ID, study-preference, password, status, and submit controls
   src/components/roadmaps:
     role: Roadmap request, retry/polling, and private task-progress controls
+  src/components/study-rooms:
+    role: Room creation/joining, countdown, synchronized timer, Realtime refresh, roles, chat, and lifecycle controls
+  src/lib/study-rooms:
+    role: Typed room snapshots, action state, Zod validation, and timer formatting
   src/lib/roadmaps/generation.ts:
     role: Provider contract, deterministic provider, strict output schema, and complete authorized-source citation validation
   src/lib/roadmaps/worker.ts:
@@ -861,14 +918,14 @@ explicitly connected test database. Without Docker, the pgTAP suites run
 against the linked hosted project through
 `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
 the Supabase CLI access token from the macOS keychain and prints full TAP
-output. Search and both roadmap suites were last run transactionally against
-the applied hosted schema on 2026-08-24.
+output. Search, both roadmap suites, and the study-room suite were last run
+transactionally against the applied hosted schema on 2026-08-24.
 
 Last verified baseline on 2026-08-24:
 
 ```yaml
-vitest_tests: 80 passed
-e2e_smoke_tests: 13 passed
+vitest_tests: 90 passed
+e2e_smoke_tests: 16 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
@@ -879,6 +936,7 @@ hosted_note_search_pgtap_tests: 17 passed
 hosted_roadmap_authorization_pgtap_tests: 39 passed
 hosted_roadmap_generation_pgtap_tests: 25 passed
 hosted_profile_avatar_pgtap_tests: 13 passed
+hosted_study_room_pgtap_tests: 57 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -958,14 +1016,15 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 80 Vitest tests, a 13-test Playwright smoke
+1. Automated coverage includes 90 Vitest tests, a 16-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
    hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 22 hosted
    lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search
    pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted
-   roadmap-generation pgTAP tests, and 13 hosted profile-avatar pgTAP tests.
-   Authenticated upload/download journeys still rely on manual acceptance runs.
+   roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57
+   hosted study-room pgTAP tests. Authenticated upload/download and multi-user
+   room journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
    deliberate in-range upgrade verified by the full suite.
@@ -974,9 +1033,15 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    early-access framing instead of invented statistics or fabricated
    testimonials; keep it that way.
 4. The checked-in database types include the roadmap generation migration and
-   preserve stricter application-known nullability where the Supabase CLI
+   study-room functions. They preserve stricter application-known nullability
+   where the Supabase CLI
    generator is more permissive. Compare against `npm run db:types` whenever
    migrations change; do not mechanically replace more accurate types.
+5. Study-room chat is temporary coordination data and currently has no kick,
+   mute, report, rate limit, or moderation audit workflow. Define those abuse
+   boundaries before broad public launch.
+6. Supabase Realtime synchronizes room state but video/audio remains
+   unimplemented. Do not imply that the room route provides WebRTC media.
 7. Phone OTP sends can create direct variable cost and remain an abuse target.
    CAPTCHA and a 10-per-hour hosted SMS limit are configured; production still
    needs delivery/spend monitoring, billing safeguards, and a production
@@ -993,10 +1058,9 @@ No decision has been made for any of the following:
 ```yaml
 open_decisions:
   - Manual review and evidence process for pending university memberships
-  - File/object storage
-  - Search engine
   - AI provider, models, prompting, evaluation, and grounding strategy
-  - Realtime transport and video provider
+  - WebRTC video/audio provider and topology
+  - Study-room moderation and abuse controls
   - Payment provider
   - Analytics
   - Hosting and deployment
@@ -1006,9 +1070,9 @@ The app requires the project URL and publishable key documented in `.env.example
 The server-side note purge/extraction workers and roadmap generation require the
 `SUPABASE_SERVICE_ROLE_KEY`; scheduled note workers additionally require
 `CRON_SECRET`. Neither may be exposed through a `NEXT_PUBLIC_` variable.
-`.env.local` contains working public hosted-project values but does not
-currently contain the service-role key, so the roadmap UI intentionally disables
-generation until the server is configured. `.env.local` is ignored by Git.
+`.env.local` contains the working hosted-project values plus the server-only
+service-role and cron secrets. It is ignored by Git; never print, commit, or
+expose those secrets through client code or a `NEXT_PUBLIC_` variable.
 There is no deployment manifest or `.openai/hosting.json`.
 
 Do not silently choose irreversible or expensive providers. For early local
@@ -1021,13 +1085,14 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Implement the durable realtime study-room foundation: room lifecycle,
-   synchronized Pomodoro state, membership, and persistent chat boundaries.
-2. Add manual review/rejection tooling for pending university memberships.
-3. Evaluate and connect a live AI roadmap provider behind the existing worker
+1. Add manual review/rejection tooling for pending university memberships.
+2. Evaluate and connect a live AI roadmap provider behind the existing worker
    contract only after choosing model, prompt, evaluation, cost, and privacy
    requirements.
-4. Add billing and expanded moderation tooling.
+3. Define study-room moderation/abuse controls before adding kick, mute, or
+   report actions.
+4. Add billing and expanded study-room media only after choosing providers and
+   cost/privacy boundaries.
 
 Regenerate database types when the CLI environment supports it, and expand the
 automated suite alongside each new product module.
@@ -1084,10 +1149,10 @@ The correct starting assumption for future work is:
 > and six-digit OTP verification were confirmed working on 2026-07-29.
 > Cloudflare Turnstile is enforced by hosted Supabase for public password,
 > recovery, and phone-OTP requests, and the hosted SMS limit is 10 per hour.
-> The repository has an 80-test Vitest foundation for Auth, onboarding,
+> The repository has a 90-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
-> a 13-test Playwright smoke suite for public
+> a 16-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
@@ -1134,10 +1199,16 @@ The correct starting assumption for future work is:
 > route. The generation claim is service-role-only and private source excerpts
 > never cross into the browser. The 17 search, 39 roadmap-authorization, and 25
 > roadmap-generation pgTAP assertions passed transactionally against hosted
-> development on 2026-08-24. The local server currently lacks
-> `SUPABASE_SERVICE_ROLE_KEY`, so the UI safely disables generation until that
-> secret is configured. Live AI model calls and study rooms remain deferred or
-> demonstrations.
+> development on 2026-08-24. The authenticated study-room product is now live
+> at `/dashboard/study-rooms` with forced-RLS public/campus discovery,
+> server-owned Free/Pro-ready plan snapshots, membership and host/co-host
+> lifecycle, revision-checked synchronized Pomodoro state, temporary chat,
+> Supabase Realtime refresh, scheduled expiry cleanup, and immediate campus
+> access revocation. Its four migrations are applied to hosted development and
+> all 57 study-room pgTAP assertions pass.
+> The configured server-only service-role and cron secrets remain only in the
+> ignored local environment. Live AI model calls and study-room video/audio
+> remain deferred; the landing-page room section remains a separate simulation.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.
 
