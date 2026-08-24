@@ -19,7 +19,7 @@ document:
 ```yaml
 project_name: ClassVault
 product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, and study-roadmap authorization slices
-production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and the static study-roadmap authorization foundation are implemented; the two newest migrations remain pending on hosted development
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, and the static study-roadmap authorization foundation are implemented and applied to hosted development
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 61 Vitest tests, 11 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 16 hosted search pgTAP tests, and 39 rollback-only hosted roadmap-authorization pgTAP tests
+automated_test_suite: 61 Vitest tests, 11 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, and 39 hosted roadmap-authorization pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -140,14 +140,17 @@ labels and ready-file metadata plus a private Storage select policy gated by
 `can_consume_note(...)`. The 13-test library-access pgTAP suite passed
 transactionally against hosted development on 2026-08-16.
 
-The note rating, lifecycle, and moderation migrations through
-`20260824000000_create_note_moderation_workflow.sql` are applied to hosted
-development. The permission-safe search migration dated `20260825000000` and
-the study-roadmap foundation migration dated `20260826000000` remain pending.
+The note rating, lifecycle, moderation, permission-safe search, and study
+roadmap migrations through
+`20260826020000_fix_moderation_report_status_updates.sql` are applied to hosted
+development. The search hardening migration explicitly grants its private
+claim/completion RPCs to `service_role` while keeping them unavailable to
+ordinary clients. The moderation follow-up qualifies report columns that
+conflicted with `moderate_note(...)` output parameters.
 The roadmap migration adds force-RLS static snapshots, automatic Free/Pro-ready
 source selection, cited sections/tasks, private owner progress, and revocable
-share tokens. Its 39-test pgTAP suite passed on 2026-08-24 by applying the
-migration and tests together inside a hosted rollback-only transaction.
+share tokens. The 17-test search and 39-test roadmap pgTAP suites passed
+transactionally against hosted development on 2026-08-24.
 
 The canonical sign-up confirmation email is
 `supabase/templates/confirmation.html` and is wired into the local stack through
@@ -691,6 +694,10 @@ important_files:
     role: rate_note mutation, private deterministic summary refresh, and the access-first ranked library listing
   supabase/migrations/20260826000000_create_study_roadmap_foundation.sql:
     role: Private static roadmap snapshots, automatic plan-aware note selection, cited sections/tasks, progress privacy, revocable sharing, and view-time source authorization
+  supabase/migrations/20260826010000_grant_note_search_worker_privileges.sql:
+    role: Explicit service-role-only grants for search extraction claims and completion
+  supabase/migrations/20260826020000_fix_moderation_report_status_updates.sql:
+    role: Qualified report-state updates for reliable scoped moderation transitions
   supabase/tests/notes_rls.sql:
     role: 38 transactional pgTAP tests for notes privileges, tenant isolation, moderation scope, and immutability
   supabase/tests/note_upload_pipeline.sql:
@@ -797,8 +804,8 @@ explicitly connected test database. Without Docker, the pgTAP suites run
 against the linked hosted project through
 `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
 the Supabase CLI access token from the macOS keychain and prints full TAP
-output. The roadmap suite was last run with its pending migration inside a
-rollback-only hosted transaction on 2026-08-24.
+output. Search and roadmap suites were last run transactionally against the
+applied hosted schema on 2026-08-24.
 
 Last verified baseline on 2026-08-24:
 
@@ -809,7 +816,8 @@ hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
 hosted_note_rating_pgtap_tests: 29 passed
-hosted_roadmap_authorization_pgtap_tests: 39 passed in a rollback-only transaction
+hosted_note_search_pgtap_tests: 17 passed
+hosted_roadmap_authorization_pgtap_tests: 39 passed
 typecheck: pass
 lint: pass
 production_build: pass
@@ -887,8 +895,8 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 1. Automated coverage includes 61 Vitest tests, an 11-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
-   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, and 39
-   rollback-only hosted roadmap-authorization pgTAP tests.
+   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 17 hosted
+   search pgTAP tests, and 39 hosted roadmap-authorization pgTAP tests.
    Authenticated upload/download journeys still rely on manual acceptance runs.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
@@ -1041,12 +1049,12 @@ The correct starting assumption for future work is:
 > restoration, and a server-only scheduled purge boundary. The 22-test
 > lifecycle pgTAP suite passed against hosted development on 2026-08-23.
 > Report intake, scoped moderation, and permission-safe metadata/PDF search are
-> implemented in the repository. The search migration remains pending on
-> hosted development. The study-roadmap authorization foundation now provides
+> implemented in the repository and applied to hosted development. The
+> study-roadmap authorization foundation now provides
 > server-selected static source snapshots, cited sections/tasks, private owner
 > progress, revocable share tokens, and view-time source reauthorization at
-> `/dashboard/roadmaps`; its pending migration passed 39 hosted pgTAP assertions
-> inside a rollback-only transaction on 2026-08-24. AI roadmap generation and
+> `/dashboard/roadmaps`; 17 search and 39 roadmap pgTAP assertions passed
+> transactionally against hosted development on 2026-08-24. AI roadmap generation and
 > study rooms remain demonstrations.
 > New work should preserve the design language, enforce access in RLS/server code,
 > and avoid confusing demonstrations with implemented product capabilities.

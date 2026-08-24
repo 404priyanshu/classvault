@@ -110,6 +110,8 @@ select extensions.is(
   true,
   'moderators can clear a reviewed note'
 );
+
+set local role postgres;
 select extensions.is(
   (select status from public.note_reports where note_id = '77777777-7777-4777-8777-777777777770' limit 1),
   'dismissed',
