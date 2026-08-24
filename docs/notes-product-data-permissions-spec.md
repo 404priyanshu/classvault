@@ -5,18 +5,15 @@ status: Implementation baseline
 version: 2
 date: 2026-08-10
 scope: Notes upload, discovery, download, rating, deletion, recovery, and moderation boundaries
-implementation_status: Hosted schema/RLS foundation complete; local upload pipeline and product route implemented; hosted activation pending
+implementation_status: Upload, browse/detail/download, ratings/ranking, Trash recovery, report/moderation, and permission-safe metadata/PDF full-text search implemented; OCR, external search, and roadmap authorization remain deferred
 ```
 
-Foundation migrations `20260810000000_create_notes_foundation.sql` and
-`20260810010000_harden_notes_function_privileges.sql` are applied to hosted
-Supabase. The schema and authorization boundary passed 38 transactional hosted
-pgTAP tests. Migration `20260810020000_create_note_upload_pipeline.sql`, the
-protected `/dashboard/notes/new` route, and 18 upload-pipeline pgTAP tests are
-implemented locally. The new SQL parses cleanly but has not yet been applied or
-executed against hosted Supabase. Sections describing download, rating
-mutation, deletion, purge, moderation operations, and search remain
-implementation contracts rather than user-facing functionality.
+The foundation, upload pipeline, library access, rating/ranking, lifecycle, and
+moderation migrations are versioned in `supabase/migrations`. The protected
+routes now include upload, library/detail/download, My Vault, and the scoped
+`/dashboard/moderation` queue. The newest moderation migration and its
+transactional pgTAP suite are ready to push to the linked hosted project; local
+typecheck, lint, production build, and unit tests pass.
 
 ## 1. Purpose
 
@@ -595,10 +592,12 @@ moderator, and one platform moderator.
    weighted score, and sort options.
 5. **Trash and recovery** — delete, restore, scheduled purge, retention holds,
    and storage cleanup.
-6. **Reports and moderation** — report intake, scoped roles, restrictions,
-   removal, audit history, and owner-facing reasons.
-7. **Full-text search** — extraction workers, weighted Postgres search,
-   permission-safe snippets, and indexing cleanup.
+6. **Reports and moderation — complete 2026-08-23** — report intake, scoped
+   roles, restrictions, removal, audit history, and owner-facing reasons.
+7. **Full-text search — complete 2026-08-25 for metadata and PDFs** — a
+   service-role extraction worker, weighted Postgres search, permission-safe
+   snippets, and explicit failed/unsupported states. OCR for image notes and an
+   external search engine remain deferred.
 
 Every slice includes typecheck, lint, production build, unit tests, and RLS
 integration tests. Storage and search providers remain behind replaceable

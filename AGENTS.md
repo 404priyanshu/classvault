@@ -63,7 +63,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 50 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, and 29 hosted rating/ranking pgTAP tests
+automated_test_suite: 59 Vitest tests, 8 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 20 hosted moderation pgTAP tests, and 16 hosted search pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -89,6 +89,10 @@ implemented_routes:
     type: protected route handler issuing an authorized short-lived private download
   - path: /dashboard/notes/new
     type: protected responsive note draft/upload/publication workflow with stalled-response recovery
+  - path: /api/cron/extract-notes
+    type: server-only scheduled PDF extraction and permission-safe search indexing route
+  - path: /dashboard/moderation
+    type: protected scoped moderator queue for private reports and audited note actions
   - path: /onboarding
     type: protected three-step student onboarding and profile editor
 ```
@@ -512,6 +516,20 @@ These are product claims, not implemented or validated system behavior.
   self-rating rejection, draft/campus denial, upsert semantics, exact summary
   math with cohort priors, ranked ordering, pagination, and lost-access
   revocation.
+- Secure note reporting and scoped moderation are implemented through
+  `report_note(...)`, `moderate_note(...)`, and read-only queue/owner-notice
+  functions. `/dashboard/moderation` is visible only to campus or platform
+  moderators; note detail pages expose a private report form and owners see
+  only safe moderator messages in My Vault. The 20-test hosted moderation
+  pgTAP suite covers report deduplication, self-report rejection, scoped
+  actions, state transitions, restricted-note denial, and safe owner notices.
+- Permission-safe full-text search is implemented for note metadata and
+  extractable PDF text. `note_search_documents` is indexed with weighted
+  metadata, `/api/cron/extract-notes` claims private ready files with the
+  service role, extracts PDF text through `pdf-parse`, and records explicit
+  `ready`, `failed`, or `unsupported` states. Library search returns snippets
+  only after the existing note access predicate is applied. Image OCR remains
+  deferred and image notes are searchable by metadata only.
 - A 53-test Vitest suite covering Auth, onboarding, route protection, file
   signatures, upload preparation, signed-upload intent creation, server-side
   completion, stalled-response recovery, retry preservation, and rejected-file
@@ -526,11 +544,9 @@ These are product claims, not implemented or validated system behavior.
 ```yaml
 not_implemented:
   - Manual review/rejection workflow for pending university memberships
-  - Real search or indexing
   - Payments or subscriptions
   - AI model calls
   - Retrieval-augmented generation or source grounding
-  - Moderation tooling
   - Realtime infrastructure
   - WebRTC video/audio
   - Persistent chat

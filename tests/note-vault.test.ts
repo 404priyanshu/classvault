@@ -58,5 +58,8 @@ describe('My Vault helpers', () => {
         processing_status: 'uploading',
       }),
     ).toBe('Upload in progress')
+    expect(
+      formatVaultStatus({ ...baseNote, moderation_status: 'restricted' }),
+    ).toBe('Restricted by moderation')
   })
 })

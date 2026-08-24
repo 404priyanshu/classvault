@@ -17,6 +17,7 @@ import {
   getAccessibleNoteFile,
 } from '@/lib/notes/storage/access'
 import { RatingStars } from '@/components/notes/RatingStars'
+import { ReportNoteForm } from '@/components/notes/ReportNoteForm'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -288,6 +289,10 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
                 ))}
               </div>
             </section>
+          ) : null}
+
+          {viewerId && viewerId !== note.owner_id ? (
+            <ReportNoteForm noteId={note.id} />
           ) : null}
         </aside>
       </div>
