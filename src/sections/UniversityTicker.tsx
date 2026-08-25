@@ -1,29 +1,29 @@
 import pattern from '@/assets/pattern.webp'
 
-const universities = [
-  'IIT Delhi', 'IIT Bombay', 'BITS Pilani', 'Delhi University', 'Anna University',
-  'VIT Vellore', 'NIT Trichy', 'Jadavpur University', 'SRM University', 'Mumbai University',
-  'IIIT Hyderabad', 'Christ University', 'Manipal University', 'Osmania University',
-]
-
 export default function UniversityTicker() {
-  const row = [...universities, ...universities]
   return (
     <section
-      className="border-b-[1.5px] border-[#171512]/20 bg-[#efe8d8] py-7"
+      className="border-b-[1.5px] border-[#171512]/20 bg-[#efe8d8] py-10"
       style={{ backgroundImage: `url(${pattern.src})`, backgroundSize: '768px' }}
     >
-      <p className="mb-4 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#171512]/55">
-        Communities across India&apos;s campuses
-      </p>
-      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-        <div className="animate-marquee flex w-max items-center gap-10 px-4">
-          {row.map((u, i) => (
-            <span key={i} className="font-display whitespace-nowrap text-lg font-bold italic text-[#171512]/50 transition-colors hover:text-[#17453a]">
-              {u} <span className="not-italic text-[#e8890c]">✦</span>
-            </span>
-          ))}
-        </div>
+      <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-6 text-center">
+        <p className="font-display text-2xl font-black leading-tight text-[#171512] md:text-3xl">
+          Opening at{' '}
+          <span className="relative whitespace-nowrap">
+            <span className="absolute inset-x-0 bottom-1 -z-0 h-3 bg-[#f0a202]/55" />
+            <span className="relative">Bennett University</span>
+          </span>{' '}
+          first.
+        </p>
+        <p className="max-w-xl text-sm font-medium leading-relaxed text-[#171512]/70">
+          One campus at a time, on purpose. Ratings only mean something once
+          enough classmates in the same subject have left one, and that happens
+          faster on one campus than on fourteen. Another university opens when
+          its first cohort is ready.
+        </p>
+        <p className="font-hand text-lg text-[#171512]/60">
+          not your campus yet? tell us and you&apos;ll be next in line ✎
+        </p>
       </div>
     </section>
   )

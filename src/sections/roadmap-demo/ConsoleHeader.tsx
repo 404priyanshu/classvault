@@ -56,7 +56,7 @@ export function ConsoleHeader({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">ClassVault AI</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">ClassVault planner</p>
               <span className="rounded-full border border-white/15 bg-white/5 px-2 py-px font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
                 Sample demo
               </span>

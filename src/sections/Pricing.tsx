@@ -22,8 +22,8 @@ const pro = [
   'Unlimited roadmap generations*',
   'Roadmaps powered by university notes',
   'Longer rooms, bigger capacity',
-  'Pro host controls: co-hosts, lock, mute-all',
-  'AI extras & priority features',
+  'Pro host controls: co-hosts and room lock',
+  'New features first',
   'Ad-free, forever',
 ]
 
@@ -107,7 +107,7 @@ export default function Pricing() {
             <div className="flex items-center justify-between">
               <h3 className="font-display text-2xl font-black">Pro</h3>
               <span className="stamp text-[#f0a202]">
-                <Sparkles className="h-3 w-3" /> Most popular
+                <Sparkles className="h-3 w-3" /> At launch
               </span>
             </div>
             <p className="mt-1 text-sm font-medium text-[#f6f1e5]/60">For toppers-in-the-making</p>
@@ -124,11 +124,12 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <a href="#cta" data-burst className="btn-saffron mt-9 block rounded-xl py-3 text-center text-sm font-black">
-              Upgrade to Pro
+            <a href="/auth/sign-up" data-burst className="btn-saffron mt-9 block rounded-xl py-3 text-center text-sm font-black">
+              Start free — Pro opens at launch
             </a>
             <p className="mt-3 text-center text-[10px] font-medium text-[#f6f1e5]/50">
-              *Subject to fair-use limits. Saved roadmaps stay yours, even after downgrade.
+              Pro is not on sale yet and nothing here can charge you. *Subject to
+              fair-use limits. Saved roadmaps stay yours, even after downgrade.
             </p>
           </motion.div>
         </div>
