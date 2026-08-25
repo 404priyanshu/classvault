@@ -96,7 +96,7 @@ export default function RoadmapDemo() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <section id="roadmap" className="relative overflow-hidden border-y-[1.5px] border-[#171512] bg-[#efe8d8] py-24">
+    <section id="roadmap" className="relative overflow-hidden border-y-[1.5px] border-[#171512] bg-[#efe8d8] py-24 md:py-36">
       <div className="bg-ruled pointer-events-none absolute inset-0" />
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.2fr]">
@@ -104,8 +104,8 @@ export default function RoadmapDemo() {
           <motion.div
             initial={{ opacity: 0, x: -32 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.72, ease: EASE_OUT }}
+            viewport={{ once: true, margin: '140px' }}
+            transition={{ duration: 0.45, ease: EASE_OUT }}
           >
             <div className="flex items-center gap-4">
               <span className="stamp text-[#17453a]">Interactive demo</span>
@@ -217,8 +217,8 @@ export default function RoadmapDemo() {
           <motion.div
             initial={{ opacity: 0, x: 32 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.72, delay: 0.12, ease: EASE_OUT }}
+            viewport={{ once: true, margin: '140px' }}
+            transition={{ duration: 0.45, delay: 0.12, ease: EASE_OUT }}
             className="relative min-h-[590px] overflow-hidden rounded-2xl border-[1.5px] border-[#171512] bg-[linear-gradient(160deg,#0d211c_0%,#0b1e19_55%,#091a15_100%)] shadow-[8px_8px_0_rgba(23,21,18,0.18)]"
             role="region"
             aria-labelledby="roadmap-heading"

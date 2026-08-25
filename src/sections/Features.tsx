@@ -17,12 +17,11 @@ import { MarkerHighlight } from '@/components/ui/stationery'
 const cardAnim = (i: number) => ({
   initial: { opacity: 0, y: 32 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-60px' },
-  transition: { delay: i * 0.08, duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+  viewport: { once: true, margin: '140px' },
+  transition: { delay: i * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
 })
 
-const hoverLift =
-  'transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#171512]'
+const hoverLift = 'hover:-translate-y-1 hover:[box-shadow:var(--elev-surface-lift)]'
 
 function Spot({ src, alt, className }: { src: StaticImageData; alt: string; className?: string }) {
   return (
@@ -52,13 +51,15 @@ function InteractiveRating() {
           >
             <Star
               className={`h-6 w-6 transition-colors ${
-                s <= (hover || rating) ? 'fill-[#f0a202] text-[#171512]' : 'text-[#171512]/25'
+                s <= (hover || rating)
+                  ? 'fill-[#f0a202] text-[#f0a202]'
+                  : 'text-[#f6f1e5]/30'
               }`}
             />
           </button>
         ))}
       </div>
-      <p className="font-hand mt-2 h-5 text-lg text-[#17453a]">
+      <p className="font-hand mt-2 h-5 text-lg text-[#8fd6b4]">
         {rating
           ? `you rated it ${rating}/5 — weighted by count & recency, so trusted notes rise ↑`
           : '← try it, rate this note'}
@@ -69,7 +70,7 @@ function InteractiveRating() {
 
 export default function Features() {
   return (
-    <section id="features" className="paper-grain relative mx-auto max-w-7xl px-6 py-24">
+    <section id="features" className="paper-grain relative mx-auto max-w-7xl px-6 py-20 md:py-32">
       {/* floating doodle */}
       <Image
         src={doodleChai}
@@ -90,27 +91,37 @@ export default function Features() {
 
       <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Notes — large card */}
-        <motion.div {...cardAnim(1)} className={`paper-card rounded-2xl p-7 lg:col-span-2 ${hoverLift}`}>
-          <div className="flex items-start justify-between">
+        {/*
+          The differentiator the whole product rests on, so it is the one card
+          that does not look like the others: ink ground, larger heading, and
+          the search mock reversed out. Four identical frames gave equal weight
+          to four unequal claims.
+        */}
+        <motion.div
+          {...cardAnim(1)}
+          className="relative overflow-hidden rounded-2xl border border-[#171512]/50 bg-[#17453a] p-7 text-[#f6f1e5] [box-shadow:var(--elev-surface)] transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:[box-shadow:var(--elev-surface-lift)] md:p-9 lg:col-span-2"
+        >
+          <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-[0.07]" />
+          <div className="relative flex items-start justify-between">
             <Spot src={spotNote} alt="A note stamped with a gold star" className="h-24 w-auto -rotate-3" />
-            <span className="rounded-full border-[1.5px] border-[#171512] bg-[#f0a202]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#8a5a00]">
+            <span className="rounded-full border border-[#f0a202]/50 bg-[#f0a202]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#f0a202]">
               Rated by students
             </span>
           </div>
-          <h3 className="font-display mt-5 text-2xl font-black">Trusted, rated notes — not random PDFs</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[#171512]/70">
+          <h3 className="font-display relative mt-5 text-2xl font-black md:text-3xl">Trusted, rated notes — not random PDFs</h3>
+          <p className="relative mt-2 text-sm leading-relaxed text-[#f6f1e5]/75">
             Every note carries a 1–5 star rating, weighted by how many classmates rated it and
             how recently, so one lone 5-star never outranks a note the class agrees on. Search
             scans titles, tags,{' '}
-            <em className="font-semibold not-italic text-[#17453a]">and the text inside your files</em>.
+            <em className="font-semibold not-italic text-[#f0a202]">and the text inside your files</em>.
           </p>
-          <div className="mt-5 rounded-xl border-[1.5px] border-dashed border-[#171512]/40 bg-[#f6f1e5] p-4">
+          <div className="relative mt-5 rounded-xl border border-dashed border-[#f6f1e5]/30 bg-[#0f3229] p-4">
             <div className="flex items-center gap-2 text-sm">
-              <Search className="h-4 w-4 text-[#171512]/50" />
+              <Search className="h-4 w-4 text-[#f6f1e5]/50" />
               <span className="font-medium">“b-tree indexing”</span>
-              <span className="ml-auto text-xs font-bold text-[#17453a]">14 results · DBMS</span>
+              <span className="ml-auto text-xs font-bold text-[#8fd6b4]">14 results · DBMS</span>
             </div>
-            <div className="mt-3 border-t-[1.5px] border-dashed border-[#171512]/25 pt-3">
+            <div className="mt-3 border-t border-dashed border-[#f6f1e5]/20 pt-3">
               <p className="text-sm font-bold">DBMS Unit 3 — Indexing & Normalization.pdf</p>
               <InteractiveRating />
             </div>

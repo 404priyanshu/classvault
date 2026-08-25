@@ -29,13 +29,13 @@ const pro = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="paper-grain bg-dotgrid relative py-24">
+    <section id="pricing" className="paper-grain bg-dotgrid relative py-20 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
         >
           <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
@@ -45,10 +45,10 @@ export default function Pricing() {
             University notes and rooms are never paywalled — Pro unlocks power, not access.
           </p>
           <motion.div
-            initial={{ opacity: 0, y: 20, rotate: -4 }}
+            initial={{ opacity: 0, y: 16, rotate: -4 }}
             whileInView={{ opacity: 1, y: 0, rotate: -2 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true, margin: '140px' }}
+            transition={{ duration: 0.45, delay: 0.2 }}
             className="mx-auto mt-8 w-full max-w-md"
           >
             <Image
@@ -68,11 +68,11 @@ export default function Pricing() {
             className="animate-float-slow pointer-events-none absolute -right-20 bottom-10 hidden w-20 select-none xl:block" style={{ ['--rot' as string]: '6deg' }} />
           {/* Free */}
           <motion.div
-            initial={{ opacity: 0, y: 32, rotate: -0.5 }}
+            initial={{ opacity: 0, y: 16, rotate: -0.5 }}
             whileInView={{ opacity: 1, y: 0, rotate: -0.5 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8 }}
-            className="paper-card rounded-2xl p-8 transition-all duration-200 hover:rotate-0 hover:shadow-[8px_8px_0_#171512]"
+            viewport={{ once: true, margin: '140px' }}
+            transition={{ duration: 0.45 }}
+            className="paper-card rounded-2xl p-8 hover:rotate-0 hover:-translate-y-1 hover:[box-shadow:var(--elev-surface-lift)]"
           >
             <h3 className="font-display text-2xl font-black">Free</h3>
             <p className="mt-1 text-sm font-medium text-[#171512]/55">For getting your semester together</p>
@@ -96,11 +96,11 @@ export default function Pricing() {
 
           {/* Pro */}
           <motion.div
-            initial={{ opacity: 0, y: 32, rotate: 0.5 }}
+            initial={{ opacity: 0, y: 16, rotate: 0.5 }}
             whileInView={{ opacity: 1, y: 0, rotate: 0.5 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8, delay: 0.12 }}
-            className="relative rounded-2xl border-[1.5px] border-[#171512] bg-[#17453a] p-8 text-[#f6f1e5] shadow-[8px_8px_0_#171512] transition-all duration-200 hover:rotate-0 hover:shadow-[10px_10px_0_#171512]"
+            viewport={{ once: true, margin: '140px' }}
+            transition={{ duration: 0.45, delay: 0.12 }}
+            className="relative rounded-2xl border border-[#171512]/50 bg-[#17453a] p-8 text-[#f6f1e5] [box-shadow:var(--elev-surface)] transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:rotate-0 hover:-translate-y-1 hover:[box-shadow:var(--elev-surface-lift)]"
           >
             <Tape className="right-12 rotate-[5deg]" />
             <div className="flex items-center justify-between">

@@ -30,10 +30,10 @@ export default function HowItWorks() {
     <section className="paper-grain relative overflow-hidden py-16 md:py-20">
       <div className="mx-auto max-w-5xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
         >
           <h2 className="font-display text-3xl font-black tracking-tight md:text-4xl">
@@ -47,10 +47,10 @@ export default function HowItWorks() {
             {steps.map((s, i) => (
               <motion.div
                 key={s.n}
-                initial={{ opacity: 0, y: 32 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ delay: i * 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true, margin: '140px' }}
+                transition={{ delay: i * 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 className={`paper-card-sm rounded-xl p-6 text-center ${s.rot} transition-transform duration-200 hover:rotate-0`}
               >
                 <span className="font-hand text-6xl leading-none text-[#f0a202] [text-shadow:2px_2px_0_#171512]">
@@ -67,7 +67,7 @@ export default function HowItWorks() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.5, duration: 0.7 }}
+          transition={{ delay: 0.5, duration: 0.45 }}
           href="/auth/sign-up"
           className="group mx-auto mt-10 flex w-fit items-center gap-1.5 text-sm font-bold text-[#17453a] underline decoration-dashed decoration-2 underline-offset-4 transition-colors hover:text-[#171512]"
         >

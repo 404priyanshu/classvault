@@ -52,7 +52,7 @@ export default function MarginNotes() {
   const constraintsRef = useRef<HTMLDivElement>(null)
 
   return (
-    <section className="paper-grain relative overflow-hidden py-24">
+    <section className="paper-grain relative overflow-hidden py-14 md:py-20">
       <Image
         src={annotationDoodles}
         alt=""
@@ -73,10 +73,10 @@ export default function MarginNotes() {
       />
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
         >
           <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
@@ -91,10 +91,10 @@ export default function MarginNotes() {
           {notes.map((n, i) => (
             <motion.div
               key={n.tag}
-              initial={{ opacity: 0, y: 32, rotate: 0 }}
+              initial={{ opacity: 0, y: 16, rotate: 0 }}
               whileInView={{ opacity: 1, y: 0, rotate: n.rot }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true, margin: '140px' }}
+              transition={{ delay: i * 0.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ rotate: 0, scale: 1.04, zIndex: 10 }}
               whileDrag={{ scale: 1.08, rotate: 0, zIndex: 20, cursor: 'grabbing' }}
               drag

@@ -43,15 +43,15 @@ export default function FAQ() {
   return (
     <section
       id="faq"
-      className="relative px-6 py-24"
+      className="relative px-6 py-14 md:py-24"
       style={{ backgroundImage: `url(${pattern.src})`, backgroundSize: '768px' }}
     >
       <div className="mx-auto max-w-3xl">
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8 }}
+        viewport={{ once: true, margin: '140px' }}
+        transition={{ duration: 0.45 }}
         className="relative text-center"
       >
         <Image
@@ -68,10 +68,10 @@ export default function FAQ() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8, delay: 0.15 }}
+        viewport={{ once: true, margin: '140px' }}
+        transition={{ duration: 0.45, delay: 0.15 }}
         className="mt-10"
       >
         <Accordion type="single" collapsible className="space-y-4">
@@ -79,7 +79,7 @@ export default function FAQ() {
             <AccordionItem
               key={i}
               value={`item-${i}`}
-              className="paper-card-sm rounded-xl px-5 transition-all data-[state=open]:shadow-[5px_5px_0_#171512]"
+              className="paper-card-sm rounded-xl px-5 transition-[box-shadow] duration-300 data-[state=open]:[box-shadow:var(--elev-surface)]"
             >
               <AccordionTrigger className="py-4 text-left text-sm font-bold hover:no-underline">
                 {f.q}
