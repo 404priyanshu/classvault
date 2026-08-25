@@ -1,7 +1,9 @@
 'use server'
 
+import { after } from 'next/server'
 import { z } from 'zod'
 import { NOTE_FILE_BUCKET, NOTE_FILE_MAX_BYTES } from '@/lib/notes/storage/contracts'
+import { runNoteExtraction } from '@/lib/notes/search/runner'
 import { verifyStoredNoteFile } from '@/lib/notes/storage/supabase-server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -294,6 +296,25 @@ export async function completeNoteUploadAction(input: {
 
     if (error || !completed) {
       throw new Error(safeUploadError(error?.message))
+    }
+
+    if (completed.publication_status === 'published') {
+      // Index after the response is sent so publishing stays fast. The claim
+      // RPC is FIFO and shared with the scheduled worker, so this drains the
+      // oldest pending notes rather than necessarily this one; either way the
+      // backlog shrinks, and the cron sweep still catches anything an
+      // interrupted invocation left behind.
+      after(async () => {
+        try {
+          await runNoteExtraction(3)
+        } catch (extractionError) {
+          console.error(
+            'inline note extraction failed',
+            parsed.data.noteId,
+            extractionError,
+          )
+        }
+      })
     }
 
     return {
