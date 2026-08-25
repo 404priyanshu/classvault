@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 430" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2c3bf" stop-opacity="0.22"/>
+      <stop offset="0.48" stop-color="#8d9293" stop-opacity="0.68"/>
+      <stop offset="1" stop-color="#39454c" stop-opacity="0.82"/>
+    </linearGradient>
+    <filter id="rough" x="-20%" y="-60%" width="140%" height="190%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.018" numOctaves="4" seed="43" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="42" result="shape"/>
+      <feGaussianBlur in="shape" stdDeviation="7" result="soft"/>
+      <feBlend in="shape" in2="soft" mode="screen"/>
+    </filter>
+    <filter id="mist" x="-20%" y="-60%" width="140%" height="190%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+  </defs>
+  <g filter="url(#mist)" opacity="0.34">
+    <ellipse cx="106" cy="320" rx="310" ry="128" fill="#b9bab6"/>
+    <ellipse cx="516" cy="344" rx="376" ry="153" fill="#a4a7a5"/>
+    <ellipse cx="1058" cy="326" rx="432" ry="175" fill="#b4b4b0"/>
+    <ellipse cx="1580" cy="350" rx="386" ry="150" fill="#9ca2a3"/>
+    <ellipse cx="2020" cy="324" rx="314" ry="134" fill="#b0b1ad"/>
+  </g>
+  <g filter="url(#rough)">
+    <ellipse cx="48" cy="366" rx="295" ry="151" fill="url(#front)"/>
+    <ellipse cx="330" cy="348" rx="292" ry="132" fill="url(#front)"/>
+    <ellipse cx="643" cy="377" rx="326" ry="147" fill="url(#front)"/>
+    <ellipse cx="987" cy="344" rx="344" ry="160" fill="url(#front)"/>
+    <ellipse cx="1322" cy="374" rx="336" ry="145" fill="url(#front)"/>
+    <ellipse cx="1651" cy="348" rx="308" ry="142" fill="url(#front)"/>
+    <ellipse cx="1978" cy="369" rx="303" ry="155" fill="url(#front)"/>
+  </g>
+</svg>

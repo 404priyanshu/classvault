@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mic, MicOff, Video, MessageSquare, Timer, Lock, Users } from 'lucide-react'
+import { MessageSquare, Timer, Lock, Users } from 'lucide-react'
 import Image from 'next/image'
 
 import indexTab from '@/assets/stationery/index-tab-saffron.webp'
@@ -17,18 +17,17 @@ const CHAT = [
 ]
 
 const PARTICIPANTS = [
-  { initials: 'AN', color: 'bg-[#f0a202]', muted: false },
-  { initials: 'RA', color: 'bg-[#7fb5a3]', muted: false },
-  { initials: 'SN', color: 'bg-[#e8890c]', muted: true },
-  { initials: 'AR', color: 'bg-[#fffdf6]', muted: false },
-  { initials: 'ME', color: 'bg-[#c98f5a]', muted: true },
-  { initials: 'KA', color: 'bg-[#5a8f7f]', muted: false },
+  { initials: 'AN', color: 'bg-[#f0a202]' },
+  { initials: 'RA', color: 'bg-[#7fb5a3]' },
+  { initials: 'SN', color: 'bg-[#e8890c]' },
+  { initials: 'AR', color: 'bg-[#fffdf6]' },
+  { initials: 'ME', color: 'bg-[#c98f5a]' },
+  { initials: 'KA', color: 'bg-[#5a8f7f]' },
 ]
 
 export default function StudyRoom() {
   const [seconds, setSeconds] = useState(24 * 60 + 47)
   const [chatCount, setChatCount] = useState(3)
-  const [speaker, setSpeaker] = useState(0)
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 25 * 60)), 1000)
@@ -40,15 +39,6 @@ export default function StudyRoom() {
     return () => clearInterval(t)
   }, [])
 
-  // Cycle a fake "active speaker" glow across the unmuted participants.
-  useEffect(() => {
-    const audible = PARTICIPANTS.map((p, i) => (p.muted ? -1 : i)).filter((i) => i >= 0)
-    const t = setInterval(
-      () => setSpeaker((s) => audible[(audible.indexOf(s) + 1) % audible.length]),
-      2600,
-    )
-    return () => clearInterval(t)
-  }, [])
 
   const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
   const ss = String(seconds % 60).padStart(2, '0')
@@ -112,48 +102,28 @@ export default function StudyRoom() {
           </div>
 
           <div className="grid md:grid-cols-[1.3fr_1fr]">
-            {/* video grid + timer */}
+            {/* member roster + timer */}
             <div className="border-b-[1.5px] border-[#f6f1e5]/15 p-6 md:border-b-0 md:border-r-[1.5px]">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#f6f1e5]/45">
+                In the room
+              </p>
               <div className="grid grid-cols-3 gap-3">
-                {PARTICIPANTS.map((p, i) => {
-                  const speaking = i === speaker
-                  return (
-                    <motion.div
-                      key={p.initials}
-                      animate={speaking ? { scale: 1.04 } : { scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 320, damping: 20 }}
-                      className={`relative aspect-video overflow-hidden rounded-xl border-[1.5px] transition-shadow duration-500 ${
-                        speaking
-                          ? 'border-[#f0a202] shadow-[0_0_0_3px_rgba(240,162,2,0.25),0_0_24px_rgba(240,162,2,0.3)]'
-                          : 'border-[#f6f1e5]/15'
-                      }`}
-                    >
-                      <div className={`absolute inset-0 grid place-items-center ${p.color}`}>
-                        <span className="font-display text-lg font-black text-[#171512]">{p.initials}</span>
-                      </div>
-                      {speaking && (
-                        <motion.span
-                          aria-hidden
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="absolute left-1.5 top-1.5 flex items-end gap-[2.5px] rounded-md bg-[#171512]/70 px-1.5 py-1"
-                        >
-                          {[0, 1, 2].map((b) => (
-                            <motion.span
-                              key={b}
-                              className="w-[2.5px] rounded-full bg-[#f0a202]"
-                              animate={{ height: [3, 8, 3] }}
-                              transition={{ duration: 0.7, repeat: Infinity, delay: b * 0.15, ease: 'easeInOut' }}
-                            />
-                          ))}
-                        </motion.span>
-                      )}
-                      <span className="absolute bottom-1.5 right-1.5 grid h-5 w-5 place-items-center rounded-md border border-[#171512]/30 bg-[#171512]/70">
-                        {p.muted ? <MicOff className="h-3 w-3 text-[#e8890c]" /> : <Mic className="h-3 w-3 text-[#7fb5a3]" />}
+                {PARTICIPANTS.map((p) => (
+                  <div
+                    key={p.initials}
+                    className="relative aspect-square overflow-hidden rounded-xl border-[1.5px] border-[#f6f1e5]/15"
+                  >
+                    <div className={`absolute inset-0 grid place-items-center ${p.color}`}>
+                      <span className="font-display text-lg font-black text-[#171512]">
+                        {p.initials}
                       </span>
-                    </motion.div>
-                  )
-                })}
+                    </div>
+                    <span
+                      aria-hidden
+                      className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-[#171512]/40 bg-[#7fb5a3]"
+                    />
+                  </div>
+                ))}
               </div>
 
               {/* synced timer */}
@@ -176,7 +146,7 @@ export default function StudyRoom() {
                   <span className="rounded-md border border-[#f0a202]/50 bg-[#f0a202]/15 px-3 py-1 text-[10px] font-bold text-[#f0a202]">25 min focus</span>
                   <span className="rounded-md border border-[#f6f1e5]/25 px-3 py-1 text-[10px] font-semibold text-[#f6f1e5]/60">5 min break next</span>
                   <span className="ml-auto rounded-md border border-[#f6f1e5]/25 px-3 py-1 text-[10px] font-semibold text-[#f6f1e5]/60">
-                    <Video className="mr-1 inline h-3 w-3" /> HD
+                    same clock for everyone
                   </span>
                 </div>
               </div>
@@ -218,7 +188,7 @@ export default function StudyRoom() {
           transition={{ delay: 0.4 }}
           className="font-hand mt-6 text-center text-xl text-[#f6f1e5]/60"
         >
-          pro hosts get room-wide mute, co-hosts, room lock & bigger capacity →
+          at launch, Pro hosts get co-hosts, room lock &amp; bigger rooms →
         </motion.p>
 
         <motion.p

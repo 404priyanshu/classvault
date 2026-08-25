@@ -100,8 +100,9 @@ export default function Features() {
           </div>
           <h3 className="font-display mt-5 text-2xl font-black">Trusted, rated notes — not random PDFs</h3>
           <p className="mt-2 text-sm leading-relaxed text-[#171512]/70">
-            Every note carries a 1–5 star rating, weighted by rating count and recency so a single
-            5-star never outranks a note trusted by hundreds. Search scans titles, tags,{' '}
+            Every note carries a 1–5 star rating, weighted by how many classmates rated it and
+            how recently, so one lone 5-star never outranks a note the class agrees on. Search
+            scans titles, tags,{' '}
             <em className="font-semibold not-italic text-[#17453a]">and the text inside your files</em>.
           </p>
           <div className="mt-5 rounded-xl border-[1.5px] border-dashed border-[#171512]/40 bg-[#f6f1e5] p-4">
@@ -147,8 +148,9 @@ export default function Features() {
           <Spot src={spotPomodoro} alt="Pomodoro timer with students studying around it" className="h-24 w-auto -rotate-1" />
           <h3 className="font-display mt-5 text-2xl font-black">Live study rooms</h3>
           <p className="mt-2 text-sm leading-relaxed text-[#171512]/70">
-            Video, audio, a synced timer and light chat. Join a public room or your university&apos;s —
-            the room keeps going even if the host leaves.
+            A timer everyone in the room shares, and light chat beside it. Join a public
+            room or your university&apos;s — the room keeps going even if the host leaves,
+            and disappears when everyone does.
           </p>
           <div className="mt-5 flex items-center gap-3 rounded-lg border-[1.5px] border-[#171512] bg-[#17453a] px-4 py-3 text-[#f6f1e5]">
             <span className="h-2.5 w-2.5 animate-pulse-dot rounded-full bg-[#f0a202]" />
@@ -162,13 +164,13 @@ export default function Features() {
         <motion.div {...cardAnim(4)} className={`paper-card rounded-2xl p-7 lg:col-span-2 ${hoverLift}`}>
           <div className="flex items-start justify-between">
             <Spot src={spotRoadmap} alt="An ink-drawn roadmap with checkpoint flags" className="h-24 w-auto rotate-2" />
-            <span className="stamp text-[#17453a]">AI-powered</span>
+            <span className="stamp text-[#17453a]">Source-cited</span>
           </div>
           <h3 className="font-display mt-5 text-2xl font-black">Roadmaps built from real notes</h3>
           <p className="mt-2 max-w-lg text-sm leading-relaxed text-[#171512]/70">
             Pick a topic, choose <b>in-depth</b> or <b>exam revision</b>, and ClassVault builds a
-            phased study plan with checklists, tasks and source-note links — generated from notes
-            you&apos;re actually allowed to use.
+            phased study plan with checklists and tasks. Every phase cites the notes it came
+            from, and it only ever reads notes you already have access to.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {['Phase 1 · Foundations', 'Phase 2 · Core practice', 'Phase 3 · Mock revision'].map((p, i) => (

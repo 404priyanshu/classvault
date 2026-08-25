@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1180" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000000"/>
+      <stop offset="0.2" stop-color="#020608"/>
+      <stop offset="0.51" stop-color="#07131a"/>
+      <stop offset="0.8" stop-color="#152b39"/>
+      <stop offset="1" stop-color="#45515a"/>
+    </linearGradient>
+    <radialGradient id="topGlow" cx="50%" cy="0%" r="70%">
+      <stop offset="0" stop-color="#d8fe91" stop-opacity="0.1"/>
+      <stop offset="0.28" stop-color="#607247" stop-opacity="0.035"/>
+      <stop offset="0.66" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="centralCloud" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#101112" stop-opacity="0.82"/>
+      <stop offset="0.5" stop-color="#2a2b2b" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#6f7070" stop-opacity="0.96"/>
+    </linearGradient>
+    <linearGradient id="sideCloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#11181c" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#8c8d8b" stop-opacity="0.82"/>
+    </linearGradient>
+    <linearGradient id="lowCloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d4143" stop-opacity="0.45"/>
+      <stop offset="0.55" stop-color="#888a88" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#a3a4a1" stop-opacity="0.86"/>
+    </linearGradient>
+    <filter id="cloudEdge" x="-22%" y="-25%" width="144%" height="160%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.012" numOctaves="4" seed="19" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="48" xChannelSelector="R" yChannelSelector="B" result="distorted"/>
+      <feGaussianBlur in="distorted" stdDeviation="9" result="soft"/>
+      <feBlend in="distorted" in2="soft" mode="screen"/>
+    </filter>
+    <filter id="cloudSoft" x="-20%" y="-30%" width="140%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.004 0.01" numOctaves="3" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="64" result="distorted"/>
+      <feGaussianBlur in="distorted" stdDeviation="14"/>
+    </filter>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.62" numOctaves="3" seed="31" stitchTiles="stitch"/>
+      <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .07 0"/>
+    </filter>
+  </defs>
+
+  <rect width="2048" height="1180" fill="url(#sky)"/>
+  <rect width="2048" height="520" fill="url(#topGlow)"/>
+
+  <g filter="url(#cloudSoft)" opacity="0.84">
+    <ellipse cx="1030" cy="716" rx="406" ry="332" fill="url(#centralCloud)"/>
+    <ellipse cx="938" cy="537" rx="205" ry="213" fill="#151617"/>
+    <ellipse cx="1158" cy="598" rx="247" ry="248" fill="#1c1d1e"/>
+    <ellipse cx="797" cy="700" rx="264" ry="225" fill="#333434"/>
+    <ellipse cx="1297" cy="742" rx="279" ry="254" fill="#484949"/>
+  </g>
+
+  <g filter="url(#cloudEdge)" opacity="0.88">
+    <ellipse cx="102" cy="842" rx="312" ry="255" fill="url(#sideCloud)"/>
+    <ellipse cx="355" cy="910" rx="327" ry="218" fill="url(#sideCloud)"/>
+    <ellipse cx="1715" cy="875" rx="361" ry="272" fill="url(#sideCloud)"/>
+    <ellipse cx="1997" cy="884" rx="315" ry="237" fill="url(#sideCloud)"/>
+  </g>
+
+  <g filter="url(#cloudEdge)" opacity="0.93">
+    <ellipse cx="94" cy="1096" rx="345" ry="241" fill="url(#lowCloud)"/>
+    <ellipse cx="410" cy="1059" rx="356" ry="211" fill="url(#lowCloud)"/>
+    <ellipse cx="729" cy="1089" rx="337" ry="204" fill="url(#lowCloud)"/>
+    <ellipse cx="1064" cy="1060" rx="406" ry="244" fill="url(#lowCloud)"/>
+    <ellipse cx="1430" cy="1098" rx="355" ry="207" fill="url(#lowCloud)"/>
+    <ellipse cx="1748" cy="1055" rx="350" ry="226" fill="url(#lowCloud)"/>
+    <ellipse cx="2052" cy="1094" rx="320" ry="232" fill="url(#lowCloud)"/>
+  </g>
+
+  <path d="M0 882c279-88 449-58 679 28 256 95 420 98 685 5 245-86 437-100 684-34v299H0Z" fill="#98a0a3" opacity="0.11" filter="url(#cloudSoft)"/>
+  <rect width="2048" height="1180" filter="url(#grain)" opacity="0.32"/>
+</svg>

@@ -213,7 +213,7 @@ export default function RoadmapDemo() {
             </form>
           </motion.div>
 
-          {/* right: AI console */}
+          {/* right: planner console */}
           <motion.div
             initial={{ opacity: 0, x: 32 }}
             whileInView={{ opacity: 1, x: 0 }}

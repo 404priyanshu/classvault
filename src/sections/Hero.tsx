@@ -86,13 +86,13 @@ function FloatingRoomCard() {
             />
           ))}
         </div>
-        <span className="text-[10px] text-[#f6f1e5]/70">+9 studying now</span>
+        <span className="text-[10px] text-[#f6f1e5]/70">shared focus timer</span>
       </div>
     </div>
   )
 }
 
-/** A tiny dark console chip echoing the roadmap demo's AI language. */
+/** A tiny dark console chip echoing the roadmap demo's workspace. */
 function FloatingOrbChip() {
   return (
     <div
@@ -100,7 +100,7 @@ function FloatingOrbChip() {
       style={{ ['--rot' as string]: '-5deg', animationDelay: '-4.5s' }}
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">AI roadmap</span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">study plan</span>
         <span className="flex items-center gap-1 font-mono text-[9px] font-bold text-[#8fd6b4]">
           <Check className="h-2.5 w-2.5" strokeWidth={3.5} /> ready
         </span>
@@ -194,9 +194,9 @@ export default function Hero() {
 
             <motion.p variants={fadeUp} initial="hidden" animate="show" custom={4}
               className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#171512]/70 md:text-lg lg:mx-0">
-              ClassVault puts trusted, student-rated notes, verified university communities,
-              live study rooms, and AI study roadmaps into one vault — so you stop hunting
-              for material and start topping your class.
+              Notes your classmates actually rated, scoped to your university by college
+              email, plus shared study rooms and plans built from the notes you can already
+              open — so you stop hunting for material and start using it.
             </motion.p>
 
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={5}

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A standalone dark landing-page concept for ClassVault, the study platform for Indian college students."
+    />
+    <title>ClassVault — Study with a system</title>
+    <link rel="stylesheet" href="styles.css?v=20260825c" />
+    <script src="script.js?v=20260825c" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="ClassVault home">
+        <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
+          <path d="M4.5 5.5h7.25c1.18 0 2.25.5 3 1.3.75-.8 1.82-1.3 3-1.3H24v16.25h-6.25c-1.2 0-2.3.52-3 1.38-.7-.86-1.8-1.38-3-1.38H4.5V5.5Z" />
+          <path d="M14.75 6.8v16.15" />
+          <path d="M7.75 9.25h4M7.75 12.25h4M17.75 9.25h3M17.75 12.25h3" />
+        </svg>
+        <span>ClassVault</span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="#notes">Notes</a>
+        <a href="#roadmaps">Roadmaps</a>
+        <a href="#rooms">Study rooms</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="header-signin" href="#prototype" data-prototype-cta aria-label="Sign in">Sign in</a>
+        <a class="button button-small button-primary" href="#prototype" data-prototype-cta>Start free</a>
+      </div>
+
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button>
+        <span class="sr-only">Open navigation</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+
+      <div class="mobile-menu" id="mobile-menu" hidden data-mobile-menu>
+        <a href="#notes">Notes</a>
+        <a href="#roadmaps">Roadmaps</a>
+        <a href="#rooms">Study rooms</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#prototype" data-prototype-cta>Sign in</a>
+        <a class="button button-primary" href="#prototype" data-prototype-cta>Start studying free</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="atmosphere" aria-hidden="true">
+          <span class="atmosphere-cloud atmosphere-cloud-a"></span>
+          <span class="atmosphere-cloud atmosphere-cloud-b"></span>
+          <span class="atmosphere-cloud atmosphere-cloud-c"></span>
+        </div>
+
+        <div class="hero-copy reveal">
+          <h1 id="hero-title">Turn scattered notes into a <em>study system.</em></h1>
+          <p>
+            Trusted notes, source-cited roadmaps, and live study rooms—built for the way college actually works.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#prototype" data-prototype-cta>
+              Start studying free
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" /></svg>
+            </a>
+            <a class="button button-secondary" href="#platform">Explore the platform</a>
+          </div>
+          <small>No credit card. Verify your campus when you’re ready.</small>
+        </div>
+
+        <div class="product-shell reveal" data-delay="1">
+          <div class="product-topbar">
+            <div class="product-brand">
+              <span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+              ClassVault
+            </div>
+            <div class="product-tabs" role="tablist" aria-label="ClassVault product preview">
+              <button class="is-active" type="button" role="tab" aria-selected="true" data-product-tab="notes">Notes</button>
+              <button type="button" role="tab" aria-selected="false" data-product-tab="roadmap">Roadmap</button>
+              <button type="button" role="tab" aria-selected="false" data-product-tab="room">Room</button>
+            </div>
+            <div class="avatar" aria-label="Profile for Aanya">AK</div>
+          </div>
+
+          <div class="product-view is-active" role="tabpanel" data-product-view="notes">
+            <aside class="product-sidebar" aria-label="Preview navigation">
+              <span class="sidebar-label">Workspace</span>
+              <button class="sidebar-item is-active" type="button">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h12v13H4zM7 7h6M7 10h6M7 13h4" /></svg>
+                Note library
+              </button>
+              <button class="sidebar-item" type="button">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15.5h13M5 13l3-4 3 2 4-6" /></svg>
+                Roadmaps
+              </button>
+              <button class="sidebar-item" type="button">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 8.5a5.5 5.5 0 0 1 11 0v5.25M4.5 12h2v3h-2zM13.5 12h2v3h-2z" /></svg>
+                Study rooms
+              </button>
+              <span class="sidebar-label sidebar-label-lower">My space</span>
+              <button class="sidebar-item" type="button">My vault</button>
+              <button class="sidebar-item" type="button">Settings</button>
+              <div class="campus-status">
+                <i></i>
+                <span>Bennett University<br /><small>Campus verified</small></span>
+              </div>
+            </aside>
+
+            <div class="library-panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-label">Note library</span>
+                  <h2>Find the right material.</h2>
+                </div>
+                <button class="button button-primary button-compact" type="button">Upload note</button>
+              </div>
+
+              <div class="search-row">
+                <label class="search-control">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13.2 13.2 3.3 3.3" /></svg>
+                  <span class="sr-only">Search notes</span>
+                  <input type="search" value="operating systems" aria-label="Search notes" data-demo-search />
+                </label>
+                <button class="filter-control" type="button">All subjects <span>⌄</span></button>
+                <button class="filter-control" type="button">Top rated <span>⌄</span></button>
+              </div>
+
+              <div class="notes-table" role="table" aria-label="Example note results">
+                <div class="note-row note-row-header" role="row">
+                  <span>Note</span><span>Type</span><span>Trust</span><span></span>
+                </div>
+                <div class="note-row" role="row" data-note-title="Operating Systems — Unit 4">
+                  <div class="note-main"><i class="file-icon">PDF</i><span><strong>Operating Systems — Unit 4</strong><small>Deadlocks, scheduling, memory</small></span></div>
+                  <span class="scope">Campus</span>
+                  <span class="rating"><b>4.9</b><small>128 ratings</small></span>
+                  <button class="row-action" type="button" aria-label="Open Operating Systems Unit 4"><svg viewBox="0 0 20 20"><path d="M4 10h11M11 6l4 4-4 4" /></svg></button>
+                </div>
+                <div class="note-row" role="row" data-note-title="CPU Scheduling — Exam Pack">
+                  <div class="note-main"><i class="file-icon file-icon-lime">PDF</i><span><strong>CPU Scheduling — Exam Pack</strong><small>Past questions with solved answers</small></span></div>
+                  <span class="scope">Public</span>
+                  <span class="rating"><b>4.8</b><small>96 ratings</small></span>
+                  <button class="row-action" type="button" aria-label="Open CPU Scheduling Exam Pack"><svg viewBox="0 0 20 20"><path d="M4 10h11M11 6l4 4-4 4" /></svg></button>
+                </div>
+                <div class="note-row" role="row" data-note-title="Memory Management Map">
+                  <div class="note-main"><i class="file-icon">IMG</i><span><strong>Memory Management Map</strong><small>Paging and segmentation visual</small></span></div>
+                  <span class="scope">Campus</span>
+                  <span class="rating"><b>4.7</b><small>71 ratings</small></span>
+                  <button class="row-action" type="button" aria-label="Open Memory Management Map"><svg viewBox="0 0 20 20"><path d="M4 10h11M11 6l4 4-4 4" /></svg></button>
+                </div>
+              </div>
+            </div>
+
+            <aside class="insight-panel">
+              <span class="panel-label">Study pulse</span>
+              <div class="progress-ring" style="--progress: 72"><strong>72%</strong><small>weekly goal</small></div>
+              <div class="insight-line"><span>Roadmap tasks</span><strong>18 / 25</strong></div>
+              <div class="insight-line"><span>Focus today</span><strong>1h 42m</strong></div>
+              <div class="live-strip"><i></i><span><strong>OS exam room</strong><small>11 students focusing</small></span><b>18:32</b></div>
+            </aside>
+          </div>
+
+          <div class="product-view" role="tabpanel" data-product-view="roadmap" hidden>
+            <div class="roadmap-preview">
+              <div class="roadmap-preview-head">
+                <div><span class="panel-label">Source-cited roadmap</span><h2>Operating Systems, in 7 days.</h2></div>
+                <span class="status status-active"><i></i> Ready</span>
+              </div>
+              <div class="roadmap-source-row"><span>Built from 6 notes you can access</span><b>Exam revision · 7 days</b></div>
+              <ol class="roadmap-phases">
+                <li class="is-done"><button type="button" aria-label="Mark Foundations incomplete">✓</button><span><small>Day 01</small><strong>Processes, states, and context switching</strong><em>3 source citations</em></span></li>
+                <li class="is-done"><button type="button" aria-label="Mark Scheduling incomplete">✓</button><span><small>Day 02</small><strong>CPU scheduling and solved numericals</strong><em>4 source citations</em></span></li>
+                <li class="is-current"><button type="button" aria-label="Mark Synchronisation complete"></button><span><small>Day 03</small><strong>Synchronisation and deadlocks</strong><em>5 source citations</em></span></li>
+                <li><button type="button" aria-label="Mark Memory complete"></button><span><small>Day 04</small><strong>Paging, segmentation, and memory</strong><em>3 source citations</em></span></li>
+              </ol>
+            </div>
+            <aside class="source-preview">
+              <span class="panel-label">Sources</span>
+              <h3>Every task points back.</h3>
+              <p>Open the exact note that shaped a task. If your access changes, its derived section is withheld automatically.</p>
+              <div class="source-doc"><i>01</i><span><strong>OS Unit 4</strong><small>Campus note · 4.9</small></span></div>
+              <div class="source-doc"><i>02</i><span><strong>Scheduling pack</strong><small>Public note · 4.8</small></span></div>
+              <div class="source-doc"><i>03</i><span><strong>Deadlocks made simple</strong><small>Campus note · 4.7</small></span></div>
+            </aside>
+          </div>
+
+          <div class="product-view" role="tabpanel" data-product-view="room" hidden>
+            <div class="room-preview">
+              <div class="room-stage">
+                <div class="room-topline"><span class="status status-active"><i></i> Live room</span><span>Operating Systems · Campus</span></div>
+                <div class="timer" data-hero-timer>24:59</div>
+                <p>Focus session</p>
+                <div class="timer-track"><i></i></div>
+                <div class="timer-controls">
+                  <button type="button" data-timer-toggle>Pause</button>
+                  <button type="button" data-timer-reset>Reset</button>
+                </div>
+                <div class="member-stack" aria-label="11 students in this room">
+                  <i>AK</i><i>RM</i><i>PS</i><i>VT</i><i>+7</i><span>11 focusing now</span>
+                </div>
+              </div>
+              <aside class="chat-preview">
+                <div class="chat-head"><span>Room chat</span><small>Temporary by design</small></div>
+                <div class="message"><i>RM</i><p><strong>Rohan</strong>Can someone explain banker’s algorithm after this block?</p></div>
+                <div class="message"><i>AK</i><p><strong>Aanya</strong>Yep — I’ll drop the note link at the break.</p></div>
+                <div class="message"><i>PS</i><p><strong>Priya</strong>On question 8 now. The exam pack is really good.</p></div>
+                <form class="chat-form" data-chat-form><label><span class="sr-only">Room message</span><input placeholder="Type a message…" data-chat-input /></label><button type="submit" aria-label="Send message"><svg viewBox="0 0 20 20"><path d="m3 3 14 7-14 7 2.5-7L3 3Zm2.5 7H17" /></svg></button></form>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof-rail" id="platform" aria-labelledby="proof-title">
+        <div class="section-index">00</div>
+        <div class="proof-copy reveal">
+          <p>One place to find it, plan it, and finish it.</p>
+          <h2 id="proof-title">A calmer way through every semester.</h2>
+        </div>
+        <div class="proof-list reveal" data-delay="1">
+          <article><span>01</span><h3>Trusted notes</h3><p>Student-rated material rises through count, quality, and recency—not hype.</p></article>
+          <article><span>02</span><h3>Cited roadmaps</h3><p>Plans stay grounded in notes you can actually open, with every source visible.</p></article>
+          <article><span>03</span><h3>Live rooms</h3><p>Temporary rooms keep the timer, chat, and group focus moving together.</p></article>
+        </div>
+      </section>
+
+      <section class="feature-section feature-notes" id="notes" aria-labelledby="notes-title">
+        <div class="feature-copy reveal">
+          <span class="section-number">01 / Notes</span>
+          <h2 id="notes-title">Study from what your community <em>trusts.</em></h2>
+          <p>Search public and campus notes without losing the signal. See who contributed, how students rated it, and exactly what you’re opening.</p>
+          <a class="text-link" href="#prototype" data-prototype-cta>Browse the note library <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" /></svg></a>
+        </div>
+        <div class="notes-stage reveal" data-delay="1">
+          <div class="stage-toolbar"><span>Computer Science</span><div><button class="is-active" type="button">Top rated</button><button type="button">Newest</button></div></div>
+          <article class="featured-note">
+            <div class="note-cover"><span>OPERATING<br />SYSTEMS</span><small>UNIT 04</small><i></i></div>
+            <div class="featured-note-copy"><span>Campus note</span><h3>Deadlocks, scheduling, and memory—explained for exams.</h3><p>Clean diagrams, solved scheduling questions, and a two-page revision sheet.</p><div class="note-meta"><b>4.9</b><span>128 ratings</span><span>42 pages</span><span>PDF</span></div></div>
+            <button class="save-note" type="button" data-save-note aria-pressed="false"><svg viewBox="0 0 20 20"><path d="M5 3.5h10v13l-5-3-5 3v-13Z" /></svg><span>Save</span></button>
+          </article>
+          <div class="mini-note-row"><span>01</span><strong>Data Structures · Complete revision</strong><b>4.8</b><small>Public</small></div>
+          <div class="mini-note-row"><span>02</span><strong>DBMS normalization · Solved set</strong><b>4.8</b><small>Campus</small></div>
+          <div class="mini-note-row"><span>03</span><strong>Computer Networks · Last-minute map</strong><b>4.7</b><small>Public</small></div>
+        </div>
+      </section>
+
+      <section class="feature-section feature-roadmaps" id="roadmaps" aria-labelledby="roadmaps-title">
+        <div class="roadmap-atmosphere" aria-hidden="true"></div>
+        <div class="roadmap-display reveal">
+          <div class="roadmap-display-head"><span>Roadmap / Operating Systems</span><b>57% complete</b></div>
+          <div class="roadmap-line"></div>
+          <ol>
+            <li class="complete"><i>01</i><div><span>Foundations</span><strong>Processes and system calls</strong></div><em>Done</em></li>
+            <li class="complete"><i>02</i><div><span>Core concepts</span><strong>CPU scheduling</strong></div><em>Done</em></li>
+            <li class="active"><i>03</i><div><span>Current focus</span><strong>Synchronisation and deadlocks</strong></div><em>3 tasks</em></li>
+            <li><i>04</i><div><span>Next</span><strong>Memory management</strong></div><em>4 tasks</em></li>
+            <li><i>05</i><div><span>Finish</span><strong>Exam simulation</strong></div><em>2 tasks</em></li>
+          </ol>
+          <div class="citation">Sources remain permission-aware <span>6 notes linked</span></div>
+        </div>
+        <div class="feature-copy reveal" data-delay="1">
+          <span class="section-number">02 / Roadmaps</span>
+          <h2 id="roadmaps-title">A plan that can show its <em>work.</em></h2>
+          <p>Choose a topic and study mode. ClassVault builds a phased roadmap from notes you’re allowed to access, then keeps every task tied to its source.</p>
+          <ul class="feature-points">
+            <li><i></i>Deterministic source selection</li>
+            <li><i></i>Private, saved progress</li>
+            <li><i></i>Revocable sharing</li>
+          </ul>
+          <a class="text-link" href="#prototype" data-prototype-cta>Build a study roadmap <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" /></svg></a>
+        </div>
+      </section>
+
+      <section class="feature-section feature-rooms" id="rooms" aria-labelledby="rooms-title">
+        <div class="feature-copy reveal">
+          <span class="section-number">03 / Study rooms</span>
+          <h2 id="rooms-title">Focus is easier when the room moves <em>together.</em></h2>
+          <p>Create a public or campus room, start the shared timer, and keep a light temporary chat beside the work. If the host leaves, the room carries on.</p>
+          <div class="room-facts"><div><strong>25:00</strong><span>Shared Pomodoro</span></div><div><strong>Live</strong><span>Room state</span></div><div><strong>Temp</strong><span>Chat history</span></div></div>
+          <a class="text-link" href="#prototype" data-prototype-cta>Find a live room <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" /></svg></a>
+        </div>
+        <div class="live-room-card reveal" data-delay="1">
+          <div class="live-room-top"><span><i></i> Operating Systems sprint</span><small>Bennett University</small></div>
+          <div class="live-room-body">
+            <div class="live-room-timer"><span>Focus session</span><strong data-section-timer>24:59</strong><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><button type="button" data-section-timer-toggle>Pause session</button></div>
+            <div class="live-room-roster"><span>In this room</span><div><i>AK</i><p><strong>Aanya K.</strong><small>Host · focusing</small></p><em></em></div><div><i>RM</i><p><strong>Rohan M.</strong><small>Focusing</small></p><em></em></div><div><i>PS</i><p><strong>Priya S.</strong><small>Focusing</small></p><em></em></div><div><i>VT</i><p><strong>Ved T.</strong><small>On break</small></p><em class="idle"></em></div><button type="button">View all 11 students</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-section" aria-labelledby="trust-title">
+        <div class="section-index">04</div>
+        <div class="trust-copy reveal"><span>Designed around access</span><h2 id="trust-title">The right material.<br />The right people.<br /><em>The right boundaries.</em></h2></div>
+        <div class="trust-rails reveal" data-delay="1">
+          <article><span>01</span><h3>Campus verified</h3><p>Academic email domains map students to the university community they belong to.</p></article>
+          <article><span>02</span><h3>Permission-safe</h3><p>Search, previews, downloads, roadmaps, and sharing recheck access before showing content.</p></article>
+          <article><span>03</span><h3>Pseudonymous by default</h3><p>Contribute with a ClassVault identity, without follower counts or a conventional social graph.</p></article>
+          <article><span>04</span><h3>Recoverable</h3><p>Deleted notes stay in your private Trash for 30 days before permanent removal.</p></article>
+        </div>
+      </section>
+
+      <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <div class="pricing-heading reveal"><span class="section-number">05 / Pricing</span><h2 id="pricing-title">Start with the essentials.<br /><em>Add power when you need it.</em></h2><p>Core notes and study rooms stay free. Pro expands roadmap generation and room controls.</p></div>
+        <div class="pricing-grid">
+          <article class="price-plan reveal">
+            <div><span>Free</span><p>For getting the semester under control.</p></div>
+            <strong>₹0 <small>/ forever</small></strong>
+            <ul><li>Upload, browse, and rate notes</li><li>Public and campus study rooms</li><li>Basic source-cited roadmaps</li><li>30-day note recovery</li></ul>
+            <a class="button button-secondary" href="#prototype" data-prototype-cta>Start free</a>
+          </article>
+          <article class="price-plan price-plan-pro reveal" data-delay="1">
+            <div><span>Pro</span><p>For students who want more momentum.</p><em>Most popular</em></div>
+            <strong>₹149 <small>/ month</small></strong>
+            <ul><li>Everything in Free, expanded</li><li>More roadmap generations</li><li>University-note roadmap sources</li><li>Larger rooms and host controls</li><li>Ad-free experience</li></ul>
+            <a class="button button-primary" href="#prototype" data-prototype-cta>Choose Pro</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-section" aria-labelledby="faq-title">
+        <div class="faq-heading reveal"><span class="section-number">06 / Common questions</span><h2 id="faq-title">Before you open the vault.</h2></div>
+        <div class="faq-list reveal" data-delay="1">
+          <details><summary>How does campus verification work?<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg></summary><p>Choose your university during onboarding. When your confirmed email matches an approved academic domain, ClassVault marks that membership verified; otherwise it stays pending.</p></details>
+          <details><summary>What makes note ratings trustworthy?<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg></summary><p>Ranking uses rating volume and recency alongside average score, so a note with one perfect rating cannot automatically outrank material trusted over time.</p></details>
+          <details><summary>Can someone see a roadmap source they cannot access?<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg></summary><p>No. Each view rechecks source permission. If a source is unavailable, the section derived from it is withheld instead of leaking its contents.</p></details>
+          <details><summary>What happens when a study-room host leaves?<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg></summary><p>The room can transfer host responsibility to an eligible member, so the shared timer and session do not disappear with the person who started it.</p></details>
+        </div>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title">
+        <div class="closing-glow" aria-hidden="true"></div>
+        <p>Ready when your next study session is.</p>
+        <h2 id="closing-title">Give your semester a <em>system.</em></h2>
+        <div><a class="button button-primary" href="#prototype" data-prototype-cta>Create your vault</a><a class="button button-secondary" href="#prototype" data-prototype-cta>Sign in</a></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><path d="M4.5 5.5h7.25c1.18 0 2.25.5 3 1.3.75-.8 1.82-1.3 3-1.3H24v16.25h-6.25c-1.2 0-2.3.52-3 1.38-.7-.86-1.8-1.38-3-1.38H4.5V5.5Z" /><path d="M14.75 6.8v16.15" /></svg><span>ClassVault</span></a>
+      <p>Study material, plans, and rooms—with boundaries built in.</p>
+      <div><a href="#notes">Notes</a><a href="#roadmaps">Roadmaps</a><a href="#rooms">Rooms</a><a href="#pricing">Pricing</a></div>
+      <small>© 2026 ClassVault · Standalone design prototype</small>
+    </footer>
+
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+  </body>
+</html>
