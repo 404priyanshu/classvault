@@ -73,8 +73,8 @@ export default function MarginNotes() {
       />
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true, margin: '140px' }}
           transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
@@ -91,8 +91,8 @@ export default function MarginNotes() {
           {notes.map((n, i) => (
             <motion.div
               key={n.tag}
-              initial={{ opacity: 0, y: 16, rotate: 0 }}
-              whileInView={{ opacity: 1, y: 0, rotate: n.rot }}
+              initial={{ y: 16, rotate: 0 }}
+              whileInView={{ y: 0, rotate: n.rot }}
               viewport={{ once: true, margin: '140px' }}
               transition={{ delay: i * 0.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ rotate: 0, scale: 1.04, zIndex: 10 }}
@@ -131,10 +131,10 @@ export default function MarginNotes() {
         </div>
 
         <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+          initial={{ y: 10 }}
+          whileInView={{ y: 0 }}
+          viewport={{ margin: '140px', once: true }}
+          transition={{ delay: 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="mt-10 text-center"
         >
           <a

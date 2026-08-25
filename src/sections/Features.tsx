@@ -14,11 +14,17 @@ import spotRoadmap from '@/assets/spot-roadmap.webp'
 import doodleChai from '@/assets/doodle-chai.webp'
 import { MarkerHighlight } from '@/components/ui/stationery'
 
+// Transform only, and the stagger is capped: a grid may stagger its own items,
+// but nothing here may leave a card invisible if the animation never runs.
 const cardAnim = (i: number) => ({
-  initial: { opacity: 0, y: 32 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '140px' },
-  transition: { delay: i * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+  initial: { y: 18 },
+  transition: {
+    delay: Math.min(i, 3) * 0.06,
+    duration: 0.45,
+    ease: [0.22, 1, 0.36, 1] as const,
+  },
+  viewport: { margin: '140px', once: true },
+  whileInView: { y: 0 },
 })
 
 const hoverLift = 'hover:-translate-y-1 hover:[box-shadow:var(--elev-surface-lift)]'

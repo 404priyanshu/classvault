@@ -26,6 +26,27 @@ test.describe('marketing landing page', () => {
     expect(body).not.toMatch(/studying now|most popular/i)
   })
 
+  test('renders every section without running client scripts', async ({ request }) => {
+    // Framer serializes `initial` into the server HTML, so animating opacity
+    // from 0 once shipped forty-six elements at opacity:0 and left crawlers,
+    // social preview renderers, and hidden tabs with a blank page below the
+    // hero. Reveals move on transform only; this keeps it that way.
+    const html = await (await request.get('/')).text()
+    const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/g, '')
+
+    expect(withoutScripts).not.toMatch(/opacity:0[^.\d]/)
+
+    for (const section of [
+      'Bennett University',
+      'Four superpowers',
+      'Trusted, rated notes',
+      'Never study',
+      'Free to start',
+    ]) {
+      expect(withoutScripts).toContain(section)
+    }
+  })
+
   test('sends hardened security headers', async ({ request }) => {
     const response = await request.get('/')
     const headers = response.headers()

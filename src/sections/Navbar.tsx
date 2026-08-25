@@ -24,8 +24,8 @@ export default function Navbar() {
 
   return (
     <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={{ y: -80 }}
+      animate={{ y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed left-0 right-0 top-0 z-50 border-b-[1.5px] transition-all duration-300 ${
         scrolled
@@ -80,8 +80,8 @@ export default function Navbar() {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden border-t-[1.5px] border-[#171512] bg-[#f6f1e5] md:hidden"
@@ -92,8 +92,8 @@ export default function Navbar() {
                   key={l.href}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ x: -12 }}
+                  animate={{ x: 0 }}
                   transition={{ delay: 0.06 + i * 0.05, duration: 0.25 }}
                   className="block py-2.5 text-sm font-medium text-[#171512]/80"
                 >

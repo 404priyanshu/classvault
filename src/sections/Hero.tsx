@@ -16,8 +16,8 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const
 function Word({ children, delay, className = '' }: { children: React.ReactNode; delay: number; className?: string }) {
   return (
     <motion.span
-      initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      initial={{ y: 16, filter: 'blur(8px)' }}
+      animate={{ y: 0, filter: 'blur(0px)' }}
       transition={{ delay, duration: 0.55, ease: EASE_OUT }}
       className={`inline-block ${className}`}
     >
@@ -119,12 +119,14 @@ function EarlyAccessBadge() {
   )
 }
 
+// Transform only: the hero must be readable in the server-rendered HTML, so
+// nothing here may gate visibility behind an animation that a crawler, a
+// hidden tab, or a failed script will never run.
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { y: 22 },
   show: (i: number) => ({
-    opacity: 1,
+    transition: { delay: 0.12 * i, duration: 0.45, ease: EASE_OUT },
     y: 0,
-    transition: { delay: 0.15 * i, duration: 0.45, ease: EASE_OUT },
   }),
 }
 
@@ -229,8 +231,8 @@ export default function Hero() {
 
           {/* right: the vault (mouse parallax) */}
           <motion.div
-            initial={{ opacity: 0, y: 16, rotate: 3 }}
-            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            initial={{ y: 16, rotate: 3 }}
+            animate={{ y: 0, rotate: 0 }}
             transition={{ duration: 1, delay: 0.35, ease: EASE_OUT }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >

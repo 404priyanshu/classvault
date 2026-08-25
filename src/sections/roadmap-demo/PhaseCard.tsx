@@ -24,8 +24,8 @@ export function PhaseCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 18, scale: 0.98, filter: 'blur(6px)' }}
-      animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+      initial={{ y: 18, scale: 0.98, filter: 'blur(6px)' }}
+      animate={{ y: 0, scale: 1, filter: 'blur(0px)' }}
       transition={{ duration: 0.48, ease: EASE_OUT }}
       className="relative h-full"
     >

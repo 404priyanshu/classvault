@@ -48,8 +48,8 @@ export default function StudyRoom() {
     <section id="rooms" className="relative border-b-[1.5px] border-[#171512] bg-[#17453a] py-20 md:py-32 text-[#f6f1e5]">
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true, margin: '140px' }}
           transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
@@ -64,8 +64,8 @@ export default function StudyRoom() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true, margin: '140px' }}
           transition={{ duration: 0.45, delay: 0.1 }}
           className="relative mx-auto mt-16 max-w-4xl rounded-2xl border border-[#171512]/50 bg-[#0f3229] [box-shadow:var(--elev-surface-lift)]"
@@ -160,8 +160,8 @@ export default function StudyRoom() {
                 {CHAT.slice(0, chatCount).map((c, i) => (
                   <motion.div
                     key={`${i}-${c.name}`}
-                    initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    initial={{ y: 10, filter: 'blur(4px)' }}
+                    animate={{ y: 0, filter: 'blur(0px)' }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <p className={`text-[11px] font-black ${c.color}`}>{c.name}</p>
@@ -181,20 +181,20 @@ export default function StudyRoom() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+          initial={{ y: 10 }}
+          whileInView={{ y: 0 }}
+          viewport={{ margin: '140px', once: true }}
+          transition={{ delay: 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="font-hand mt-6 text-center text-xl text-[#f6f1e5]/60"
         >
           at launch, Pro hosts get co-hosts, room lock &amp; bigger rooms →
         </motion.p>
 
         <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.55 }}
+          initial={{ y: 10 }}
+          whileInView={{ y: 0 }}
+          viewport={{ margin: '140px', once: true }}
+          transition={{ delay: 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="font-hand mt-2 text-center text-xl"
         >
           <a

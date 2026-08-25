@@ -66,8 +66,8 @@ export function ConsoleHeader({
                 {phase === 'generating' ? (
                   <motion.p
                     key="gen"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ y: 6 }}
+                    animate={{ y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.25 }}
                     className="text-sm font-semibold text-[#f6f1e5]"
@@ -79,8 +79,8 @@ export function ConsoleHeader({
                 ) : (
                   <motion.p
                     key="ready"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ y: 6 }}
+                    animate={{ y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.25 }}
                     className="flex items-center gap-1.5 text-sm font-semibold text-[#f6f1e5]"
