@@ -7,6 +7,8 @@ import doodleGlasses from '@/assets/doodle-glasses.webp'
 import doodleHighlighter from '@/assets/doodle-highlighter.webp'
 import stampBlankGreen from '@/assets/stationery/stamp-blank-green.webp'
 
+const CONTACT_EMAIL = 'hello@classvault.in'
+
 export default function Footer() {
   return (
     <>
@@ -45,8 +47,9 @@ export default function Footer() {
             <span className="font-display italic">It wants a comeback arc.</span>
           </h2>
           <p className="mx-auto mt-5 max-w-xl font-medium text-[#171512]/75">
-            Join thousands of Indian college students sharing notes, studying live,
-            and following roadmaps that actually work. Free forever to start.
+            Share rated notes, study live with classmates, and follow roadmaps
+            built from your own material. Opening at Bennett University first.
+            Free to start.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a href="/auth/sign-up" data-burst className="btn-ink group flex items-center gap-2 rounded-full px-9 py-4 font-bold">
@@ -85,16 +88,38 @@ export default function Footer() {
           </div>
 
           {[
-            { title: 'Product', links: ['Notes & ratings', 'University communities', 'Study rooms', 'Study roadmaps'] },
-            { title: 'Plans', links: ['Free tier', 'Pro tier', 'Fair-use policy', 'Billing help'] },
-            { title: 'Trust', links: ['Privacy first', 'Moderation', 'Content reports', 'University requests'] },
+            {
+              title: 'Product',
+              links: [
+                { href: '#features', label: 'Notes & ratings' },
+                { href: '#features', label: 'University communities' },
+                { href: '#rooms', label: 'Study rooms' },
+                { href: '#roadmap', label: 'Study roadmaps' },
+              ],
+            },
+            {
+              title: 'Plans',
+              links: [
+                { href: '#pricing', label: 'Free tier' },
+                { href: '#pricing', label: 'Pro tier' },
+                { href: '#faq', label: 'Common questions' },
+              ],
+            },
+            {
+              title: 'Trust',
+              links: [
+                { href: '/legal/terms', label: 'Terms of use' },
+                { href: '/legal/takedown', label: 'Report content' },
+                { href: `mailto:${CONTACT_EMAIL}`, label: 'Contact us' },
+              ],
+            },
           ].map((col) => (
             <div key={col.title}>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f0a202]">{col.title}</p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a href="#top" className="text-sm font-medium text-[#f6f1e5]/55 transition-colors hover:text-[#f6f1e5]">{l}</a>
+                  <li key={l.label}>
+                    <a href={l.href} className="text-sm font-medium text-[#f6f1e5]/55 transition-colors hover:text-[#f6f1e5]">{l.label}</a>
                   </li>
                 ))}
               </ul>

@@ -383,3 +383,73 @@ body {
 .animate-wobble {
   animation: wobble 5s ease-in-out infinite;
 }
+
+/* Long-form legal and policy pages. Optimized for reading, not for the
+   landing page's density: generous line height, restrained hierarchy, and
+   AA-contrast body text on paper. */
+.legal-prose {
+  color: rgba(23, 21, 18, 0.82);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.legal-prose .lead {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.7;
+  color: rgba(23, 21, 18, 0.88);
+}
+
+.legal-prose h2 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #171512;
+  margin-top: 2.75rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 2rem;
+}
+
+.legal-prose p {
+  margin-bottom: 1.05rem;
+}
+
+.legal-prose ul,
+.legal-prose ol {
+  margin: 0 0 1.05rem;
+  padding-left: 1.35rem;
+}
+
+.legal-prose ul {
+  list-style: disc;
+}
+
+.legal-prose ol {
+  list-style: decimal;
+}
+
+.legal-prose li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.legal-prose strong {
+  font-weight: 700;
+  color: #171512;
+}
+
+.legal-prose a {
+  color: #17453a;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-prose a:hover {
+  color: #f0a202;
+}
+
+.legal-prose code {
+  font-size: 0.875em;
+}
