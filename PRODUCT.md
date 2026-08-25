@@ -22,7 +22,7 @@ Trusted, university-scoped notes. Ratings from real classmates and verified coll
 
 ## Conversion & proof
 
-- Primary CTA: Get launch updates (waitlist signup via /coming-soon). Secondary: contact the team (hello@classvault.in) for anyone not ready to commit an email.
+- Primary CTA: Get launch updates (waitlist signup via /coming-soon). Secondary: contact the team (hello@priyanshu.co) for anyone not ready to commit an email.
 - The line a visitor remembers after 10 seconds: "Notes from my university that classmates actually rated — I can trust these."
 - Belief ladder: (1) These notes are actually good — rated by classmates, scoped to verified universities. (2) My university is covered, or will be. (3) Joining the waitlist costs nothing and gets me in first.
 - Proof on hand: none yet — pre-launch. Do not fabricate stats, ratings counts, user numbers, or university partnerships. Lean on product clarity, concrete mechanics (how verification and rating work), and design credibility until real proof exists. When real numbers arrive, add them to .impeccable/assets/proof/ and update this section.

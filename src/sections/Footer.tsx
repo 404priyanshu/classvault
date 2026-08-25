@@ -7,7 +7,7 @@ import doodleGlasses from '@/assets/doodle-glasses.webp'
 import doodleHighlighter from '@/assets/doodle-highlighter.webp'
 import stampBlankGreen from '@/assets/stationery/stamp-blank-green.webp'
 
-const CONTACT_EMAIL = 'hello@classvault.in'
+const CONTACT_EMAIL = 'hello@priyanshu.co'
 
 export default function Footer() {
   return (
