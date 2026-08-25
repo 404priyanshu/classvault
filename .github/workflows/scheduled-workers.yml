@@ -1,0 +1,81 @@
+# Drives the three scheduled worker routes.
+#
+# Vercel Cron is not used: the Hobby plan allows two cron jobs running once per
+# day, and daily PDF extraction would leave a note unsearchable until the day
+# after it was uploaded. GitHub Actions gives the needed frequency at no cost.
+# If the project later moves to a Vercel paid plan, replace this workflow with a
+# `crons` block in vercel.json — do not run both.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SITE_URL     https://your-domain — no trailing slash
+#   CRON_SECRET  the same value set in the Vercel project environment
+
+name: Scheduled workers
+
+on:
+  schedule:
+    # Index newly published PDFs so they become searchable.
+    - cron: '*/15 * * * *'
+    # Remove expired study rooms and their chat.
+    - cron: '5,35 * * * *'
+    # Permanently remove notes past the 30-day Trash window.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      worker:
+        description: 'Worker to run'
+        required: true
+        type: choice
+        options:
+          - extract-notes
+          - purge-study-rooms
+          - purge-notes
+
+concurrency:
+  group: scheduled-workers-${{ github.event.schedule || inputs.worker }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Select worker
+        id: select
+        run: |
+          case "${{ github.event.schedule || format('manual:{0}', inputs.worker) }}" in
+            '*/15 * * * *')   route=extract-notes ;;
+            '5,35 * * * *')   route=purge-study-rooms ;;
+            '0 2 * * *')      route=purge-notes ;;
+            manual:*)         route="${{ inputs.worker }}" ;;
+            *) echo "Unrecognised trigger" >&2; exit 1 ;;
+          esac
+          echo "route=$route" >> "$GITHUB_OUTPUT"
+
+      - name: Call worker
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "SITE_URL and CRON_SECRET repository secrets are required." >&2
+            exit 1
+          fi
+
+          route="${{ steps.select.outputs.route }}"
+          echo "Calling /api/cron/$route"
+
+          status=$(curl -sS -o response.json -w '%{http_code}' \
+            --max-time 120 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE_URL/api/cron/$route")
+
+          echo "HTTP $status"
+          cat response.json
+          echo
+
+          # A worker that silently 401s looks identical to one with nothing to
+          # do. Fail the run so a rotated secret surfaces here rather than as
+          # notes that never become searchable.
+          if [ "$status" != "200" ]; then
+            exit 1
+          fi

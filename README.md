@@ -275,6 +275,40 @@ Video/audio, durable chat, room moderation controls, and real Pro billing remain
 deferred. The canonical access and lifecycle contract is
 [`docs/study-room-product-data-permissions-spec.md`](docs/study-room-product-data-permissions-spec.md).
 
+## Launch scope
+
+ClassVault opens at one campus. Migration
+`20260829000000_scope_launch_to_bennett.sql` sets `is_active = false` on every
+university except Bennett, so onboarding offers a single choice. Ratings are the
+product's trust signal and a rating means nothing until many classmates in the
+same subject have supplied one; spreading the first cohort across thirteen
+universities guarantees none of them reaches that density.
+
+Opening another campus is a data change, not a code change: set `is_active` back
+to `true` for that row. The directory stays seeded and the
+`universities_select_active` policy already filters on the flag.
+
+## Legal pages
+
+`/legal/terms` and `/legal/takedown` are served from `src/app/legal`. They
+describe the behaviour the code actually implements — the 30-day Trash window,
+fixed upload scope, immutable files, pseudonymous reporting, ephemeral rooms —
+so they stay accurate as long as those contracts hold.
+
+Operator, grievance-officer, and jurisdiction details live in
+`src/app/legal/contact.ts` and are still placeholders. While any remain unset, a
+visible "this page is not final" banner renders on both pages. Fill them in and
+get the text reviewed before opening uploads beyond the founding team. There is
+no privacy policy yet, and the application collects email addresses, phone
+numbers, display names, and profile photos.
+
+## Deployment
+
+See [`docs/deployment.md`](docs/deployment.md) for the production checklist:
+required environment variables, the Turnstile and Supabase URL configuration
+that must be done before auth works on a real hostname, and the GitHub Actions
+workflow that drives the three scheduled worker routes.
+
 ## Checks
 
 ```bash
