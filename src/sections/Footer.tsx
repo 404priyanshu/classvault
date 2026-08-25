@@ -109,6 +109,7 @@ export default function Footer() {
               title: 'Trust',
               links: [
                 { href: '/legal/terms', label: 'Terms of use' },
+                { href: '/legal/privacy', label: 'Privacy policy' },
                 { href: '/legal/takedown', label: 'Report content' },
                 { href: `mailto:${CONTACT_EMAIL}`, label: 'Contact us' },
               ],

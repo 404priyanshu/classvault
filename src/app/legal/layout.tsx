@@ -38,6 +38,9 @@ export default function LegalLayout({
             <Link className="underline hover:text-[#171512]" href="/legal/terms">
               Terms
             </Link>
+            <Link className="underline hover:text-[#171512]" href="/legal/privacy">
+              Privacy
+            </Link>
             <Link
               className="underline hover:text-[#171512]"
               href="/legal/takedown"
