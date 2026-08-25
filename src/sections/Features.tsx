@@ -80,8 +80,7 @@ export default function Features() {
       />
 
       <motion.div {...cardAnim(0)} className="mx-auto max-w-2xl text-center">
-        <span className="stamp text-[#8a5a00]">Everything in one vault</span>
-        <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
+        <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
           Four superpowers for <MarkerHighlight>every semester</MarkerHighlight>
         </h2>
         <p className="mt-4 text-[#171512]/65">

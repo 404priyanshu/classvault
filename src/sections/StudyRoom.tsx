@@ -54,8 +54,7 @@ export default function StudyRoom() {
           transition={{ duration: 0.8 }}
           className="mx-auto max-w-2xl text-center"
         >
-          <span className="stamp text-[#f0a202]">Live study rooms</span>
-          <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
+          <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
             Never study <span className="font-display italic text-[#f0a202]">alone</span> again
           </h2>
           <p className="mt-4 text-[#f6f1e5]/70">

@@ -79,8 +79,7 @@ export default function MarginNotes() {
           transition={{ duration: 0.8 }}
           className="mx-auto max-w-2xl text-center"
         >
-          <span className="stamp text-[#8a5a00]">Margin notes</span>
-          <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
+          <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
             Sound <MarkerHighlight>familiar?</MarkerHighlight>
           </h2>
           <p className="font-hand mt-3 text-xl text-[#171512]/55">

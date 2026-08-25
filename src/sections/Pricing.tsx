@@ -38,8 +38,7 @@ export default function Pricing() {
           transition={{ duration: 0.8 }}
           className="mx-auto max-w-2xl text-center"
         >
-          <span className="stamp text-[#8a5a00]">Pricing</span>
-          <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-5xl">
+          <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
             Free to start. <MarkerHighlight>Pro to fly.</MarkerHighlight>
           </h2>
           <p className="mt-4 text-[#171512]/65">

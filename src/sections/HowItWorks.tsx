@@ -36,8 +36,7 @@ export default function HowItWorks() {
           transition={{ duration: 0.8 }}
           className="mx-auto max-w-2xl text-center"
         >
-          <span className="stamp text-[#8a5a00]">How it works</span>
-          <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-4xl">
+          <h2 className="font-display text-3xl font-black tracking-tight md:text-4xl">
             Up and running in <MarkerHighlight>two minutes</MarkerHighlight>
           </h2>
         </motion.div>

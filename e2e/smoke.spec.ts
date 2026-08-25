@@ -6,11 +6,24 @@ test.describe('marketing landing page', () => {
 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(
-      page.getByText(/ClassVault puts trusted, student-rated notes/i),
+      page.getByText(/Notes your classmates actually rated/i),
     ).toBeVisible()
     await expect(
       page.locator('a[href="/auth/sign-up"]').first(),
     ).toBeVisible()
+  })
+
+  test('does not advertise capabilities the product lacks', async ({ page }) => {
+    await page.goto('/')
+    const body = await page.locator('body').innerText()
+
+    // Roadmap generation is deterministic and makes no model call, study rooms
+    // carry no WebRTC media, and there is no billing to upgrade through. Each
+    // of these shipped as a claim once; a test is cheaper than noticing again.
+    expect(body).not.toMatch(/\bAI\b/i)
+    expect(body).not.toMatch(/video|audio/i)
+    expect(body).not.toMatch(/upgrade to pro/i)
+    expect(body).not.toMatch(/studying now|most popular/i)
   })
 
   test('sends hardened security headers', async ({ request }) => {
