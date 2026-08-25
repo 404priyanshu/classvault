@@ -32,8 +32,8 @@ export function GenerateButton({
           {phase === 'generating' ? (
             <motion.span
               key="building"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
               className="flex items-center gap-2"
@@ -43,8 +43,8 @@ export function GenerateButton({
           ) : phase === 'done' ? (
             <motion.span
               key="regen"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
               className="flex items-center gap-2"
@@ -54,8 +54,8 @@ export function GenerateButton({
           ) : (
             <motion.span
               key="generate"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
               className="flex items-center gap-2"

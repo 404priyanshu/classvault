@@ -102,8 +102,8 @@ export default function RoadmapDemo() {
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.2fr]">
           {/* left: controls */}
           <motion.div
-            initial={{ opacity: 0, x: -32 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ x: -32 }}
+            whileInView={{ x: 0 }}
             viewport={{ once: true, margin: '140px' }}
             transition={{ duration: 0.45, ease: EASE_OUT }}
           >
@@ -215,8 +215,8 @@ export default function RoadmapDemo() {
 
           {/* right: planner console */}
           <motion.div
-            initial={{ opacity: 0, x: 32 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ x: 32 }}
+            whileInView={{ x: 0 }}
             viewport={{ once: true, margin: '140px' }}
             transition={{ duration: 0.45, delay: 0.12, ease: EASE_OUT }}
             className="relative min-h-[590px] overflow-hidden rounded-2xl border-[1.5px] border-[#171512] bg-[linear-gradient(160deg,#0d211c_0%,#0b1e19_55%,#091a15_100%)] shadow-[8px_8px_0_rgba(23,21,18,0.18)]"
@@ -319,8 +319,8 @@ export default function RoadmapDemo() {
                   <AnimatePresence>
                     {phase === 'done' && taskProgress === 100 && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.94 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ y: 10, scale: 0.94 }}
+                        animate={{ y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.94 }}
                         transition={{ duration: 0.36, ease: EASE_OUT }}
                         className="mt-6 flex justify-center"
@@ -340,10 +340,10 @@ export default function RoadmapDemo() {
         </div>
 
         <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.35 }}
+          initial={{ y: 10 }}
+          whileInView={{ y: 0 }}
+          viewport={{ margin: '140px', once: true }}
+          transition={{ delay: 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="font-hand mt-10 text-center text-xl text-[#171512]/60"
         >
           want roadmaps built from your real notes?{' '}

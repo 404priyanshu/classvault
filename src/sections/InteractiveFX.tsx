@@ -24,8 +24,8 @@ function BurstLayer({ bursts }: { bursts: Burst[] }) {
         {bursts.map((b) => (
           <motion.span
             key={b.id}
-            initial={{ x: b.x - 12, y: b.y - 12, scale: 0.3, opacity: 1, rotate: 0 }}
-            animate={{ x: b.x + b.dx, y: b.y + b.dy, scale: 1.1, opacity: 0, rotate: b.rot }}
+            initial={{ x: b.x - 12, y: b.y - 12, scale: 0.3, rotate: 0 }}
+            animate={{ x: b.x + b.dx, y: b.y + b.dy, scale: 1.1, rotate: b.rot }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45, ease: [0.15, 0.8, 0.3, 1] }}
             className="absolute text-xl"

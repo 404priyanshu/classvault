@@ -15,7 +15,7 @@ export function LogStream({ logs, done }: { logs: string[]; done: boolean }) {
             <motion.div
               key={log}
               layout
-              initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+              initial={{ y: 10, filter: 'blur(4px)' }}
               animate={{ opacity: settled ? (isLatest ? 0.85 : 0.4) : 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: EASE_OUT }}

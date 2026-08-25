@@ -48,8 +48,8 @@ export default function FAQ() {
     >
       <div className="mx-auto max-w-3xl">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        whileInView={{ y: 0 }}
         viewport={{ once: true, margin: '140px' }}
         transition={{ duration: 0.45 }}
         className="relative text-center"
@@ -68,8 +68,8 @@ export default function FAQ() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        whileInView={{ y: 0 }}
         viewport={{ once: true, margin: '140px' }}
         transition={{ duration: 0.45, delay: 0.15 }}
         className="mt-10"

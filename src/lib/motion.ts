@@ -1,16 +1,21 @@
 /**
  * Shared scroll-reveal timing.
  *
- * Sections previously each carried their own numbers, mostly a 0.8-0.9s fade
- * with `margin: '-80px'`. That margin shrinks the observer root, so a section
- * only began animating once it was already 80px inside the viewport, and then
- * took most of a second to finish. At ordinary scroll speed the reader was
- * always looking at half-faded content, which is what made the page feel
- * unsettled rather than deliberate.
+ * Two rules, both learned the hard way.
  *
- * The rule now: a reveal starts before its section is on screen and is over by
- * the time the reader gets there. Positive viewport margin expands the root, so
- * the trigger fires early.
+ * A reveal starts before its section is on screen and is over by the time the
+ * reader gets there. Sections used to run 0.8-0.9s behind `margin: '-80px'`,
+ * which shrinks the observer root, so a section only began animating once it
+ * was already eighty pixels inside the viewport. At ordinary scroll speed the
+ * reader was permanently looking at half-faded content.
+ *
+ * A reveal never decides whether content is visible. Framer serializes the
+ * `initial` state into the server-rendered HTML, so animating opacity from 0
+ * shipped forty-six elements at `opacity:0` in the markup. Anything that does
+ * not run the animation -- a crawler, a social preview renderer, a hidden tab,
+ * a reader whose JavaScript failed -- got a blank page below the hero. These
+ * move on transform only. Content is legible before a single frame runs; the
+ * motion is the enhancement, not the gate.
  */
 
 export const EASE_OUT = [0.22, 1, 0.36, 1] as const
@@ -20,18 +25,18 @@ export const REVEAL_VIEWPORT = { margin: '140px', once: true } as const
 
 /** Section headers and other large blocks. */
 export const revealUp = {
-  initial: { opacity: 0, y: 14 },
+  initial: { y: 14 },
   transition: { duration: 0.45, ease: EASE_OUT },
   viewport: REVEAL_VIEWPORT,
-  whileInView: { opacity: 1, y: 0 },
+  whileInView: { y: 0 },
 } as const
 
 /** A single panel or figure that should feel like one object arriving. */
 export const revealPanel = {
-  initial: { opacity: 0, y: 20 },
+  initial: { y: 20 },
   transition: { duration: 0.5, ease: EASE_OUT },
   viewport: REVEAL_VIEWPORT,
-  whileInView: { opacity: 1, y: 0 },
+  whileInView: { y: 0 },
 } as const
 
 /**
@@ -41,13 +46,13 @@ export const revealPanel = {
  */
 export function revealItem(index: number) {
   return {
-    initial: { opacity: 0, y: 16 },
+    initial: { y: 16 },
     transition: {
       delay: Math.min(index, 3) * 0.06,
       duration: 0.45,
       ease: EASE_OUT,
     },
     viewport: REVEAL_VIEWPORT,
-    whileInView: { opacity: 1, y: 0 },
+    whileInView: { y: 0 },
   } as const
 }
