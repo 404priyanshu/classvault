@@ -61,8 +61,7 @@ export default function FAQ() {
           style={{ ['--rot' as string]: '-2deg' }}
           draggable={false}
         />
-        <span className="stamp text-[#17453a]">FAQ</span>
-        <h2 className="font-display mt-5 text-3xl font-black tracking-tight md:text-4xl">
+        <h2 className="font-display text-3xl font-black tracking-tight md:text-4xl">
           Questions? <MarkerHighlight>Answered.</MarkerHighlight>
         </h2>
         <p className="font-hand mt-2 text-xl text-[#171512]/55">the archivist has seen it all ↓</p>

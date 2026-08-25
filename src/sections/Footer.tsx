@@ -41,8 +41,7 @@ export default function Footer() {
           transition={{ duration: 0.9 }}
           className="relative mx-auto max-w-3xl px-6 text-center"
         >
-          <span className="stamp bg-[#f6f1e5] text-[#171512]">Last call</span>
-          <h2 className="font-display mt-6 text-4xl font-black leading-tight tracking-tight md:text-6xl">
+          <h2 className="font-display text-4xl font-black leading-tight tracking-tight md:text-6xl">
             Your semester called.<br />
             <span className="font-display italic">It wants a comeback arc.</span>
           </h2>
