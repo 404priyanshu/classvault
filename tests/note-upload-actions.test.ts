@@ -1,5 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('server-only', () => ({}))
+
+// Publication schedules extraction through after(); run the callback eagerly so
+// the suite exercises it instead of dropping it.
+vi.mock('next/server', () => ({
+  after: (callback: () => unknown) => {
+    void callback()
+  },
+}))
+
+vi.mock('@/lib/notes/search/runner', () => ({
+  runNoteExtraction: vi.fn().mockResolvedValue({
+    claimed: 0,
+    completed: 0,
+    failed: 0,
+    unsupported: 0,
+  }),
+}))
+
 const { createClientMock, verifyStoredNoteFileMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
   verifyStoredNoteFileMock: vi.fn(),
