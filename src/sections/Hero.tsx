@@ -15,14 +15,9 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const
 /** A headline word that materializes with a blur-to-sharp lift. */
 function Word({ children, delay, className = '' }: { children: React.ReactNode; delay: number; className?: string }) {
   return (
-    <motion.span
-      initial={{ y: 16, filter: 'blur(8px)' }}
-      animate={{ y: 0, filter: 'blur(0px)' }}
-      transition={{ delay, duration: 0.55, ease: EASE_OUT }}
-      className={`inline-block ${className}`}
-    >
+    <span className={`hero-word ${className}`} style={{ ['--d' as string]: `${delay}s` }}>
       {children}
-    </motion.span>
+    </span>
   )
 }
 
@@ -119,17 +114,6 @@ function EarlyAccessBadge() {
   )
 }
 
-// Transform only: the hero must be readable in the server-rendered HTML, so
-// nothing here may gate visibility behind an animation that a crawler, a
-// hidden tab, or a failed script will never run.
-const fadeUp = {
-  hidden: { y: 22 },
-  show: (i: number) => ({
-    transition: { delay: 0.12 * i, duration: 0.45, ease: EASE_OUT },
-    y: 0,
-  }),
-}
-
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const mx = useMotionValue(0)
@@ -176,12 +160,12 @@ export default function Hero() {
             <div className="font-hand pointer-events-none absolute -top-10 left-2 hidden rotate-[-8deg] text-2xl text-[#17453a] xl:block">
               100% free to start ↓
             </div>
-            <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+            <div className="hero-rise" style={{ ['--d' as string]: '0s' }}>
               <span className="stamp text-[#17453a]">
                 <BadgeCheck className="h-3.5 w-3.5" />
                 Made for Indian college students
               </span>
-            </motion.div>
+            </div>
 
             <h1 className="font-display mt-6 text-5xl font-black leading-[1.02] tracking-tight md:text-6xl xl:text-7xl">
               <Word delay={0.15}>Your</Word> <Word delay={0.21}>degree,</Word>{' '}
@@ -194,15 +178,19 @@ export default function Hero() {
               <Word delay={0.54}>smarter.</Word>
             </h1>
 
-            <motion.p variants={fadeUp} initial="hidden" animate="show" custom={4}
-              className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#171512]/70 md:text-lg lg:mx-0">
+            <p
+              className="hero-rise mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#171512]/70 md:text-lg lg:mx-0"
+              style={{ ['--d' as string]: '0.48s' }}
+            >
               Notes your classmates actually rated, scoped to your university by college
               email, plus shared study rooms and plans built from the notes you can already
               open — so you stop hunting for material and start using it.
-            </motion.p>
+            </p>
 
-            <motion.div variants={fadeUp} initial="hidden" animate="show" custom={5}
-              className="mt-9 flex flex-col items-center gap-4 sm:flex-row lg:justify-start sm:justify-center">
+            <div
+              className="hero-rise mt-9 flex flex-col items-center gap-4 sm:flex-row lg:justify-start sm:justify-center"
+              style={{ ['--d' as string]: '0.6s' }}
+            >
               <a href="/auth/sign-up" data-burst className="btn-ink group relative flex items-center gap-2 overflow-hidden rounded-full px-8 py-3.5 font-bold">
                 <span
                   aria-hidden
@@ -215,10 +203,12 @@ export default function Hero() {
                 <Play className="h-4 w-4 transition-transform duration-300 group-hover:scale-125" />
                 Try the roadmap demo
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6}
-              className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <div
+              className="hero-rise mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
+              style={{ ['--d' as string]: '0.72s' }}
+            >
               <EarlyAccessBadge />
               <span className="flex items-center gap-1.5 text-xs font-semibold text-[#171512]/60">
                 <Star className="h-3.5 w-3.5 fill-[#f0a202] text-[#171512]" /> Community-rated notes
@@ -226,7 +216,7 @@ export default function Hero() {
               <span className="flex items-center gap-1.5 text-xs font-semibold text-[#171512]/60">
                 <Users className="h-3.5 w-3.5 text-[#17453a]" /> Verified by college email
               </span>
-            </motion.div>
+            </div>
           </div>
 
           {/* right: the vault (mouse parallax) */}
