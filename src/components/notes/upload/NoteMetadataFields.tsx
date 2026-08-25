@@ -40,23 +40,28 @@ export function NoteMetadataFields({
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-black">
             Subject
-            <select
+            <input
+              autoComplete="off"
               className="min-h-11 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
-              defaultValue=""
-              name="subjectId"
+              list="subject-options"
+              maxLength={120}
+              minLength={2}
+              name="subjectName"
+              placeholder="Start typing, e.g. Blockchain Engineering"
               required
-            >
-              <option disabled value="">
-                Select your subject
-              </option>
+            />
+            <datalist id="subject-options">
               {subjects.map((subject) => (
-                <option key={subject.id} value={subject.id}>
+                <option key={subject.id} value={subject.name}>
                   {subject.code ? `${subject.code} · ` : ''}
-                  {subject.name}
-                  {subject.university_id ? ' · campus' : ''}
+                  {subject.university_id ? 'campus' : 'general'}
                 </option>
               ))}
-            </select>
+            </datalist>
+            <span className="text-xs font-medium text-[#171512]/60">
+              Pick one of the suggestions, or type your own if the course is not
+              listed yet.
+            </span>
           </label>
 
           <label className="grid gap-2 text-sm font-black">

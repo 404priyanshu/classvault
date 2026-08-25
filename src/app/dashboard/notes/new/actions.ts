@@ -36,7 +36,7 @@ const prepareUploadSchema = z.object({
   noteType: noteTypeSchema,
   originalFilename: z.string().trim().min(1).max(255),
   sha256: z.string().regex(/^[0-9a-f]{64}$/),
-  subjectId: z.coerce.number().int().positive(),
+  subjectName: z.string().trim().min(2).max(120),
   tags: z.array(tagSchema).max(10),
   title: z.string().trim().min(3).max(180),
   visibility: z.enum(['public', 'university']),
@@ -77,6 +77,22 @@ export type CompleteNoteUploadResult = UploadFailure | CompletedUploadSuccess
 function readString(formData: FormData, key: string) {
   const value = formData.get(key)
   return typeof value === 'string' ? value : ''
+}
+
+function subjectErrorMessage(message: string | undefined) {
+  if (message?.includes('invalid_subject_name')) {
+    return 'Use a subject name between 2 and 120 characters.'
+  }
+
+  if (message?.includes('onboarding_incomplete')) {
+    return 'Finish onboarding before uploading notes.'
+  }
+
+  if (message?.includes('university_required')) {
+    return 'Join a university during onboarding before adding a new subject.'
+  }
+
+  return 'That subject could not be saved. Try a different name.'
 }
 
 function normalizeFilename(value: string) {
@@ -171,7 +187,7 @@ export async function prepareNoteUploadAction(
       readString(formData, 'originalFilename'),
     ),
     sha256: readString(formData, 'sha256'),
-    subjectId: readString(formData, 'subjectId'),
+    subjectName: readString(formData, 'subjectName'),
     tags: normalizeTags(readString(formData, 'tags')),
     title: readString(formData, 'title'),
     visibility: readString(formData, 'visibility'),
@@ -192,6 +208,21 @@ export async function prepareNoteUploadAction(
     return { error: 'Your session expired. Sign in and try again.', ok: false }
   }
 
+  // Resolve the free-form subject first. The RPC reuses an existing row when
+  // the slug matches and otherwise creates one against the caller's university,
+  // so the catalog grows with the campus instead of blocking an upload whose
+  // course was never seeded.
+  const { data: subjectRows, error: subjectError } = await supabase.rpc(
+    'find_or_create_subject',
+    { p_name: parsed.data.subjectName },
+  )
+
+  const subject = subjectRows?.[0]
+
+  if (subjectError || !subject) {
+    return { error: subjectErrorMessage(subjectError?.message), ok: false }
+  }
+
   const { data, error } = await supabase.rpc('create_note_upload_draft', {
     p_byte_size: parsed.data.byteSize,
     p_description: parsed.data.description,
@@ -199,7 +230,7 @@ export async function prepareNoteUploadAction(
     p_note_type: parsed.data.noteType,
     p_original_filename: parsed.data.originalFilename,
     p_sha256: parsed.data.sha256,
-    p_subject_id: parsed.data.subjectId,
+    p_subject_id: subject.id,
     p_tags: parsed.data.tags,
     p_title: parsed.data.title,
     p_visibility: parsed.data.visibility,
