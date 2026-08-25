@@ -26,9 +26,12 @@ const productionContentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co",
-  'font-src self',
+  "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-  'frame-src https://challenges.cloudflare.com',
+  // Chrome renders a PDF <object> in a nested browsing context, which frame-src
+  // governs rather than object-src, so note previews need Storage listed here
+  // too or they silently fail to paint.
+  'frame-src https://challenges.cloudflare.com https://*.supabase.co',
   // Note previews embed private signed Storage URLs through <object>.
   'object-src https://*.supabase.co',
   "worker-src 'self' blob:",
