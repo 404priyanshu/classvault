@@ -361,6 +361,73 @@ body {
   animation-name: pencil-stroke;
 }
 
+/* ---------- hero entrance ---------- */
+
+/*
+ * Driven by CSS rather than the animation library on purpose. Framer writes its
+ * `initial` state into the server-rendered markup, so a JS-driven fade ships
+ * the headline at opacity:0 and anything that never runs the animation gets a
+ * blank hero. A keyframe leaves the markup clean, runs without scripts, and
+ * keeps the fade that a transform-only reveal had stripped out.
+ */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-word {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+.hero-rise,
+.hero-word {
+  animation-delay: var(--d, 0s);
+  animation-duration: 0.55s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-word {
+  display: inline-block;
+}
+
+/*
+ * The animation only attaches once the document reports itself ready, which a
+ * one-line inline script sets. Without it the hero is simply visible: fill-mode
+ * `both` would otherwise hold the element at opacity 0 for anyone whose script
+ * never ran, which is the failure this whole change set out to remove.
+ */
+[data-ready] .hero-rise {
+  animation-name: hero-rise;
+}
+
+[data-ready] .hero-word {
+  animation-name: hero-word;
+  will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-word {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pencil-loader__body-1,
   .pencil-loader__body-2,
