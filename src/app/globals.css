@@ -63,22 +63,56 @@ body {
 
 /* ---------- paper & ink primitives ---------- */
 
+/*
+ * Elevation scale.
+ *
+ * Every surface used to carry the same hard offset shadow, in eight different
+ * sizes that were not a scale. A hard offset reads as "pressable", so it now
+ * belongs to interactive elements only -- buttons keep it, and it stays the
+ * signature. Content surfaces lift off the paper instead, which stops the
+ * hand-drawn illustrations from sitting inside crude frames.
+ */
+:root {
+  --elev-surface:
+    0 1px 2px rgba(23, 21, 18, 0.05),
+    0 4px 10px -2px rgba(23, 21, 18, 0.07),
+    0 14px 30px -10px rgba(23, 21, 18, 0.1);
+  --elev-surface-lift:
+    0 2px 4px rgba(23, 21, 18, 0.06),
+    0 10px 20px -4px rgba(23, 21, 18, 0.09),
+    0 26px 50px -16px rgba(23, 21, 18, 0.14);
+  --elev-inline:
+    0 1px 2px rgba(23, 21, 18, 0.05),
+    0 4px 10px -4px rgba(23, 21, 18, 0.08);
+  /* The ink rule stays, thinner, so the identity survives the softer shadow. */
+  --rule: rgba(23, 21, 18, 0.16);
+  --rule-ink: rgba(23, 21, 18, 0.85);
+}
+
 .paper-card {
   background: #fffdf6;
-  border: 1.5px solid #171512;
-  box-shadow: 5px 5px 0 #171512;
+  border: 1px solid var(--rule);
+  box-shadow: var(--elev-surface);
+  transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .paper-card-sm {
   background: #fffdf6;
-  border: 1.5px solid #171512;
-  box-shadow: 3px 3px 0 #171512;
+  border: 1px solid var(--rule);
+  box-shadow: var(--elev-inline);
 }
 
 .paper-card-green {
   background: #17453a;
+  border: 1px solid rgba(23, 21, 18, 0.5);
+  box-shadow: var(--elev-inline);
+}
+
+/* Opt back into the sticker treatment where it is a deliberate accent. */
+.sticker {
   border: 1.5px solid #171512;
-  box-shadow: 3px 3px 0 #171512;
+  box-shadow: 5px 5px 0 #171512;
 }
 
 .btn-ink {

@@ -27,7 +27,7 @@ function BurstLayer({ bursts }: { bursts: Burst[] }) {
             initial={{ x: b.x - 12, y: b.y - 12, scale: 0.3, opacity: 1, rotate: 0 }}
             animate={{ x: b.x + b.dx, y: b.y + b.dy, scale: 1.1, opacity: 0, rotate: b.rot }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.9, ease: [0.15, 0.8, 0.3, 1] }}
+            transition={{ duration: 0.45, ease: [0.15, 0.8, 0.3, 1] }}
             className="absolute text-xl"
             style={{ color: b.color }}
           >

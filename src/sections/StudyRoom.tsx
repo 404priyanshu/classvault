@@ -45,13 +45,13 @@ export default function StudyRoom() {
   const progress = 1 - seconds / (25 * 60)
 
   return (
-    <section id="rooms" className="relative border-b-[1.5px] border-[#171512] bg-[#17453a] py-24 text-[#f6f1e5]">
+    <section id="rooms" className="relative border-b-[1.5px] border-[#171512] bg-[#17453a] py-20 md:py-32 text-[#f6f1e5]">
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45 }}
           className="mx-auto max-w-2xl text-center"
         >
           <h2 className="font-display text-3xl font-black tracking-tight md:text-5xl">
@@ -64,11 +64,11 @@ export default function StudyRoom() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.9, delay: 0.1 }}
-          className="relative mx-auto mt-16 max-w-4xl rounded-2xl border-[1.5px] border-[#171512] bg-[#0f3229] shadow-[8px_8px_0_#171512]"
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="relative mx-auto mt-16 max-w-4xl rounded-2xl border border-[#171512]/50 bg-[#0f3229] [box-shadow:var(--elev-surface-lift)]"
         >
           <div className="pointer-events-none absolute -top-14 left-8 z-10 hidden w-36 -rotate-2 md:block">
             <Image

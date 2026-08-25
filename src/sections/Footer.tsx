@@ -35,10 +35,10 @@ export default function Footer() {
           </span>
         </div>
         <motion.div
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.9 }}
+          viewport={{ once: true, margin: '140px' }}
+          transition={{ duration: 0.45 }}
           className="relative mx-auto max-w-3xl px-6 text-center"
         >
           <h2 className="font-display text-4xl font-black leading-tight tracking-tight md:text-6xl">

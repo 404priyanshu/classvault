@@ -124,7 +124,7 @@ const fadeUp = {
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.15 * i, duration: 0.8, ease: EASE_OUT },
+    transition: { delay: 0.15 * i, duration: 0.45, ease: EASE_OUT },
   }),
 }
 
@@ -229,7 +229,7 @@ export default function Hero() {
 
           {/* right: the vault (mouse parallax) */}
           <motion.div
-            initial={{ opacity: 0, y: 40, rotate: 3 }}
+            initial={{ opacity: 0, y: 16, rotate: 3 }}
             animate={{ opacity: 1, y: 0, rotate: 0 }}
             transition={{ duration: 1, delay: 0.35, ease: EASE_OUT }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
