@@ -407,18 +407,26 @@ body {
 }
 
 /*
- * The animation only attaches once the document reports itself ready, which a
- * one-line inline script sets. Without it the hero is simply visible: fill-mode
- * `both` would otherwise hold the element at opacity 0 for anyone whose script
- * never ran, which is the failure this whole change set out to remove.
+ * Attached only where scripting is available. `animation-fill-mode: both` holds
+ * an element at opacity 0 until its animation runs, so applying it
+ * unconditionally would hide the hero from anyone whose scripts never
+ * execute -- the failure this whole change set out to remove. A browser that
+ * does not understand the `scripting` feature ignores the block entirely and
+ * shows the hero plainly, which is the right way to fail.
+ *
+ * This is a media query rather than a class an inline script toggles: a script
+ * mutating <html> before React hydrates causes a hydration mismatch, and a
+ * <script> is not valid as a direct child of <html> either.
  */
-[data-ready] .hero-rise {
-  animation-name: hero-rise;
-}
+@media (scripting: enabled) {
+  .hero-rise {
+    animation-name: hero-rise;
+  }
 
-[data-ready] .hero-word {
-  animation-name: hero-word;
-  will-change: transform, opacity, filter;
+  .hero-word {
+    animation-name: hero-word;
+    will-change: transform, opacity, filter;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
