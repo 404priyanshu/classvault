@@ -1253,6 +1253,15 @@ export type Database = {
         Args: { p_note_id: string }
         Returns: boolean
       }
+      find_or_create_subject: {
+        Args: { p_name: string }
+        Returns: {
+          code: string | null
+          id: number
+          name: string
+          university_id: number | null
+        }[]
+      }
       get_accessible_note_contributors: {
         Args: { p_note_ids: string[] }
         Returns: {

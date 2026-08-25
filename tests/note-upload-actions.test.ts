@@ -45,7 +45,7 @@ function validUploadForm() {
   data.set('noteType', 'summary')
   data.set('originalFilename', '../revision.pdf')
   data.set('sha256', 'a'.repeat(64))
-  data.set('subjectId', '12')
+  data.set('subjectName', 'Operating Systems')
   data.set('tags', ' Midsem, important, midsem ')
   data.set('title', 'Operating systems revision')
   data.set('visibility', 'public')
@@ -77,16 +77,27 @@ describe('note upload server actions', () => {
   })
 
   it('creates an owner-derived upload intent and signed URL', async () => {
-    const rpc = vi.fn().mockResolvedValue({
-      data: [
-        {
-          asset_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          object_key:
-            'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        },
-      ],
-      error: null,
+    const rpc = vi.fn().mockImplementation((operation: string) => {
+      if (operation === 'find_or_create_subject') {
+        return Promise.resolve({
+          data: [
+            { code: null, id: 12, name: 'Operating Systems', university_id: 1 },
+          ],
+          error: null,
+        })
+      }
+
+      return Promise.resolve({
+        data: [
+          {
+            asset_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            object_key:
+              'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          },
+        ],
+        error: null,
+      })
     })
     const storage = signedStorage()
     createClientMock.mockResolvedValue({
@@ -124,6 +135,94 @@ describe('note upload server actions', () => {
       p_title: 'Operating systems revision',
       p_visibility: 'public',
     })
+  })
+
+  it('creates a campus subject when the catalog does not have it yet', async () => {
+    const rpc = vi.fn().mockImplementation((operation: string) => {
+      if (operation === 'find_or_create_subject') {
+        return Promise.resolve({
+          data: [
+            {
+              code: null,
+              id: 44,
+              name: 'Blockchain Engineering',
+              university_id: 1,
+            },
+          ],
+          error: null,
+        })
+      }
+
+      return Promise.resolve({
+        data: [
+          {
+            asset_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            note_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            object_key:
+              'notes/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/source/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          },
+        ],
+        error: null,
+      })
+    })
+    const storage = signedStorage()
+    createClientMock.mockResolvedValue({
+      auth: {
+        getClaims: vi
+          .fn()
+          .mockResolvedValue({ data: { claims: { sub: 'student-id' } } }),
+      },
+      rpc,
+      storage: { from: storage.from },
+    })
+
+    const form = validUploadForm()
+    form.set('subjectName', '  Blockchain   Engineering ')
+
+    const result = await prepareNoteUploadAction(form)
+
+    expect(result).toMatchObject({ ok: true })
+    expect(rpc).toHaveBeenCalledWith('find_or_create_subject', {
+      p_name: 'Blockchain   Engineering',
+    })
+    expect(rpc).toHaveBeenCalledWith(
+      'create_note_upload_draft',
+      expect.objectContaining({ p_subject_id: 44 }),
+    )
+  })
+
+  it('reports a usable message when the subject cannot be resolved', async () => {
+    const rpc = vi.fn().mockImplementation((operation: string) => {
+      if (operation === 'find_or_create_subject') {
+        return Promise.resolve({
+          data: null,
+          error: { message: 'university_required' },
+        })
+      }
+
+      return Promise.resolve({ data: null, error: null })
+    })
+    createClientMock.mockResolvedValue({
+      auth: {
+        getClaims: vi
+          .fn()
+          .mockResolvedValue({ data: { claims: { sub: 'student-id' } } }),
+      },
+      rpc,
+      storage: { from: signedStorage().from },
+    })
+
+    const result = await prepareNoteUploadAction(validUploadForm())
+
+    expect(result).toEqual({
+      error:
+        'Join a university during onboarding before adding a new subject.',
+      ok: false,
+    })
+    expect(rpc).not.toHaveBeenCalledWith(
+      'create_note_upload_draft',
+      expect.anything(),
+    )
   })
 
   it('requires claims before creating a draft', async () => {
