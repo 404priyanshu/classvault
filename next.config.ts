@@ -23,11 +23,11 @@ const productionContentSecurityPolicy = [
   // 'unsafe-inline' stays required by Next.js hydration/flight inline scripts
   // and by Framer Motion inline styles. challenges.cloudflare.com serves the
   // Turnstile widget script and frame.
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co",
   'font-src self',
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com",
   'frame-src https://challenges.cloudflare.com',
   // Note previews embed private signed Storage URLs through <object>.
   'object-src https://*.supabase.co',

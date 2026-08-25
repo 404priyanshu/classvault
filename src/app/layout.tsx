@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Caveat, Fraunces, Inter } from 'next/font/google'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html data-scroll-behavior="smooth" lang="en">
       <body className={`${inter.variable} ${fraunces.variable} ${caveat.variable}`}>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   )
