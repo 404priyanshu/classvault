@@ -4,9 +4,16 @@ test.describe('marketing landing page', () => {
   test('renders the hero and primary calls to action', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(
-      page.getByText(/Notes your classmates actually rated/i),
+      page.getByRole('heading', {
+        level: 1,
+        name: /THE STUDY INFRASTRUCTURE/,
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByText('TRUSTED NOTES. CITED PLANS. SHARED FOCUS.', {
+        exact: true,
+      }),
     ).toBeVisible()
     await expect(
       page.locator('a[href="/auth/sign-up"]').first(),
@@ -37,11 +44,14 @@ test.describe('marketing landing page', () => {
     expect(withoutScripts).not.toMatch(/opacity:0[^.\d]/)
 
     for (const section of [
+      'BUILT AROUND HOW COLLEGE ACTUALLY WORKS.',
+      // Onboarding offers one university; the page has to say which.
       'Bennett University',
-      'Four superpowers',
-      'Trusted, rated notes',
-      'Never study',
-      'Free to start',
+      'ONE ACCOUNT. EVERY STUDY SURFACE.',
+      'FILES IN. FOCUS OUT.',
+      'BUILD YOUR STUDY SYSTEM.',
+      'ACCESS IS NOT AN AFTERTHOUGHT.',
+      'SET UP ONCE. STUDY ACROSS THE SYSTEM.',
     ]) {
       expect(withoutScripts).toContain(section)
     }
@@ -88,24 +98,38 @@ test.describe('authentication routes', () => {
   })
 })
 
-test.describe('roadmap demo', () => {
-  test('generates the sample plan and reveals interactive phases', async ({
-    page,
-  }) => {
+test.describe('product walkthrough', () => {
+  test('switches between the product surfaces', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByLabel('Your topic').fill('Operating Systems')
-    await page.getByRole('button', { name: 'Generate my roadmap' }).click()
+    const roadmapsTab = page.getByRole('tab', { name: /Roadmaps/ })
+    await roadmapsTab.click()
+    await expect(roadmapsTab).toHaveAttribute('aria-selected', 'true')
+    // "Core concepts" appears in both the phase rail and the mockup heading.
+    await expect(
+      page.getByText('Core concepts', { exact: true }).first(),
+    ).toBeVisible()
+    await expect(
+      page.getByText('Source record', { exact: true }).first(),
+    ).toBeVisible()
 
-    await expect(page.getByText('Roadmap ready')).toBeVisible({
-      timeout: 15_000,
-    })
-    await expect(page.getByText('Foundations').first()).toBeVisible()
-    await expect(page.getByText('sources:').first()).toBeVisible()
+    const roomsTab = page.getByRole('tab', { name: /Study rooms/ })
+    await roomsTab.click()
+    await expect(roomsTab).toHaveAttribute('aria-selected', 'true')
+    await expect(
+      page.getByText('Synced focus timer', { exact: true }),
+    ).toBeVisible()
+    await expect(page.getByText('Room chat', { exact: true })).toBeVisible()
 
-    const firstTask = page.getByRole('button', { name: /Mark "Skim overview notes/ })
-    await firstTask.click()
-    await expect(firstTask).toHaveAccessibleName(/as not done/)
+    const accessTab = page.getByRole('tab', { name: /Access/ })
+    await accessTab.click()
+    await expect(accessTab).toHaveAttribute('aria-selected', 'true')
+    await expect(
+      page.getByText('Viewer / surface matrix', { exact: true }),
+    ).toBeVisible()
+    await expect(
+      page.getByText('Database enforced', { exact: true }),
+    ).toBeVisible()
   })
 })
 
