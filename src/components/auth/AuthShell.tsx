@@ -25,7 +25,7 @@ export function AuthShell({
 
       <section className="paper-card relative z-10 w-full max-w-md bg-[#fffdf6] p-7 sm:p-9">
         <Link href="/" className="mb-8 inline-flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-lg border-[1.5px] border-[#171512] bg-[#17453a] shadow-[3px_3px_0_#171512]">
+          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#171512]/22 bg-[#17453a] [box-shadow:var(--elev-inline)]">
             <BookOpen className="h-5 w-5 text-[#f6f1e5]" />
           </span>
           <span className="font-display text-xl font-black">

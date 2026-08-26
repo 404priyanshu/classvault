@@ -119,7 +119,7 @@ function SidebarNavigation({
         className={cn(
           'flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-bold transition-colors',
           isActive
-            ? 'bg-[#fffdf6] text-[#171512] shadow-[2px_2px_0_rgba(23,21,18,0.45)]'
+            ? 'bg-[#fffdf6] text-[#171512] [box-shadow:var(--elev-inline)]'
             : 'text-[#f6f1e5]/90 hover:bg-[#f6f1e5]/10 hover:text-[#fffdf6]',
         )}
         href={item.href || '/dashboard'}
@@ -170,7 +170,7 @@ export function DashboardShell({
           href="/dashboard"
           onClick={() => setMenuOpen(false)}
         >
-          <span className="grid h-10 w-10 place-items-center rounded-sm border border-[#f6f1e5]/60 bg-[#f6f1e5]/10 shadow-[3px_3px_0_rgba(8,29,24,0.9)]">
+          <span className="grid h-10 w-10 place-items-center rounded-sm border border-[#f6f1e5]/60 bg-[#f6f1e5]/10 [box-shadow:var(--elev-inline)]">
             <BookOpen className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <span>
@@ -206,7 +206,7 @@ export function DashboardShell({
         >
           <ProfileAvatar
             avatarUrl={avatarUrl}
-            className="h-11 w-11 rounded-lg text-sm shadow-[2px_2px_0_#171512]"
+            className="h-11 w-11 rounded-lg text-sm [box-shadow:var(--elev-inline)]"
             displayName={displayName}
           />
           <span className="min-w-0 flex-1">

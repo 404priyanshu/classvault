@@ -48,7 +48,7 @@ export function AvatarSettingsForm({
       <div className="relative w-fit">
         <ProfileAvatar
           avatarUrl={previewUrl || avatarUrl}
-          className="h-24 w-24 text-2xl shadow-[3px_3px_0_rgba(23,21,18,0.12)]"
+          className="h-24 w-24 text-2xl [box-shadow:var(--elev-inline)]"
           displayName={displayName}
         />
         <span className="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-md border border-[#171512]/20 bg-[#fffdf6] shadow-sm">

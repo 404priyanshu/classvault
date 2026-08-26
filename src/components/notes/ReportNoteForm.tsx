@@ -122,7 +122,7 @@ export function ReportNoteForm({ noteId }: { noteId: string }) {
               Cancel
             </button>
             <button
-              className="inline-flex min-h-10 items-center gap-1.5 border border-[#171512] bg-[#9a3f2f] px-4 text-xs font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65"
+              className="inline-flex min-h-10 items-center gap-1.5 border border-[#171512] bg-[#9a3f2f] px-4 text-xs font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65"
               disabled={pending}
               type="submit"
             >

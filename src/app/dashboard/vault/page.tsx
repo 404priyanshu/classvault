@@ -178,24 +178,24 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
 
       <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-black leading-none sm:text-5xl">My Vault</h1>
+          <h1 className="app-title">My Vault</h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
             Keep track of what you&apos;ve shared, what&apos;s still uploading, and what&apos;s safe to recover.
           </p>
         </div>
-        <Link className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 sm:w-auto" href="/dashboard/notes/new">
+        <Link className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto" href="/dashboard/notes/new">
           <Upload aria-hidden className="h-4 w-4" />
           Upload notes
         </Link>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <Link className={!isTrash ? 'border border-[#17453a] bg-[#17453a] p-4 text-[#fffdf6] shadow-[3px_3px_0_#171512]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#17453a]'} href="/dashboard/vault">
+        <Link className={!isTrash ? 'border border-[#17453a] bg-[#17453a] p-4 text-[#fffdf6] [box-shadow:var(--elev-inline)]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#17453a]'} href="/dashboard/vault">
           <FolderOpen aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Active uploads</span>
           <span className="mt-1 block text-xs opacity-70">Published, drafts, and upload status</span>
         </Link>
-        <Link className={isTrash ? 'border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-[#fffdf6] shadow-[3px_3px_0_#171512]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#9a3f2f]'} href="/dashboard/vault?view=trash">
+        <Link className={isTrash ? 'border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-[#fffdf6] [box-shadow:var(--elev-inline)]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#9a3f2f]'} href="/dashboard/vault?view=trash">
           <Trash2 aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Trash</span>
           <span className="mt-1 block text-xs opacity-70">Recover notes for up to 30 days</span>
@@ -224,7 +224,7 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
           {isTrash ? <Clock3 aria-hidden className="h-5 w-5 text-[#9a3f2f]" /> : <FileArchive aria-hidden className="h-5 w-5 text-[#17453a]" />}
         </div>
 
-        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] shadow-[3px_3px_0_rgba(23,21,18,0.08)]">
+        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]">
           {notes.length > 0 ? notes.map((note) => <OwnedNoteRow key={note.note_id} note={note} />) : (
             <div className="bg-ruled grid min-h-[300px] place-items-center px-6 py-12 text-center">
               <div className="max-w-md">
@@ -233,7 +233,7 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
                 <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
                   {isTrash ? 'Deleted notes will stay recoverable here for 30 days.' : 'Upload your first useful note and keep it close to the students who need it.'}
                 </p>
-                {!isTrash ? <Link className="mt-5 inline-flex min-h-10 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512]" href="/dashboard/notes/new">Upload your first note <ArrowRight aria-hidden className="h-4 w-4" /></Link> : null}
+                {!isTrash ? <Link className="mt-5 inline-flex min-h-10 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)]" href="/dashboard/notes/new">Upload your first note <ArrowRight aria-hidden className="h-4 w-4" /></Link> : null}
               </div>
             </div>
           )}

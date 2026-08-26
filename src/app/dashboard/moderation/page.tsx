@@ -63,7 +63,7 @@ function actionLabel(action: string) {
 
 function QueueCard({ item }: { item: QueueItem }) {
   return (
-    <article className="border border-[#cfc4ae] bg-[#fffdf6] p-5 shadow-[3px_3px_0_rgba(23,21,18,0.08)] sm:p-6">
+    <article className="border border-[#cfc4ae] bg-[#fffdf6] p-5 [box-shadow:var(--elev-inline)] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-black uppercase tracking-[0.08em] text-[#9a3f2f]">
@@ -147,7 +147,7 @@ function QueueCard({ item }: { item: QueueItem }) {
             name="safeOwnerMessage"
             placeholder="Optional owner-facing message"
           />
-          <button className="inline-flex min-h-10 items-center justify-center gap-1.5 border border-[#171512] bg-[#17453a] px-3 text-xs font-black text-[#fffdf6] shadow-[2px_2px_0_#171512] hover:-translate-y-0.5" type="submit">
+          <button className="inline-flex min-h-10 items-center justify-center gap-1.5 border border-[#171512] bg-[#17453a] px-3 text-xs font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] hover:-translate-y-0.5" type="submit">
             <ShieldAlert aria-hidden className="h-3.5 w-3.5" />
             Save
           </button>
@@ -173,7 +173,7 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
       <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#9a3f2f]"><ShieldAlert aria-hidden className="h-3.5 w-3.5" /> Scoped queue</p>
-          <h1 className="font-display mt-2 text-4xl font-black leading-none sm:text-5xl">Moderation</h1>
+          <h1 className="app-title mt-2">Moderation</h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
             Review reports for notes in your campus scope. Platform moderators can see the full queue.
           </p>

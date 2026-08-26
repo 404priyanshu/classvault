@@ -50,7 +50,7 @@ export function UploadFormFooter({
         ) : (
           <>
             <button
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-6 font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+              className="app-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 font-black disabled:cursor-wait disabled:opacity-60"
               disabled={isPending || tagCount > 10}
               name="intent"
               type="submit"

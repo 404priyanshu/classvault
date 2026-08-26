@@ -62,7 +62,7 @@ export default async function PhoneAuthPage({
                 <input
                   autoComplete="one-time-code"
                   autoFocus
-                  className="h-14 w-full border-[1.5px] border-[#171512] bg-white pl-11 pr-4 text-center font-mono text-2xl font-black tracking-[0.35em] outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-14 w-full border border-[#171512]/22 bg-white pl-11 pr-4 text-center font-mono text-2xl font-black tracking-[0.35em] outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
                   inputMode="numeric"
                   maxLength={6}
                   name="token"
@@ -116,7 +116,7 @@ export default async function PhoneAuthPage({
                 <span className="sr-only">Country code</span>
                 <select
                   autoComplete="tel-country-code"
-                  className="h-12 w-full border-[1.5px] border-[#171512] bg-white px-3 text-sm font-bold outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-12 w-full border border-[#171512]/22 bg-white px-3 text-sm font-bold outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
                   defaultValue={DEFAULT_PHONE_COUNTRY_CODE}
                   name="countryCode"
                 >
@@ -136,7 +136,7 @@ export default async function PhoneAuthPage({
                 <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#17453a]" />
                 <input
                   autoComplete="tel-national"
-                  className="h-12 w-full border-[1.5px] border-[#171512] bg-white pl-10 pr-2 text-sm outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-12 w-full border border-[#171512]/22 bg-white pl-10 pr-2 text-sm outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
                   inputMode="tel"
                   name="phoneNumber"
                   placeholder="9876543210"

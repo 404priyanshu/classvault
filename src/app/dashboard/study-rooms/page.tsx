@@ -157,7 +157,7 @@ export default async function StudyRoomsPage({
 
       <header className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-7 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-black leading-[1.04] sm:text-5xl">
+          <h1 className="app-title">
             Study together, stay accountable
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
@@ -165,7 +165,7 @@ export default async function StudyRoomsPage({
           </p>
         </div>
         <a
-          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-sm bg-[#f0a202] px-5 text-sm font-black text-[#171512] shadow-[3px_3px_0_#171512] transition hover:-translate-y-0.5"
+          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-sm bg-[#f0a202] px-5 text-sm font-black text-[#171512] [box-shadow:var(--elev-inline)] transition hover:-translate-y-0.5"
           href="#create-room"
         >
           <DoorOpen aria-hidden className="h-4 w-4" />

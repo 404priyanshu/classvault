@@ -32,12 +32,12 @@ export function RoadmapRequestForm({
   return (
     <section
       aria-labelledby="roadmap-request-heading"
-      className="border border-[#171512] bg-[#fffdf6] shadow-[4px_4px_0_#171512]"
+      className="border border-[#171512] bg-[#fffdf6] [box-shadow:var(--elev-inline)]"
     >
       <div className="grid lg:grid-cols-[minmax(0,1fr)_290px]">
         <form action={formAction} className="p-5 sm:p-7">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#171512] bg-[#f0a202] shadow-[2px_2px_0_#171512]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#171512] bg-[#f0a202] [box-shadow:var(--elev-inline)]">
               <Sparkles aria-hidden className="h-5 w-5" />
             </span>
             <div>
@@ -61,7 +61,7 @@ export function RoadmapRequestForm({
             What are you studying?
           </label>
           <input
-            className="mt-2 min-h-12 w-full border border-[#171512] bg-white px-4 text-base font-bold outline-none transition-shadow placeholder:text-[#171512]/35 focus:shadow-[3px_3px_0_#f0a202]"
+            className="app-field mt-2 min-h-12 bg-white px-4 text-base font-bold outline-none transition-shadow placeholder:text-[#171512]/35 focus:shadow-[3px_3px_0_#f0a202]"
             disabled={pending}
             id="roadmap-topic"
             maxLength={160}
@@ -76,7 +76,7 @@ export function RoadmapRequestForm({
               Study mode
             </legend>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#fff2bd] has-[:checked]:shadow-[3px_3px_0_#171512]">
+              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#fff2bd] has-[:checked]:[box-shadow:var(--elev-inline)]">
                 <input
                   className="mr-2 accent-[#17453a]"
                   defaultChecked
@@ -90,7 +90,7 @@ export function RoadmapRequestForm({
                   Recall questions, timed practice, and a final review sheet.
                 </span>
               </label>
-              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#e9f3ea] has-[:checked]:shadow-[3px_3px_0_#171512]">
+              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#e9f3ea] has-[:checked]:[box-shadow:var(--elev-inline)]">
                 <input
                   className="mr-2 accent-[#17453a]"
                   disabled={pending}
@@ -108,7 +108,7 @@ export function RoadmapRequestForm({
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
-              className="inline-flex min-h-12 items-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-12 items-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canGenerate || pending}
               type="submit"
             >

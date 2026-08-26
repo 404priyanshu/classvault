@@ -122,7 +122,7 @@ export default async function SettingsPage() {
           <Settings2 aria-hidden className="h-4 w-4" />
           Account controls
         </div>
-        <h1 className="font-display mt-3 text-4xl font-black tracking-[-0.025em] sm:text-5xl">
+        <h1 className="app-title mt-3">
           Settings
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">

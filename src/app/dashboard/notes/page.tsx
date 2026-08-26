@@ -127,7 +127,7 @@ export default async function NotesLibraryPage({
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
       <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-black leading-none sm:text-5xl">
+          <h1 className="app-title">
             Notes Library
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
@@ -136,7 +136,7 @@ export default async function NotesLibraryPage({
           </p>
         </div>
         <Link
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5 sm:w-auto"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
           href="/dashboard/notes/new"
         >
           <Upload aria-hidden className="h-4 w-4" />
@@ -145,7 +145,7 @@ export default async function NotesLibraryPage({
       </section>
 
       <form
-        className="border border-[#cfc4ae] bg-[#fffdf6] p-4 shadow-[3px_3px_0_rgba(23,21,18,0.08)] sm:p-5"
+        className="border border-[#cfc4ae] bg-[#fffdf6] p-4 [box-shadow:var(--elev-inline)] sm:p-5"
         method="get"
         role="search"
       >

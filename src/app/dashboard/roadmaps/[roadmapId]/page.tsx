@@ -55,13 +55,13 @@ export default async function RoadmapDetailPage({
         All roadmaps
       </Link>
 
-      <header className="border border-[#171512] bg-[#fffdf6] p-5 shadow-[4px_4px_0_#171512] sm:p-7">
+      <header className="border border-[#171512] bg-[#fffdf6] p-5 [box-shadow:var(--elev-inline)] sm:p-7">
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.09em] text-[#17453a]">
           <span>{formatRoadmapStudyMode(roadmap.studyMode)}</span>
           <span aria-hidden className="text-[#171512]/25">/</span>
           <span>{roadmap.generationPlan} plan snapshot</span>
         </div>
-        <h1 className="font-display mt-3 text-4xl font-black leading-none sm:text-5xl">
+        <h1 className="app-title mt-3">
           {roadmap.title}
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-[#171512]/60">
@@ -88,7 +88,7 @@ export default async function RoadmapDetailPage({
         {roadmap.sections.map((section) =>
           section.available ? (
             <section
-              className="border border-[#cfc4ae] bg-[#fffdf6] shadow-[3px_3px_0_rgba(23,21,18,0.08)]"
+              className="border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]"
               key={section.id}
             >
               <div className="border-b border-[#d9cfbc] p-5 sm:p-6">

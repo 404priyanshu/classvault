@@ -40,7 +40,7 @@ function RoadmapRow({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
 
   return (
     <article className="grid gap-4 border-b border-[#d9cfbc] px-4 py-5 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:items-center sm:px-5">
-      <span className="grid h-14 w-14 place-items-center rounded-full border border-[#171512] bg-[#f0a202] text-[#171512] shadow-[2px_2px_0_#171512]">
+      <span className="grid h-14 w-14 place-items-center rounded-full border border-[#171512] bg-[#f0a202] text-[#171512] [box-shadow:var(--elev-inline)]">
         <Route aria-hidden className="h-6 w-6" strokeWidth={1.6} />
       </span>
       <div className="min-w-0">
@@ -99,13 +99,13 @@ export default async function RoadmapsPage() {
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
-      <section className="relative overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] p-5 shadow-[4px_4px_0_rgba(23,21,18,0.09)] sm:p-7 lg:p-8">
+      <section className="relative overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] p-5 [box-shadow:var(--elev-inline)] sm:p-7 lg:p-8">
         <div className="relative z-10 max-w-3xl">
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#b56d00]">
             <Sparkles aria-hidden className="h-4 w-4" />
             Grounded generation pipeline
           </p>
-          <h1 className="font-display mt-3 text-4xl font-black leading-none sm:text-5xl">
+          <h1 className="app-title mt-3">
             Study roadmaps
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#171512]/65 sm:text-base">
@@ -115,7 +115,7 @@ export default async function RoadmapsPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              className="inline-flex min-h-11 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+              className="inline-flex min-h-11 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
               href="#generate-roadmap"
             >
               <Sparkles aria-hidden className="h-4 w-4" />
@@ -213,7 +213,7 @@ export default async function RoadmapsPage() {
             Static snapshots stay stable while source authorization is rechecked at every view.
           </p>
         </div>
-        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] shadow-[3px_3px_0_rgba(23,21,18,0.08)]">
+        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]">
           {roadmaps.length ? (
             roadmaps.map((roadmap) => <RoadmapRow key={roadmap.roadmap_id} roadmap={roadmap} />)
           ) : (
