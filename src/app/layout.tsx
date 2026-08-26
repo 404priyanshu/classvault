@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Caveat, Fraunces, Inter } from 'next/font/google'
+import { Caveat, Fraunces, Inter, Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({
@@ -11,6 +11,15 @@ const fraunces = Fraunces({
   subsets: ['latin'],
   style: ['normal', 'italic'],
   variable: '--font-fraunces',
+})
+
+// Landing headings only. A text serif reads as a paper or a textbook, which is
+// the register the marketing page is aiming for; the grid, mono labels, and
+// signal orange stay exactly as they are.
+const sourceSerif = Source_Serif_4({
+  subsets: ['latin'],
+  variable: '--font-source-serif',
+  weight: ['400', '600'],
 })
 
 const caveat = Caveat({
@@ -31,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html data-scroll-behavior="smooth" lang="en">
-      <body className={`${inter.variable} ${fraunces.variable} ${caveat.variable}`}>
+      <body className={`${inter.variable} ${fraunces.variable} ${caveat.variable} ${sourceSerif.variable}`}>
         {children}
       </body>
     </html>
