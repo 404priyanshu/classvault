@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useId, useRef, useState } from 'react'
 import { FileDropzone } from './upload/FileDropzone'
 import { NoteMetadataFields } from './upload/NoteMetadataFields'
@@ -93,7 +94,14 @@ export function UploadNoteForm({
           Add to your vault
         </h1>
         <p className="mt-4 text-base text-[#171512]/65 sm:text-lg">
-          Share your notes. Help your batch. Leave a legacy.
+          Share your notes. Help your batch. Leave a legacy.{' '}
+          <Link
+            className="font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+            href="/dashboard/notes/batch"
+          >
+            Got a whole folder? Add them together
+          </Link>
+          .
         </p>
       </section>
 
