@@ -16,6 +16,10 @@
   --cv-signal: #ee6018;
   --cv-signal-text: #a53b05;
   --cv-mono: "SFMono-Regular", "SF Mono", "Roboto Mono", "Courier New", monospace;
+  /* Headings only. The grotesk stays for body and the mono stays for labels;
+     a text serif is what makes the page read as academic rather than as a
+     developer tool, and it is the single largest lever for that. */
+  --cv-display: var(--font-source-serif), "Source Serif 4", Georgia, serif;
   min-height: 100vh;
   overflow: clip;
   background: var(--cv-bg);
@@ -33,6 +37,12 @@
 .page a {
   color: inherit;
   text-decoration: none;
+}
+
+.page h1,
+.page h2,
+.page h3 {
+  font-family: var(--cv-display);
 }
 
 .page button,
@@ -199,7 +209,7 @@
   padding: 0 14px;
   font-family: var(--cv-mono);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em;
   line-height: 1;
   transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, transform 120ms ease;
@@ -340,8 +350,8 @@
 .heroTitle {
   margin: 0;
   font-size: clamp(3rem, 5.3vw, 5rem);
-  font-weight: 500;
-  letter-spacing: -0.055em;
+  font-weight: 600;
+  letter-spacing: -0.018em;
   line-height: 0.93;
   text-wrap: balance;
 }
@@ -630,8 +640,8 @@
   max-width: 340px;
   margin: 0;
   font-size: clamp(26px, 2.4vw, 36px);
-  font-weight: 500;
-  letter-spacing: -0.045em;
+  font-weight: 600;
+  letter-spacing: -0.018em;
   line-height: 1.02;
 }
 
@@ -704,7 +714,7 @@
 .capabilityList strong {
   max-width: 200px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.25;
 }
 
@@ -726,7 +736,7 @@
   margin: 0;
   font-size: clamp(38px, 4vw, 58px);
   font-weight: 400;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.018em;
   line-height: 0.98;
   text-wrap: balance;
 }
@@ -791,7 +801,7 @@
   display: block;
   font-size: clamp(23px, 2vw, 31px);
   font-weight: 400;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.018em;
   line-height: 1;
 }
 
@@ -910,10 +920,12 @@
 .chaptersHeading h2,
 .accessHeader h2,
 .accountIntro h2 {
+  /* Matches the hero. The serif was set at 400 to stay light against a
+     grotesk hero; now that both are the same face they should agree. */
   margin: 0;
   font-size: clamp(40px, 4.2vw, 62px);
-  font-weight: 400;
-  letter-spacing: -0.055em;
+  font-weight: 600;
+  letter-spacing: -0.018em;
   line-height: 0.96;
   text-wrap: balance;
 }
@@ -988,11 +1000,36 @@
 }
 
 .pipelineStep h3 {
+  /* Sentence-length now rather than a single verb, so caps would shout and
+     wrap badly. The stage label above carries the mono/uppercase voice. */
   margin: 0;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  text-transform: uppercase;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.pipelineStage {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cv-signal-text);
+  font-family: var(--cv-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.pipelineSurface {
+  display: inline-block;
+  margin-top: 14px;
+  border: 1px solid var(--cv-border);
+  border-radius: 3px;
+  padding: 3px 7px;
+  color: var(--cv-muted);
+  font-family: var(--cv-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
 }
 
 .pipelineStep p {
@@ -1105,7 +1142,7 @@
   margin: 0;
   font-size: clamp(22px, 1.9vw, 29px);
   font-weight: 400;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.018em;
   line-height: 0.99;
   text-wrap: balance;
 }
@@ -1518,7 +1555,7 @@
   margin: 38px 0 0;
   color: #edecea;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
 }
 
@@ -1587,7 +1624,7 @@
   margin: 0;
   font-size: clamp(21px, 2vw, 28px);
   font-weight: 400;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.018em;
 }
 
 .accountList p {
@@ -1909,7 +1946,7 @@
   color: #eeecea;
   font-size: clamp(18px, 2vw, 27px);
   font-weight: 400;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.018em;
   line-height: 1.04;
 }
 
@@ -1940,7 +1977,7 @@
   color: var(--cv-muted-dark);
   font-family: var(--cv-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -2117,7 +2154,7 @@
   color: var(--cv-muted-dark);
   font-family: var(--cv-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-align: left;
   text-transform: uppercase;
@@ -2178,7 +2215,7 @@
   overflow: hidden;
   color: #ddd9d6;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2480,7 +2517,7 @@
   display: block;
   color: #c6b1a4;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .mockupWithheldCopy {

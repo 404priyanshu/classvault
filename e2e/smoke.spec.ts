@@ -48,7 +48,7 @@ test.describe('marketing landing page', () => {
       // Onboarding offers one university; the page has to say which.
       'Bennett University',
       'ONE ACCOUNT. EVERY STUDY SURFACE.',
-      'FILES IN. FOCUS OUT.',
+      'A SEMESTER, NOT A FOLDER.',
       'BUILD YOUR STUDY SYSTEM.',
       'ACCESS IS NOT AN AFTERTHOUGHT.',
       'SET UP ONCE. STUDY ACROSS THE SYSTEM.',
