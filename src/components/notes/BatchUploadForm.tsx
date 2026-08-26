@@ -123,13 +123,47 @@ export function BatchUploadForm({
             addFiles([...event.dataTransfer.files])
           }}
         >
-          <Upload aria-hidden className="h-8 w-8 text-[#17453a]" strokeWidth={1.6} />
-          <span className="font-display mt-3 text-xl font-black">
-            Drop your files here
-          </span>
-          <span className="mt-1 text-sm text-[#171512]/60">
-            PDF, JPG, PNG or WebP · up to 25 MiB each · pick as many as you like
-          </span>
+          {rows.length === 0 ? (
+            <>
+              <Upload aria-hidden className="h-8 w-8 text-[#17453a]" strokeWidth={1.6} />
+              <span className="font-display mt-3 text-xl font-black">
+                Drop your files here
+              </span>
+              <span className="mt-1 text-sm text-[#171512]/60">
+                PDF, JPG, PNG or WebP · up to 25 MiB each · pick as many as you like
+              </span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2
+                aria-hidden
+                className="h-8 w-8 text-[#17453a]"
+                strokeWidth={1.7}
+              />
+              <span className="font-display mt-3 text-xl font-black">
+                {rows.length} file{rows.length === 1 ? '' : 's'} ready
+              </span>
+              <span className="mt-2 flex max-w-xl flex-wrap justify-center gap-1.5">
+                {rows.slice(0, 6).map((row) => (
+                  <span
+                    className="rounded-full border border-[#171512]/25 bg-[#fffdf6] px-2.5 py-0.5 text-xs font-bold"
+                    key={row.id}
+                  >
+                    {row.title || row.file.name}
+                  </span>
+                ))}
+                {rows.length > 6 ? (
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-bold text-[#171512]/55">
+                    +{rows.length - 6} more
+                  </span>
+                ) : null}
+              </span>
+              <span className="mt-3 text-sm font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4">
+                Add more files
+              </span>
+            </>
+          )}
+
           <input
             accept={NOTE_FILE_ACCEPT}
             className="sr-only"
@@ -144,6 +178,17 @@ export function BatchUploadForm({
             type="file"
           />
         </label>
+
+        {/*
+          The count is announced as well as shown: the editable rows sit below
+          the shared fields, so without this the only confirmation that a drop
+          worked is off-screen.
+        */}
+        <p aria-live="polite" className="sr-only">
+          {rows.length
+            ? `${rows.length} file${rows.length === 1 ? '' : 's'} ready to upload`
+            : 'No files chosen yet'}
+        </p>
 
         {/* shared details */}
         <fieldset className="mt-8 grid gap-5 sm:grid-cols-2" disabled={isRunning}>
