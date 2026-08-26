@@ -33,7 +33,7 @@ export default async function UpdatePasswordPage({
           <span className="text-sm font-bold">New password</span>
           <input
             autoComplete="new-password"
-            className="mt-2 h-12 w-full border-[1.5px] border-[#171512] bg-white px-4 outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+            className="app-field mt-2 px-4"
             maxLength={72}
             minLength={8}
             name="password"
@@ -45,7 +45,7 @@ export default async function UpdatePasswordPage({
           <span className="text-sm font-bold">Confirm new password</span>
           <input
             autoComplete="new-password"
-            className="mt-2 h-12 w-full border-[1.5px] border-[#171512] bg-white px-4 outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+            className="app-field mt-2 px-4"
             maxLength={72}
             minLength={8}
             name="passwordConfirmation"

@@ -49,7 +49,7 @@ export function FileDropzone({
       >
         {file ? (
           <>
-            <span className="grid h-24 w-24 place-items-center rounded-full border-[1.5px] border-[#171512] bg-[#17453a] shadow-[4px_4px_0_#171512]">
+            <span className="grid h-24 w-24 place-items-center rounded-full border border-[#171512]/25 bg-[#17453a] shadow-[4px_4px_0_#171512]">
               <FileCheck2 className="h-10 w-10 text-[#fffdf6]" />
             </span>
             <p className="font-display mt-7 max-w-sm break-words text-2xl font-black">
@@ -59,7 +59,7 @@ export function FileDropzone({
               {formatFileSize(file.size)} · private until you publish
             </p>
             <button
-              className="mt-6 inline-flex items-center gap-2 rounded-md border-[1.5px] border-[#171512] bg-[#fffdf6] px-4 py-2 text-sm font-black shadow-[3px_3px_0_#171512] disabled:opacity-50"
+              className="app-button mt-6 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-black disabled:opacity-50"
               disabled={isLocked}
               onClick={onClearFile}
               type="button"
@@ -84,7 +84,7 @@ export function FileDropzone({
             </p>
             <span className="my-5 text-sm text-[#171512]/50">or</span>
             <label
-              className="inline-flex cursor-pointer items-center gap-2 rounded-md border-[1.5px] border-[#171512] bg-[#fffdf6] px-5 py-3 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+              className="app-button inline-flex cursor-pointer items-center gap-2 rounded-md px-5 py-3 text-sm font-black"
               htmlFor={fileInputId}
             >
               <Upload className="h-4 w-4" />

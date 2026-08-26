@@ -17,8 +17,7 @@ type BatchUploadFormProps = {
   universityName: string | null
 }
 
-const inputClass =
-  'min-h-11 w-full rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]'
+const inputClass = 'app-field px-3 text-base font-medium'
 
 function StatusCell({ row }: { row: BatchRow }) {
   if (row.status === 'working') {
@@ -84,10 +83,8 @@ export function BatchUploadForm({
   return (
     <>
       <section className="mt-10">
-        <h1 className="font-display text-4xl font-black leading-[0.98] sm:text-6xl">
-          Add a stack at once
-        </h1>
-        <p className="mt-4 max-w-2xl text-base text-[#171512]/65 sm:text-lg">
+        <h1 className="app-title">Add a stack at once</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/65">
           Pick several files from one subject, set the details once, and fix the
           titles inline. Each note still goes through the same checks as a
           single upload.{' '}
@@ -101,7 +98,7 @@ export function BatchUploadForm({
         </p>
       </section>
 
-      <div className="paper-card mt-8 rounded-2xl p-6 sm:p-8">
+      <div className="app-panel mt-6 p-5 sm:p-7">
         {/* files */}
         <label
           className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
@@ -258,7 +255,7 @@ export function BatchUploadForm({
           <label className="grid gap-2 text-sm font-black sm:col-span-2">
             Description
             <textarea
-              className="min-h-[88px] w-full rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] p-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+              className="app-field min-h-[88px] p-3 text-base font-medium"
               maxLength={2000}
               onChange={(event) => patchShared({ description: event.target.value })}
               placeholder="What these cover, and which exam they are for."
@@ -281,16 +278,16 @@ export function BatchUploadForm({
               ) : null}
             </div>
 
-            <ul className="grid gap-2">
+            <ul className="app-list app-panel overflow-hidden">
               {rows.map((row) => (
                 <li
-                  className="grid gap-2 rounded-lg border border-[#171512]/20 bg-[#f6f1e5] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"
+                  className="grid gap-2 p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"
                   key={row.id}
                 >
                   <div className="grid gap-1">
                     <input
                       aria-label={`Title for ${row.file.name}`}
-                      className="min-h-10 w-full rounded-sm border border-[#171512]/30 bg-[#fffdf6] px-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-[#f0a202]"
+                      className="app-field min-h-10 px-2.5 text-sm font-bold"
                       disabled={isRunning || row.status === 'done'}
                       maxLength={180}
                       onChange={(event) => setRowTitle(row.id, event.target.value)}
@@ -312,7 +309,7 @@ export function BatchUploadForm({
 
                   <button
                     aria-label={`Remove ${row.file.name}`}
-                    className="justify-self-start rounded-md border border-[#171512]/25 p-2 transition-colors hover:bg-[#171512]/[0.06] disabled:opacity-40 sm:justify-self-auto"
+                    className="app-button justify-self-start rounded-md p-2 disabled:opacity-40 sm:justify-self-auto"
                     disabled={isRunning}
                     onClick={() => removeRow(row.id)}
                     type="button"
@@ -346,7 +343,7 @@ export function BatchUploadForm({
               : `Publish ${remaining || rows.length} note${(remaining || rows.length) === 1 ? '' : 's'}`}
           </button>
           <button
-            className="min-h-12 rounded-full border-[1.5px] border-[#171512] px-7 font-black transition-colors hover:bg-[#171512]/[0.06] disabled:opacity-50"
+            className="app-button min-h-12 px-7 disabled:opacity-50"
             disabled={isRunning || rows.length === 0}
             onClick={() => void run(shared, false)}
             type="button"

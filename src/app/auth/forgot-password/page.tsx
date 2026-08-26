@@ -41,7 +41,7 @@ export default async function ForgotPasswordPage({
           <span className="text-sm font-bold">Account email</span>
           <input
             autoComplete="email"
-            className="mt-2 h-12 w-full border-[1.5px] border-[#171512] bg-white px-4 outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+            className="app-field mt-2 px-4"
             name="email"
             placeholder="you@college.edu"
             required

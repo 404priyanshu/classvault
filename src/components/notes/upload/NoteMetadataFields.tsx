@@ -29,7 +29,7 @@ export function NoteMetadataFields({
         <label className="grid gap-2 text-sm font-black">
           Title
           <input
-            className="min-h-11 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+            className="app-field px-3 text-base font-medium"
             maxLength={180}
             name="title"
             placeholder="Enter a clear and specific title"
@@ -42,7 +42,7 @@ export function NoteMetadataFields({
             Subject
             <input
               autoComplete="off"
-              className="min-h-11 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+              className="app-field px-3 text-base font-medium"
               list="subject-options"
               maxLength={120}
               minLength={2}
@@ -67,7 +67,7 @@ export function NoteMetadataFields({
           <label className="grid gap-2 text-sm font-black">
             Note type
             <select
-              className="min-h-11 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+              className="app-field px-3 text-base font-medium"
               defaultValue=""
               name="noteType"
               required
@@ -88,7 +88,7 @@ export function NoteMetadataFields({
         <fieldset>
           <legend className="text-sm font-black">Who can access it?</legend>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            <label className="flex cursor-pointer gap-3 rounded-sm border-[1.5px] border-[#171512] bg-[#17453a]/5 p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]">
+            <label className="flex cursor-pointer gap-3 rounded-lg border border-[#171512]/22 bg-[#17453a]/5 p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]">
               <input
                 className="mt-1 accent-[#17453a]"
                 defaultChecked
@@ -109,7 +109,7 @@ export function NoteMetadataFields({
 
             <label
               className={cn(
-                'flex gap-3 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]',
+                'flex gap-3 rounded-lg border border-[#171512]/22 bg-[#fffdf6] p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]',
                 hasVerifiedUniversity
                   ? 'cursor-pointer'
                   : 'cursor-not-allowed opacity-50',
@@ -147,7 +147,7 @@ export function NoteMetadataFields({
             Description <span>{description.length} / 2000</span>
           </span>
           <textarea
-            className="min-h-24 resize-y rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 py-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+            className="app-field min-h-24 resize-y px-3 py-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
             maxLength={2000}
             name="description"
             onChange={(event) => onDescriptionChange(event.target.value)}
@@ -162,7 +162,7 @@ export function NoteMetadataFields({
           </span>
           <input
             aria-invalid={tagCount > 10}
-            className="min-h-11 rounded-sm border-[1.5px] border-[#171512] bg-[#fffdf6] px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202] aria-[invalid=true]:border-red-700"
+            className="app-field px-3 text-base font-medium aria-[invalid=true]:border-red-700"
             name="tags"
             onChange={(event) => onTagsChange(event.target.value)}
             placeholder="midsem, important, pyq"

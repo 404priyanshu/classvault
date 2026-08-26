@@ -361,6 +361,83 @@ body {
   animation-name: pencil-stroke;
 }
 
+/* ---------- app register ---------- */
+
+/*
+ * The dashboard shares the landing page's palette and type and almost nothing
+ * else. Marketing chrome -- 1.5px ink borders and hard offset shadows -- works
+ * around illustrations with room to breathe. On a form with six fields it puts
+ * every element at the same weight, so nothing leads and the screen reads as
+ * unrefined. These primitives drop the pressure and let one primary action per
+ * screen carry the emphasis.
+ */
+
+.app-panel {
+  background: #fffdf6;
+  border: 1px solid var(--rule);
+  border-radius: 0.75rem;
+  box-shadow: var(--elev-inline);
+}
+
+/* A panel that groups rows: the divider does the work, not a box per row. */
+.app-list > * + * {
+  border-top: 1px solid var(--rule);
+}
+
+.app-field {
+  background: #fffdf6;
+  border: 1px solid rgba(23, 21, 18, 0.22);
+  border-radius: 0.5rem;
+  min-height: 2.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.app-field:hover:not(:disabled) {
+  border-color: rgba(23, 21, 18, 0.38);
+}
+
+.app-field:focus,
+.app-field:focus-visible {
+  border-color: #17453a;
+  box-shadow: 0 0 0 3px rgba(23, 69, 58, 0.14);
+  outline: none;
+}
+
+.app-field:disabled {
+  background: rgba(23, 21, 18, 0.03);
+  color: rgba(23, 21, 18, 0.5);
+}
+
+/* Quiet action. The saffron button stays the one loud thing on a screen. */
+.app-button {
+  background: #fffdf6;
+  border: 1px solid rgba(23, 21, 18, 0.25);
+  border-radius: 9999px;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.app-button:hover:not(:disabled) {
+  background: rgba(23, 21, 18, 0.04);
+  border-color: rgba(23, 21, 18, 0.4);
+}
+
+/* Page titles carry a screen, not a campaign. */
+.app-title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+@media (min-width: 768px) {
+  .app-title {
+    font-size: 1.875rem;
+  }
+}
+
 /* ---------- hero entrance ---------- */
 
 /*

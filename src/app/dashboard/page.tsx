@@ -48,7 +48,7 @@ function formatNoteType(value: string) {
 function NoteCard({ note }: { note: RecentNote }) {
   return (
     <Link
-      className="group flex min-h-[214px] flex-col border border-[#cfc4ae] bg-[#fffdf6] outline-none transition-transform hover:-translate-y-1 hover:shadow-[4px_4px_0_rgba(23,21,18,0.13)] focus-visible:ring-2 focus-visible:ring-[#17453a]"
+      className="group flex min-h-[214px] flex-col border border-[#cfc4ae] bg-[#fffdf6] outline-none transition-transform hover:-translate-y-1 hover:[box-shadow:var(--elev-inline)] focus-visible:ring-2 focus-visible:ring-[#17453a]"
       href={`/dashboard/notes/${note.id}`}
     >
       <div className="bg-ruled relative h-24 overflow-hidden border-b border-[#d9cfbc] bg-[#f2ecde] p-4">
@@ -143,7 +143,7 @@ export default async function DashboardPage({
 
       <section className="grid items-end gap-5 xl:grid-cols-[minmax(520px,0.92fr)_minmax(420px,1.08fr)]">
         <div>
-          <h1 className="font-display text-4xl font-black leading-[1.05] sm:text-5xl">
+          <h1 className="app-title">
             Welcome back, {firstName}
           </h1>
           <p className="mt-2 text-sm text-[#171512]/60 sm:text-base">
@@ -159,7 +159,7 @@ export default async function DashboardPage({
           />
           <input
             aria-label="Search Notes Library"
-            className="h-14 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] pl-12 pr-24 text-sm outline-none transition-shadow placeholder:text-[#171512]/40 focus:border-[#17453a] focus:shadow-[3px_3px_0_rgba(23,69,58,0.22)]"
+            className="h-14 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] pl-12 pr-24 text-sm outline-none transition-shadow placeholder:text-[#171512]/40 focus:border-[#17453a] focus:[box-shadow:var(--elev-inline)]"
             defaultValue={query}
             name="q"
             placeholder="Search notes by title…"
@@ -185,7 +185,7 @@ export default async function DashboardPage({
               make the next revision session easier.
             </p>
             <Link
-              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-sm bg-[#17453a] px-4 text-sm font-bold text-[#fffdf6] shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-sm bg-[#17453a] px-4 text-sm font-bold text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
               href="/dashboard/notes/new"
             >
               <Upload className="h-4 w-4" />

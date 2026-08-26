@@ -49,7 +49,7 @@ export function AuthProviderButtons({
           <input name="next" type="hidden" value={next} />
           <input name="source" type="hidden" value={source} />
           <button
-            className="flex h-11 w-full items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-white px-3 text-sm font-black shadow-[2px_2px_0_#171512] transition-transform hover:-translate-y-0.5"
+            className="flex h-11 w-full items-center justify-center gap-2 app-button px-3 text-sm font-black"
             name="provider"
             type="submit"
             value="google"
@@ -58,7 +58,7 @@ export function AuthProviderButtons({
             Google
           </button>
           <button
-            className="flex h-11 w-full items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-white px-3 text-sm font-black shadow-[2px_2px_0_#171512] transition-transform hover:-translate-y-0.5"
+            className="flex h-11 w-full items-center justify-center gap-2 app-button px-3 text-sm font-black"
             name="provider"
             type="submit"
             value="github"
@@ -70,7 +70,7 @@ export function AuthProviderButtons({
       </form>
 
       <Link
-        className="mt-3 flex h-11 w-full items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-[#f6f1e5] px-3 text-sm font-black shadow-[2px_2px_0_#171512] transition-transform hover:-translate-y-0.5"
+        className="mt-3 flex h-11 w-full items-center justify-center gap-2 border border-[#171512]/22 bg-[#f6f1e5] px-3 text-sm font-black [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
         href={`/auth/phone?${phoneParams.toString()}`}
       >
         <Phone className="h-4 w-4" />

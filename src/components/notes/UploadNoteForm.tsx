@@ -77,7 +77,7 @@ export function UploadNoteForm({
             <span className="flex items-center gap-2">
               <span
                 className={
-                  'grid h-9 w-9 place-items-center rounded-full border-[1.5px] border-[#171512] bg-[#fffdf6]' +
+                  'grid h-9 w-9 place-items-center rounded-full border border-[#171512]/30 bg-[#fffdf6]' +
                   (index === 0 ? ' bg-[#17453a] text-[#fffdf6]' : '')
                 }
               >
@@ -90,10 +90,8 @@ export function UploadNoteForm({
       </div>
 
       <section className="mt-10">
-        <h1 className="font-display text-5xl font-black leading-[0.95] sm:text-7xl">
-          Add to your vault
-        </h1>
-        <p className="mt-4 text-base text-[#171512]/65 sm:text-lg">
+        <h1 className="app-title">Add to your vault</h1>
+        <p className="mt-3 text-sm leading-relaxed text-[#171512]/65">
           Share your notes. Help your batch. Leave a legacy.{' '}
           <Link
             className="font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
@@ -107,7 +105,7 @@ export function UploadNoteForm({
 
       <form
         aria-busy={isPending}
-        className="paper-card relative mt-8 overflow-hidden bg-[#fffdf6]"
+        className="app-panel relative mt-6 overflow-hidden"
         onSubmit={(event) => void handleSubmit(event, file)}
       >
         <div className="absolute right-5 top-4 hidden rotate-3 border-2 border-dashed border-[#17453a]/45 px-4 py-2 font-hand text-xl font-bold text-[#17453a]/65 lg:block">

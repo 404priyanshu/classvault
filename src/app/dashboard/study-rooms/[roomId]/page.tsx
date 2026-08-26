@@ -78,7 +78,7 @@ export default async function StudyRoomPage({
         <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h1 className="font-display text-4xl font-black leading-[1.04] sm:text-5xl">
+              <h1 className="app-title">
                 {room.name}
               </h1>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">

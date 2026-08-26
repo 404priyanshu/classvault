@@ -127,7 +127,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
                 {formatNoteType(note.note_type)}
               </span>
             </div>
-            <h1 className="font-display mt-2 text-4xl font-black leading-[1.05] sm:text-5xl">
+            <h1 className="app-title mt-2">
               {note.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#171512]/60">
@@ -150,7 +150,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
 
           {file ? (
             <a
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] shadow-[4px_4px_0_#171512] transition-transform hover:-translate-y-0.5 sm:w-auto"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
               href={`/dashboard/notes/${note.id}/download`}
             >
               <Download aria-hidden className="h-[18px] w-[18px]" />
@@ -182,7 +182,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
             </span>
           </div>
 
-          <div className="relative min-h-[520px] border border-[#cfc4ae] bg-[#e9e3d7] p-2 shadow-[4px_4px_0_rgba(23,21,18,0.1)] sm:min-h-[680px] sm:p-3">
+          <div className="relative min-h-[520px] border border-[#cfc4ae] bg-[#e9e3d7] p-2 [box-shadow:var(--elev-inline)] sm:min-h-[680px] sm:p-3">
             {previewUrl && file ? (
               <object
                 className="h-[70vh] min-h-[500px] w-full bg-white sm:min-h-[650px]"

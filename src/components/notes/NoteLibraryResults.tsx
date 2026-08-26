@@ -175,7 +175,7 @@ export function NoteLibraryResults({
         </span>
       </div>
 
-      <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] shadow-[3px_3px_0_rgba(23,21,18,0.08)]">
+      <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]">
         {notes.length > 0 ? (
           notes.map((note) => <NoteRow key={note.id} note={note} />)
         ) : (
@@ -194,7 +194,7 @@ export function NoteLibraryResults({
                 cannot access remain hidden by the database.
               </p>
               <Link
-                className="mt-5 inline-flex min-h-10 items-center border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] shadow-[3px_3px_0_#171512]"
+                className="mt-5 inline-flex min-h-10 items-center border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)]"
                 href="/dashboard/notes"
               >
                 Clear all filters
