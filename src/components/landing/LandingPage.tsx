@@ -6,8 +6,7 @@ import { LandingFooter } from './LandingFooter'
 import { LandingHeader } from './LandingHeader'
 import { ProductChapters } from './ProductChapters'
 import { ProductWalkthrough } from './ProductWalkthrough'
-import { SystemPipeline } from './SystemPipeline'
-import styles from './Landing.module.css'
+import styles from './Clubhouse.module.css'
 
 export function LandingPage() {
   return (
@@ -17,9 +16,8 @@ export function LandingPage() {
       <main id="landing-main">
         <HeroSystem />
         <CapabilityRail />
-        <ProductWalkthrough />
-        <SystemPipeline />
         <ProductChapters />
+        <ProductWalkthrough />
         <AccessChapter />
         <AccountSteps />
       </main>

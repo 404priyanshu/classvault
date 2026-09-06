@@ -2,27 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { VaultMark } from './VaultMark'
-import styles from './Landing.module.css'
+import styles from './Clubhouse.module.css'
 
 const navigation = [
   { label: 'Product', href: '#product' },
   { label: 'Notes', href: '#notes' },
   { label: 'Roadmaps', href: '#roadmaps' },
   { label: 'Study rooms', href: '#rooms' },
-  { label: 'Access', href: '#access' },
+  { label: 'Good to know', href: '#access' },
 ]
 
 export function LandingHeader() {
   const menuRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   useEffect(() => {
     const close = () => setOpen(false)
@@ -38,12 +30,12 @@ export function LandingHeader() {
           menuRef.current?.focus()
         }
       }}
-      className={`${styles.header} ${scrolled || open ? styles.headerActive : ''}`}
+      className={styles.header}
     >
       <nav className={styles.headerInner} aria-label="Main navigation">
         <a className={styles.brand} href="#top" aria-label="ClassVault home">
           <VaultMark className={styles.brandMark} />
-          <span className={styles.brandName}>CLASSVAULT</span>
+          <span className={styles.brandName}>ClassVault</span>
           <span className={styles.brandDescriptor}>/ STUDY SYSTEM</span>
         </a>
 
@@ -57,10 +49,10 @@ export function LandingHeader() {
 
         <div className={styles.headerActions}>
           <a className={`${styles.button} ${styles.buttonOutline} ${styles.signInButton}`} href="/auth/sign-in">
-            SIGN IN
+            Log in
           </a>
           <a className={`${styles.button} ${styles.buttonDark} ${styles.createButton}`} href="/auth/sign-up">
-            CREATE ACCOUNT
+            Join ClassVault
           </a>
           <button
             ref={menuRef}
@@ -99,7 +91,7 @@ export function LandingHeader() {
             href="/auth/sign-up"
             onClick={() => setOpen(false)}
           >
-            CREATE ACCOUNT
+            Join ClassVault
           </a>
         </div>
       </div>

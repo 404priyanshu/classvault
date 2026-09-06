@@ -685,6 +685,16 @@ Never describe simulated behavior as production functionality.
 
 ## 4. Design canon
 
+Landing-page update (2026-09-06): the user requested a playful, friendly direction
+inspired by Discord. The current marketing page uses
+`src/components/landing/Clubhouse.module.css`: periwinkle, butter yellow, mint,
+rounded panels, bold Inter headings, and original study-clubhouse artwork in
+`src/assets/study-clubhouse.webp`. The illustration is generated and optimized
+locally. `ClubhouseRoom.tsx` provides a client-only start/pause/reset timer demo;
+its members and chat are examples. Existing product mockups and keyboard tab
+navigation remain in the walkthrough. This supersedes the historical landing
+visual canon below; authenticated product styling remains unchanged.
+
 Treat the current UI, copy tone, and supplied image assets as the baseline design
 system unless the user explicitly asks for a redesign.
 
@@ -731,22 +741,20 @@ reason.
 
 ## 5. Page composition
 
-`src/app/page.tsx` composes the home page in this order:
+`src/app/page.tsx` renders `LandingPage`, which composes:
 
-1. `Navbar`
-2. `Hero`
-3. `UniversityTicker`
-4. `HowItWorks`
-5. `Features`
-6. `RoadmapDemo`
-7. `StudyRoom`
-8. `MarginNotes`
-9. `Pricing`
-10. `FAQ`
-11. `Footer`
+1. `LandingHeader`
+2. `HeroSystem` with the original study-clubhouse illustration
+3. `CapabilityRail`
+4. `ProductChapters` with notes, roadmap, and interactive focus-timer previews
+5. `ProductWalkthrough` with accessible Notes/Roadmaps/Study rooms/Access tabs
+6. `AccessChapter` with native disclosure questions
+7. `AccountSteps`
+8. `LandingFooter`
 
-`InteractiveFX` is mounted globally on the page to provide decorative
-interaction effects.
+The page uses the scoped `Clubhouse.module.css`. `Landing.module.css` still
+supplies the existing detailed product mockups and vault mark. Demo values are
+explicitly identified as examples and do not connect to authenticated rooms.
 
 ## 6. Architecture map
 

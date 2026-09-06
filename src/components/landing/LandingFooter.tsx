@@ -1,5 +1,5 @@
 import { VaultMark } from './VaultMark'
-import styles from './Landing.module.css'
+import styles from './Clubhouse.module.css'
 
 const footerGroups = [
   {
@@ -35,20 +35,18 @@ export function LandingFooter() {
   return (
     <footer className={styles.footer}>
       <section className={styles.finalCta} aria-labelledby="final-cta-title">
-        <div className={styles.finalCtaTexture} aria-hidden />
         <div className={styles.finalCtaMark}>
           <VaultMark inverted />
-          <span>CLASSVAULT / READY</span>
         </div>
         <div className={styles.finalCtaCopy}>
-          <h2 id="final-cta-title">BUILD YOUR NEXT STUDY SESSION ON SOMETHING BETTER.</h2>
-          <p>Move from scattered course material to one working study system.</p>
+          <h2 id="final-cta-title">Your next chapter.<em>Better together.</em></h2>
+          <p>Good notes. A little company. A whole lot of possibility.</p>
         </div>
         <div className={styles.finalCtaActions}>
           <a className={`${styles.button} ${styles.buttonLight} ${styles.finalButton}`} href="/auth/sign-up">
-            CREATE YOUR VAULT <span aria-hidden>→</span>
+            Find your study place <span aria-hidden>→</span>
           </a>
-          <a className={styles.finalSignIn} href="/auth/sign-in">SIGN IN</a>
+          <a className={styles.finalSignIn} href="/auth/sign-in">Already at home? Log in</a>
         </div>
       </section>
 
@@ -56,10 +54,10 @@ export function LandingFooter() {
         <div className={styles.footerBrand}>
           <div>
             <VaultMark className={styles.footerMark} inverted />
-            <strong>CLASSVAULT</strong>
+            <strong>ClassVault</strong>
           </div>
           <p>
-            A connected study system for notes, source-cited plans, and shared focus.
+            A little corner of the internet for your big college adventure.
           </p>
         </div>
         {footerGroups.map((group) => (

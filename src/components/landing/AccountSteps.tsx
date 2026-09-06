@@ -1,47 +1,19 @@
-import styles from './Landing.module.css'
-
-const steps = [
-  {
-    title: 'SIGN IN YOUR WAY',
-    copy: 'Use email and password, Google, GitHub, or phone OTP.',
-    meta: 'AUTH / 04 METHODS',
-  },
-  {
-    title: 'ADD ACADEMIC CONTEXT',
-    copy: 'Choose your degree, graduation year, university, goal, and study preference.',
-    meta: 'PROFILE / ONCE',
-  },
-  {
-    title: 'OPEN THE VAULT',
-    copy: 'Use notes, roadmaps, rooms, and settings from one protected dashboard.',
-    meta: 'SYSTEM / READY',
-  },
-]
+import styles from './Clubhouse.module.css'
 
 export function AccountSteps() {
   return (
     <section className={styles.accountSection} aria-labelledby="account-title">
       <div className={styles.accountIntro}>
-        <span className={styles.sectionLabel}>ACCOUNT LAYER</span>
-        <h2 id="account-title">SET UP ONCE. STUDY ACROSS THE SYSTEM.</h2>
-        <p>
-          Tell us what you study, find your university, and make yourself at home.
-          Your notes, plans, and rooms are a sign-in away.
-        </p>
+        <span className={styles.eyebrow}>Your seat is right here</span>
+        <h2 id="account-title">New here? You’ll fit right in.</h2>
+        <p>Bring your syllabus, your curiosity, or just your “I should probably start studying” energy.</p>
       </div>
-
       <ol className={styles.accountList}>
-        {steps.map((step, index) => (
-          <li key={step.title}>
-            <span className={styles.accountNumber}>{String(index + 1).padStart(2, '0')}</span>
-            <div>
-              <h3>{step.title}</h3>
-              <p>{step.copy}</p>
-            </div>
-            <small>{step.meta}</small>
-          </li>
+        {['Create your account', 'Find your campus', 'Make yourself at home'].map((step, index) => (
+          <li key={step}><span className={styles.accountNumber}>{index + 1}</span><h3>{step}</h3></li>
         ))}
       </ol>
+      <div className={styles.accountAction}><a className={`${styles.button} ${styles.buttonDark}`} href="/auth/sign-up">Let’s get you settled <span aria-hidden>↗</span></a></div>
     </section>
   )
 }

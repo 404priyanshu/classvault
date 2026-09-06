@@ -1,149 +1,66 @@
-import styles from './Landing.module.css'
+import { ClubhouseRoom } from './ClubhouseRoom'
+import styles from './Clubhouse.module.css'
 
 function NotesVisual() {
   return (
-    <div className={styles.chapterVisualInner}>
-      <div className={styles.chapterWindowBar}><span /><span>NOTES / LIBRARY</span><span>⌘K</span></div>
-      <div className={styles.notesSearch}>operating systems <span>03 RESULTS</span></div>
-      <div className={styles.notesMiniList}>
-        {[
-          ['CPU Scheduling — Unit 03', '4.6', 'PUBLIC'],
-          ['Deadlocks + Worked Examples', '4.4', 'CAMPUS'],
-          ['Memory Management Summary', '4.2', 'PUBLIC'],
-        ].map(([title, rating, scope], index) => (
-          <div key={title} className={index === 0 ? styles.miniRowActive : ''}>
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <strong>{title}</strong>
-            <span>★ {rating}</span>
-            <em>{scope}</em>
-          </div>
-        ))}
+    <>
+      <div className={styles.noteCard}>
+        <div className={styles.noteCardTop}><span>PDF</span> Operating Systems · Unit 03</div>
+        <h4>CPU scheduling,<br />minus the confusion.</h4>
+        <p>Diagrams. Worked examples. The useful stuff.</p>
+        <div className={styles.noteLines} aria-hidden><i /><i /><i /><i /></div>
+        <span className={styles.noteTag}>✓ A little help from your classmates</span>
       </div>
-    </div>
+      <span className={styles.noteSticker} aria-hidden>saved your scroll ♡</span>
+      <span className={styles.visualCaption}>Illustrative note preview</span>
+    </>
   )
 }
 
 function RoadmapVisual() {
   return (
-    <div className={styles.chapterVisualInner}>
-      <div className={styles.chapterWindowBar}><span /><span>ROADMAP / OPERATING SYSTEMS</span><span>62%</span></div>
-      <div className={styles.roadmapMini}>
-        {[
-          ['01', 'Foundations', 'SOURCE 02', true],
-          ['02', 'Processes + threads', 'SOURCE 01', true],
-          ['03', 'Memory management', 'SOURCE 03', false],
-          ['04', 'Revision pass', 'SOURCE 02', false],
-        ].map(([number, title, source, done]) => (
-          <div key={String(number)}>
-            <span className={done ? styles.miniComplete : ''}>{done ? '✓' : number}</span>
-            <strong>{title}</strong>
-            <em>{source}</em>
-          </div>
-        ))}
+    <>
+      <div className={styles.planCard}>
+        <div className={styles.planCardTop}><span>YOUR REVISION PLAN</span><span aria-hidden>✦</span></div>
+        <h4>One thing at a time.</h4>
+        <div className={styles.planTasks}>
+          <div><b>✓</b><span>Get the basics down<small>Processes & threads · Source 01</small></span></div>
+          <div><b>02</b><span>Try a worked example<small>CPU scheduling · Source 02</small></span></div>
+          <div><b>03</b><span>Give yourself a quick recap<small>Revision questions · Source 01</small></span></div>
+        </div>
+        <div className={styles.planProgress}><i aria-hidden /><span>1 of 3 done. Nice.</span></div>
       </div>
-      <div className={styles.sourceTrace}><span>SOURCES</span><i /><b>01</b><i /><b>02</b><i /><b>03</b></div>
-    </div>
-  )
-}
-
-function RoomVisual() {
-  return (
-    <div className={`${styles.chapterVisualInner} ${styles.roomVisual}`}>
-      <div className={styles.chapterWindowBar}><span className={styles.liveIndicator} /><span>ROOM / DSA REVISION</span><span>04 MEMBERS</span></div>
-      <time>24:59</time>
-      <div className={styles.timerTrack}><i /></div>
-      <div className={styles.roomControls}><span>HOST / ARJUN_17</span><span>FOCUS</span><span>REV / 18</span></div>
-      <div className={styles.chatLines}>
-        <p><b>MEERA_08</b> starting graphs after this block</p>
-        <p><b>ARJUN_17</b> timer is synced</p>
-      </div>
-    </div>
-  )
-}
-
-function VaultVisual() {
-  return (
-    <div className={styles.chapterVisualInner}>
-      <div className={styles.chapterWindowBar}><span /><span>MY VAULT / LIFECYCLE</span><span>OWNER</span></div>
-      <div className={styles.lifecycleGraph}>
-        {['DRAFT', 'VERIFY', 'READY', 'TRASH', 'RESTORE'].map((label, index) => (
-          <div key={label}>
-            <span className={index === 2 ? styles.lifecycleActive : ''}>{String(index + 1).padStart(2, '0')}</span>
-            <strong>{label}</strong>
-            {index < 4 && <i aria-hidden />}
-          </div>
-        ))}
-      </div>
-      <p className={styles.lifecycleNote}>TRASH / RECOVERABLE FOR 30 DAYS</p>
-    </div>
+      <span className={styles.visualCaption}>Illustrative roadmap preview</span>
+    </>
   )
 }
 
 const chapters = [
-  {
-    id: 'notes',
-    number: '01 / KNOWLEDGE LAYER',
-    title: "FIND WHAT YOU NEED. KNOW WHAT YOU'RE OPENING.",
-    copy: 'Search titles, tags, subjects, and extractable PDF text. Filter by type, access, recency, or rating, then preview files privately.',
-    support: 'Pseudonymous contributors. Recency-aware peer ratings. Scoped reporting and moderation.',
-    href: '/dashboard/notes',
-    action: 'OPEN NOTES',
-    visual: NotesVisual,
-  },
-  {
-    id: 'roadmaps',
-    number: '02 / PLANNING LAYER',
-    title: 'A STUDY PLAN THAT SHOWS ITS SOURCES.',
-    copy: 'Choose a topic and study mode. ClassVault selects notes you can read, builds cited sections and tasks, and withholds a section if its source becomes unavailable.',
-    support: 'Private task progress. Revocable sharing. Permission checks on every view.',
-    href: '/dashboard/roadmaps',
-    action: 'BUILD A ROADMAP',
-    visual: RoadmapVisual,
-  },
-  {
-    id: 'rooms',
-    number: '03 / FOCUS LAYER',
-    title: 'START TOGETHER. STAY IN SYNC.',
-    copy: 'Create or join a temporary public or campus room with a synchronized Pomodoro timer, member roles, and room-scoped chat.',
-    support: 'Host responsibility can transfer when the original host leaves.',
-    href: '/dashboard/study-rooms',
-    action: 'FIND A ROOM',
-    visual: RoomVisual,
-  },
-  {
-    id: 'vault',
-    number: '04 / LIFECYCLE LAYER',
-    title: 'YOUR FILES HAVE A WAY BACK.',
-    copy: 'Track active uploads, soft-delete notes, restore them from Trash, and keep publication state visible from one owner-only view.',
-    support: 'Private storage. Exact-object authorization. A 30-day recovery window.',
-    href: '/dashboard/vault',
-    action: 'OPEN MY VAULT',
-    visual: VaultVisual,
-  },
+  { id: 'notes', label: '01 / PASS THE GOOD NOTES', title: 'The group chat scroll ends here.', copy: 'Good notes deserve better than getting buried under “which classroom?” Find PDFs, summaries, and previous-year papers by subject. Preview them, check peer ratings, and get to the good part.', action: 'Find your next read', href: '/dashboard/notes', visual: NotesVisual },
+  { id: 'roadmaps', label: '02 / SMALL STEPS, REAL PROGRESS', title: 'Big syllabus. Meet little steps.', copy: 'That “where do I even start?” feeling? Give it a plan. Turn notes you can access into a study roadmap, follow the sources, and tick things off at your own pace.', action: 'Make a study plan', href: '/dashboard/roadmaps', visual: RoadmapVisual },
+  { id: 'rooms', label: '03 / BETTER WITH A STUDY BUDDY', title: 'Same timer. Your kind of company.', copy: 'Pull up a chair in a public or campus study room. Settle into a shared Pomodoro session, check in through chat, and keep each other going. Even on the “just five more minutes” days.', action: 'Find a study room', href: '/dashboard/study-rooms', visual: ClubhouseRoom },
 ]
 
 export function ProductChapters() {
   return (
     <section className={styles.chaptersSection} aria-labelledby="chapters-title">
       <div className={styles.chaptersHeading}>
-        <h2 id="chapters-title">BUILD YOUR STUDY SYSTEM.</h2>
-        <p>
-          Every layer is useful on its own. Together, they turn course material into
-          something you can actually finish.
-        </p>
+        <span className={styles.eyebrow}>A little less chaos. A lot more you.</span>
+        <h2 id="chapters-title">College is a lot.<br /><em>Don’t do it all alone.</em></h2>
+        <p>A home for the notes, plans, and people that help you get through it. From first lecture to final revision.</p>
       </div>
       <div className={styles.chapterGrid}>
         {chapters.map((chapter) => {
           const Visual = chapter.visual
           return (
             <article key={chapter.id} id={chapter.id} className={styles.chapter}>
-              <span className={styles.chapterDemoLabel}>ILLUSTRATIVE PREVIEW</span>
               <div className={styles.chapterVisual}><Visual /></div>
-              <span className={styles.sectionLabel}>{chapter.number}</span>
-              <h3>{chapter.title}</h3>
-              <p>{chapter.copy}</p>
-              <small>{chapter.support}</small>
-              <a href={chapter.href}>{chapter.action} <span aria-hidden>→</span></a>
+              <div className={styles.chapterCopy}>
+                <span className={styles.chapterLabel}>{chapter.label}</span>
+                <h3>{chapter.title}</h3>
+                <p>{chapter.copy}</p>
+                <a href={chapter.href}>{chapter.action}<span aria-hidden>↗</span></a>
+              </div>
             </article>
           )
         })}

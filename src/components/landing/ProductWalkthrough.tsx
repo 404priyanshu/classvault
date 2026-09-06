@@ -7,7 +7,7 @@ import {
   RoadmapMockup,
   RoomMockup,
 } from './ProductMockups'
-import styles from './Landing.module.css'
+import styles from './Clubhouse.module.css'
 
 const surfaces = [
   {
@@ -43,10 +43,10 @@ export function ProductWalkthrough() {
   return (
     <section id="product" className={styles.walkthroughSection} aria-labelledby="walkthrough-title">
       <div className={styles.sectionHeadingCentered}>
-        <h2 id="walkthrough-title">ONE ACCOUNT. EVERY STUDY SURFACE.</h2>
+        <h2 id="walkthrough-title">Come on in. Have a look around.</h2>
         <p>
-          Find course material, turn it into a plan, and make time to study together.
-          Try each preview to see how it works.
+          Notes person? Planner person? Just-here-for-the-study-room person?
+          There’s a corner for you. Pick one to peek inside.
         </p>
       </div>
 
@@ -101,6 +101,7 @@ export function ProductWalkthrough() {
           <ActiveMockup />
         </div>
       </div>
+      <p className={styles.walkthroughNote}>These previews use example data. Create an account to find real notes, build your own plans, and join a room.</p>
     </section>
   )
 }

@@ -7,11 +7,11 @@ test.describe('marketing landing page', () => {
     await expect(
       page.getByRole('heading', {
         level: 1,
-        name: /Less searching. More studying./,
+        name: /Good notes. Great company. You’ve got this./,
       }),
     ).toBeVisible()
     await expect(
-      page.getByText('TRUSTED NOTES. CITED PLANS. SHARED FOCUS.', {
+      page.getByText('Early access at Bennett University. Come make yourself at home.', {
         exact: true,
       }),
     ).toBeVisible()
@@ -20,13 +20,11 @@ test.describe('marketing landing page', () => {
     ).toBeVisible()
   })
 
-  test('study desk previews change their content and destination', async ({ page }) => {
+  test('hero points to signup and the interactive product preview', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: '03 Roadmaps' }).click()
-    await expect(page.getByRole('heading', { name: 'Know what to study next.' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Build a study plan' })).toHaveAttribute('href', '/dashboard/roadmaps')
-    await page.getByRole('button', { name: '04 Rooms' }).click()
-    await expect(page.getByRole('heading', { name: 'A little shared focus.' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Find your study place' }).first()).toHaveAttribute('href', '/auth/sign-up')
+    await page.getByRole('link', { name: 'Take a peek' }).click()
+    await expect(page.getByRole('tab', { name: /Notes/ })).toBeVisible()
   })
 
   test('mobile menu closes with Escape and restores focus', async ({ page }) => {
@@ -40,6 +38,23 @@ test.describe('marketing landing page', () => {
     await expect(menu).toBeFocused()
     await expect(menu).toHaveAttribute('aria-expanded', 'false')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  })
+
+  test('privacy questions expand and retain the My Vault destination', async ({ page }) => {
+    await page.goto('/')
+    await page.getByText('Can I take my notes back?', { exact: true }).click()
+    await expect(page.getByRole('link', { name: 'My Vault', exact: true }).first()).toHaveAttribute('href', '/dashboard/vault')
+    await expect(page.getByText(/Deleted notes move to Trash/)).toBeVisible()
+  })
+
+  test('focus demo can start, pause, and reset', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Start a focus demo' }).click()
+    await expect(page.locator('#rooms time')).not.toHaveText('25:00')
+    await page.getByRole('button', { name: 'Pause demo' }).click()
+    await expect(page.getByRole('button', { name: 'Start a focus demo' })).toBeVisible()
+    await page.getByRole('button', { name: 'Reset focus demo' }).click()
+    await expect(page.locator('#rooms time')).toHaveText('25:00')
   })
 
   test('does not advertise capabilities the product lacks', async ({ page }) => {
@@ -66,14 +81,12 @@ test.describe('marketing landing page', () => {
     expect(withoutScripts).not.toMatch(/opacity:0[^.\d]/)
 
     for (const section of [
-      'BUILT AROUND HOW COLLEGE ACTUALLY WORKS.',
-      // Onboarding offers one university; the page has to say which.
+      'Built for the beautiful chaos of college.',
       'Bennett University',
-      'ONE ACCOUNT. EVERY STUDY SURFACE.',
-      'A SEMESTER, NOT A FOLDER.',
-      'BUILD YOUR STUDY SYSTEM.',
-      'ACCESS IS NOT AN AFTERTHOUGHT.',
-      'SET UP ONCE. STUDY ACROSS THE SYSTEM.',
+      'Come on in. Have a look around.',
+      'College is a lot.',
+      'Make yourself',
+      'New here? You’ll fit right in.',
     ]) {
       expect(withoutScripts).toContain(section)
     }
