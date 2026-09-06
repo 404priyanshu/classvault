@@ -7,7 +7,7 @@ test.describe('marketing landing page', () => {
     await expect(
       page.getByRole('heading', {
         level: 1,
-        name: /THE STUDY INFRASTRUCTURE/,
+        name: /Less searching. More studying./,
       }),
     ).toBeVisible()
     await expect(
@@ -18,6 +18,28 @@ test.describe('marketing landing page', () => {
     await expect(
       page.locator('a[href="/auth/sign-up"]').first(),
     ).toBeVisible()
+  })
+
+  test('study desk previews change their content and destination', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: '03 Roadmaps' }).click()
+    await expect(page.getByRole('heading', { name: 'Know what to study next.' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Build a study plan' })).toHaveAttribute('href', '/dashboard/roadmaps')
+    await page.getByRole('button', { name: '04 Rooms' }).click()
+    await expect(page.getByRole('heading', { name: 'A little shared focus.' })).toBeVisible()
+  })
+
+  test('mobile menu closes with Escape and restores focus', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    const menu = page.getByRole('button', { name: 'Open navigation menu' })
+    await expect(page.locator('#landing-mobile-navigation')).toHaveAttribute('inert', '')
+    await menu.click()
+    await expect(page.getByRole('link', { name: '01 Product' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeFocused()
+    await expect(menu).toHaveAttribute('aria-expanded', 'false')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   })
 
   test('does not advertise capabilities the product lacks', async ({ page }) => {
@@ -99,6 +121,19 @@ test.describe('authentication routes', () => {
 })
 
 test.describe('product walkthrough', () => {
+  test('product tabs support arrow keys and Home/End', async ({ page }) => {
+    await page.goto('/')
+    const notes = page.getByRole('tab', { name: /Notes/ })
+    await notes.focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('tab', { name: /Roadmaps/ })).toBeFocused()
+    await expect(page.getByRole('tab', { name: /Roadmaps/ })).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press('End')
+    await expect(page.getByRole('tab', { name: /Access/ })).toBeFocused()
+    await page.keyboard.press('Home')
+    await expect(notes).toBeFocused()
+  })
+
   test('switches between the product surfaces', async ({ page }) => {
     await page.goto('/')
 

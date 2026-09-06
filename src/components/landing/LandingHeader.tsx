@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { VaultMark } from './VaultMark'
 import styles from './Landing.module.css'
 
@@ -13,6 +13,7 @@ const navigation = [
 ]
 
 export function LandingHeader() {
+  const menuRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -31,6 +32,12 @@ export function LandingHeader() {
 
   return (
     <header
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          setOpen(false)
+          menuRef.current?.focus()
+        }
+      }}
       className={`${styles.header} ${scrolled || open ? styles.headerActive : ''}`}
     >
       <nav className={styles.headerInner} aria-label="Main navigation">
@@ -49,22 +56,20 @@ export function LandingHeader() {
         </div>
 
         <div className={styles.headerActions}>
-          <a className={`${styles.button} ${styles.buttonDark} ${styles.signInButton}`} href="/auth/sign-in">
+          <a className={`${styles.button} ${styles.buttonOutline} ${styles.signInButton}`} href="/auth/sign-in">
             SIGN IN
           </a>
-          <a className={`${styles.button} ${styles.buttonOutline} ${styles.createButton}`} href="/auth/sign-up">
+          <a className={`${styles.button} ${styles.buttonDark} ${styles.createButton}`} href="/auth/sign-up">
             CREATE ACCOUNT
           </a>
           <button
+            ref={menuRef}
             type="button"
             className={styles.menuButton}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={open}
             aria-controls="landing-mobile-navigation"
-            onClick={(event) => {
-              setOpen((current) => !current)
-              if (event.detail > 0) event.currentTarget.blur()
-            }}
+            onClick={() => setOpen((current) => !current)}
           >
             <span />
             <span />
@@ -73,6 +78,7 @@ export function LandingHeader() {
       </nav>
 
       <div
+        inert={!open}
         id="landing-mobile-navigation"
         className={`${styles.mobileNav} ${open ? styles.mobileNavOpen : ''}`}
       >

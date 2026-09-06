@@ -19,7 +19,7 @@ const surfaces = [
   {
     title: 'Roadmaps',
     description:
-      'Build a deterministic study plan from notes you can open, with sources attached to every derived section.',
+      'Build a structured study plan from notes you can open, with sources attached to every derived section.',
     component: RoadmapMockup,
   },
   {
@@ -45,8 +45,8 @@ export function ProductWalkthrough() {
       <div className={styles.sectionHeadingCentered}>
         <h2 id="walkthrough-title">ONE ACCOUNT. EVERY STUDY SURFACE.</h2>
         <p>
-          Notes, plans, and focus sessions share one permission-aware system, so each step
-          starts with the context from the last.
+          Find course material, turn it into a plan, and make time to study together.
+          Try each preview to see how it works.
         </p>
       </div>
 
@@ -58,6 +58,16 @@ export function ProductWalkthrough() {
               type="button"
               role="tab"
               id={`surface-tab-${index}`}
+              tabIndex={active === index ? 0 : -1}
+              onKeyDown={(event) => {
+                const offsets: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
+                const offset = offsets[event.key]
+                if (offset === undefined && event.key !== 'Home' && event.key !== 'End') return
+                event.preventDefault()
+                const next = event.key === 'Home' ? 0 : event.key === 'End' ? surfaces.length - 1 : (index + offset + surfaces.length) % surfaces.length
+                setActive(next)
+                document.getElementById(`surface-tab-${next}`)?.focus()
+              }}
               aria-selected={active === index}
               aria-controls="surface-panel"
               className={`${styles.surfaceTab} ${active === index ? styles.surfaceTabActive : ''}`}
@@ -80,6 +90,7 @@ export function ProductWalkthrough() {
           key={active}
           id="surface-panel"
           role="tabpanel"
+          tabIndex={0}
           aria-labelledby={`surface-tab-${active}`}
           className={styles.walkthroughStage}
         >

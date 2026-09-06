@@ -16,13 +16,13 @@ const term = [
   {
     stage: 'WEEK 01',
     title: 'Notes go up as the unit is taught',
-    copy: 'One PDF or image up to 25 MiB. File type, size, and checksum are checked before anything is published.',
+    copy: 'Share a PDF or image up to 25 MiB. Add a subject and tags so classmates can find it later.',
     surface: 'UPLOAD',
   },
   {
     stage: 'UNIT NOTES',
     title: 'The class decides what is worth opening',
-    copy: 'A 1–5 rating from classmates, weighted by how many left one and how recently, so a single five never outranks the class.',
+    copy: 'Classmate ratings help you choose where to start, with both rating count and recency taken into account.',
     surface: 'RATINGS',
   },
   {
@@ -54,8 +54,8 @@ export function SystemPipeline() {
           <h2 id="pipeline-title">A SEMESTER, NOT A FOLDER.</h2>
         </div>
         <p>
-          Course material moves through one permission-aware path. These are the
-          points in a term where it actually has to work.
+          From the first uploaded notes to the last group revision session,
+          give every part of your semester a place.
         </p>
       </div>
 

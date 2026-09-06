@@ -25,8 +25,8 @@ export function AccountSteps() {
         <span className={styles.sectionLabel}>ACCOUNT LAYER</span>
         <h2 id="account-title">SET UP ONCE. STUDY ACROSS THE SYSTEM.</h2>
         <p>
-          Your account carries identity and academic context into every protected
-          ClassVault surface.
+          Tell us what you study, find your university, and make yourself at home.
+          Your notes, plans, and rooms are a sign-in away.
         </p>
       </div>
 

@@ -137,6 +137,7 @@ export function ProductChapters() {
           const Visual = chapter.visual
           return (
             <article key={chapter.id} id={chapter.id} className={styles.chapter}>
+              <span className={styles.chapterDemoLabel}>ILLUSTRATIVE PREVIEW</span>
               <div className={styles.chapterVisual}><Visual /></div>
               <span className={styles.sectionLabel}>{chapter.number}</span>
               <h3>{chapter.title}</h3>

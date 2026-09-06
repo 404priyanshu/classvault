@@ -14,8 +14,8 @@ export function CapabilityRail() {
         <div className={styles.capabilityIntro}>
           <h2 id="capability-heading">BUILT AROUND HOW COLLEGE ACTUALLY WORKS.</h2>
           <p>
-            Course material moves across people, permissions, plans, and focus sessions.
-            ClassVault keeps that path connected.
+            The useful PDF. The plan for mid-sems. The group that helps you show up.
+            Keep the things you need for a semester together.
           </p>
           {/*
             Onboarding offers Bennett and nothing else, so a visitor from another
