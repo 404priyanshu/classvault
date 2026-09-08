@@ -3,6 +3,47 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from './database.types'
 import { getSupabaseConfig, isSupabaseConfigured } from './config'
 
+/**
+ * The pages whose whole job is to start a session. A student who still has one
+ * has no reason to see them, and showing the sign-in form to someone already
+ * signed in is indistinguishable from having been logged out.
+ *
+ * The rest of `/auth` stays reachable with a session on purpose:
+ * `/auth/update-password` requires one, `/auth/confirm` is finishing a link,
+ * and `/auth/error` has to be able to explain itself.
+ */
+const AUTH_ENTRY_PATHS = new Set([
+  '/auth/forgot-password',
+  '/auth/phone',
+  '/auth/sign-in',
+  '/auth/sign-up',
+])
+
+function safeNextPath(value: string | null, fallback = '/dashboard') {
+  return value && value.startsWith('/') && !value.startsWith('//')
+    ? value
+    : fallback
+}
+
+/**
+ * Moves any cookies Supabase wrote during this request onto another response.
+ *
+ * A refresh — successful or failed — writes new or cleared auth cookies while
+ * the request runs. Returning a bare `NextResponse.redirect()` drops them,
+ * so a cleared session is never actually cleared in the browser and the next
+ * request repeats the same failure.
+ */
+function carrySessionCookies(
+  target: NextResponse,
+  source: NextResponse,
+): NextResponse {
+  source.cookies.getAll().forEach((cookie) => {
+    target.cookies.set(cookie)
+  })
+
+  return target
+}
+
 export async function updateSession(request: NextRequest) {
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith('/dashboard') ||
@@ -61,7 +102,17 @@ export async function updateSession(request: NextRequest) {
       'next',
       `${request.nextUrl.pathname}${request.nextUrl.search}`,
     )
-    return NextResponse.redirect(url)
+    return carrySessionCookies(NextResponse.redirect(url), supabaseResponse)
+  }
+
+  // A live session landing on a sign-in page means the session was refreshed
+  // here a moment ago; send the student on instead of asking them to prove
+  // again what the cookie already proved.
+  if (claims && AUTH_ENTRY_PATHS.has(request.nextUrl.pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = safeNextPath(request.nextUrl.searchParams.get('next'))
+    url.search = ''
+    return carrySessionCookies(NextResponse.redirect(url), supabaseResponse)
   }
 
   return supabaseResponse
