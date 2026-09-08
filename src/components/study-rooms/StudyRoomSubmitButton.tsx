@@ -25,6 +25,8 @@ export function StudyRoomSubmitButton({
         'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-club-purple px-4 text-sm font-bold text-club-paper transition hover:bg-club-deep disabled:cursor-wait disabled:opacity-60',
         className,
       )}
+      data-cuelume-press
+      data-cuelume-release
       disabled={pending}
       name={name}
       type="submit"

@@ -15,6 +15,7 @@ import { AvatarSettingsForm } from '@/components/settings/AvatarSettingsForm'
 import { CopyAccountId } from '@/components/settings/CopyAccountId'
 import { PasswordSettingsForm } from '@/components/settings/PasswordSettingsForm'
 import { ProfileDetailsForm } from '@/components/settings/ProfileDetailsForm'
+import { SoundCuesToggle } from '@/components/settings/SoundCuesToggle'
 import { StudyPreferencesForm } from '@/components/settings/StudyPreferencesForm'
 import { createClient } from '@/lib/supabase/server'
 
@@ -247,6 +248,8 @@ export default async function SettingsPage() {
               primaryGoal={profile.primary_goal || 'stay_consistent'}
               studyPreference={profile.study_preference || 'accountability'}
             />
+            <div className="my-7 border-t border-club-line" />
+            <SoundCuesToggle />
           </SettingsSection>
 
           <SettingsSection

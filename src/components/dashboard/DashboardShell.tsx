@@ -65,10 +65,10 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
             : base === '/dashboard/vault' ? pathname === base && (href.includes('?') === isTrash)
             : base === '/dashboard/notes' ? pathname.startsWith(base) && !pathname.endsWith('/new') && !pathname.endsWith('/batch')
             : pathname.startsWith(base)
-          return <Link key={href} href={href} aria-current={active ? 'page' : undefined} className={cn('club-nav-item', active && 'club-nav-active')} onClick={() => setMenuOpen(false)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
+          return <Link key={href} href={href} aria-current={active ? 'page' : undefined} className={cn('club-nav-item', active && 'club-nav-active')} data-cuelume-hover="tick" onClick={() => setMenuOpen(false)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
         })}
       </nav>
-      <Link href="/dashboard/notes/new" className="club-sidebar-upload" onClick={() => setMenuOpen(false)}><Upload size={18} /> Share your notes <ArrowUpRight size={16} /></Link>
+      <Link href="/dashboard/notes/new" className="club-sidebar-upload" data-cuelume-press data-cuelume-release onClick={() => setMenuOpen(false)}><Upload size={18} /> Share your notes <ArrowUpRight size={16} /></Link>
       <p className="club-sidebar-nudge">A little knowledge goes a long way.</p>
       <div className="club-sidebar-profile">
         <Link href="/dashboard/settings" onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3">

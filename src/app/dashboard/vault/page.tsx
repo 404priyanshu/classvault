@@ -190,12 +190,12 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <Link className={!isTrash ? 'rounded-3xl border border-club-purple bg-club-purple p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-club-purple'} href="/dashboard/vault">
+        <Link className={!isTrash ? 'rounded-3xl border border-club-purple bg-club-purple p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-club-purple'} data-cuelume-toggle href="/dashboard/vault">
           <FolderOpen aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Active uploads</span>
           <span className="mt-1 block text-xs opacity-70">Published, drafts, and upload status</span>
         </Link>
-        <Link className={isTrash ? 'rounded-3xl border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-[#9a3f2f]'} href="/dashboard/vault?view=trash">
+        <Link className={isTrash ? 'rounded-3xl border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-[#9a3f2f]'} data-cuelume-toggle href="/dashboard/vault?view=trash">
           <Trash2 aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Trash</span>
           <span className="mt-1 block text-xs opacity-70">Recover notes for up to 30 days</span>

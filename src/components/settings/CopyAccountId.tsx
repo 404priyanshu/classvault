@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import { play } from 'cuelume'
 
 export function CopyAccountId({ accountId }: { accountId: string }) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'error'>('idle')
@@ -13,8 +14,10 @@ export function CopyAccountId({ accountId }: { accountId: string }) {
         try {
           await navigator.clipboard.writeText(accountId)
           setStatus('copied')
+          play('success')
         } catch {
           setStatus('error')
+          play('error')
         }
         window.setTimeout(() => setStatus('idle'), 1800)
       }}

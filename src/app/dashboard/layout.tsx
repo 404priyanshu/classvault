@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { SoundCues } from '@/components/ui/SoundCues'
 import { createClient } from '@/lib/supabase/server'
 import { signOutAction } from '../auth/actions'
 
@@ -66,6 +67,7 @@ export default async function DashboardLayout({
       }
       universityName={profile.university_name}
     >
+      <SoundCues />
       {children}
     </DashboardShell>
   )

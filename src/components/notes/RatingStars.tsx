@@ -76,6 +76,7 @@ export function RatingStars({
                 aria-label={`Rate ${value} out of 5 stars`}
                 aria-pressed={userRating === value}
                 className="rounded-sm p-1 outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-club-yellow hover:-translate-y-0.5 disabled:cursor-wait"
+                data-cuelume-press="tick"
                 disabled={isPending}
                 key={value}
                 onClick={() => rate(value)}
