@@ -43,13 +43,13 @@ function RoomRow({ room }: { room: StudyRoomListItem }) {
   const scopeLabel = room.university_name || 'Public'
 
   return (
-    <article className="grid gap-5 border-b border-[#d8cdb9] py-6 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+    <article className="grid gap-5 border-b border-club-line py-6 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <h3 className="font-display text-xl font-black leading-tight sm:text-2xl">
             {room.room_name}
           </h3>
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#17453a]">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-club-purple">
             {room.visibility === 'university' ? (
               <Building2 aria-hidden className="h-3.5 w-3.5" />
             ) : (
@@ -58,16 +58,16 @@ function RoomRow({ room }: { room: StudyRoomListItem }) {
             {scopeLabel}
           </span>
         </div>
-        <p className="mt-1 text-sm font-semibold text-[#171512]/55">
+        <p className="mt-1 text-sm font-semibold text-club-muted">
           {room.subject_tag}
         </p>
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[#171512]/60">
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-club-muted">
           <span className="inline-flex items-center gap-1.5">
-            <UsersRound aria-hidden className="h-4 w-4 text-[#17453a]" />
+            <UsersRound aria-hidden className="h-4 w-4 text-club-purple" />
             {room.member_count}/{room.member_capacity} members
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <Clock3 aria-hidden className="h-4 w-4 text-[#17453a]" />
+            <Clock3 aria-hidden className="h-4 w-4 text-club-purple" />
             <span className="capitalize">{room.timer_phase}</span>
             <span aria-hidden>·</span>
             <StudyRoomListCountdown
@@ -86,14 +86,14 @@ function RoomRow({ room }: { room: StudyRoomListItem }) {
       <div className="md:min-w-32">
         {room.current_user_joined ? (
           <Link
-            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-sm bg-[#17453a] px-4 text-sm font-bold text-[#fffdf6] transition hover:bg-[#10372f] md:w-auto"
+            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-sm bg-club-purple px-4 text-sm font-bold text-club-paper transition hover:bg-club-deep md:w-auto"
             href={`/dashboard/study-rooms/${room.room_id}`}
           >
             Open room
             <ArrowRight aria-hidden className="h-4 w-4" />
           </Link>
         ) : full ? (
-          <span className="inline-flex min-h-10 w-full items-center justify-center rounded-sm border border-[#c8b9a3] bg-[#eee6d8] px-4 text-sm font-bold text-[#171512]/45 md:w-auto">
+          <span className="inline-flex min-h-10 w-full items-center justify-center rounded-full border border-club-line bg-club-lavender px-4 text-sm font-bold text-club-muted md:w-auto">
             Room full
           </span>
         ) : (
@@ -148,24 +148,24 @@ export default async function StudyRoomsPage({
 
       {message ? (
         <p
-          className="border border-[#17453a]/30 bg-[#e7f0e7] px-4 py-3 text-sm font-semibold text-[#17453a]"
+          className="border border-club-purple/30 bg-club-mint px-4 py-3 text-sm font-semibold text-club-purple"
           role="status"
         >
           {message}
         </p>
       ) : null}
 
-      <header className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-7 xl:flex-row xl:items-end xl:justify-between">
+      <header className="flex flex-col gap-5 border-b border-club-line pb-7 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="app-title">
             Study together, stay accountable
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
             Join a focused session or open a room for your next revision block.
           </p>
         </div>
         <a
-          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-sm bg-[#f0a202] px-5 text-sm font-black text-[#171512] [box-shadow:var(--elev-inline)] transition hover:-translate-y-0.5"
+          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-sm bg-club-yellow px-5 text-sm font-black text-club-ink [box-shadow:var(--elev-inline)] transition hover:-translate-y-0.5"
           href="#create-room"
         >
           <DoorOpen aria-hidden className="h-4 w-4" />
@@ -174,11 +174,11 @@ export default async function StudyRoomsPage({
       </header>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="min-w-0 rounded-md border border-[#cfc4ae] bg-[#fffdf6] p-5 sm:p-7">
-          <div className="flex flex-col gap-4 border-b border-[#d8cdb9] pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="min-w-0 rounded-3xl border border-club-line bg-club-paper p-5 sm:p-7">
+          <div className="flex flex-col gap-4 border-b border-club-line pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display text-2xl font-black">Rooms you can join</h2>
-              <p className="mt-1 text-xs text-[#171512]/50">
+              <p className="mt-1 text-xs text-club-muted">
                 Public rooms plus rooms from your currently verified university.
               </p>
             </div>
@@ -188,8 +188,8 @@ export default async function StudyRoomsPage({
                   className={cn(
                     'min-h-9 rounded-sm px-3 py-2 text-xs font-bold transition',
                     selectedScope === item.value
-                      ? 'bg-[#17453a] text-[#fffdf6]'
-                      : 'text-[#171512]/60 hover:bg-[#eef4ed] hover:text-[#17453a]',
+                      ? 'bg-club-purple text-club-paper'
+                      : 'text-club-muted hover:bg-club-mint hover:text-club-purple',
                   )}
                   href={
                     item.value === 'all'
@@ -208,17 +208,17 @@ export default async function StudyRoomsPage({
             {visibleRooms.length > 0 ? (
               visibleRooms.map((room) => <RoomRow key={room.room_id} room={room} />)
             ) : (
-              <div className="bg-ruled grid min-h-64 place-items-center border border-dashed border-[#bfb39d] bg-[#f7f1e5] px-6 py-10 text-center">
+              <div className="grid min-h-64 place-items-center border border-dashed border-club-line bg-club-lavender px-6 py-10 text-center">
                 <div>
                   <UsersRound
                     aria-hidden
-                    className="mx-auto h-9 w-9 text-[#17453a]"
+                    className="mx-auto h-9 w-9 text-club-purple"
                     strokeWidth={1.5}
                   />
                   <h3 className="font-display mt-3 text-xl font-black">
                     No matching rooms are open
                   </h3>
-                  <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#171512]/55">
+                  <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-club-muted">
                     Start a focused room and invite classmates who share its access scope.
                   </p>
                 </div>
@@ -228,52 +228,52 @@ export default async function StudyRoomsPage({
         </section>
 
         <aside className="space-y-5">
-          <section className="rounded-md border border-[#cfc4ae] bg-[#fffdf6] p-5">
+          <section className="rounded-3xl border border-club-line bg-club-paper p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="font-display text-xl font-black">Your rooms</h2>
-              <span className="text-xs font-bold text-[#17453a]">
+              <span className="text-xs font-bold text-club-purple">
                 {joinedRooms.length} joined
               </span>
             </div>
             {joinedRooms.length > 0 ? (
-              <div className="mt-4 divide-y divide-[#e2dacb]">
+              <div className="mt-4 divide-y divide-club-line">
                 {joinedRooms.map((room) => (
                   <Link
                     className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0"
                     href={`/dashboard/study-rooms/${room.room_id}`}
                     key={room.room_id}
                   >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-[#e7f0e7] text-[#17453a]">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-club-mint text-club-purple">
                       <UsersRound aria-hidden className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold">
                         {room.room_name}
                       </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-[#171512]/50">
+                      <span className="mt-0.5 block truncate text-[11px] text-club-muted">
                         {room.subject_tag}
                       </span>
                     </span>
                     <ArrowRight
                       aria-hidden
-                      className="h-4 w-4 text-[#171512]/35 transition group-hover:translate-x-0.5 group-hover:text-[#17453a]"
+                      className="h-4 w-4 text-club-ink/35 transition group-hover:translate-x-0.5 group-hover:text-club-purple"
                     />
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="mt-4 text-sm leading-relaxed text-[#171512]/50">
+              <p className="mt-4 text-sm leading-relaxed text-club-muted">
                 Rooms you create or join appear here for quick return.
               </p>
             )}
           </section>
 
           <section
-            className="rounded-md border border-[#cfc4ae] bg-[#fffdf6] p-5"
+            className="rounded-3xl border border-club-line bg-club-paper p-5"
             id="create-room"
           >
             <h2 className="font-display text-2xl font-black">Create a room</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#171512]/55">
+            <p className="mt-2 text-sm leading-relaxed text-club-muted">
               Set the topic, access boundary, and shared Pomodoro rhythm.
             </p>
             <div className="mt-5">
@@ -284,9 +284,9 @@ export default async function StudyRoomsPage({
             </div>
           </section>
 
-          <section className="flex gap-3 border-t border-[#cfc4ae] px-1 pt-5 text-xs leading-relaxed text-[#171512]/55">
+          <section className="flex gap-3 border-t border-club-line px-1 pt-5 text-xs leading-relaxed text-club-muted">
             {universityVerified ? (
-              <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#17453a]" />
+              <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-club-purple" />
             ) : (
               <LockKeyhole aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#b56d00]" />
             )}

@@ -108,36 +108,36 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
   return (
     <article className="mx-auto max-w-[1320px]">
       <Link
-        className="inline-flex min-h-10 items-center gap-2 text-sm font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+        className="inline-flex min-h-10 items-center gap-2 text-sm font-black text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4"
         href="/dashboard/notes"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" />
         Back to library
       </Link>
 
-      <header className="mt-4 border-b border-[#cfc4ae] pb-6">
+      <header className="mt-4 border-b border-club-line pb-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-4xl">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-black uppercase tracking-[0.09em] text-[#17453a]">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-black uppercase tracking-[0.09em] text-club-purple">
               <span>{note.subjects.code || note.subjects.name}</span>
-              <span aria-hidden className="text-[#171512]/30">
+              <span aria-hidden className="text-club-ink/30">
                 /
               </span>
-              <span className="text-[#171512]/55">
+              <span className="text-club-muted">
                 {formatNoteType(note.note_type)}
               </span>
             </div>
             <h1 className="app-title mt-2">
               {note.title}
             </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#171512]/60">
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-club-muted">
               <span>by {contributor?.display_name || 'ClassVault student'}</span>
-              <span aria-hidden className="h-1 w-1 bg-[#171512]/25" />
+              <span aria-hidden className="h-1 w-1 bg-club-ink/25" />
               <time dateTime={note.published_at}>
                 Published {dateFormatter.format(new Date(note.published_at))}
               </time>
-              <span aria-hidden className="h-1 w-1 bg-[#171512]/25" />
-              <span className="inline-flex items-center gap-1.5 font-bold text-[#17453a]">
+              <span aria-hidden className="h-1 w-1 bg-club-ink/25" />
+              <span className="inline-flex items-center gap-1.5 font-bold text-club-purple">
                 {isCampusNote ? (
                   <Building2 aria-hidden className="h-4 w-4" />
                 ) : (
@@ -150,14 +150,14 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
 
           {file ? (
             <a
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-club-purple bg-club-purple px-5 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
               href={`/dashboard/notes/${note.id}/download`}
             >
               <Download aria-hidden className="h-[18px] w-[18px]" />
               Download note
             </a>
           ) : (
-            <span className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#bfb39d] bg-[#e9e2d4] px-5 text-sm font-bold text-[#171512]/45">
+            <span className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-club-line bg-club-lavender px-5 text-sm font-bold text-club-muted">
               <FileText aria-hidden className="h-[18px] w-[18px]" />
               File unavailable
             </span>
@@ -167,22 +167,22 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section aria-labelledby="preview-heading">
-          <div className="flex flex-wrap items-center justify-between gap-3 border border-b-0 border-[#cfc4ae] bg-[#fffdf6] px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border border-b-0 border-club-line bg-club-paper px-4 py-3 sm:px-5">
             <div>
               <h2 className="font-display text-xl font-black" id="preview-heading">
                 Note preview
               </h2>
-              <p className="mt-0.5 text-[11px] text-[#171512]/50">
+              <p className="mt-0.5 text-[11px] text-club-muted">
                 Private file link expires automatically.
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-club-purple">
               <ShieldCheck aria-hidden className="h-4 w-4" />
               Access checked
             </span>
           </div>
 
-          <div className="relative min-h-[520px] border border-[#cfc4ae] bg-[#e9e3d7] p-2 [box-shadow:var(--elev-inline)] sm:min-h-[680px] sm:p-3">
+          <div className="relative min-h-[520px] border border-club-line bg-club-lavender p-2 [box-shadow:var(--elev-inline)] sm:min-h-[680px] sm:p-3">
             {previewUrl && file ? (
               <object
                 className="h-[70vh] min-h-[500px] w-full bg-white sm:min-h-[650px]"
@@ -190,25 +190,25 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
                 title={`Preview of ${note.title}`}
                 type={file.mimeType}
               >
-                <div className="grid h-full min-h-[500px] place-items-center bg-[#fffdf6] p-8 text-center">
-                  <p className="max-w-sm text-sm text-[#171512]/60">
+                <div className="grid h-full min-h-[500px] place-items-center bg-club-paper p-8 text-center">
+                  <p className="max-w-sm text-sm text-club-muted">
                     This browser could not display the note preview. Download the
                     original file to read it.
                   </p>
                 </div>
               </object>
             ) : (
-              <div className="bg-ruled grid min-h-[500px] place-items-center bg-[#fffdf6] p-8 text-center sm:min-h-[650px]">
+              <div className="grid min-h-[500px] place-items-center bg-club-paper p-8 text-center sm:min-h-[650px]">
                 <div className="max-w-sm">
                   <FileText
                     aria-hidden
-                    className="mx-auto h-12 w-12 text-[#17453a]"
+                    className="mx-auto h-12 w-12 text-club-purple"
                     strokeWidth={1.35}
                   />
                   <h3 className="font-display mt-4 text-2xl font-black">
                     Preview unavailable
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
+                  <p className="mt-2 text-sm leading-relaxed text-club-muted">
                     The metadata is available, but the private file could not be
                     previewed right now. Try downloading it instead.
                   </p>
@@ -227,19 +227,19 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
             noteId={note.id}
           />
 
-          <section className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
+          <section className="rounded-3xl border border-club-line bg-club-paper p-5">
             <h2 className="font-display text-xl font-black">About this note</h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#171512]/65">
+            <p className="mt-3 text-sm leading-relaxed text-club-muted">
               {note.description || 'The contributor did not add a description.'}
             </p>
           </section>
 
-          <section className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
+          <section className="rounded-3xl border border-club-line bg-club-paper p-5">
             <h2 className="font-display text-xl font-black">Details</h2>
-            <dl className="mt-4 divide-y divide-[#e1d8c6] text-sm">
+            <dl className="mt-4 divide-y divide-club-line text-sm">
               <div className="grid grid-cols-[24px_96px_1fr] gap-2 py-3 first:pt-0">
-                <UserRound aria-hidden className="mt-0.5 h-4 w-4 text-[#17453a]" />
-                <dt className="font-semibold text-[#171512]/55">Contributor</dt>
+                <UserRound aria-hidden className="mt-0.5 h-4 w-4 text-club-purple" />
+                <dt className="font-semibold text-club-muted">Contributor</dt>
                 <dd className="text-right font-bold">
                   {contributor?.display_name || 'ClassVault student'}
                 </dd>
@@ -247,9 +247,9 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
               <div className="grid grid-cols-[24px_96px_1fr] gap-2 py-3">
                 <Star
                   aria-hidden
-                  className="mt-0.5 h-4 w-4 fill-[#f0a202] text-[#b56d00]"
+                  className="mt-0.5 h-4 w-4 fill-club-yellow text-[#b56d00]"
                 />
-                <dt className="font-semibold text-[#171512]/55">Rating</dt>
+                <dt className="font-semibold text-club-muted">Rating</dt>
                 <dd className="text-right font-bold">
                   {averageRating === null
                     ? 'Unrated'
@@ -257,14 +257,14 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
                 </dd>
               </div>
               <div className="grid grid-cols-[24px_96px_1fr] gap-2 py-3">
-                <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 text-[#17453a]" />
-                <dt className="font-semibold text-[#171512]/55">Access</dt>
+                <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 text-club-purple" />
+                <dt className="font-semibold text-club-muted">Access</dt>
                 <dd className="text-right font-bold">{accessName}</dd>
               </div>
               {file ? (
                 <div className="grid grid-cols-[24px_96px_1fr] gap-2 py-3 last:pb-0">
-                  <FileCheck2 aria-hidden className="mt-0.5 h-4 w-4 text-[#17453a]" />
-                  <dt className="font-semibold text-[#171512]/55">File</dt>
+                  <FileCheck2 aria-hidden className="mt-0.5 h-4 w-4 text-club-purple" />
+                  <dt className="font-semibold text-club-muted">File</dt>
                   <dd className="text-right font-bold">
                     {file.mimeType === 'application/pdf' ? 'PDF' : 'Image'} ·{' '}
                     {formatFileSize(file.byteSize)}
@@ -276,12 +276,12 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
           </section>
 
           {note.tags.length > 0 ? (
-            <section className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
+            <section className="rounded-3xl border border-club-line bg-club-paper p-5">
               <h2 className="font-display text-xl font-black">Tags</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {note.tags.map((tag) => (
                   <span
-                    className="border border-[#bfb39d] bg-[#f8f2e5] px-2.5 py-1 text-xs font-bold text-[#17453a]"
+                    className="rounded-full border border-club-line bg-club-lavender px-2.5 py-1 text-xs font-bold text-club-purple"
                     key={tag}
                   >
                     #{tag}

@@ -58,10 +58,10 @@ export function RatingStars({
   return (
     <section
       aria-label="Rate this note"
-      className="border border-[#cfc4ae] bg-[#fffdf6] p-5"
+      className="rounded-3xl border border-club-line bg-club-paper p-5"
     >
       <h2 className="font-display text-xl font-black">Rate this note</h2>
-      <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
+      <p className="mt-2 text-sm leading-relaxed text-club-muted">
         Ratings weight recent feedback and rating volume, so honest stars help
         every student.
       </p>
@@ -75,7 +75,7 @@ export function RatingStars({
               <button
                 aria-label={`Rate ${value} out of 5 stars`}
                 aria-pressed={userRating === value}
-                className="rounded-sm p-1 outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-[#f0a202] hover:-translate-y-0.5 disabled:cursor-wait"
+                className="rounded-sm p-1 outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-club-yellow hover:-translate-y-0.5 disabled:cursor-wait"
                 disabled={isPending}
                 key={value}
                 onClick={() => rate(value)}
@@ -85,8 +85,8 @@ export function RatingStars({
                   aria-hidden
                   className={
                     filled
-                      ? 'h-6 w-6 fill-[#f0a202] text-[#b56d00]'
-                      : 'h-6 w-6 text-[#bfb39d]'
+                      ? 'h-6 w-6 fill-club-yellow text-[#b56d00]'
+                      : 'h-6 w-6 text-club-line'
                   }
                   strokeWidth={1.8}
                 />
@@ -98,16 +98,16 @@ export function RatingStars({
           ) : null}
         </div>
       ) : (
-        <p className="mt-4 flex items-center gap-1.5 text-sm font-bold text-[#171512]/55">
-          <Star aria-hidden className="h-4 w-4 fill-[#f0a202] text-[#b56d00]" />
+        <p className="mt-4 flex items-center gap-1.5 text-sm font-bold text-club-muted">
+          <Star aria-hidden className="h-4 w-4 fill-club-yellow text-[#b56d00]" />
           Only readers can rate this note.
         </p>
       )}
 
-      <p aria-live="polite" className="mt-3 text-sm font-bold text-[#17453a]">
+      <p aria-live="polite" className="mt-3 text-sm font-bold text-club-purple">
         {summary}
         {userRating ? (
-          <span className="ml-2 font-semibold text-[#171512]/55">
+          <span className="ml-2 font-semibold text-club-muted">
             You rated {userRating}/5
           </span>
         ) : null}

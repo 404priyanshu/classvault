@@ -24,7 +24,7 @@ export function StudyRoomExitControls({
       >
         <input name="roomId" type="hidden" value={roomId} />
         <StudyRoomSubmitButton
-          className="border border-[#bfb39d] bg-[#fffdf6] text-[#171512] hover:bg-[#eee6d8]"
+          className="border border-club-line bg-club-paper text-club-ink hover:bg-club-lavender"
           pendingLabel="Leaving…"
         >
           <LogOut aria-hidden className="h-4 w-4" />

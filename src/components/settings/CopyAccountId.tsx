@@ -8,7 +8,7 @@ export function CopyAccountId({ accountId }: { accountId: string }) {
 
   return (
     <button
-      className="inline-flex min-h-9 items-center gap-2 rounded-md border border-[#bfb39d] bg-[#fffdf6] px-3 text-xs font-bold transition hover:border-[#17453a] hover:bg-[#eef4ed]"
+      className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-club-line bg-club-paper px-3 text-xs font-bold transition hover:border-club-purple hover:bg-club-mint"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(accountId)

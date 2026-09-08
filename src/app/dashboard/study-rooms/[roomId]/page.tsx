@@ -67,9 +67,9 @@ export default async function StudyRoomPage({
     <div className="space-y-6">
       <StudyRoomRealtime roomId={room.id} />
 
-      <header className="border-b border-[#cfc4ae] pb-6">
+      <header className="border-b border-club-line pb-6">
         <Link
-          className="inline-flex items-center gap-2 text-xs font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+          className="inline-flex items-center gap-2 text-xs font-black text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4"
           href="/dashboard/study-rooms"
         >
           <ArrowLeft aria-hidden className="h-4 w-4" />
@@ -81,7 +81,7 @@ export default async function StudyRoomPage({
               <h1 className="app-title">
                 {room.name}
               </h1>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-club-purple">
                 {room.visibility === 'university' ? (
                   <Building2 aria-hidden className="h-4 w-4" />
                 ) : (
@@ -90,20 +90,20 @@ export default async function StudyRoomPage({
                 {room.universityName || 'Public room'}
               </span>
             </div>
-            <p className="mt-2 text-sm font-semibold text-[#171512]/55 sm:text-base">
+            <p className="mt-2 text-sm font-semibold text-club-muted sm:text-base">
               {room.subjectTag}
             </p>
-            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[#171512]/55">
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-club-muted">
               <span className="inline-flex items-center gap-1.5">
-                <UsersRound aria-hidden className="h-4 w-4 text-[#17453a]" />
+                <UsersRound aria-hidden className="h-4 w-4 text-club-purple" />
                 {members.length}/{room.memberCapacity} members
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock3 aria-hidden className="h-4 w-4 text-[#17453a]" />
+                <Clock3 aria-hidden className="h-4 w-4 text-club-purple" />
                 Room expires at {formatRoomDate(room.endsAt)}
               </span>
               <span className="inline-flex items-center gap-1.5 capitalize">
-                <ShieldCheck aria-hidden className="h-4 w-4 text-[#17453a]" />
+                <ShieldCheck aria-hidden className="h-4 w-4 text-club-purple" />
                 Your role: {viewerRole === 'cohost' ? 'co-host' : viewerRole}
               </span>
             </div>
@@ -114,13 +114,13 @@ export default async function StudyRoomPage({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
         <div className="space-y-6">
-          <section className="bg-ruled overflow-hidden rounded-md border border-[#cfc4ae] bg-[#fffdf6]">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d8cdb9] px-5 py-4 sm:px-7">
+          <section className="overflow-hidden rounded-md border border-club-line bg-club-paper">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-club-line px-5 py-4 sm:px-7">
               <div className="flex items-center gap-2">
-                <TimerReset aria-hidden className="h-5 w-5 text-[#17453a]" />
+                <TimerReset aria-hidden className="h-5 w-5 text-club-purple" />
                 <h2 className="font-display text-xl font-black">Shared Pomodoro</h2>
               </div>
-              <p className="text-xs font-semibold text-[#171512]/50">
+              <p className="text-xs font-semibold text-club-muted">
                 {room.focusMinutes} min focus · {room.breakMinutes} min break ·{' '}
                 {room.cyclesCompleted} cycles
               </p>
@@ -138,15 +138,15 @@ export default async function StudyRoomPage({
             </div>
           </section>
 
-          <section className="rounded-md border border-[#cfc4ae] bg-[#fffdf6] p-5 sm:p-7">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#d8cdb9] pb-5">
+          <section className="rounded-3xl border border-club-line bg-club-paper p-5 sm:p-7">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-club-line pb-5">
               <div>
                 <h2 className="font-display text-2xl font-black">Participants</h2>
-                <p className="mt-1 text-xs text-[#171512]/50">
+                <p className="mt-1 text-xs text-club-muted">
                   Hosts can appoint co-hosts to keep timer controls available.
                 </p>
               </div>
-              <span className="text-xs font-bold text-[#17453a]">
+              <span className="text-xs font-bold text-club-purple">
                 {members.length} joined
               </span>
             </div>
@@ -159,13 +159,13 @@ export default async function StudyRoomPage({
           </section>
         </div>
 
-        <section className="flex min-h-[640px] flex-col rounded-md border border-[#cfc4ae] bg-[#fffdf6] p-5 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]">
-          <div className="flex items-center justify-between gap-3 border-b border-[#d8cdb9] pb-4">
+        <section className="flex min-h-[640px] flex-col rounded-3xl border border-club-line bg-club-paper p-5 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]">
+          <div className="flex items-center justify-between gap-3 border-b border-club-line pb-4">
             <div className="flex items-center gap-2">
-              <MessageCircle aria-hidden className="h-5 w-5 text-[#17453a]" />
+              <MessageCircle aria-hidden className="h-5 w-5 text-club-purple" />
               <h2 className="font-display text-2xl font-black">Room chat</h2>
             </div>
-            <span className="text-[11px] font-bold text-[#171512]/45">
+            <span className="text-[11px] font-bold text-club-muted">
               Temporary
             </span>
           </div>
@@ -182,15 +182,15 @@ export default async function StudyRoomPage({
                     <div
                       className={
                         ownMessage
-                          ? 'rounded-md rounded-br-sm bg-[#17453a] px-3.5 py-3 text-[#fffdf6]'
-                          : 'rounded-md rounded-bl-sm border border-[#d8cdb9] bg-[#f6f1e5] px-3.5 py-3'
+                          ? 'rounded-md rounded-br-sm bg-club-purple px-3.5 py-3 text-club-paper'
+                          : 'rounded-md rounded-bl-sm border border-club-line bg-club-bg px-3.5 py-3'
                       }
                     >
                       <div className="flex items-center justify-between gap-3 text-[10px] font-bold">
-                        <span className={ownMessage ? 'text-[#fffdf6]/75' : 'text-[#17453a]'}>
+                        <span className={ownMessage ? 'text-club-paper/75' : 'text-club-purple'}>
                           {message.authorDisplayName}
                         </span>
-                        <time className={ownMessage ? 'text-[#fffdf6]/55' : 'text-[#171512]/40'}>
+                        <time className={ownMessage ? 'text-club-paper/80' : 'text-club-muted'}>
                           {formatMessageTime(message.createdAt)}
                         </time>
                       </div>
@@ -206,13 +206,13 @@ export default async function StudyRoomPage({
                 <div>
                   <MessageCircle
                     aria-hidden
-                    className="mx-auto h-8 w-8 text-[#17453a]/55"
+                    className="mx-auto h-8 w-8 text-club-purple/55"
                     strokeWidth={1.5}
                   />
                   <h3 className="font-display mt-3 text-lg font-black">
                     Start the room conversation
                   </h3>
-                  <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-[#171512]/50">
+                  <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-club-muted">
                     Chat remains private to current members and is deleted when the
                     room ends.
                   </p>

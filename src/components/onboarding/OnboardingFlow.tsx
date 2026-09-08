@@ -118,10 +118,9 @@ export function OnboardingFlow({
   }
 
   return (
-    <main className="paper-grain relative min-h-screen overflow-hidden bg-[#f6f1e5] text-[#171512]">
-      <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-50" />
+    <main className="club-onboarding">
 
-      <div className="relative mx-auto grid min-h-screen max-w-[1500px] lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="club-onboarding-grid">
         <StepSidebar step={step} />
 
         <section className="flex min-w-0 flex-col px-4 py-5 sm:px-7 sm:py-7 lg:px-12 lg:py-9">
@@ -129,9 +128,8 @@ export function OnboardingFlow({
 
           <form
             action={formAction}
-            className="bg-ruled relative mx-auto mt-7 flex w-full max-w-[920px] flex-1 flex-col border-[1.5px] border-[#171512] bg-[#fffdf6] shadow-[7px_7px_0_#171512] lg:mt-5"
+            className="club-onboarding-form"
           >
-            <span className="absolute left-1/2 top-0 h-7 w-28 -translate-x-1/2 -translate-y-1/2 rotate-[-2deg] bg-[#f0a202]/80" />
 
             <input name="displayName" type="hidden" value={displayName} />
             <input name="course" type="hidden" value={course} />
@@ -237,7 +235,7 @@ export function OnboardingFlow({
 
               {clientError || actionState.error ? (
                 <p
-                  className="mt-6 border-[1.5px] border-red-900/40 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900"
+                  className="mt-6 border border-red-900/40 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900"
                   role="alert"
                 >
                   {clientError || actionState.error}
@@ -245,10 +243,10 @@ export function OnboardingFlow({
               ) : null}
             </div>
 
-            <footer className="flex items-center justify-between gap-3 border-t-[1.5px] border-[#171512] bg-[#fffdf6]/95 px-5 py-4 sm:px-9">
+            <footer className="flex items-center justify-between gap-3 border-t-[1.5px] border-club-line bg-club-paper/95 px-5 py-4 sm:px-9">
               {step > 0 ? (
                 <button
-                  className="flex min-h-12 items-center gap-2 border-[1.5px] border-[#171512] bg-[#fffdf6] px-5 py-3 text-sm font-black shadow-[3px_3px_0_#171512] transition-transform hover:-translate-y-0.5"
+                  className="flex min-h-12 items-center gap-2 border border-club-line bg-club-paper px-5 py-3 text-sm font-black  transition-transform hover:-translate-y-0.5"
                   onClick={goBack}
                   type="button"
                 >
@@ -257,7 +255,7 @@ export function OnboardingFlow({
                 </button>
               ) : (
                 <Link
-                  className="text-sm font-bold text-[#171512]/55 underline decoration-dashed underline-offset-4"
+                  className="text-sm font-bold text-club-muted underline decoration-dashed underline-offset-4"
                   href={isEditing ? '/dashboard' : '/'}
                 >
                   {isEditing ? 'Cancel' : 'Do this later'}
@@ -266,7 +264,7 @@ export function OnboardingFlow({
 
               {step < STEPS.length - 1 ? (
                 <button
-                  className="flex min-h-12 items-center gap-2 border-[1.5px] border-[#171512] bg-[#17453a] px-6 py-3 text-sm font-black text-[#f6f1e5] shadow-[4px_4px_0_#171512] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#171512]"
+                  className="flex min-h-12 items-center gap-2 border border-club-ink bg-club-purple px-6 py-3 text-sm font-black text-club-bg  transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 "
                   onClick={goForward}
                   type="button"
                 >

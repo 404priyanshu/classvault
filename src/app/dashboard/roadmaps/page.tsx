@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -10,7 +9,6 @@ import {
   Sparkles,
   UsersRound,
 } from 'lucide-react'
-import spotRoadmap from '@/assets/spot-roadmap.webp'
 import { RoadmapRequestForm } from '@/components/roadmaps/RoadmapRequestForm'
 import {
   RetryRoadmapButton,
@@ -39,19 +37,19 @@ function RoadmapRow({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
     : 0
 
   return (
-    <article className="grid gap-4 border-b border-[#d9cfbc] px-4 py-5 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:items-center sm:px-5">
-      <span className="grid h-14 w-14 place-items-center rounded-full border border-[#171512] bg-[#f0a202] text-[#171512] [box-shadow:var(--elev-inline)]">
+    <article className="grid gap-4 border-b border-club-line px-4 py-5 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:items-center sm:px-5">
+      <span className="grid h-14 w-14 place-items-center rounded-full border border-club-ink bg-club-yellow text-club-ink [box-shadow:var(--elev-inline)]">
         <Route aria-hidden className="h-6 w-6" strokeWidth={1.6} />
       </span>
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-black uppercase tracking-[0.08em] text-[#17453a]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-black uppercase tracking-[0.08em] text-club-purple">
           <span>{formatRoadmapStudyMode(roadmap.study_mode)}</span>
-          <span aria-hidden className="text-[#171512]/25">/</span>
-          <span className="text-[#171512]/55">{formatRoadmapStatus(roadmap.status)}</span>
+          <span aria-hidden className="text-club-ink/25">/</span>
+          <span className="text-club-muted">{formatRoadmapStatus(roadmap.status)}</span>
         </div>
         {roadmap.status === 'ready' ? (
           <Link
-            className="font-display mt-1 block text-xl font-black underline decoration-[#f0a202] decoration-2 underline-offset-4"
+            className="font-display mt-1 block text-xl font-black underline decoration-club-yellow decoration-2 underline-offset-4"
             href={`/dashboard/roadmaps/${roadmap.roadmap_id}`}
           >
             {roadmap.title}
@@ -59,14 +57,14 @@ function RoadmapRow({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
         ) : (
           <h2 className="font-display mt-1 text-xl font-black">{roadmap.title}</h2>
         )}
-        <p className="mt-2 text-xs text-[#171512]/55">
+        <p className="mt-2 text-xs text-club-muted">
           {roadmap.source_count} sources · {roadmap.section_count} sections · created{' '}
           {dateFormatter.format(new Date(roadmap.created_at))}
         </p>
       </div>
       <div className="min-w-28 text-left sm:text-right">
-        <p className="text-xs font-black text-[#17453a]">{progress}% complete</p>
-        <p className="mt-1 text-[11px] text-[#171512]/45">
+        <p className="text-xs font-black text-club-purple">{progress}% complete</p>
+        <p className="mt-1 text-[11px] text-club-muted">
           {roadmap.sharing_enabled ? 'Sharing enabled' : 'Private'}
         </p>
         {roadmap.status === 'failed' || roadmap.status === 'draft' ? (
@@ -99,30 +97,30 @@ export default async function RoadmapsPage() {
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
-      <section className="relative overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] p-5 [box-shadow:var(--elev-inline)] sm:p-7 lg:p-8">
+      <section className="relative overflow-hidden rounded-3xl border border-club-line bg-club-paper p-5 [box-shadow:var(--elev-inline)] sm:p-7 lg:p-8">
         <div className="relative z-10 max-w-3xl">
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#b56d00]">
             <Sparkles aria-hidden className="h-4 w-4" />
-            Grounded generation pipeline
+            One topic at a time
           </p>
           <h1 className="app-title mt-3">
             Study roadmaps
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#171512]/65 sm:text-base">
-            Build a deterministic study plan from only the notes your plan
-            allows. Every output is source-cited, schema-validated, and saved as
-            a private static snapshot with revocable sharing boundaries.
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
+            Turn the notes you can access into a plan you can actually follow.
+            Take it one section at a time, follow the sources, and keep your
+            progress private.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              className="inline-flex min-h-11 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
               href="#generate-roadmap"
             >
               <Sparkles aria-hidden className="h-4 w-4" />
               Build a roadmap
             </Link>
             <Link
-              className="inline-flex min-h-11 items-center gap-2 border border-[#bfb39d] bg-[#f8f2e5] px-4 text-sm font-bold text-[#171512]/65"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-club-line bg-club-lavender px-4 text-sm font-bold text-club-muted"
               href="/dashboard/notes"
             >
               <FileText aria-hidden className="h-4 w-4" />
@@ -130,11 +128,6 @@ export default async function RoadmapsPage() {
             </Link>
           </div>
         </div>
-        <Image
-          alt="Illustrated roadmap with checkpoint flags"
-          className="absolute -bottom-8 -right-8 hidden h-auto w-[260px] rotate-3 object-contain opacity-90 lg:block"
-          src={spotRoadmap}
-        />
       </section>
 
       <div id="generate-roadmap">
@@ -148,57 +141,57 @@ export default async function RoadmapsPage() {
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-black" id="source-boundary-heading">
-              Current source boundary
+              Your starting material
             </h2>
-            <p className="mt-1 text-xs text-[#171512]/55">
-              Automatically derived by the database — there is no browser-supplied source picker.
+            <p className="mt-1 text-xs text-club-muted">
+              We’ll select from the notes you can open. Your campus access determines what’s available.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.08em] text-[#17453a]">
+          <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.08em] text-club-purple">
             <ShieldCheck aria-hidden className="h-4 w-4" />
             {eligibility?.generation_plan || 'free'} plan
           </span>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
-            <BookOpenCheck aria-hidden className="h-5 w-5 text-[#17453a]" />
+          <article className="rounded-3xl border border-club-line bg-club-paper p-5">
+            <BookOpenCheck aria-hidden className="h-5 w-5 text-club-purple" />
             <p className="font-display mt-4 text-3xl font-black">
               {Number(eligibility?.personal_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Personal uploads</h3>
-            <p className="mt-2 text-xs leading-relaxed text-[#171512]/55">
+            <p className="mt-2 text-xs leading-relaxed text-club-muted">
               Includes your active old-campus uploads even after a membership change.
             </p>
           </article>
-          <article className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
-            <FileText aria-hidden className="h-5 w-5 text-[#17453a]" />
+          <article className="rounded-3xl border border-club-line bg-club-paper p-5">
+            <FileText aria-hidden className="h-5 w-5 text-club-purple" />
             <p className="font-display mt-4 text-3xl font-black">
               {Number(eligibility?.public_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Public notes</h3>
-            <p className="mt-2 text-xs leading-relaxed text-[#171512]/55">
+            <p className="mt-2 text-xs leading-relaxed text-club-muted">
               Accessible published notes available to every eligible student.
             </p>
           </article>
-          <article className="border border-[#cfc4ae] bg-[#fffdf6] p-5">
+          <article className="rounded-3xl border border-club-line bg-club-paper p-5">
             <UsersRound aria-hidden className="h-5 w-5 text-[#b56d00]" />
             <p className="font-display mt-4 text-3xl font-black">
               {Number(eligibility?.eligible_university_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Campus sources now</h3>
-            <p className="mt-2 text-xs leading-relaxed text-[#171512]/55">
+            <p className="mt-2 text-xs leading-relaxed text-club-muted">
               Free roadmaps do not use other students&apos; campus-only notes.
             </p>
           </article>
-          <article className="border border-dashed border-[#b56d00]/60 bg-[#fff7dc] p-5">
+          <article className="rounded-3xl border border-dashed border-[#b56d00]/60 bg-club-yellow p-5">
             <Sparkles aria-hidden className="h-5 w-5 text-[#b56d00]" />
             <p className="font-display mt-4 text-3xl font-black">
               {Number(eligibility?.pro_university_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Pro-ready campus pool</h3>
-            <p className="mt-2 text-xs leading-relaxed text-[#171512]/55">
-              The entitlement hook exists, but billing is not connected.
+            <p className="mt-2 text-xs leading-relaxed text-club-muted">
+              Campus sources for a future Pro plan. Upgrades aren’t available yet.
             </p>
           </article>
         </div>
@@ -209,23 +202,22 @@ export default async function RoadmapsPage() {
           <h2 className="font-display text-2xl font-black" id="saved-roadmaps-heading">
             Saved roadmaps
           </h2>
-          <p className="mt-1 text-xs text-[#171512]/55">
-            Static snapshots stay stable while source authorization is rechecked at every view.
+          <p className="mt-1 text-xs text-club-muted">
+            Your saved plans, source notes, and progress—all in one place.
           </p>
         </div>
-        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]">
+        <div className="rounded-3xl overflow-hidden border border-club-line bg-club-paper [box-shadow:var(--elev-inline)]">
           {roadmaps.length ? (
             roadmaps.map((roadmap) => <RoadmapRow key={roadmap.roadmap_id} roadmap={roadmap} />)
           ) : (
-            <div className="bg-ruled grid min-h-[300px] place-items-center px-6 py-12 text-center">
+            <div className="grid min-h-[300px] place-items-center px-6 py-12 text-center">
               <div className="max-w-md">
                 <CheckCircle2 aria-hidden className="mx-auto h-11 w-11 text-[#2d7c58]" strokeWidth={1.4} />
                 <h3 className="font-display mt-4 text-2xl font-black">Ready for your first roadmap</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
-                  Generate a deterministic, source-cited plan above. Saved
-                  roadmaps appear here with private progress and retry states.
+                <p className="mt-2 text-sm leading-relaxed text-club-muted">
+                  Make a plan above, then come back here whenever you’re ready for your next study session.
                 </p>
-                <Link className="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4" href="#generate-roadmap">
+                <Link className="mt-5 inline-flex items-center gap-1.5 text-sm font-black text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4" href="#generate-roadmap">
                   Build your roadmap <ArrowRight aria-hidden className="h-4 w-4" />
                 </Link>
               </div>

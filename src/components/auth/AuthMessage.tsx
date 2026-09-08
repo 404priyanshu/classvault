@@ -10,10 +10,10 @@ export function AuthMessage({ error, status }: AuthMessageProps) {
 
   return (
     <p
-      className={`mb-5 border-[1.5px] px-4 py-3 text-sm font-semibold ${
+      className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold ${
         error
           ? 'border-red-900/40 bg-red-50 text-red-900'
-          : 'border-[#17453a]/40 bg-[#17453a]/10 text-[#17453a]'
+          : 'border-club-purple/40 bg-club-purple/10 text-club-purple'
       }`}
       role={error ? 'alert' : 'status'}
     >

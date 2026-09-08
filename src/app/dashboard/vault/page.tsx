@@ -57,12 +57,12 @@ function LifecycleBadge({ note }: { note: OwnedNote }) {
 
 function ModerationNotice({ notice }: { notice: OwnedModerationNotice }) {
   return (
-    <article className="flex flex-col gap-3 border border-[#b56d00]/40 bg-[#fff7dc] p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
+    <article className="flex flex-col gap-3 border border-[#b56d00]/40 bg-club-yellow p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
       <div>
         <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#9a3f2f]">
           Moderation update · {notice.note_title}
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-[#171512]/75">
+        <p className="mt-2 text-sm leading-relaxed text-club-muted">
           {notice.safe_owner_message}
         </p>
       </div>
@@ -82,32 +82,32 @@ function OwnedNoteRow({ note }: { note: OwnedNote }) {
   const recoveryDays = daysUntilPurge(note.purge_after)
 
   return (
-    <article className="grid gap-4 border-b border-[#d9cfbc] px-4 py-5 last:border-b-0 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:px-5 lg:px-6">
-      <div className="bg-ruled relative grid h-20 place-items-center overflow-hidden border border-[#bfb39d] bg-[#f1eadb]">
-        <span className="absolute left-0 top-0 h-full w-1.5 bg-[#f0a202]" />
+    <article className="grid gap-4 border-b border-club-line px-4 py-5 last:border-b-0 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:px-5 lg:px-6">
+      <div className="relative grid h-20 place-items-center overflow-hidden border border-club-line bg-club-lavender">
+        <span className="absolute left-0 top-0 h-full w-1.5 bg-club-yellow" />
         {note.deleted_at ? (
           <Trash2 aria-hidden className="h-7 w-7 text-[#9a3f2f]" strokeWidth={1.5} />
         ) : (
-          <FileText aria-hidden className="h-7 w-7 text-[#17453a]" strokeWidth={1.5} />
+          <FileText aria-hidden className="h-7 w-7 text-club-purple" strokeWidth={1.5} />
         )}
       </div>
 
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#17453a]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold uppercase tracking-[0.08em] text-club-purple">
           <span>{subject}</span>
-          <span aria-hidden className="text-[#171512]/25">/</span>
-          <span className="text-[#171512]/55">{formatNoteType(note.note_type)}</span>
+          <span aria-hidden className="text-club-ink/25">/</span>
+          <span className="text-club-muted">{formatNoteType(note.note_type)}</span>
         </div>
-        <h2 className="font-display mt-1 text-xl font-black leading-tight text-[#171512]">
+        <h2 className="font-display mt-1 text-xl font-black leading-tight text-club-ink">
           {canOpen ? (
-            <Link className="transition-colors hover:text-[#17453a]" href={`/dashboard/notes/${note.note_id}`}>
+            <Link className="transition-colors hover:text-club-purple" href={`/dashboard/notes/${note.note_id}`}>
               {note.title}
             </Link>
           ) : (
             note.title
           )}
         </h2>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#171512]/55">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-club-muted">
           <LifecycleBadge note={note} />
           <span>{note.visibility === 'university' ? 'Campus' : 'Public'}</span>
           <span>{formatVaultFileSize(note.byte_size)}</span>
@@ -120,7 +120,7 @@ function OwnedNoteRow({ note }: { note: OwnedNote }) {
           ) : null}
           {note.rating_count > 0 ? (
             <span className="inline-flex items-center gap-1">
-              <Star aria-hidden className="h-3.5 w-3.5 fill-[#f0a202] text-[#b56d00]" />
+              <Star aria-hidden className="h-3.5 w-3.5 fill-club-yellow text-[#b56d00]" />
               {note.average_rating?.toFixed(1)} ({note.rating_count})
             </span>
           ) : null}
@@ -129,7 +129,7 @@ function OwnedNoteRow({ note }: { note: OwnedNote }) {
 
       <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
         {canOpen ? (
-          <Link className="inline-flex min-h-10 items-center gap-1.5 border border-[#bfb39d] bg-[#fffdf6] px-3 text-xs font-black text-[#17453a] hover:border-[#17453a]" href={`/dashboard/notes/${note.note_id}`}>
+          <Link className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-club-line bg-club-paper px-3 text-xs font-black text-club-purple hover:border-club-purple" href={`/dashboard/notes/${note.note_id}`}>
             Open note <ArrowRight aria-hidden className="h-3.5 w-3.5" />
           </Link>
         ) : null}
@@ -176,34 +176,34 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <section className="flex flex-col gap-5 border-b border-club-line pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="app-title">My Vault</h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-club-muted sm:text-base">
             Keep track of what you&apos;ve shared, what&apos;s still uploading, and what&apos;s safe to recover.
           </p>
         </div>
-        <Link className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto" href="/dashboard/notes/new">
+        <Link className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto" href="/dashboard/notes/new">
           <Upload aria-hidden className="h-4 w-4" />
           Upload notes
         </Link>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <Link className={!isTrash ? 'border border-[#17453a] bg-[#17453a] p-4 text-[#fffdf6] [box-shadow:var(--elev-inline)]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#17453a]'} href="/dashboard/vault">
+        <Link className={!isTrash ? 'rounded-3xl border border-club-purple bg-club-purple p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-club-purple'} href="/dashboard/vault">
           <FolderOpen aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Active uploads</span>
           <span className="mt-1 block text-xs opacity-70">Published, drafts, and upload status</span>
         </Link>
-        <Link className={isTrash ? 'border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-[#fffdf6] [box-shadow:var(--elev-inline)]' : 'border border-[#cfc4ae] bg-[#fffdf6] p-4 text-[#171512] hover:border-[#9a3f2f]'} href="/dashboard/vault?view=trash">
+        <Link className={isTrash ? 'rounded-3xl border border-[#9a3f2f] bg-[#9a3f2f] p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-[#9a3f2f]'} href="/dashboard/vault?view=trash">
           <Trash2 aria-hidden className="h-5 w-5" />
           <span className="mt-3 block text-sm font-black">Trash</span>
           <span className="mt-1 block text-xs opacity-70">Recover notes for up to 30 days</span>
         </Link>
-        <div className="border border-[#cfc4ae] bg-[#fffdf6] p-4">
-          <ShieldCheck aria-hidden className="h-5 w-5 text-[#17453a]" />
+        <div className="rounded-3xl border border-club-line bg-club-paper p-4">
+          <ShieldCheck aria-hidden className="h-5 w-5 text-club-purple" />
           <span className="mt-3 block text-sm font-black">Owner controls</span>
-          <span className="mt-1 block text-xs text-[#171512]/55">Your identity and files stay private here</span>
+          <span className="mt-1 block text-xs text-club-muted">Your identity and files stay private here</span>
         </div>
       </section>
 
@@ -213,7 +213,7 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
             <h2 className="font-display text-2xl font-black" id="vault-list-heading">
               {isTrash ? 'Notes in Trash' : 'Your notes'}
             </h2>
-            <p className="mt-1 text-xs text-[#171512]/55">
+            <p className="mt-1 text-xs text-club-muted">
               {isTrash
                 ? 'Deleted notes are hidden from every ordinary library and download.'
                 : notes.length === 1
@@ -221,19 +221,19 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
                   : `${notes.length} notes in your vault`}
             </p>
           </div>
-          {isTrash ? <Clock3 aria-hidden className="h-5 w-5 text-[#9a3f2f]" /> : <FileArchive aria-hidden className="h-5 w-5 text-[#17453a]" />}
+          {isTrash ? <Clock3 aria-hidden className="h-5 w-5 text-[#9a3f2f]" /> : <FileArchive aria-hidden className="h-5 w-5 text-club-purple" />}
         </div>
 
-        <div className="overflow-hidden border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]">
+        <div className="overflow-hidden border border-club-line bg-club-paper [box-shadow:var(--elev-inline)]">
           {notes.length > 0 ? notes.map((note) => <OwnedNoteRow key={note.note_id} note={note} />) : (
-            <div className="bg-ruled grid min-h-[300px] place-items-center px-6 py-12 text-center">
+            <div className="grid min-h-[300px] place-items-center px-6 py-12 text-center">
               <div className="max-w-md">
-                {isTrash ? <Trash2 aria-hidden className="mx-auto h-10 w-10 text-[#9a3f2f]" strokeWidth={1.4} /> : <FileArchive aria-hidden className="mx-auto h-10 w-10 text-[#17453a]" strokeWidth={1.4} />}
+                {isTrash ? <Trash2 aria-hidden className="mx-auto h-10 w-10 text-[#9a3f2f]" strokeWidth={1.4} /> : <FileArchive aria-hidden className="mx-auto h-10 w-10 text-club-purple" strokeWidth={1.4} />}
                 <h3 className="font-display mt-4 text-2xl font-black">{isTrash ? 'Trash is clear' : 'Your vault is waiting'}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#171512]/60">
+                <p className="mt-2 text-sm leading-relaxed text-club-muted">
                   {isTrash ? 'Deleted notes will stay recoverable here for 30 days.' : 'Upload your first useful note and keep it close to the students who need it.'}
                 </p>
-                {!isTrash ? <Link className="mt-5 inline-flex min-h-10 items-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)]" href="/dashboard/notes/new">Upload your first note <ArrowRight aria-hidden className="h-4 w-4" /></Link> : null}
+                {!isTrash ? <Link className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)]" href="/dashboard/notes/new">Upload your first note <ArrowRight aria-hidden className="h-4 w-4" /></Link> : null}
               </div>
             </div>
           )}
@@ -241,7 +241,7 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
       </section>
 
       {isTrash && notes.length > 0 ? (
-        <p className="text-xs leading-relaxed text-[#171512]/55">
+        <p className="text-xs leading-relaxed text-club-muted">
           Notes are permanently removed after their recovery window. A note under a platform retention hold will remain until that hold is released.
         </p>
       ) : null}

@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 42 42% 95%;
+    --foreground: 240 36% 20%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --primary: 238 61% 60%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -20,10 +20,10 @@
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.625rem;
+    --border: 264 22% 87%;
+    --input: 264 22% 87%;
+    --ring: 238 61% 60%;
+    --radius: 1.25rem;
   }
 }
 
@@ -32,8 +32,8 @@ html {
 }
 
 body {
-  background: #f6f1e5;
-  color: #171512;
+  background: #f8f5ee;
+  color: #202044;
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
@@ -46,11 +46,11 @@ body {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #efe8d8;
+  background: #f0edf6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #17453a;
-  border-radius: 0;
+  background: #5b5fd7;
+  border-radius: 999px;
 }
 
 html:has([data-landing-page]) {
@@ -76,7 +76,7 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .font-hand {
@@ -96,23 +96,18 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
  */
 :root {
   --elev-surface:
-    0 1px 2px rgba(23, 21, 18, 0.05),
-    0 4px 10px -2px rgba(23, 21, 18, 0.07),
-    0 14px 30px -10px rgba(23, 21, 18, 0.1);
-  --elev-surface-lift:
-    0 2px 4px rgba(23, 21, 18, 0.06),
-    0 10px 20px -4px rgba(23, 21, 18, 0.09),
-    0 26px 50px -16px rgba(23, 21, 18, 0.14);
+    0 1px 2px rgba(32, 32, 68, 0.05),
+    0 4px 10px -2px rgba(32, 32, 68, 0.07),
+    0 14px 30px -10px rgba(32, 32, 68, 0.1);
   --elev-inline:
-    0 1px 2px rgba(23, 21, 18, 0.05),
-    0 4px 10px -4px rgba(23, 21, 18, 0.08);
+    0 1px 2px rgba(32, 32, 68, 0.05),
+    0 4px 10px -4px rgba(32, 32, 68, 0.08);
   /* The ink rule stays, thinner, so the identity survives the softer shadow. */
-  --rule: rgba(23, 21, 18, 0.16);
-  --rule-ink: rgba(23, 21, 18, 0.85);
+  --rule: rgba(32, 32, 68, 0.16);
 }
 
 .paper-card {
-  background: #fffdf6;
+  background: #fffdf5;
   border: 1px solid var(--rule);
   box-shadow: var(--elev-surface);
   transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -120,53 +115,21 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 }
 
 .paper-card-sm {
-  background: #fffdf6;
+  background: #fffdf5;
   border: 1px solid var(--rule);
   box-shadow: var(--elev-inline);
 }
 
 .paper-card-green {
-  background: #17453a;
-  border: 1px solid rgba(23, 21, 18, 0.5);
+  background: #5b5fd7;
+  border: 1px solid rgba(32, 32, 68, 0.5);
   box-shadow: var(--elev-inline);
 }
 
 /* Opt back into the sticker treatment where it is a deliberate accent. */
 .sticker {
-  border: 1.5px solid #171512;
-  box-shadow: 5px 5px 0 #171512;
-}
-
-.btn-ink {
-  background: #171512;
-  color: #f6f1e5;
-  border: 1.5px solid #171512;
-  box-shadow: 4px 4px 0 rgba(23, 21, 18, 0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.btn-ink:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 rgba(23, 21, 18, 0.25);
-}
-.btn-ink:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 rgba(23, 21, 18, 0.25);
-}
-
-.btn-saffron {
-  background: #f0a202;
-  color: #171512;
-  border: 1.5px solid #171512;
-  box-shadow: 4px 4px 0 #171512;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.btn-saffron:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 #171512;
-}
-.btn-saffron:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 #171512;
+  border: 1.5px solid #202044;
+  box-shadow: 5px 5px 0 #202044;
 }
 
 /* dashed stamp badge */
@@ -186,7 +149,7 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 
 /* dotted graph paper */
 .bg-dotgrid {
-  background-image: radial-gradient(rgba(23, 21, 18, 0.14) 1.2px, transparent 1.2px);
+  background-image: radial-gradient(rgba(32, 32, 68, 0.14) 1.2px, transparent 1.2px);
   background-size: 26px 26px;
 }
 
@@ -195,8 +158,8 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
     to bottom,
     transparent 0,
     transparent 30px,
-    rgba(23, 21, 18, 0.06) 30px,
-    rgba(23, 21, 18, 0.06) 31px
+    rgba(32, 32, 68, 0.06) 30px,
+    rgba(32, 32, 68, 0.06) 31px
   );
 }
 
@@ -332,7 +295,7 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
   display: block;
   height: 200px;
   width: 200px;
-  color: #17453a;
+  color: #5b5fd7;
   overflow: visible;
   transform-origin: left top;
 }
@@ -383,81 +346,141 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
   animation-name: pencil-stroke;
 }
 
-/* ---------- app register ---------- */
-
-/*
- * The dashboard shares the landing page's palette and type and almost nothing
- * else. Marketing chrome -- 1.5px ink borders and hard offset shadows -- works
- * around illustrations with room to breathe. On a form with six fields it puts
- * every element at the same weight, so nothing leads and the screen reads as
- * unrefined. These primitives drop the pressure and let one primary action per
- * screen carry the emphasis.
- */
-
+/* ---------- Shared clubhouse application primitives ---------- */
 .app-panel {
-  background: #fffdf6;
-  border: 1px solid var(--rule);
-  border-radius: 0.75rem;
-  box-shadow: var(--elev-inline);
+  background: #fffdf5;
+  border: 1px solid #dcd6e5;
+  border-radius: 24px;
+  box-shadow: 0 4px 18px -12px #44417125;
 }
-
-/* A panel that groups rows: the divider does the work, not a box per row. */
-.app-list > * + * {
-  border-top: 1px solid var(--rule);
-}
-
+.app-list > * + * { border-top: 1px solid #e6e0ec; }
 .app-field {
-  background: #fffdf6;
-  border: 1px solid rgba(23, 21, 18, 0.22);
-  border-radius: 0.5rem;
-  min-height: 2.75rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
+  min-height: 3rem;
+  border: 1px solid #d3cde1;
+  border-radius: 14px;
+  background: #fffdf5;
+  color: #202044;
+  transition: border-color 180ms, box-shadow 180ms;
 }
-
-.app-field:hover:not(:disabled) {
-  border-color: rgba(23, 21, 18, 0.38);
-}
-
-.app-field:focus,
-.app-field:focus-visible {
-  border-color: #17453a;
-  box-shadow: 0 0 0 3px rgba(23, 69, 58, 0.14);
+.app-field::placeholder { color: #787186; }
+.app-field:hover:not(:disabled) { border-color: #9893bd; }
+.app-field:focus, .app-field:focus-visible {
   outline: none;
+  border-color: #5b5fd7;
+  box-shadow: 0 0 0 4px #5b5fd71c;
 }
-
-.app-field:disabled {
-  background: rgba(23, 21, 18, 0.03);
-  color: rgba(23, 21, 18, 0.5);
-}
-
-/* Quiet action. The saffron button stays the one loud thing on a screen. */
+.app-field:disabled { background: #eeebf3; color: #716b80; }
 .app-button {
-  background: #fffdf6;
-  border: 1px solid rgba(23, 21, 18, 0.25);
-  border-radius: 9999px;
+  min-height: 2.75rem;
+  border: 1px solid #dcd6e5;
+  border-radius: 999px;
+  background: #fffdf5;
   font-weight: 700;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 180ms, border-color 180ms, transform 180ms;
 }
-
-.app-button:hover:not(:disabled) {
-  background: rgba(23, 21, 18, 0.04);
-  border-color: rgba(23, 21, 18, 0.4);
-}
-
-/* Page titles carry a screen, not a campaign. */
+.app-button:hover:not(:disabled) { background: #e7e4fa; border-color: #b8b1d3; transform: translateY(-1px); }
 .app-title {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-weight: 850;
+  letter-spacing: -.05em;
+  line-height: 1.12;
 }
-
-@media (min-width: 768px) {
-  .app-title {
-    font-size: 1.875rem;
-  }
+.btn-ink, .btn-saffron {
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  transition: transform 180ms, box-shadow 180ms, background-color 180ms;
+}
+.btn-ink { background: #5b5fd7; color: #fffdf5; }
+.btn-saffron { background: #fff1a8; color: #202044; }
+.btn-ink:hover, .btn-saffron:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #44417115; }
+.btn-ink:active, .btn-saffron:active { transform: translateY(0); box-shadow: none; }
+.btn-ink:disabled, .btn-saffron:disabled { transform: none; box-shadow: none; }
+:where(a, button, summary):focus-visible { outline: 3px solid #5b5fd7; outline-offset: 4px; }
+.club-brand { display: inline-flex; width: max-content; align-items: center; gap: 10px; font-size: 25px; font-weight: 850; letter-spacing: -.06em; color: #202044; }
+.club-brand .club-brand-mark { width: 32px; height: 32px; color: #5b5fd7; }
+.club-brand-light, .club-brand-light .club-brand-mark { color: #fffdf5; }
+.club-eyebrow { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.club-auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100dvh; background: #f8f5ee; }
+.club-auth-world { position: sticky; top: 0; display: flex; flex-direction: column; justify-content: space-between; align-self: start; height: 100dvh; min-height: 660px; padding: 36px 40px 26px; border-radius: 0 40px 40px 0; background: #5b5fd7; color: #fffdf5; }
+.club-auth-welcome { margin: 35px 0; }
+.club-auth-welcome h2 { margin-top: 20px; font-size: clamp(32px, 3.8vw, 56px); font-weight: 900; line-height: 1.02; letter-spacing: -.045em; }
+.club-auth-welcome h2 em { color: #fff1a8; font-style: normal; }
+.club-auth-art { display: block; width: min(100%, 530px); max-height: 36vh; object-fit: contain; margin: 16px auto; }
+.club-auth-welcome > p { text-align: center; font-size: 14px; line-height: 1.65; }
+.club-auth-footnote { font-size: 10px; text-align: center; color: #fffdf5; }
+.club-auth-form-side { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; padding: 48px 32px 24px; }
+.club-auth-card { width: 100%; max-width: 440px; border: 1px solid #e5deec; border-radius: 28px; background: #fffdf5; padding: 32px; box-shadow: 0 12px 45px -30px #44417140; }
+.club-auth-card h1 { margin-top: 10px; font-size: clamp(28px, 3vw, 38px); font-weight: 850; line-height: 1.1; letter-spacing: -.05em; }
+.club-auth-legal { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 26px; font-size: 11px; color: #666279; }
+.club-auth-legal a:hover { color: #5b5fd7; text-decoration: underline; }
+.club-auth-mobile-brand { display: none; }
+.club-onboarding { min-height: 100dvh; background: #f8f5ee; color: #202044; }
+.club-onboarding-grid { display: grid; max-width: 1500px; min-height: 100dvh; margin: auto; grid-template-columns: 340px minmax(0, 1fr); }
+.club-onboarding-sidebar { display: flex; flex-direction: column; min-height: 100dvh; padding: 36px 30px; background: #5b5fd7; border-radius: 0 36px 36px 0; color: #fffdf5; }
+.club-onboarding-sidebar h2 { margin: 44px 0 32px; font-size: 44px; font-weight: 850; letter-spacing: -.06em; line-height: 1.02; }
+.club-onboarding-sidebar h2 em { display: block; color: #fff1a8; font-style: normal; }
+.club-onboarding-steps { display: grid; gap: 12px; }
+.club-onboarding-steps li { display: flex; gap: 14px; align-items: flex-start; padding: 15px 12px; border-radius: 16px; color: #fffdf5; }
+.club-onboarding-steps li[aria-current="step"] { background: #ffffff18; }
+.club-onboarding-number { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #ffffff20; font-size: 13px; font-weight: 750; }
+.club-onboarding-steps li[aria-current="step"] .club-onboarding-number { background: #fff1a8; color: #202044; }
+.club-onboarding-art { width: 100%; height: auto; margin-top: auto; padding-top: 30px; border-radius: 20px; }
+.club-onboarding-form { display: flex; flex-direction: column; width: 100%; max-width: 920px; margin: 26px auto 0; border: 1px solid #e2dbea; border-radius: 28px; background: #fffdf5; overflow: hidden; }
+.club-onboarding-form :is(input:not([type="hidden"]), select) { border: 1px solid #d3cde1; border-radius: 14px; background: #fffdf5; }
+.club-onboarding-form :is(input, select):focus-visible { border-color: #5b5fd7; box-shadow: 0 0 0 4px #5b5fd71c; }
+.club-onboarding-form button { border-radius: 16px; }
+.club-onboarding-form footer button { border-radius: 999px; box-shadow: none; }
+.club-onboarding-form [role="listbox"] { border-radius: 16px; border-color: #dcd6e5; box-shadow: 0 8px 25px #4441711a; }
+.club-onboarding-form [role="listbox"] button { border-radius: 0; }
+.club-workspace .font-display { letter-spacing: -.035em; }
+.club-workspace :is(article, section).app-panel { border-radius: 24px; }
+.club-workspace :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { border-radius: 14px; }
+.club-workspace table { font-size: 13px; }
+.club-workspace th { color: #666279; font-weight: 650; }
+.club-welcome { display: grid; grid-template-columns: 1.3fr .7fr; gap: 24px; align-items: center; padding: 30px; background: #e7e4fa; border-radius: 28px; overflow: hidden; }
+.club-welcome h1 { max-width: 570px; }
+.club-welcome-art { width: 100%; max-height: 200px; object-fit: cover; border-radius: 22px; }
+.club-quick-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.club-quick-links a { display: flex; align-items: center; gap: 14px; padding: 20px; border-radius: 22px; background: #e7e4fa; transition: transform 180ms; }
+.club-quick-links a:nth-child(2) { background: #fff1a8; }
+.club-quick-links a:nth-child(3) { background: #dcebd7; }
+.club-quick-links a:hover { transform: translateY(-3px); }
+.club-quick-links strong { display: block; font-size: 14px; }
+.club-quick-links small { display: block; margin-top: 4px; font-size: 11px; color: #666279; }
+@media (max-width: 1000px) {
+  .club-auth-world { padding: 30px 26px; }
+  .club-auth-card { padding: 28px; }
+  .club-onboarding-grid { grid-template-columns: 280px minmax(0, 1fr); }
+  .club-onboarding-sidebar { padding: 32px 24px; }
+  .club-onboarding-sidebar h2 { font-size: 38px; }
+}
+@media (max-width: 900px) {
+  .club-auth { grid-template-columns: 1fr; }
+  .club-auth-world { display: none; }
+  .club-auth-form-side { padding: 28px 20px; }
+  .club-auth-mobile-brand { display: block; margin: 4px 0 28px; }
+  .club-onboarding-grid { grid-template-columns: 1fr; }
+  .club-onboarding-sidebar { display: none; }
+}
+@media (max-width: 640px) {
+  /*
+   * Turnstile's "flexible" size still refuses to render below 300px, so on a
+   * phone the padding chain -- form side, card, captcha box -- is what decides
+   * whether the widget fits or spills out of the card. Trimmed here, and the
+   * captcha band bleeds past the card's text inset, so the check clears 300px
+   * on a 360px screen without pulling the body copy to the edge.
+   */
+  .club-auth-form-side { padding: 28px 14px 24px; }
+  .club-auth-card { padding: 26px 18px; }
+  .club-captcha { margin-inline: -10px; padding-inline: 4px; }
+  .club-onboarding-form { border-radius: 24px; }
+  .club-welcome { grid-template-columns: 1fr; padding: 24px; }
+  .club-welcome-art { display: none; }
+  .club-quick-links { grid-template-columns: 1fr; gap: 10px; }
+  .club-quick-links a { padding: 16px 20px; }
 }
 
 /* ---------- hero entrance ---------- */
@@ -596,7 +619,7 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
    landing page's density: generous line height, restrained hierarchy, and
    AA-contrast body text on paper. */
 .legal-prose {
-  color: rgba(23, 21, 18, 0.82);
+  color: rgba(32, 32, 68, 0.82);
   font-size: 1rem;
   line-height: 1.75;
 }
@@ -605,15 +628,15 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
   font-size: 1.125rem;
   font-weight: 500;
   line-height: 1.7;
-  color: rgba(23, 21, 18, 0.88);
+  color: rgba(32, 32, 68, 0.88);
 }
 
 .legal-prose h2 {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: -0.01em;
-  color: #171512;
+  color: #202044;
   margin-top: 2.75rem;
   margin-bottom: 0.75rem;
   scroll-margin-top: 2rem;
@@ -644,20 +667,63 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 
 .legal-prose strong {
   font-weight: 700;
-  color: #171512;
+  color: #202044;
 }
 
 .legal-prose a {
-  color: #17453a;
+  color: #5b5fd7;
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .legal-prose a:hover {
-  color: #f0a202;
+  color: #444171;
 }
 
 .legal-prose code {
   font-size: 0.875em;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .club-workspace *, .club-auth *, .club-onboarding * { animation: none !important; transition: none !important; }
+}
+
+.club-sidebar { background: #5b5fd7; color: #fffdf5; }
+.club-sidebar-inner { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding: 30px 18px 20px; }
+.club-sidebar-inner > div:first-child { padding: 0 6px; }
+.club-sidebar .club-brand { font-size: 24px; }
+.club-campus-label { display: flex; gap: 10px; align-items: center; margin: 30px 6px 24px; }
+.club-campus-label > span { font-size: 27px; color: #fff1a8; }
+.club-campus-label strong { display: block; font-size: 12px; }
+.club-campus-label small { display: block; margin-top: 4px; font-size: 10px; color: #fffdf5; }
+.club-sidebar-nav { display: grid; gap: 5px; }
+.club-nav-item { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 12px 15px; border-radius: 14px; color: #fffdf5; font-size: 13px; font-weight: 600; transition: background-color 180ms; }
+.club-nav-item:hover { background: #ffffff18; }
+.club-nav-active, .club-nav-active:hover { background: #fffdf5; color: #4144ad; font-weight: 750; }
+.club-sidebar-upload { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 24px; padding: 14px; border-radius: 999px; background: #fff1a8; color: #202044; font-size: 12px; font-weight: 750; transition: transform 180ms; }
+.club-sidebar-upload:hover { transform: translateY(-2px); }
+.club-sidebar-nudge { padding: 12px 0 24px; text-align: center; font-size: 10px; }
+.club-sidebar-profile { margin-top: auto; padding: 18px 6px 0; border-top: 1px solid #ffffff38; }
+.club-sidebar-signout { margin-top: 16px; }
+.club-sidebar-signout button { width: 100%; min-height: 36px; justify-content: center; border: 1px solid #ffffff50; background: transparent; color: #fffdf5; box-shadow: none; font-size: 11px; }
+.club-sidebar :is(a, button):focus-visible { outline-color: #fff1a8; }
+.club-workspace-header { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 78px; padding: 16px 32px; border-bottom: 1px solid #e6e0ec; background: #fffdf5f2; backdrop-filter: blur(16px); }
+.club-menu-button, .club-drawer-close { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; }
+.club-menu-button { background: #e7e4fa; color: #4144ad; }
+.club-drawer-close { background: #ffffff18; color: #fffdf5; }
+.club-drawer { position: fixed; inset: 0 auto 0 0; width: min(86vw, 300px); height: 100dvh; max-height: none; max-width: none; margin: 0; padding: 0; border: 0; background: #5b5fd7; }
+.club-drawer::backdrop { background: #20204480; backdrop-filter: blur(3px); }
+body:has(.club-drawer[open]) { overflow: hidden; }
+.club-skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 12px 18px; border-radius: 12px; background: #fff1a8; color: #202044; transform: translateY(-150%); }
+.club-skip-link:focus { transform: none; }
+@media (min-width: 1024px) { .club-workspace-header .club-menu-button, .club-sidebar .club-drawer-close { display: none; } }
+@media (max-width: 640px) { .club-workspace-header { min-height: 70px; padding: 14px 18px; } }
+
+@media (min-width: 901px) and (max-width: 1023px) {
+  .club-onboarding-grid { grid-template-columns: 1fr; }
+  .club-onboarding-sidebar { display: none; }
+}
+
+.club-auth-art { border-radius: 28px; }

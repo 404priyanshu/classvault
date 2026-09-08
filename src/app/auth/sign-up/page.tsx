@@ -18,17 +18,17 @@ export default async function SignUpPage({
 
   return (
     <AuthShell
-      description="Use an email, social account, or phone number. We’ll personalize your study space next."
+      description="Make a little space for better study days. Choose how you’d like to join."
       eyebrow="Free to start"
       footer={
         <>
           Already have an account?{' '}
-          <Link className="font-bold text-[#17453a] underline" href="/auth/sign-in">
+          <Link className="font-bold text-club-purple underline" href="/auth/sign-in">
             Sign in
           </Link>
         </>
       }
-      title="Create your vault."
+      title="Come on in."
     >
       <AuthMessage error={error} />
       <AuthProviderButtons
@@ -80,7 +80,7 @@ export default async function SignUpPage({
             required
             type="password"
           />
-          <span className="mt-2 block text-xs text-[#171512]/55">
+          <span className="mt-2 block text-xs text-club-muted">
             Use 8–72 characters.
           </span>
         </label>

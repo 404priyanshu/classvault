@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <article className="legal-prose">
-      <span className="stamp bg-[#f6f1e5] text-[#171512]">Legal</span>
-      <h1 className="font-display mt-5 text-4xl font-black tracking-tight text-[#171512] md:text-5xl">
+      <span className="stamp bg-club-bg text-club-ink">Legal</span>
+      <h1 className="font-display mt-5 text-4xl font-black tracking-tight text-club-ink md:text-5xl">
         Privacy Policy
       </h1>
-      <p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-[#171512]/45">
+      <p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-club-muted">
         Last updated {legalContact.lastUpdated}
       </p>
 

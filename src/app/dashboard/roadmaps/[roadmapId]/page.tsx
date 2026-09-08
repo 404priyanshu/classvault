@@ -48,27 +48,27 @@ export default async function RoadmapDetailPage({
   return (
     <div className="mx-auto max-w-[1120px] space-y-6 sm:space-y-8">
       <Link
-        className="inline-flex items-center gap-1.5 text-sm font-black text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+        className="inline-flex items-center gap-1.5 text-sm font-black text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4"
         href="/dashboard/roadmaps"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" />
         All roadmaps
       </Link>
 
-      <header className="border border-[#171512] bg-[#fffdf6] p-5 [box-shadow:var(--elev-inline)] sm:p-7">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.09em] text-[#17453a]">
+      <header className="rounded-3xl border border-club-line bg-club-paper p-5 [box-shadow:var(--elev-inline)] sm:p-7">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.09em] text-club-purple">
           <span>{formatRoadmapStudyMode(roadmap.studyMode)}</span>
-          <span aria-hidden className="text-[#171512]/25">/</span>
+          <span aria-hidden className="text-club-ink/25">/</span>
           <span>{roadmap.generationPlan} plan snapshot</span>
         </div>
         <h1 className="app-title mt-3">
           {roadmap.title}
         </h1>
-        <p className="mt-4 text-sm leading-relaxed text-[#171512]/60">
+        <p className="mt-4 text-sm leading-relaxed text-club-muted">
           A static, source-cited roadmap for {roadmap.topic}. Source access is
           rechecked every time this page opens.
         </p>
-        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-[#171512]/60">
+        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-club-muted">
           <span className="inline-flex items-center gap-1.5">
             <CalendarDays aria-hidden className="h-4 w-4 text-[#b56d00]" />
             Generated {generatedDateFormatter.format(new Date(roadmap.generatedAt))}
@@ -78,7 +78,7 @@ export default async function RoadmapDetailPage({
             {completedTasks} of {tasks.length} tasks complete
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <LockKeyhole aria-hidden className="h-4 w-4 text-[#17453a]" />
+            <LockKeyhole aria-hidden className="h-4 w-4 text-club-purple" />
             Private progress
           </span>
         </div>
@@ -88,23 +88,23 @@ export default async function RoadmapDetailPage({
         {roadmap.sections.map((section) =>
           section.available ? (
             <section
-              className="border border-[#cfc4ae] bg-[#fffdf6] [box-shadow:var(--elev-inline)]"
+              className="border border-club-line bg-club-paper [box-shadow:var(--elev-inline)]"
               key={section.id}
             >
-              <div className="border-b border-[#d9cfbc] p-5 sm:p-6">
+              <div className="border-b border-club-line p-5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.09em] text-[#b56d00]">
                     <Route aria-hidden className="h-4 w-4" />
                     Phase {section.position}
                   </span>
-                  <span className="border border-[#bfb39d] bg-[#f8f2e5] px-2.5 py-1 text-[11px] font-black">
+                  <span className="rounded-full border border-club-line bg-club-lavender px-2.5 py-1 text-[11px] font-black">
                     {section.timeframe}
                   </span>
                 </div>
                 <h2 className="font-display mt-3 text-2xl font-black sm:text-3xl">
                   {section.title}
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[#171512]/65">
+                <p className="mt-2 text-sm leading-relaxed text-club-muted">
                   {section.summary}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default async function RoadmapDetailPage({
                           taskId={task.id}
                         />
                         <span
-                          className={`pt-1 text-sm leading-relaxed ${task.completed ? 'text-[#171512]/45 line-through' : 'text-[#171512]/80'}`}
+                          className={`pt-1 text-sm leading-relaxed ${task.completed ? 'text-club-muted line-through' : 'text-club-ink/80'}`}
                         >
                           {task.text}
                         </span>
@@ -132,9 +132,9 @@ export default async function RoadmapDetailPage({
                   </ul>
                 </div>
 
-                <aside className="border-t border-[#d9cfbc] bg-[#f8f2e5] p-5 lg:border-l lg:border-t-0">
+                <aside className="border-t border-club-line bg-club-lavender p-5 lg:border-l lg:border-t-0">
                   <h3 className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.08em]">
-                    <BookOpenCheck aria-hidden className="h-4 w-4 text-[#17453a]" />
+                    <BookOpenCheck aria-hidden className="h-4 w-4 text-club-purple" />
                     Cited sources
                   </h3>
                   <ul className="mt-3 space-y-2">
@@ -142,13 +142,13 @@ export default async function RoadmapDetailPage({
                       <li className="text-xs leading-relaxed" key={`${section.id}-${source.noteId || sourceIndex}`}>
                         {source.linkAvailable && source.noteId ? (
                           <Link
-                            className="font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-2"
+                            className="font-bold text-club-purple underline decoration-club-yellow decoration-2 underline-offset-2"
                             href={`/dashboard/notes/${source.noteId}`}
                           >
                             {source.title}
                           </Link>
                         ) : (
-                          <span className="font-bold text-[#171512]/45">
+                          <span className="font-bold text-club-muted">
                             {source.title} · unavailable
                           </span>
                         )}
@@ -167,7 +167,7 @@ export default async function RoadmapDetailPage({
               <h2 className="font-display mt-3 text-2xl font-black">
                 Phase {section.position} is unavailable
               </h2>
-              <p className="mt-2 text-sm text-[#171512]/60">
+              <p className="mt-2 text-sm text-club-muted">
                 At least one cited source is no longer authorized, so the entire
                 derived section has been withheld.
               </p>

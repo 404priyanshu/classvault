@@ -22,7 +22,7 @@ export function StudyRoomSubmitButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-[#17453a] px-4 text-sm font-bold text-[#fffdf6] transition hover:bg-[#10372f] disabled:cursor-wait disabled:opacity-60',
+        'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-club-purple px-4 text-sm font-bold text-club-paper transition hover:bg-club-deep disabled:cursor-wait disabled:opacity-60',
         className,
       )}
       disabled={pending}

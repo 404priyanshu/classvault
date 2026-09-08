@@ -16,7 +16,7 @@ export function SubmitButton({
 
   return (
     <button
-      className="btn-saffron mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-black disabled:cursor-wait disabled:opacity-70"
+      className="btn-ink mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-black disabled:cursor-wait disabled:opacity-70"
       disabled={pending}
       type="submit"
     >

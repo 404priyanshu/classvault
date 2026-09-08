@@ -39,7 +39,7 @@ export default async function PhoneAuthPage({
       eyebrow={isVerifying ? 'Check your messages' : 'Password-free access'}
       footer={
         <Link
-          className="inline-flex items-center gap-1.5 font-bold text-[#17453a] underline"
+          className="inline-flex items-center gap-1.5 font-bold text-club-purple underline"
           href="/auth/sign-in"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -58,11 +58,11 @@ export default async function PhoneAuthPage({
             <label className="block">
               <span className="text-sm font-bold">Six-digit code</span>
               <div className="relative mt-2">
-                <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#17453a]" />
+                <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-club-purple" />
                 <input
                   autoComplete="one-time-code"
                   autoFocus
-                  className="h-14 w-full border border-[#171512]/22 bg-white pl-11 pr-4 text-center font-mono text-2xl font-black tracking-[0.35em] outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-14 w-full border border-club-ink/22 bg-white pl-11 pr-4 text-center font-mono text-2xl font-black tracking-[0.35em] outline-none transition-shadow "
                   inputMode="numeric"
                   maxLength={6}
                   name="token"
@@ -83,14 +83,14 @@ export default async function PhoneAuthPage({
               <input name="next" type="hidden" value={next} />
               <input name="phone" type="hidden" value={phone} />
               <button
-                className="font-bold text-[#17453a] underline"
+                className="font-bold text-club-purple underline"
                 type="submit"
               >
                 Send another code
               </button>
             </form>
             <Link
-              className="font-semibold text-[#171512]/60 underline"
+              className="font-semibold text-club-muted underline"
               href={`/auth/phone?${new URLSearchParams({ next }).toString()}`}
             >
               Change number
@@ -116,7 +116,7 @@ export default async function PhoneAuthPage({
                 <span className="sr-only">Country code</span>
                 <select
                   autoComplete="tel-country-code"
-                  className="h-12 w-full border border-[#171512]/22 bg-white px-3 text-sm font-bold outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-12 w-full border border-club-ink/22 bg-white px-3 text-sm font-bold outline-none transition-shadow "
                   defaultValue={DEFAULT_PHONE_COUNTRY_CODE}
                   name="countryCode"
                 >
@@ -133,10 +133,10 @@ export default async function PhoneAuthPage({
 
               <label className="relative block">
                 <span className="sr-only">Phone number</span>
-                <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#17453a]" />
+                <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-club-purple" />
                 <input
                   autoComplete="tel-national"
-                  className="h-12 w-full border border-[#171512]/22 bg-white pl-10 pr-2 text-sm outline-none transition-shadow focus:shadow-[3px_3px_0_#f0a202]"
+                  className="h-12 w-full border border-club-ink/22 bg-white pl-10 pr-2 text-sm outline-none transition-shadow "
                   inputMode="tel"
                   name="phoneNumber"
                   placeholder="9876543210"
@@ -145,7 +145,7 @@ export default async function PhoneAuthPage({
                 />
               </label>
             </div>
-            <span className="mt-2 block text-xs leading-relaxed text-[#171512]/55">
+            <span className="mt-2 block text-xs leading-relaxed text-club-muted">
               Select your country code, then enter the mobile number without it.
               Standard SMS charges may apply.
             </span>

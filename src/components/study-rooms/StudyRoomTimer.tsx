@@ -39,16 +39,16 @@ export function StudyRoomTimer({
 
   return (
     <div className="text-center">
-      <p className="text-xs font-black uppercase tracking-[0.12em] text-[#17453a]">
+      <p className="text-xs font-black uppercase tracking-[0.12em] text-club-purple">
         {timerPhase === 'focus' ? 'Focus block' : 'Break block'}
       </p>
       <p
         aria-live="off"
-        className="font-display mt-3 tabular-nums text-[clamp(4.5rem,12vw,8.5rem)] font-black leading-[0.86] tracking-[-0.06em] text-[#171512]"
+        className="font-display mt-3 tabular-nums text-[clamp(4.5rem,12vw,8.5rem)] font-black leading-[0.86] tracking-[-0.06em] text-club-ink"
       >
         {formatTimerSeconds(seconds)}
       </p>
-      <p className="mt-4 text-sm font-semibold text-[#171512]/55">
+      <p className="mt-4 text-sm font-semibold text-club-muted">
         {seconds === 0
           ? 'Block complete — move to the next phase when everyone is ready.'
           : timerStatus === 'running'
@@ -74,7 +74,7 @@ export function StudyRoomTimer({
               <span>{timerStatus === 'running' ? 'Pause' : 'Start'}</span>
             </StudyRoomSubmitButton>
             <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-[#bfb39d] bg-[#fffdf6] px-4 text-sm font-bold transition hover:border-[#17453a] hover:bg-[#eef4ed]"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-club-line bg-club-paper px-4 text-sm font-bold transition hover:border-club-purple hover:bg-club-mint"
               name="action"
               type="submit"
               value="reset"
@@ -83,7 +83,7 @@ export function StudyRoomTimer({
               Reset
             </button>
             <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-[#bfb39d] bg-[#fffdf6] px-4 text-sm font-bold transition hover:border-[#17453a] hover:bg-[#eef4ed]"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-club-line bg-club-paper px-4 text-sm font-bold transition hover:border-club-purple hover:bg-club-mint"
               name="action"
               type="submit"
               value="skip"
@@ -97,7 +97,7 @@ export function StudyRoomTimer({
           </div>
         </form>
       ) : (
-        <p className="mx-auto mt-7 max-w-md border-t border-[#d8cdb9] pt-5 text-xs leading-relaxed text-[#171512]/50">
+        <p className="mx-auto mt-7 max-w-md border-t border-club-line pt-5 text-xs leading-relaxed text-club-muted">
           The host and co-hosts control the shared timer. Your countdown updates
           automatically.
         </p>

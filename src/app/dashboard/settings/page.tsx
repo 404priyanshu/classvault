@@ -41,14 +41,14 @@ function SettingsSection({
   return (
     <section
       aria-labelledby={`${id}-heading`}
-      className="scroll-mt-28 overflow-hidden rounded-lg border border-[#d6cbb8] bg-[#fffdf6] shadow-[0_1px_0_rgba(23,21,18,0.04)]"
+      className="scroll-mt-28 overflow-hidden rounded-lg border border-club-line bg-club-paper shadow-[0_1px_0_rgba(32,32,68,0.04)]"
       id={id}
     >
-      <div className="border-b border-[#e2dacb] px-5 py-5 sm:px-7">
+      <div className="border-b border-club-line px-5 py-5 sm:px-7">
         <h2 className="font-display text-2xl font-black" id={`${id}-heading`}>
           {title}
         </h2>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#171512]/55">
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-club-muted">
           {description}
         </p>
       </div>
@@ -67,9 +67,9 @@ function AccountRow({
   value: ReactNode
 }) {
   return (
-    <div className="grid gap-3 border-b border-[#e8e1d5] py-4 last:border-b-0 sm:grid-cols-[190px_minmax(0,1fr)] sm:items-center">
-      <div className="flex items-center gap-2 text-sm font-bold text-[#171512]/65">
-        <Icon aria-hidden className="h-4 w-4 text-[#17453a]" strokeWidth={1.8} />
+    <div className="grid gap-3 border-b border-club-line py-4 last:border-b-0 sm:grid-cols-[190px_minmax(0,1fr)] sm:items-center">
+      <div className="flex items-center gap-2 text-sm font-bold text-club-muted">
+        <Icon aria-hidden className="h-4 w-4 text-club-purple" strokeWidth={1.8} />
         {label}
       </div>
       <div className="min-w-0 text-sm font-semibold">{value}</div>
@@ -117,15 +117,15 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-[1240px]">
-      <header className="border-b border-[#cfc4ae] pb-7">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.1em] text-[#17453a]">
+      <header className="border-b border-club-line pb-7">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.1em] text-club-purple">
           <Settings2 aria-hidden className="h-4 w-4" />
           Account controls
         </div>
         <h1 className="app-title mt-3">
           Settings
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
           Manage how you appear in ClassVault, update your study profile, and
           keep your account secure.
         </p>
@@ -135,11 +135,11 @@ export default async function SettingsPage() {
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <nav
             aria-label="Settings sections"
-            className="grid grid-cols-2 gap-1 rounded-lg border border-[#d6cbb8] bg-[#fffdf6] p-2 lg:grid-cols-1"
+            className="grid grid-cols-2 gap-1 rounded-3xl border border-club-line bg-club-paper p-2 lg:grid-cols-1"
           >
             {settingsLinks.map(({ href, icon: Icon, label }) => (
               <a
-                className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-bold text-[#171512]/70 transition hover:bg-[#eef4ed] hover:text-[#17453a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17453a]"
+                className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-bold text-club-muted transition hover:bg-club-mint hover:text-club-purple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-club-purple"
                 href={href}
                 key={href}
               >
@@ -148,7 +148,7 @@ export default async function SettingsPage() {
               </a>
             ))}
           </nav>
-          <p className="mt-4 hidden px-2 text-xs leading-relaxed text-[#171512]/45 lg:block">
+          <p className="mt-4 hidden px-2 text-xs leading-relaxed text-club-muted lg:block">
             Changes save to your private ClassVault profile. Your login identity
             is never shown beside notes.
           </p>
@@ -164,7 +164,7 @@ export default async function SettingsPage() {
               avatarUrl={profile.avatar_url}
               displayName={displayName}
             />
-            <div className="my-7 border-t border-[#e2dacb]" />
+            <div className="my-7 border-t border-club-line" />
             <ProfileDetailsForm
               course={profile.course || 'M.Tech'}
               displayName={displayName}
@@ -183,7 +183,7 @@ export default async function SettingsPage() {
                 label="ClassVault ID"
                 value={
                   <div className="flex flex-wrap items-center gap-3">
-                    <code className="max-w-full truncate rounded bg-[#f2ecdf] px-2 py-1 font-mono text-xs">
+                    <code className="max-w-full truncate rounded bg-club-lavender px-2 py-1 font-mono text-xs">
                       {claims.sub}
                     </code>
                     <CopyAccountId accountId={String(claims.sub)} />
@@ -197,7 +197,7 @@ export default async function SettingsPage() {
                   value={
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="break-all">{email}</span>
-                      <span className="rounded bg-[#e3efe5] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#246447]">
+                      <span className="rounded bg-club-mint px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#246447]">
                         Confirmed
                       </span>
                     </span>
@@ -213,7 +213,7 @@ export default async function SettingsPage() {
                 value={
                   <span className="flex flex-wrap items-center gap-2">
                     <span>{profile.university_name || 'Not selected'}</span>
-                    <span className="rounded bg-[#fff1c7] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#805500]">
+                    <span className="rounded bg-club-yellow px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#805500]">
                       {membership?.status || 'pending'}
                     </span>
                   </span>
@@ -232,7 +232,7 @@ export default async function SettingsPage() {
                 value={createdDate}
               />
             </div>
-            <p className="mt-5 rounded-md bg-[#f5efe3] px-4 py-3 text-xs leading-relaxed text-[#171512]/60">
+            <p className="mt-5 rounded-md bg-club-lavender px-4 py-3 text-xs leading-relaxed text-club-muted">
               Your ClassVault ID is permanent and cannot be changed. Edit your
               display name above to change the identity other students see.
             </p>

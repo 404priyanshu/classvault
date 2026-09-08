@@ -30,7 +30,7 @@ function StatusCell({ row }: { row: BatchRow }) {
 
   if (row.status === 'done') {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
+      <span className="flex items-center gap-1.5 text-xs font-bold text-club-purple">
         <CheckCircle2 aria-hidden className="h-3.5 w-3.5" /> Saved
       </span>
     )
@@ -44,7 +44,7 @@ function StatusCell({ row }: { row: BatchRow }) {
     )
   }
 
-  return <span className="text-xs font-medium text-[#171512]/50">Queued</span>
+  return <span className="text-xs font-medium text-club-muted">Queued</span>
 }
 
 export function BatchUploadForm({
@@ -84,12 +84,12 @@ export function BatchUploadForm({
     <>
       <section className="mt-10">
         <h1 className="app-title">Add a stack at once</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/65">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-club-muted">
           Pick several files from one subject, set the details once, and fix the
           titles inline. Each note still goes through the same checks as a
           single upload.{' '}
           <Link
-            className="font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+            className="font-bold text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4"
             href="/dashboard/notes/new"
           >
             Add one note instead
@@ -103,8 +103,8 @@ export function BatchUploadForm({
         <label
           className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
             dragActive
-              ? 'border-[#17453a] bg-[#17453a]/[0.06]'
-              : 'border-[#171512]/35 bg-[#f6f1e5]'
+              ? 'border-club-purple bg-club-purple/[0.06]'
+              : 'border-club-ink/35 bg-club-bg'
           }`}
           htmlFor={fileInputId}
           onDragEnter={(event) => {
@@ -122,11 +122,11 @@ export function BatchUploadForm({
         >
           {rows.length === 0 ? (
             <>
-              <Upload aria-hidden className="h-8 w-8 text-[#17453a]" strokeWidth={1.6} />
+              <Upload aria-hidden className="h-8 w-8 text-club-purple" strokeWidth={1.6} />
               <span className="font-display mt-3 text-xl font-black">
                 Drop your files here
               </span>
-              <span className="mt-1 text-sm text-[#171512]/60">
+              <span className="mt-1 text-sm text-club-muted">
                 PDF, JPG, PNG or WebP · up to 25 MiB each · pick as many as you like
               </span>
             </>
@@ -134,7 +134,7 @@ export function BatchUploadForm({
             <>
               <CheckCircle2
                 aria-hidden
-                className="h-8 w-8 text-[#17453a]"
+                className="h-8 w-8 text-club-purple"
                 strokeWidth={1.7}
               />
               <span className="font-display mt-3 text-xl font-black">
@@ -143,19 +143,19 @@ export function BatchUploadForm({
               <span className="mt-2 flex max-w-xl flex-wrap justify-center gap-1.5">
                 {rows.slice(0, 6).map((row) => (
                   <span
-                    className="rounded-full border border-[#171512]/25 bg-[#fffdf6] px-2.5 py-0.5 text-xs font-bold"
+                    className="rounded-full border border-club-ink/25 bg-club-paper px-2.5 py-0.5 text-xs font-bold"
                     key={row.id}
                   >
                     {row.title || row.file.name}
                   </span>
                 ))}
                 {rows.length > 6 ? (
-                  <span className="rounded-full px-2.5 py-0.5 text-xs font-bold text-[#171512]/55">
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-bold text-club-muted">
                     +{rows.length - 6} more
                   </span>
                 ) : null}
               </span>
-              <span className="mt-3 text-sm font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4">
+              <span className="mt-3 text-sm font-bold text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4">
                 Add more files
               </span>
             </>
@@ -272,7 +272,7 @@ export function BatchUploadForm({
                 {rows.length} file{rows.length === 1 ? '' : 's'}
               </h2>
               {doneCount > 0 ? (
-                <p aria-live="polite" className="text-xs font-bold text-[#17453a]">
+                <p aria-live="polite" className="text-xs font-bold text-club-purple">
                   {doneCount} saved · {remaining} to go
                 </p>
               ) : null}
@@ -294,7 +294,7 @@ export function BatchUploadForm({
                       placeholder="Title this note"
                       value={row.title}
                     />
-                    <span className="flex items-center gap-1.5 text-[11px] text-[#171512]/50">
+                    <span className="flex items-center gap-1.5 text-[11px] text-club-muted">
                       <FileText aria-hidden className="h-3 w-3" />
                       {row.file.name}
                     </span>
@@ -325,7 +325,7 @@ export function BatchUploadForm({
         {formError ? (
           <p
             aria-live="polite"
-            className="mt-6 rounded-lg border-[1.5px] border-red-700/40 bg-red-50/80 p-3 text-sm font-bold text-red-800"
+            className="mt-6 rounded-lg border border-red-700/40 bg-red-50/80 p-3 text-sm font-bold text-red-800"
           >
             {formError}
           </p>
@@ -350,7 +350,7 @@ export function BatchUploadForm({
           >
             Save as drafts
           </button>
-          <p className="text-xs font-medium text-[#171512]/55">
+          <p className="text-xs font-medium text-club-muted">
             Uploaded one at a time so a failure never takes the rest with it.
           </p>
         </div>

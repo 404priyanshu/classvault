@@ -32,27 +32,26 @@ export function RoadmapRequestForm({
   return (
     <section
       aria-labelledby="roadmap-request-heading"
-      className="border border-[#171512] bg-[#fffdf6] [box-shadow:var(--elev-inline)]"
+      className="app-panel overflow-hidden"
     >
       <div className="grid lg:grid-cols-[minmax(0,1fr)_290px]">
         <form action={formAction} className="p-5 sm:p-7">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#171512] bg-[#f0a202] [box-shadow:var(--elev-inline)]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-club-ink bg-club-yellow [box-shadow:var(--elev-inline)]">
               <Sparkles aria-hidden className="h-5 w-5" />
             </span>
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#b56d00]">
-                Deterministic generator v1
+                A little direction
               </p>
               <h2
                 className="font-display mt-1 text-2xl font-black sm:text-3xl"
                 id="roadmap-request-heading"
               >
-                Build a grounded roadmap
+                Make your next study plan
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#171512]/60">
-                ClassVault snapshots every note your current plan permits. The
-                browser cannot choose or replace the source set.
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-club-muted">
+                Start with a topic and a study style. We’ll build a structured plan from the notes available to you.
               </p>
             </div>
           </div>
@@ -61,7 +60,7 @@ export function RoadmapRequestForm({
             What are you studying?
           </label>
           <input
-            className="app-field mt-2 min-h-12 bg-white px-4 text-base font-bold outline-none transition-shadow placeholder:text-[#171512]/35 focus:shadow-[3px_3px_0_#f0a202]"
+            className="app-field mt-2 min-h-12 bg-white px-4 text-base font-bold outline-none transition-shadow placeholder:text-club-ink/35 "
             disabled={pending}
             id="roadmap-topic"
             maxLength={160}
@@ -76,9 +75,9 @@ export function RoadmapRequestForm({
               Study mode
             </legend>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#fff2bd] has-[:checked]:[box-shadow:var(--elev-inline)]">
+              <label className="cursor-pointer rounded-2xl border border-club-line bg-club-lavender p-4 has-[:checked]:border-club-ink has-[:checked]:bg-club-yellow has-[:checked]:[box-shadow:var(--elev-inline)]">
                 <input
-                  className="mr-2 accent-[#17453a]"
+                  className="mr-2 accent-club-purple"
                   defaultChecked
                   disabled={pending}
                   name="studyMode"
@@ -86,20 +85,20 @@ export function RoadmapRequestForm({
                   value="exam"
                 />
                 <span className="text-sm font-black">Exam revision</span>
-                <span className="mt-1 block pl-6 text-xs leading-relaxed text-[#171512]/55">
+                <span className="mt-1 block pl-6 text-xs leading-relaxed text-club-muted">
                   Recall questions, timed practice, and a final review sheet.
                 </span>
               </label>
-              <label className="cursor-pointer border border-[#cfc4ae] bg-[#f8f2e5] p-4 has-[:checked]:border-[#171512] has-[:checked]:bg-[#e9f3ea] has-[:checked]:[box-shadow:var(--elev-inline)]">
+              <label className="cursor-pointer rounded-2xl border border-club-line bg-club-lavender p-4 has-[:checked]:border-club-ink has-[:checked]:bg-club-mint has-[:checked]:[box-shadow:var(--elev-inline)]">
                 <input
-                  className="mr-2 accent-[#17453a]"
+                  className="mr-2 accent-club-purple"
                   disabled={pending}
                   name="studyMode"
                   type="radio"
                   value="indepth"
                 />
                 <span className="text-sm font-black">In-depth study</span>
-                <span className="mt-1 block pl-6 text-xs leading-relaxed text-[#171512]/55">
+                <span className="mt-1 block pl-6 text-xs leading-relaxed text-club-muted">
                   Concept mapping, explanation, practice, and consolidation.
                 </span>
               </label>
@@ -108,7 +107,7 @@ export function RoadmapRequestForm({
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
-              className="inline-flex min-h-12 items-center gap-2 border border-[#171512] bg-[#17453a] px-5 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-5 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canGenerate || pending}
               type="submit"
             >
@@ -119,18 +118,18 @@ export function RoadmapRequestForm({
               )}
               {pending ? 'Building roadmap…' : 'Generate roadmap'}
             </button>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17453a]">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-club-purple">
               <BookOpenCheck aria-hidden className="h-4 w-4" />
-              {sourceCount} server-selected source{sourceCount === 1 ? '' : 's'}
+              {sourceCount} available source{sourceCount === 1 ? '' : 's'}
             </span>
           </div>
 
           {!workerConfigured ? (
-            <p className="mt-4 border border-[#b56d00]/50 bg-[#fff7dc] p-3 text-xs font-bold text-[#704500]">
-              Add the server-only Supabase service-role key to enable generation.
+            <p className="mt-4 border border-[#b56d00]/50 bg-club-yellow p-3 text-xs font-bold text-[#704500]">
+              Roadmap generation is unavailable right now. Please try again later.
             </p>
           ) : sourceCount === 0 ? (
-            <p className="mt-4 border border-[#b56d00]/50 bg-[#fff7dc] p-3 text-xs font-bold text-[#704500]">
+            <p className="mt-4 border border-[#b56d00]/50 bg-club-yellow p-3 text-xs font-bold text-[#704500]">
               Publish at least one eligible note before generating a roadmap.
             </p>
           ) : null}
@@ -138,28 +137,26 @@ export function RoadmapRequestForm({
           {state.message ? (
             <p
               aria-live="polite"
-              className={`mt-4 text-sm font-bold ${state.kind === 'error' ? 'text-[#9a3328]' : 'text-[#17453a]'}`}
+              className={`mt-4 text-sm font-bold ${state.kind === 'error' ? 'text-[#9a3328]' : 'text-club-purple'}`}
             >
               {state.message}
             </p>
           ) : null}
         </form>
 
-        <aside className="border-t border-[#171512] bg-[#17453a] p-5 text-[#fffdf6] lg:border-l lg:border-t-0 lg:p-6">
+        <aside className="border-t border-club-ink bg-club-purple p-5 text-club-paper lg:border-l lg:border-t-0 lg:p-6">
           <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#f7c65d]">
-            Current generator
+            Made for steady progress
           </p>
-          <h3 className="font-display mt-2 text-2xl font-black">Safe before smart</h3>
-          <p className="mt-3 text-sm leading-relaxed text-white/70">
-            This first provider is deterministic, not AI. It proves the complete
-            request, grounding, validation, save, recovery, and authorization
-            path before a model vendor is connected.
+          <h3 className="font-display mt-2 text-2xl font-black">A plan you can trace</h3>
+          <p className="mt-3 text-sm leading-relaxed text-white/85">
+            Each plan uses a structured template and cites your source notes. AI generation is coming later; you can start studying with this version today.
           </p>
           <ul className="mt-5 space-y-3 text-xs font-bold text-white/85">
             <li>✓ All eligible sources are cited</li>
-            <li>✓ Output is schema validated</li>
-            <li>✓ Private excerpts stay server-side</li>
-            <li>✓ Failed jobs can be retried</li>
+            <li>✓ Check off tasks as you go</li>
+            <li>✓ Your progress stays private</li>
+            <li>✓ Pick up where you left off</li>
           </ul>
         </aside>
       </div>

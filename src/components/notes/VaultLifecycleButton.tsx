@@ -19,8 +19,8 @@ function SubmitButton({ restore }: { restore: boolean }) {
     <button
       className={
         restore
-          ? 'inline-flex min-h-10 items-center justify-center gap-2 border border-[#17453a] bg-[#17453a] px-3 text-xs font-black text-[#fffdf6] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65'
-          : 'inline-flex min-h-10 items-center justify-center gap-2 border border-[#bfb39d] bg-[#fffdf6] px-3 text-xs font-black text-[#9a3f2f] transition-colors hover:border-[#9a3f2f] disabled:cursor-wait disabled:opacity-65'
+          ? 'inline-flex min-h-10 items-center justify-center gap-2 border border-club-purple bg-club-purple px-3 text-xs font-black text-club-paper transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65'
+          : 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-club-line bg-club-paper px-3 text-xs font-black text-[#9a3f2f] transition-colors hover:border-[#9a3f2f] disabled:cursor-wait disabled:opacity-65'
       }
       disabled={pending}
       type="submit"

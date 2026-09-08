@@ -24,7 +24,7 @@ export function NoteMetadataFields({
   universityName: string | null
 }) {
   return (
-    <div className="bg-ruled p-5 sm:p-8">
+    <div className="p-5 sm:p-8">
       <div className="grid gap-5">
         <label className="grid gap-2 text-sm font-black">
           Title
@@ -58,7 +58,7 @@ export function NoteMetadataFields({
                 </option>
               ))}
             </datalist>
-            <span className="text-xs font-medium text-[#171512]/60">
+            <span className="text-xs font-medium text-club-muted">
               Pick one of the suggestions, or type your own if the course is not
               listed yet.
             </span>
@@ -88,9 +88,9 @@ export function NoteMetadataFields({
         <fieldset>
           <legend className="text-sm font-black">Who can access it?</legend>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            <label className="flex cursor-pointer gap-3 rounded-lg border border-[#171512]/22 bg-[#17453a]/5 p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]">
+            <label className="flex cursor-pointer gap-3 rounded-lg border border-club-ink/22 bg-club-purple/5 p-4 has-[:checked]:border-club-purple has-[:checked]:ring-2 has-[:checked]:ring-club-purple/20">
               <input
-                className="mt-1 accent-[#17453a]"
+                className="mt-1 accent-club-purple"
                 defaultChecked
                 name="visibility"
                 type="radio"
@@ -100,7 +100,7 @@ export function NoteMetadataFields({
                 <span className="flex items-center gap-2 font-black">
                   <Globe2 className="h-4 w-4" /> Public
                 </span>
-                <span className="mt-1 block text-sm leading-relaxed text-[#171512]/60">
+                <span className="mt-1 block text-sm leading-relaxed text-club-muted">
                   Any eligible ClassVault student can discover and access
                   this note.
                 </span>
@@ -109,14 +109,14 @@ export function NoteMetadataFields({
 
             <label
               className={cn(
-                'flex gap-3 rounded-lg border border-[#171512]/22 bg-[#fffdf6] p-4 has-[:checked]:border-[#17453a] has-[:checked]:shadow-[3px_3px_0_#17453a]',
+                'flex gap-3 rounded-lg border border-club-ink/22 bg-club-paper p-4 has-[:checked]:border-club-purple has-[:checked]:ring-2 has-[:checked]:ring-club-purple/20',
                 hasVerifiedUniversity
                   ? 'cursor-pointer'
                   : 'cursor-not-allowed opacity-50',
               )}
             >
               <input
-                className="mt-1 accent-[#17453a]"
+                className="mt-1 accent-club-purple"
                 disabled={!hasVerifiedUniversity}
                 name="visibility"
                 type="radio"
@@ -126,7 +126,7 @@ export function NoteMetadataFields({
                 <span className="flex items-center gap-2 font-black">
                   <GraduationCap className="h-4 w-4" /> University only
                 </span>
-                <span className="mt-1 block text-sm leading-relaxed text-[#171512]/60">
+                <span className="mt-1 block text-sm leading-relaxed text-club-muted">
                   {hasVerifiedUniversity
                     ? `Only verified students at ${universityName || 'your university'} can access it.`
                     : 'Verify your university membership to use this scope.'}
@@ -136,7 +136,7 @@ export function NoteMetadataFields({
           </div>
         </fieldset>
 
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-[#171512]/60">
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-club-muted">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           Misleading, unsafe, or plagiarized content may be restricted or
           removed after review.
@@ -147,7 +147,7 @@ export function NoteMetadataFields({
             Description <span>{description.length} / 2000</span>
           </span>
           <textarea
-            className="app-field min-h-24 resize-y px-3 py-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#f0a202]"
+            className="app-field min-h-24 resize-y px-3 py-3 text-base font-medium outline-none focus:ring-2 focus:ring-club-yellow"
             maxLength={2000}
             name="description"
             onChange={(event) => onDescriptionChange(event.target.value)}
@@ -168,7 +168,7 @@ export function NoteMetadataFields({
             placeholder="midsem, important, pyq"
             value={tags}
           />
-          <span className="text-xs font-medium text-[#171512]/55">
+          <span className="text-xs font-medium text-club-muted">
             Separate up to 10 lowercase tags with commas.
           </span>
         </label>

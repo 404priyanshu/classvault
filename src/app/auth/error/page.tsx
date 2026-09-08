@@ -18,7 +18,7 @@ export default async function AuthErrorPage({
       }
       eyebrow="Authentication error"
       footer={
-        <Link className="font-bold text-[#17453a] underline" href="/">
+        <Link className="font-bold text-club-purple underline" href="/">
           Return home
         </Link>
       }
@@ -32,7 +32,7 @@ export default async function AuthErrorPage({
           Try signing in
         </Link>
         <Link
-          className="text-center text-sm font-bold text-[#17453a] underline"
+          className="text-center text-sm font-bold text-club-purple underline"
           href="/auth/forgot-password"
         >
           Request a password reset

@@ -693,7 +693,41 @@ rounded panels, bold Inter headings, and original study-clubhouse artwork in
 locally. `ClubhouseRoom.tsx` provides a client-only start/pause/reset timer demo;
 its members and chat are examples. Existing product mockups and keyboard tab
 navigation remain in the walkthrough. This supersedes the historical landing
-visual canon below; authenticated product styling remains unchanged.
+visual canon below.
+
+Product update (2026-09-06): the same approved clubhouse design now covers
+authentication, onboarding, the dashboard and its notes, uploads, roadmaps,
+study rooms, vault, moderation, and settings screens, plus legal, loading,
+error, and missing-page views. Shared `club` Tailwind colors and global
+primitives define the palette, rounded controls, and Inter typography.
+`Brand.tsx` reuses the landing VaultMark. The dashboard has a purple sidebar
+and an accessible mobile dialog drawer. Existing server actions, onboarding
+hidden fields, Supabase permissions, and data boundaries are preserved.
+Authenticated visual checks used isolated read-only sample data outside the
+repository; no fixture authentication or mock backend is shipped. Validation:
+104 Vitest tests, 23 public browser smoke tests, typecheck, lint, and webpack
+production build. Live account mutations were not part of this design review.
+
+Finishing pass (2026-09-08): shared `--elev-*` and `--rule` tokens, the pencil
+spinner's graphite, the settings shadow, and the last warm-beige dividers were
+repointed from the retired ink `#171512` to the clubhouse ink `#202044`, so no
+surface still carries the old palette. The superseded `.btn-ink` / `.btn-saffron`
+rules were deleted: the clubhouse block later in `globals.css` overrode every one
+of their declarations. Active vault tabs regained the `rounded-3xl` their
+inactive siblings kept. Fraunces was dropped from `layout.tsx` because
+`.font-display` and `.legal-prose h2` had both moved to Inter, leaving it a
+download with no consumer. `stationery.tsx` and `ascii-orb.tsx` still hold retired
+palette values but are unreferenced.
+
+Two pre-existing auth defects were fixed in the same pass, both found by
+checking the pages in a browser rather than by reading them. Turnstile ignores
+its own `size: 'flexible'` below 300px, and the padding chain on a phone left it
+263px, so the widget spilled out of the sign-in and sign-up cards; the `<=640`
+padding was trimmed and `.club-captcha` now bleeds past the card's text inset,
+which clears 300px at 360px wide. Below roughly 340px the widget still spills:
+fitting it there would push the captcha band outside the card entirely, so it
+was left alone. The check-email page also told students "Supabase will finish
+creating your session", naming the backend vendor in user-facing copy.
 
 Treat the current UI, copy tone, and supplied image assets as the baseline design
 system unless the user explicitly asks for a redesign.
@@ -711,7 +745,8 @@ visual_direction:
     ink: "#171512"
   typography:
     body_and_ui: Inter
-    display: Fraunces
+    display: Inter (heavy weights; Fraunces was removed once nothing referenced it)
+    landing_headings: Source Serif 4
     handwriting: Caveat
     loading: next/font/google in src/app/layout.tsx
   recurring_motifs:

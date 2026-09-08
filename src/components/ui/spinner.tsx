@@ -101,8 +101,8 @@ function Spinner({
               <rect fill="#ebe4d6" height="20" width="30" />
               <rect fill="#a79f90" height="20" width="15" />
               <rect fill="#c9c1b2" height="20" width="5" />
-              <rect fill="rgba(23,21,18,0.2)" height="2" width="30" y="6" />
-              <rect fill="rgba(23,21,18,0.2)" height="2" width="30" y="13" />
+              <rect fill="rgba(32,32,68,0.2)" height="2" width="30" y="6" />
+              <rect fill="rgba(32,32,68,0.2)" height="2" width="30" y="13" />
             </g>
           </g>
 
@@ -112,7 +112,7 @@ function Spinner({
           >
             <polygon fill="#e8ba72" points="15 0,30 30,0 30" />
             <polygon fill="#cb8737" points="15 0,6 30,0 30" />
-            <polygon fill="#171512" points="15 0,20 10,10 10" />
+            <polygon fill="#202044" points="15 0,20 10,10 10" />
           </g>
         </g>
       </svg>

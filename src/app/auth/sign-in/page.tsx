@@ -22,17 +22,17 @@ export default async function SignInPage({
 
   return (
     <AuthShell
-      description="Open your notes, roadmaps, and study spaces from one quiet corner."
+      description="Your notes, your plans, your people. Pick up right where you left off."
       eyebrow="Welcome back"
       footer={
         <>
           New to ClassVault?{' '}
-          <Link className="font-bold text-[#17453a] underline" href="/auth/sign-up">
+          <Link className="font-bold text-club-purple underline" href="/auth/sign-up">
             Create an account
           </Link>
         </>
       }
-      title="Unlock your vault."
+      title="Good to see you again."
     >
       <AuthMessage error={error} status={status} />
       <AuthProviderButtons
@@ -66,7 +66,7 @@ export default async function SignInPage({
           <span className="flex items-center justify-between text-sm font-bold">
             Password
             <Link
-              className="font-semibold text-[#17453a] underline"
+              className="font-semibold text-club-purple underline"
               href="/auth/forgot-password"
             >
               Forgot it?

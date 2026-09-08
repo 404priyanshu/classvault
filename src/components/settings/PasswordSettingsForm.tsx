@@ -19,7 +19,7 @@ export function PasswordSettingsForm() {
           <span className="text-sm font-bold">New password</span>
           <input
             autoComplete="new-password"
-            className="mt-2 min-h-11 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] px-3.5 text-sm font-semibold outline-none transition focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+            className="mt-2 min-h-11 w-full rounded-xl border border-club-line bg-club-paper px-3.5 text-sm font-semibold outline-none transition focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
             maxLength={72}
             minLength={8}
             name="password"
@@ -31,7 +31,7 @@ export function PasswordSettingsForm() {
           <span className="text-sm font-bold">Confirm new password</span>
           <input
             autoComplete="new-password"
-            className="mt-2 min-h-11 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] px-3.5 text-sm font-semibold outline-none transition focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+            className="mt-2 min-h-11 w-full rounded-xl border border-club-line bg-club-paper px-3.5 text-sm font-semibold outline-none transition focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
             maxLength={72}
             minLength={8}
             name="passwordConfirmation"
@@ -41,7 +41,7 @@ export function PasswordSettingsForm() {
         </label>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dacb] pt-5">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-club-line pt-5">
         <SettingsFormStatus state={state} />
         <SettingsSubmitButton idleLabel="Update password" />
       </div>

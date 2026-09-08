@@ -7,7 +7,7 @@ export function SubmitButton() {
 
   return (
     <button
-      className="flex min-h-12 items-center justify-center gap-2 border-[1.5px] border-[#171512] bg-[#17453a] px-6 py-3 text-sm font-black text-[#f6f1e5] shadow-[4px_4px_0_#171512] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#171512] disabled:cursor-wait disabled:opacity-70"
+      className="flex min-h-12 items-center justify-center gap-2 border border-club-ink bg-club-purple px-6 py-3 text-sm font-black text-club-bg  transition-all hover:-translate-x-0.5 hover:-translate-y-0.5  disabled:cursor-wait disabled:opacity-70"
       disabled={pending}
       type="submit"
     >

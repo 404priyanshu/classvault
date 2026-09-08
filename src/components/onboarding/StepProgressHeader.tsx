@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { BookOpen, LockKeyhole } from 'lucide-react'
-import Link from 'next/link'
+import { LockKeyhole } from 'lucide-react'
+import { Brand } from '@/components/ui/Brand'
 import { STEPS } from './constants'
 
 export function StepProgressHeader({ step }: { step: number }) {
@@ -10,21 +10,16 @@ export function StepProgressHeader({ step }: { step: number }) {
   return (
     <>
       <header className="flex items-center justify-between gap-4 lg:justify-end">
-        <Link className="flex items-center gap-2 lg:hidden" href="/">
-          <span className="grid h-9 w-9 place-items-center rounded-lg border-[1.5px] border-[#171512] bg-[#17453a] shadow-[2px_2px_0_#171512]">
-            <BookOpen className="h-4 w-4 text-[#f6f1e5]" />
-          </span>
-          <span className="font-display text-lg font-black">ClassVault</span>
-        </Link>
+        <Brand className="lg:hidden" />
 
         <div className="flex items-center gap-3">
-          <LockKeyhole className="hidden h-4 w-4 text-[#17453a] sm:block" />
-          <span className="text-xs font-bold text-[#171512]/60">
+          <LockKeyhole className="hidden h-4 w-4 text-club-purple sm:block" />
+          <span className="hidden text-xs font-bold text-club-muted sm:block">
             Secure setup
           </span>
           <div
             aria-label={`Step ${step + 1} of ${STEPS.length}`}
-            className="h-2 w-24 overflow-hidden rounded-full border border-[#171512]/50 bg-[#fffdf6] sm:w-36"
+            className="hidden h-2 w-24 sm:block overflow-hidden rounded-full border border-club-ink/50 bg-club-paper sm:w-36"
             role="progressbar"
             aria-valuemax={STEPS.length}
             aria-valuemin={1}
@@ -32,13 +27,13 @@ export function StepProgressHeader({ step }: { step: number }) {
           >
             <motion.div
               animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-              className="h-full bg-[#17453a]"
+              className="h-full bg-club-purple"
               transition={
                 prefersReducedMotion ? { duration: 0 } : { duration: 0.35 }
               }
             />
           </div>
-          <span className="text-xs font-black">
+          <span className="whitespace-nowrap text-xs font-black">
             {step + 1} of {STEPS.length}
           </span>
         </div>
@@ -52,10 +47,10 @@ export function StepProgressHeader({ step }: { step: number }) {
               key={item.label}
             >
               <span
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border-[1.5px] text-xs font-black ${
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border text-xs font-black ${
                   index <= step
-                    ? 'border-[#17453a] bg-[#17453a] text-[#f6f1e5]'
-                    : 'border-[#171512] bg-[#f6f1e5]'
+                    ? 'border-club-purple bg-club-purple text-club-bg'
+                    : 'border-club-ink bg-club-bg'
                 }`}
               >
                 {index < step ? <Check className="h-4 w-4" /> : index + 1}
@@ -64,17 +59,17 @@ export function StepProgressHeader({ step }: { step: number }) {
                 <span
                   className={`mx-2 h-[1.5px] flex-1 ${
                     index < step
-                      ? 'bg-[#17453a]'
-                      : 'border-t-[1.5px] border-dashed border-[#171512]/40'
+                      ? 'bg-club-purple'
+                      : 'border-t-[1.5px] border-dashed border-club-ink/40'
                   }`}
                 />
               ) : null}
             </div>
           ))}
         </div>
-        <div className="mt-2 grid grid-cols-3 text-center text-[10px] font-bold text-[#171512]/55">
+        <div className="mt-2 grid grid-cols-3 text-center text-[10px] font-bold text-club-muted">
           {STEPS.map((item, index) => (
-            <span className={index === step ? 'text-[#17453a]' : ''} key={item.label}>
+            <span className={index === step ? 'text-club-purple' : ''} key={item.label}>
               {item.label}
             </span>
           ))}

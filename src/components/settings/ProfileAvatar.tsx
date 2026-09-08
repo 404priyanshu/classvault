@@ -22,7 +22,7 @@ export function ProfileAvatar({
   return (
     <span
       className={cn(
-        'relative grid shrink-0 place-items-center overflow-hidden rounded-xl border border-[#171512]/20 bg-[#f0a202] font-display font-black text-[#171512]',
+        'relative grid shrink-0 place-items-center overflow-hidden rounded-xl border border-club-ink/20 bg-club-yellow font-display font-black text-club-ink',
         className,
       )}
     >

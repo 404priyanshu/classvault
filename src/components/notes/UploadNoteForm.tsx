@@ -72,13 +72,13 @@ export function UploadNoteForm({
         {['File', 'Details', 'Publish'].map((label, index) => (
           <div className="contents" key={label}>
             {index > 0 ? (
-              <span className="h-px w-10 bg-[#171512]/35 sm:w-20" />
+              <span className="h-px w-10 bg-club-ink/35 sm:w-20" />
             ) : null}
             <span className="flex items-center gap-2">
               <span
                 className={
-                  'grid h-9 w-9 place-items-center rounded-full border border-[#171512]/30 bg-[#fffdf6]' +
-                  (index === 0 ? ' bg-[#17453a] text-[#fffdf6]' : '')
+                  'grid h-9 w-9 place-items-center rounded-xl border border-club-line bg-club-paper' +
+                  (index === 0 ? ' bg-club-purple text-club-paper' : '')
                 }
               >
                 {index + 1}
@@ -91,10 +91,10 @@ export function UploadNoteForm({
 
       <section className="mt-10">
         <h1 className="app-title">Add to your vault</h1>
-        <p className="mt-3 text-sm leading-relaxed text-[#171512]/65">
+        <p className="mt-3 text-sm leading-relaxed text-club-muted">
           Share your notes. Help your batch. Leave a legacy.{' '}
           <Link
-            className="font-bold text-[#17453a] underline decoration-[#f0a202] decoration-2 underline-offset-4"
+            className="font-bold text-club-purple underline decoration-club-yellow decoration-2 underline-offset-4"
             href="/dashboard/notes/batch"
           >
             Got a whole folder? Add them together
@@ -108,10 +108,6 @@ export function UploadNoteForm({
         className="app-panel relative mt-6 overflow-hidden"
         onSubmit={(event) => void handleSubmit(event, file)}
       >
-        <div className="absolute right-5 top-4 hidden rotate-3 border-2 border-dashed border-[#17453a]/45 px-4 py-2 font-hand text-xl font-bold text-[#17453a]/65 lg:block">
-          share knowledge
-        </div>
-
         <fieldset className="contents" disabled={isLocked}>
           <div className="grid lg:grid-cols-[0.92fr_1.08fr]">
             <FileDropzone

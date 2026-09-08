@@ -19,13 +19,13 @@ export function StudyRoomChatForm({ roomId }: { roomId: string }) {
   }, [state.kind])
 
   return (
-    <form action={formAction} className="border-t border-[#d8cdb9] pt-4" ref={formRef}>
+    <form action={formAction} className="border-t border-club-line pt-4" ref={formRef}>
       <input name="roomId" type="hidden" value={roomId} />
       <label className="sr-only" htmlFor="study-room-message">
         Message the room
       </label>
       <textarea
-        className="min-h-24 w-full resize-y rounded-md border border-[#bfb39d] bg-[#fffdf6] px-3.5 py-3 text-sm leading-relaxed outline-none transition focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+        className="min-h-24 w-full resize-y rounded-xl border border-club-line bg-club-paper px-3.5 py-3 text-sm leading-relaxed outline-none transition focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
         id="study-room-message"
         maxLength={1000}
         name="body"

@@ -51,18 +51,18 @@ export function AvatarSettingsForm({
           className="h-24 w-24 text-2xl [box-shadow:var(--elev-inline)]"
           displayName={displayName}
         />
-        <span className="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-md border border-[#171512]/20 bg-[#fffdf6] shadow-sm">
-          <Camera aria-hidden className="h-4 w-4 text-[#17453a]" />
+        <span className="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-md border border-club-ink/20 bg-club-paper shadow-sm">
+          <Camera aria-hidden className="h-4 w-4 text-club-purple" />
         </span>
       </div>
 
       <div>
         <h3 className="text-sm font-bold">Profile photo</h3>
-        <p className="mt-1 max-w-xl text-sm leading-relaxed text-[#171512]/55">
+        <p className="mt-1 max-w-xl text-sm leading-relaxed text-club-muted">
           JPG, PNG, or WebP. Use a square image up to 2 MiB.
         </p>
         <form action={uploadAction} className="mt-3 flex flex-wrap items-center gap-3">
-          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md border border-[#bfb39d] bg-[#fffdf6] px-4 text-sm font-bold transition hover:border-[#17453a] hover:bg-[#eef4ed] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#17453a]">
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-club-line bg-club-paper px-4 text-sm font-bold transition hover:border-club-purple hover:bg-club-mint focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-club-purple">
             <Upload aria-hidden className="h-4 w-4" />
             Choose photo
             <input

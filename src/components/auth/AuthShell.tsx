@@ -1,6 +1,8 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
 import type { ReactNode } from 'react'
+import clubhouse from '@/assets/study-clubhouse.webp'
+import { Brand } from '@/components/ui/Brand'
 
 type AuthShellProps = {
   children: ReactNode
@@ -10,47 +12,34 @@ type AuthShellProps = {
   title: string
 }
 
-export function AuthShell({
-  children,
-  description,
-  eyebrow,
-  footer,
-  title,
-}: AuthShellProps) {
+export function AuthShell({ children, description, eyebrow, footer, title }: AuthShellProps) {
   return (
-    <main className="paper-grain relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f6f1e5] px-5 py-12 text-[#171512]">
-      <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-70" />
-      <div className="absolute left-[8%] top-[12%] h-28 w-28 rotate-[-8deg] rounded-full border-[1.5px] border-dashed border-[#17453a]/30" />
-      <div className="absolute bottom-[10%] right-[8%] h-20 w-40 rotate-[5deg] bg-[#f0a202]/25" />
-
-      <section className="paper-card relative z-10 w-full max-w-md bg-[#fffdf6] p-7 sm:p-9">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#171512]/22 bg-[#17453a] [box-shadow:var(--elev-inline)]">
-            <BookOpen className="h-5 w-5 text-[#f6f1e5]" />
-          </span>
-          <span className="font-display text-xl font-black">
-            Class<span className="text-[#17453a]">Vault</span>
-          </span>
-        </Link>
-
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#17453a]">
-          {eyebrow}
-        </p>
-        <h1 className="font-display mt-2 text-4xl font-black leading-tight">
-          {title}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-[#171512]/65">
-          {description}
-        </p>
-
-        <div className="mt-7">{children}</div>
-
-        {footer ? (
-          <div className="mt-7 border-t-[1.5px] border-dashed border-[#171512]/20 pt-5 text-center text-sm text-[#171512]/65">
-            {footer}
-          </div>
-        ) : null}
+    <main className="club-auth">
+      <section className="club-auth-world" aria-label="Welcome to ClassVault">
+        <Brand light />
+        <div className="club-auth-welcome">
+          <span className="club-eyebrow">Your little corner of campus</span>
+          <h2>Good notes.<br />Great company.<br /><em>You’ve got this.</em></h2>
+          <Image src={clubhouse} alt="Our study crew sharing a cozy clubhouse made of books." sizes="(max-width: 900px) 0px, 50vw" className="club-auth-art" />
+          <p>A place for your notes, your plans,<br />and your next little win.</p>
+        </div>
+        <span className="club-auth-footnote">Starting with Bennett University. Growing together.</span>
       </section>
+      <div className="club-auth-form-side">
+        <div className="club-auth-mobile-brand"><Brand /></div>
+        <section className="club-auth-card">
+          <p className="club-eyebrow text-club-purple">{eyebrow}</p>
+          <h1>{title}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-club-muted">{description}</p>
+          <div className="mt-7">{children}</div>
+          {footer ? <div className="mt-7 border-t border-club-line pt-5 text-center text-sm text-club-muted">{footer}</div> : null}
+        </section>
+        <nav aria-label="Account legal links" className="club-auth-legal">
+          <Link href="/">Back to ClassVault</Link>
+          <Link href="/legal/privacy">Privacy</Link>
+          <Link href="/legal/terms">Terms</Link>
+        </nav>
+      </div>
     </main>
   )
 }

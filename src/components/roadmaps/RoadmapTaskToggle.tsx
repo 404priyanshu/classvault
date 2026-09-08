@@ -11,16 +11,16 @@ function TaskButton({ completed }: { completed: boolean }) {
   return (
     <button
       aria-label={completed ? 'Mark task as not done' : 'Mark task as done'}
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#171512] bg-white transition-colors hover:bg-[#fff2bd] disabled:opacity-50"
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-club-ink bg-white transition-colors hover:bg-club-yellow disabled:opacity-50"
       disabled={pending}
       type="submit"
     >
       {pending ? (
         <Spinner decorative size={16} />
       ) : completed ? (
-        <Check aria-hidden className="h-4 w-4 text-[#17453a]" strokeWidth={3} />
+        <Check aria-hidden className="h-4 w-4 text-club-purple" strokeWidth={3} />
       ) : (
-        <Circle aria-hidden className="h-3.5 w-3.5 text-[#171512]/35" />
+        <Circle aria-hidden className="h-3.5 w-3.5 text-club-ink/35" />
       )}
     </button>
   )

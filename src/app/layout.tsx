@@ -1,16 +1,10 @@
 import type { Metadata } from 'next'
-import { Caveat, Fraunces, Inter, Source_Serif_4 } from 'next/font/google'
+import { Caveat, Inter, Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-})
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  style: ['normal', 'italic'],
-  variable: '--font-fraunces',
 })
 
 // Landing headings only. A text serif reads as a paper or a textbook, which is
@@ -40,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html data-scroll-behavior="smooth" lang="en">
-      <body className={`${inter.variable} ${fraunces.variable} ${caveat.variable} ${sourceSerif.variable}`}>
+      <body className={`${inter.variable} ${caveat.variable} ${sourceSerif.variable}`}>
         {children}
       </body>
     </html>

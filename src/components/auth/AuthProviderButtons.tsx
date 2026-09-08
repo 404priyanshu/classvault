@@ -70,7 +70,7 @@ export function AuthProviderButtons({
       </form>
 
       <Link
-        className="mt-3 flex h-11 w-full items-center justify-center gap-2 border border-[#171512]/22 bg-[#f6f1e5] px-3 text-sm font-black [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
+        className="app-button mt-3 flex min-h-11 w-full items-center justify-center gap-2 px-3 text-sm font-bold"
         href={`/auth/phone?${phoneParams.toString()}`}
       >
         <Phone className="h-4 w-4" />
@@ -78,11 +78,11 @@ export function AuthProviderButtons({
       </Link>
 
       <div className="my-6 flex items-center gap-3" aria-hidden="true">
-        <span className="h-px flex-1 bg-[#171512]/20" />
-        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[#171512]/45">
+        <span className="h-px flex-1 bg-club-ink/20" />
+        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-club-muted">
           or use email
         </span>
-        <span className="h-px flex-1 bg-[#171512]/20" />
+        <span className="h-px flex-1 bg-club-ink/20" />
       </div>
     </>
   )

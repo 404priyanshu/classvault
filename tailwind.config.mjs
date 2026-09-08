@@ -7,6 +7,11 @@ const config = {
   theme: {
     extend: {
       colors: {
+        club: {
+          bg: '#f8f5ee', paper: '#fffdf5', ink: '#202044', muted: '#666279',
+          purple: '#5b5fd7', deep: '#444171', lavender: '#e7e4fa',
+          yellow: '#fff1a8', mint: '#dcebd7', peach: '#f6bba8', line: '#dcd6e5',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

@@ -8,7 +8,7 @@ import { StudyRoomActionStatus } from './StudyRoomActionStatus'
 import { StudyRoomSubmitButton } from './StudyRoomSubmitButton'
 
 const fieldClass =
-  'mt-2 min-h-11 w-full rounded-md border border-[#bfb39d] bg-[#fffdf6] px-3.5 text-sm font-semibold outline-none transition focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15'
+  'mt-2 min-h-11 w-full rounded-xl border border-club-line bg-club-paper px-3.5 text-sm font-semibold outline-none transition focus:border-club-purple focus:ring-2 focus:ring-club-purple/15'
 
 export function CreateStudyRoomForm({
   universityName,
@@ -59,7 +59,7 @@ export function CreateStudyRoomForm({
           </option>
         </select>
         {!universityVerified ? (
-          <span className="mt-2 block text-xs leading-relaxed text-[#171512]/50">
+          <span className="mt-2 block text-xs leading-relaxed text-club-muted">
             Campus rooms unlock after university verification.
           </span>
         ) : null}
@@ -88,13 +88,13 @@ export function CreateStudyRoomForm({
         </label>
       </div>
 
-      <div className="space-y-3 border-t border-[#ded5c5] pt-5">
+      <div className="space-y-3 border-t border-club-line pt-5">
         <StudyRoomActionStatus state={state} />
         <StudyRoomSubmitButton className="w-full" pendingLabel="Creating room…">
           <Plus aria-hidden className="h-4 w-4" />
           Create study room
         </StudyRoomSubmitButton>
-        <p className="text-center text-[11px] leading-relaxed text-[#171512]/45">
+        <p className="text-center text-[11px] leading-relaxed text-club-muted">
           Free rooms hold up to 8 members and expire after 2 hours.
         </p>
       </div>

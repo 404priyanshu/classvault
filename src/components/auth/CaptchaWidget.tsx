@@ -33,12 +33,12 @@ export function CaptchaWidget({
 
   return (
     <div
-      className={`my-5 rounded-lg border px-3 py-2.5 transition-colors ${
+      className={`club-captcha my-5 rounded-lg border px-3 py-2.5 transition-colors ${
         isVerified
-          ? 'border-[#17453a]/25 bg-[#17453a]/[0.06]'
+          ? 'border-club-purple/25 bg-club-purple/[0.06]'
           : status === 'error'
             ? 'border-red-700/25 bg-red-50/70'
-            : 'border-[#171512]/20 bg-white/65'
+            : 'border-club-ink/20 bg-white/65'
       }`}
       data-captcha-status={status}
     >
@@ -88,8 +88,8 @@ export function CaptchaWidget({
           status === 'error'
             ? 'text-red-700'
             : isVerified
-              ? 'text-[#17453a]'
-              : 'text-[#171512]/55'
+              ? 'text-club-purple'
+              : 'text-club-muted'
         }`}
       >
         {isVerified ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : null}

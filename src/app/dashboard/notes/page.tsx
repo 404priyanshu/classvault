@@ -125,18 +125,18 @@ export default async function NotesLibraryPage({
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
-      <section className="flex flex-col gap-5 border-b border-[#cfc4ae] pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <section className="flex flex-col gap-5 border-b border-club-line pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="app-title">
             Notes Library
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-club-muted sm:text-base">
             Find trusted notes you can access. Campus-only material appears only
             when your current membership allows it.
           </p>
         </div>
         <Link
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 border border-[#171512] bg-[#17453a] px-4 text-sm font-black text-[#fffdf6] [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
           href="/dashboard/notes/new"
         >
           <Upload aria-hidden className="h-4 w-4" />
@@ -145,16 +145,16 @@ export default async function NotesLibraryPage({
       </section>
 
       <form
-        className="border border-[#cfc4ae] bg-[#fffdf6] p-4 [box-shadow:var(--elev-inline)] sm:p-5"
+        className="rounded-3xl border border-club-line bg-club-paper p-4 [box-shadow:var(--elev-inline)] sm:p-5"
         method="get"
         role="search"
       >
-        <div className="flex items-center gap-2 border-b border-[#ded4c1] pb-3 text-xs font-black uppercase tracking-[0.08em] text-[#17453a]">
+        <div className="flex items-center gap-2 border-b border-club-line pb-3 text-xs font-black uppercase tracking-[0.08em] text-club-purple">
           <SlidersHorizontal aria-hidden className="h-4 w-4" />
           Search and filter
           {activeFilterCount > 0 ? (
             <Link
-              className="ml-auto inline-flex items-center gap-1 text-[11px] normal-case tracking-normal text-[#171512]/60 underline decoration-[#f0a202] decoration-2 underline-offset-4"
+              className="ml-auto inline-flex items-center gap-1 text-[11px] normal-case tracking-normal text-club-muted underline decoration-club-yellow decoration-2 underline-offset-4"
               href="/dashboard/notes"
             >
               <X aria-hidden className="h-3.5 w-3.5" />
@@ -168,11 +168,11 @@ export default async function NotesLibraryPage({
             <span className="sr-only">Search note titles</span>
             <Search
               aria-hidden
-              className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#171512]/50"
+              className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-club-muted"
               strokeWidth={1.8}
             />
             <input
-              className="h-11 w-full border border-[#bfb39d] bg-[#fdfaf2] pl-10 pr-3 text-sm font-medium outline-none placeholder:text-[#171512]/40 focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+              className="h-11 w-full rounded-xl border border-club-line bg-club-lavender pl-10 pr-3 text-sm font-medium outline-none placeholder:text-club-muted focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
               defaultValue={query.query}
               name="q"
               placeholder="Search note titles…"
@@ -183,7 +183,7 @@ export default async function NotesLibraryPage({
           <label>
             <span className="sr-only">Subject</span>
             <select
-              className="h-11 w-full border border-[#bfb39d] bg-[#fdfaf2] px-3 text-sm font-semibold outline-none focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+              className="h-11 w-full rounded-full border border-club-line bg-club-lavender px-3 text-sm font-semibold outline-none focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
               defaultValue={query.subjectId || ''}
               name="subject"
             >
@@ -200,7 +200,7 @@ export default async function NotesLibraryPage({
           <label>
             <span className="sr-only">Note type</span>
             <select
-              className="h-11 w-full border border-[#bfb39d] bg-[#fdfaf2] px-3 text-sm font-semibold outline-none focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+              className="h-11 w-full rounded-full border border-club-line bg-club-lavender px-3 text-sm font-semibold outline-none focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
               defaultValue={query.noteType}
               name="type"
             >
@@ -216,7 +216,7 @@ export default async function NotesLibraryPage({
           <label>
             <span className="sr-only">Access scope</span>
             <select
-              className="h-11 w-full border border-[#bfb39d] bg-[#fdfaf2] px-3 text-sm font-semibold outline-none focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+              className="h-11 w-full rounded-full border border-club-line bg-club-lavender px-3 text-sm font-semibold outline-none focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
               defaultValue={query.access}
               name="access"
             >
@@ -229,7 +229,7 @@ export default async function NotesLibraryPage({
           <label>
             <span className="sr-only">Sort order</span>
             <select
-              className="h-11 w-full border border-[#bfb39d] bg-[#fdfaf2] px-3 text-sm font-semibold outline-none focus:border-[#17453a] focus:ring-2 focus:ring-[#17453a]/15"
+              className="h-11 w-full rounded-full border border-club-line bg-club-lavender px-3 text-sm font-semibold outline-none focus:border-club-purple focus:ring-2 focus:ring-club-purple/15"
               defaultValue={query.sort}
               name="sort"
             >
@@ -240,7 +240,7 @@ export default async function NotesLibraryPage({
           </label>
 
           <button
-            className="inline-flex h-11 items-center justify-center bg-[#171512] px-5 text-sm font-black text-[#fffdf6] transition-colors hover:bg-[#17453a]"
+            className="inline-flex h-11 items-center justify-center bg-club-ink px-5 text-sm font-black text-club-paper transition-colors hover:bg-club-purple"
             type="submit"
           >
             Apply

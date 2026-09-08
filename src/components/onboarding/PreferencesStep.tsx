@@ -14,10 +14,10 @@ export function PreferencesStep({
 }) {
   return (
     <div>
-      <h2 className="font-display max-w-2xl text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+      <h1 className="font-display max-w-2xl text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
         What should this semester feel like?
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#171512]/60 sm:text-base">
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
         Pick the goal and study rhythm that fit you now. You can
         change both later.
       </p>
@@ -34,21 +34,21 @@ export function PreferencesStep({
             return (
               <button
                 aria-pressed={selected}
-                className={`flex items-start gap-3 border-[1.5px] p-4 text-left transition-all ${
+                className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
                   selected
-                    ? 'border-[#171512] bg-[#f0a202]/25 shadow-[3px_3px_0_#171512]'
-                    : 'border-[#171512]/35 bg-[#fffdf6] hover:border-[#171512]'
+                    ? 'border-club-ink bg-club-yellow/25 '
+                    : 'border-club-ink/35 bg-club-paper hover:border-club-ink'
                 }`}
                 key={goal.value}
                 onClick={() => onGoalChange(goal.value)}
                 type="button"
               >
-                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[#17453a]" />
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-club-purple" />
                 <span>
                   <span className="block text-sm font-black">
                     {goal.label}
                   </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-[#171512]/55">
+                  <span className="mt-1 block text-xs leading-relaxed text-club-muted">
                     {goal.description}
                   </span>
                 </span>
@@ -70,10 +70,10 @@ export function PreferencesStep({
             return (
               <button
                 aria-pressed={selected}
-                className={`flex items-center gap-3 border-[1.5px] px-4 py-3 text-left ${
+                className={`flex items-center gap-3 border px-4 py-3 text-left ${
                   selected
-                    ? 'border-[#17453a] bg-[#17453a] text-[#f6f1e5]'
-                    : 'border-[#171512]/30 bg-[#fffdf6] hover:border-[#171512]'
+                    ? 'border-club-purple bg-club-purple text-club-bg'
+                    : 'border-club-ink/30 bg-club-paper hover:border-club-ink'
                 }`}
                 key={preference.value}
                 onClick={() => onPreferenceChange(preference.value)}
@@ -87,8 +87,8 @@ export function PreferencesStep({
                   <span
                     className={`ml-2 text-xs ${
                       selected
-                        ? 'text-[#f6f1e5]/65'
-                        : 'text-[#171512]/50'
+                        ? 'text-club-bg/80'
+                        : 'text-club-muted'
                     }`}
                   >
                     {preference.description}

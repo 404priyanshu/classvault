@@ -22,7 +22,7 @@ export function StudyRoomMembers({
   viewerRole: StudyRoomSnapshot['viewerRole']
 }) {
   return (
-    <div className="divide-y divide-[#e2dacb]">
+    <div className="divide-y divide-club-line">
       {members.map((member) => (
         <div
           className="flex flex-wrap items-center gap-3 py-4 first:pt-0 last:pb-0"
@@ -37,14 +37,14 @@ export function StudyRoomMembers({
             <p className="truncate text-sm font-bold">
               {member.displayName}
               {member.userId === currentUserId ? (
-                <span className="ml-1 font-semibold text-[#171512]/45">(you)</span>
+                <span className="ml-1 font-semibold text-club-muted">(you)</span>
               ) : null}
             </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#171512]/50">
+            <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-club-muted">
               {member.role === 'host' ? (
                 <Crown aria-hidden className="h-3.5 w-3.5 text-[#b56d00]" />
               ) : member.role === 'cohost' ? (
-                <ShieldCheck aria-hidden className="h-3.5 w-3.5 text-[#17453a]" />
+                <ShieldCheck aria-hidden className="h-3.5 w-3.5 text-club-purple" />
               ) : (
                 <UserRound aria-hidden className="h-3.5 w-3.5" />
               )}
@@ -64,7 +64,7 @@ export function StudyRoomMembers({
                 value={member.role === 'cohost' ? 'member' : 'cohost'}
               />
               <StudyRoomSubmitButton
-                className="min-h-8 bg-transparent px-2.5 text-xs text-[#17453a] shadow-none hover:bg-[#eef4ed]"
+                className="min-h-8 bg-transparent px-2.5 text-xs text-club-purple shadow-none hover:bg-club-mint"
                 pendingLabel="Saving…"
               >
                 {member.role === 'cohost' ? 'Remove co-host' : 'Make co-host'}

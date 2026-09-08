@@ -44,7 +44,7 @@ export function RetryRoadmapButton({ roadmapId }: { roadmapId: string }) {
       <form action={formAction}>
         <input name="roadmapId" type="hidden" value={roadmapId} />
         <button
-          className="inline-flex items-center gap-1.5 text-xs font-black text-[#9a3328] underline decoration-[#f0a202] decoration-2 underline-offset-4 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-[#9a3328] underline decoration-club-yellow decoration-2 underline-offset-4 disabled:opacity-50"
           disabled={pending}
           type="submit"
         >
