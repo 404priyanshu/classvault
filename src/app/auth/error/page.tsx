@@ -16,7 +16,6 @@ export default async function AuthErrorPage({
         message ||
         'The authentication link is invalid, expired, or has already been used.'
       }
-      eyebrow="Authentication error"
       footer={
         <Link className="font-bold text-club-purple underline" href="/">
           Return home

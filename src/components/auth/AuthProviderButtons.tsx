@@ -12,7 +12,7 @@ function GoogleMark() {
   return (
     <svg
       aria-hidden="true"
-      className="h-4 w-4"
+      className="h-4 w-4 shrink-0"
       viewBox="0 0 24 24"
     >
       <path
@@ -35,54 +35,47 @@ function GoogleMark() {
   )
 }
 
+/**
+ * Three equal choices on one row. Stacking them cost a full 44px row on a
+ * screen that has to fit without scrolling, and it implied a ranking between
+ * providers that does not exist — phone is not a lesser way in.
+ */
 export function AuthProviderButtons({
   formId,
   next = '/dashboard',
   source,
 }: AuthProviderButtonsProps) {
   const phoneParams = new URLSearchParams({ next })
+  const tile =
+    'app-button flex h-11 w-full items-center justify-center gap-2 px-2 text-[13px] font-bold'
 
   return (
     <>
       <form action={signInWithOAuthAction} id={formId}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           <input name="next" type="hidden" value={next} />
           <input name="source" type="hidden" value={source} />
-          <button
-            className="flex h-11 w-full items-center justify-center gap-2 app-button px-3 text-sm font-black"
-            name="provider"
-            type="submit"
-            value="google"
-          >
+          <button className={tile} name="provider" type="submit" value="google">
             <GoogleMark />
             Google
           </button>
-          <button
-            className="flex h-11 w-full items-center justify-center gap-2 app-button px-3 text-sm font-black"
-            name="provider"
-            type="submit"
-            value="github"
-          >
-            <Github className="h-4 w-4" />
+          <button className={tile} name="provider" type="submit" value="github">
+            <Github aria-hidden className="h-4 w-4 shrink-0" />
             GitHub
           </button>
+          <Link className={tile} href={`/auth/phone?${phoneParams.toString()}`}>
+            <Phone aria-hidden className="h-4 w-4 shrink-0" />
+            Phone
+          </Link>
         </div>
       </form>
 
-      <Link
-        className="app-button mt-3 flex min-h-11 w-full items-center justify-center gap-2 px-3 text-sm font-bold"
-        href={`/auth/phone?${phoneParams.toString()}`}
-      >
-        <Phone className="h-4 w-4" />
-        Continue with phone
-      </Link>
-
-      <div className="my-6 flex items-center gap-3" aria-hidden="true">
-        <span className="h-px flex-1 bg-club-ink/20" />
-        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-club-muted">
+      <div className="my-4 flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-club-ink/15" />
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-club-muted">
           or use email
         </span>
-        <span className="h-px flex-1 bg-club-ink/20" />
+        <span className="h-px flex-1 bg-club-ink/15" />
       </div>
     </>
   )

@@ -7,18 +7,22 @@ import { Brand } from '@/components/ui/Brand'
 type AuthShellProps = {
   children: ReactNode
   description: string
-  eyebrow: string
   footer?: ReactNode
   title: string
 }
 
-export function AuthShell({ children, description, eyebrow, footer, title }: AuthShellProps) {
+/**
+ * The auth screens are short, single-purpose forms, so they are built to fit
+ * the viewport rather than to be scrolled. The kicker that used to sit above
+ * each title is gone: it repeated what the heading already said, and on a
+ * 768px laptop it was spending height the form needed.
+ */
+export function AuthShell({ children, description, footer, title }: AuthShellProps) {
   return (
     <main className="club-auth">
       <section className="club-auth-world" aria-label="Welcome to ClassVault">
         <Brand light />
         <div className="club-auth-welcome">
-          <span className="club-eyebrow">Your little corner of campus</span>
           <h2>Good notes.<br />Great company.<br /><em>You’ve got this.</em></h2>
           <Image src={clubhouse} alt="Our study crew sharing a cozy clubhouse made of books." sizes="(max-width: 900px) 0px, 50vw" className="club-auth-art" />
           <p>A place for your notes, your plans,<br />and your next little win.</p>
@@ -28,11 +32,10 @@ export function AuthShell({ children, description, eyebrow, footer, title }: Aut
       <div className="club-auth-form-side">
         <div className="club-auth-mobile-brand"><Brand /></div>
         <section className="club-auth-card">
-          <p className="club-eyebrow text-club-purple">{eyebrow}</p>
           <h1>{title}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-club-muted">{description}</p>
-          <div className="mt-7">{children}</div>
-          {footer ? <div className="mt-7 border-t border-club-line pt-5 text-center text-sm text-club-muted">{footer}</div> : null}
+          <p className="mt-2 text-sm leading-relaxed text-club-muted">{description}</p>
+          <div className="mt-5">{children}</div>
+          {footer ? <div className="mt-5 border-t border-club-line pt-4 text-center text-sm text-club-muted">{footer}</div> : null}
         </section>
         <nav aria-label="Account legal links" className="club-auth-legal">
           <Link href="/">Back to ClassVault</Link>

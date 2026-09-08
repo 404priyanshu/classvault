@@ -36,7 +36,6 @@ export default async function PhoneAuthPage({
           ? `Enter the code sent to ${phone}.`
           : 'Use your mobile number to receive a one-time sign-in code.'
       }
-      eyebrow={isVerifying ? 'Check your messages' : 'Password-free access'}
       footer={
         <Link
           className="inline-flex items-center gap-1.5 font-bold text-club-purple underline"

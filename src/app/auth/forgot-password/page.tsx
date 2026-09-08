@@ -18,7 +18,6 @@ export default async function ForgotPasswordPage({
   return (
     <AuthShell
       description="We will send a secure link that lets you choose a new password."
-      eyebrow="Password recovery"
       footer={
         <Link className="font-bold text-club-purple underline" href="/auth/sign-in">
           Return to sign in

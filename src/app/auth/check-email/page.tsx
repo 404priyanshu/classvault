@@ -14,7 +14,6 @@ export default async function CheckEmailPage({
   return (
     <AuthShell
       description="We'll finish setting up your account once you confirm your address."
-      eyebrow="One last step"
       footer={
         <Link className="font-bold text-club-purple underline" href="/auth/sign-in">
           Return to sign in

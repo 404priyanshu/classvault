@@ -8,12 +8,18 @@ type CaptchaWidgetProps = {
   action: string
   formIds: string[]
   siteKey: string | null
+  /**
+   * `stamp` renders the check as the mark that validates a member card, for
+   * sign-up. Everywhere else it stays a quiet status line.
+   */
+  variant?: 'line' | 'stamp'
 }
 
 export function CaptchaWidget({
   action,
   formIds,
   siteKey,
+  variant = 'line',
 }: CaptchaWidgetProps) {
   const [status, setStatus] = useState<'checking' | 'error' | 'verified'>(
     'checking',
@@ -31,14 +37,19 @@ export function CaptchaWidget({
 
   const isVerified = status === 'verified'
 
+  // Turnstile in interaction-only mode renders nothing until it actually needs
+  // the student. Wrapping that silence in a bordered panel spent ~100px of a
+  // screen that has to fit without scrolling, on a box with nothing in it.
+  // The panel returns only when there is something to see: an error.
+
   return (
     <div
-      className={`club-captcha my-5 rounded-lg border px-3 py-2.5 transition-colors ${
-        isVerified
-          ? 'border-club-purple/25 bg-club-purple/[0.06]'
+      className={`club-captcha transition-colors ${
+        variant === 'stamp'
+          ? ''
           : status === 'error'
-            ? 'border-red-700/25 bg-red-50/70'
-            : 'border-club-ink/20 bg-white/65'
+            ? 'my-4 rounded-lg border border-red-700/25 bg-red-50/70 px-3 py-2.5'
+            : 'my-3'
       }`}
       data-captcha-status={status}
     >
@@ -82,28 +93,46 @@ export function CaptchaWidget({
         />
       ))}
 
+      {variant === 'stamp' ? (
+        <p aria-live="polite" className="club-pass-stamp" data-state={status}>
+          {isVerified ? (
+            <CheckCircle2 aria-hidden className="h-3.5 w-3.5 shrink-0" />
+          ) : null}
+          {status === 'error' ? (
+            <ShieldAlert aria-hidden className="h-3.5 w-3.5 shrink-0" />
+          ) : null}
+          <span>
+            {isVerified
+              ? 'Verified'
+              : status === 'error'
+                ? 'Check failed'
+                : 'Verifying'}
+          </span>
+        </p>
+      ) : (
       <p
-        aria-live="polite"
-        className={`flex items-center gap-2 text-xs font-bold ${
-          status === 'error'
-            ? 'text-red-700'
-            : isVerified
-              ? 'text-club-purple'
-              : 'text-club-muted'
-        }`}
-      >
-        {isVerified ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : null}
-        {status === 'error' ? (
-          <ShieldAlert className="h-4 w-4 shrink-0" />
-        ) : null}
-        <span>
-          {isVerified
-            ? 'Anti-bot check passed.'
-            : status === 'error'
-              ? 'The anti-bot check could not load. Check your connection and try again.'
-              : 'Checking this browser for automated traffic…'}
-        </span>
-      </p>
+          aria-live="polite"
+          className={`flex items-center gap-1.5 text-[11px] font-semibold ${
+            status === 'error'
+              ? 'text-xs font-bold text-red-700'
+              : isVerified
+                ? 'text-club-purple'
+                : 'text-club-muted'
+          }`}
+        >
+          {isVerified ? <CheckCircle2 aria-hidden className="h-3.5 w-3.5 shrink-0" /> : null}
+          {status === 'error' ? (
+            <ShieldAlert aria-hidden className="h-4 w-4 shrink-0" />
+          ) : null}
+          <span>
+            {isVerified
+              ? 'Browser verified.'
+              : status === 'error'
+                ? 'The anti-bot check could not load. Check your connection and try again.'
+                : 'Checking your browser…'}
+          </span>
+        </p>
+      )}
     </div>
   )
 }

@@ -23,7 +23,6 @@ export default async function SignInPage({
   return (
     <AuthShell
       description="Your notes, your plans, your people. Pick up right where you left off."
-      eyebrow="Welcome back"
       footer={
         <>
           New to ClassVault?{' '}
