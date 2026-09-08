@@ -19,7 +19,8 @@ document:
 ```yaml
 project_name: ClassVault
 product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study rooms
-production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and applied to hosted development
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and live in production
+supabase_project: One hosted project (ref hndgstbutlkjqnrxvqtm, ap-south-1) backs both local development and the Vercel deployment — there is no separate staging database. A migration, policy change, or data edit applied from a laptop lands on production data immediately. Treat every schema change as a production change.
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
