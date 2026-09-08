@@ -18,7 +18,7 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Interactive landing-page prototype plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study-room slices
+product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study rooms
 production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and applied to hosted development
 framework: Next.js 16.3.1
 router: Next.js App Router
@@ -32,7 +32,9 @@ canonical_lockfile: package-lock.json
 git_repository: true
 git_branch: main
 git_remote: git@github.com:404priyanshu/classvault.git
-deployment_configured: false
+deployment_configured: true
+deployment_platform: Vercel — project `classvault-g8qx`, linked in .vercel/project.json, serving https://classvault-g8qx.vercel.app
+scheduled_workers: GitHub Actions (.github/workflows/scheduled-workers.yml), not Vercel Cron — see that file for why
 environment_variables_required: true
 authentication_provider: Supabase Auth
 authentication_methods_implemented:
