@@ -31,7 +31,7 @@ package_manager: npm
 canonical_lockfile: package-lock.json
 git_repository: true
 git_branch: main
-git_remote: https://github.com/akrutitwari/classvault.git
+git_remote: git@github.com:404priyanshu/classvault.git
 deployment_configured: false
 environment_variables_required: true
 authentication_provider: Supabase Auth
