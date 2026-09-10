@@ -22,7 +22,7 @@ export function JourneyShell({
   message?: string
   title?: ReactNode
   account?: boolean
-  variant?: 'signup'
+  variant?: 'onboarding' | 'signup'
 }) {
   return (
     <main className={`${styles.ground} ${variant ? styles[`${variant}Ground`] : ''}`}>

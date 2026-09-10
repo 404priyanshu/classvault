@@ -170,6 +170,7 @@ export function OnboardingFlow({
 
   return (
     <JourneyShell
+      variant="onboarding"
       mood={mood}
       message={
         error

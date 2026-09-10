@@ -1211,3 +1211,209 @@
     padding-bottom: 12px;
   }
 }
+
+/* Keep every onboarding step inside the viewport at common laptop sizes. The
+   form pane remains independently scrollable for short screens and expanded
+   university results, so controls are never clipped. */
+.onboardingGround {
+  display: flex;
+  height: 100svh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+.onboardingGround .header {
+  padding-bottom: 14px;
+}
+.onboardingGround .pageFooter {
+  padding-top: 14px;
+}
+.onboardingShell {
+  min-height: 0;
+  flex: 1;
+}
+.onboardingWorld {
+  padding: 36px 32px 26px;
+}
+.onboardingWorld .character {
+  min-height: 220px;
+}
+.onboardingWorld .pencil {
+  width: 225px;
+  height: min(300px, 42svh);
+}
+.onboardingSurface {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 28px 44px 24px;
+}
+.onboardingSurface .progress {
+  margin-bottom: 20px;
+}
+.onboardingSurface .description {
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.onboardingSurface .fields {
+  margin-top: 20px;
+}
+.onboardingSurface .choices {
+  gap: 9px;
+  margin-top: 18px;
+}
+.onboardingSurface .choice {
+  min-height: 68px;
+  padding: 11px 14px;
+}
+.onboardingSurface .degrees {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+.onboardingSurface .hint {
+  margin-top: 7px;
+  line-height: 1.5;
+}
+.onboardingSurface .university {
+  margin-top: 12px;
+  padding: 14px;
+}
+.onboardingSurface .membership {
+  padding: 12px 0;
+}
+.onboardingSurface .actions {
+  margin-top: 20px;
+  padding-top: 12px;
+}
+.onboardingSurface .error {
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .onboardingGround {
+    height: 100svh;
+    padding: 12px 12px max(10px, env(safe-area-inset-bottom));
+  }
+  .onboardingGround .header {
+    padding-bottom: 10px;
+  }
+  .onboardingGround .pageFooter {
+    padding-top: 10px;
+  }
+  .onboardingShell {
+    overflow: hidden;
+  }
+  .onboardingWorld {
+    min-height: 86px;
+    max-height: 86px;
+    padding: 12px 18px;
+  }
+  .onboardingWorld h2 {
+    max-width: calc(100% - 70px);
+    font-size: 18px;
+    line-height: 1.1;
+  }
+  .onboardingWorld .character {
+    top: -8px;
+    right: 4px;
+    width: 76px;
+    height: 100px;
+  }
+  .onboardingWorld .pencil {
+    width: 72px;
+    height: 96px;
+  }
+  .onboardingSurface {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 18px 12px;
+  }
+  .onboardingSurface .progress {
+    margin-bottom: 12px;
+  }
+  .onboardingSurface .segments {
+    margin-bottom: 6px;
+  }
+  .onboardingSurface .progress p {
+    font-size: 11px;
+  }
+  .onboardingSurface .heading {
+    font-size: 23px;
+    line-height: 1.1;
+  }
+  .onboardingSurface .description {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .onboardingSurface .fields {
+    margin-top: 14px;
+  }
+  .onboardingSurface .label {
+    margin-bottom: 5px;
+  }
+  .onboardingSurface .input {
+    min-height: 44px;
+    padding: 9px 12px;
+  }
+  .onboardingSurface .choices {
+    gap: 7px;
+    margin-top: 14px;
+  }
+  .onboardingSurface .choice {
+    min-height: 60px;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .onboardingSurface .choiceIcon {
+    width: 32px;
+    height: 32px;
+  }
+  .onboardingSurface .choiceCopy strong {
+    font-size: 13px;
+  }
+  .onboardingSurface .choiceCopy small {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+  .onboardingSurface .radio {
+    width: 16px;
+    height: 16px;
+  }
+  .onboardingSurface .degrees {
+    margin-bottom: 12px;
+  }
+  .onboardingSurface .hint {
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+  .onboardingSurface .results {
+    max-height: 150px;
+  }
+  .onboardingSurface .university {
+    margin-top: 10px;
+    padding: 10px;
+  }
+  .onboardingSurface .membership {
+    padding: 9px 0;
+    line-height: 1.45;
+  }
+  .onboardingSurface .actions {
+    margin-top: 14px;
+    padding-top: 8px;
+  }
+  .onboardingSurface .primary,
+  .onboardingSurface .back {
+    min-height: 42px;
+  }
+  .onboardingSurface .primary {
+    padding: 10px 16px;
+  }
+  .onboardingSurface .error {
+    margin-top: 10px;
+    padding: 10px 12px;
+    line-height: 1.4;
+  }
+}
