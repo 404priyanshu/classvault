@@ -11,6 +11,7 @@ import {
   normalizeNoteLibraryQuery,
   noteLibrarySearchParams,
 } from '@/lib/notes/library'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -124,25 +125,18 @@ export default async function NotesLibraryPage({
   ].filter(Boolean).length
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
-      <section className="flex flex-col gap-5 border-b border-club-line pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="app-title">
-            Notes Library
-          </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-club-muted sm:text-base">
-            Find trusted notes you can access. Campus-only material appears only
-            when your current membership allows it.
-          </p>
-        </div>
-        <Link
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto"
-          href="/dashboard/notes/new"
-        >
-          <Upload aria-hidden className="h-4 w-4" />
-          Upload notes
-        </Link>
-      </section>
+    <div className="mx-auto max-w-[1320px] space-y-4">
+      <PageHeader
+        action={<Link
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-club-purple px-4 text-sm font-bold text-club-paper transition-transform hover:-translate-y-0.5"
+            href="/dashboard/notes/new"
+          >
+            <Upload aria-hidden className="h-4 w-4" />
+            Upload notes
+          </Link>}
+        description="Find trusted notes you can access. Campus-only material appears only when your current membership allows it."
+        title="Notes Library"
+      />
 
       <form
         className="rounded-3xl border border-club-line bg-club-paper p-4 [box-shadow:var(--elev-inline)] sm:p-5"

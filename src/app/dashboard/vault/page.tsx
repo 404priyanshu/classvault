@@ -11,6 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { VaultLifecycleButton } from '@/components/notes/VaultLifecycleButton'
 import { formatNoteType } from '@/lib/notes/library'
@@ -166,7 +167,7 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
   const message = statusMessage(params.status)
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
+    <div className="mx-auto max-w-[1320px] space-y-4">
       <AuthMessage status={message || undefined} />
 
       {!isTrash && notices.length > 0 ? (
@@ -177,18 +178,17 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-5 border-b border-club-line pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="app-title">My Vault</h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-club-muted sm:text-base">
-            Keep track of what you&apos;ve shared, what&apos;s still uploading, and what&apos;s safe to recover.
-          </p>
-        </div>
-        <Link className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5 sm:w-auto" href="/dashboard/notes/new">
-          <Upload aria-hidden className="h-4 w-4" />
-          Upload notes
-        </Link>
-      </section>
+      <PageHeader
+        action={<Link
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-club-purple px-4 text-sm font-bold text-club-paper transition-transform hover:-translate-y-0.5"
+            href="/dashboard/notes/new"
+          >
+            <Upload aria-hidden className="h-4 w-4" />
+            Upload notes
+          </Link>}
+        description="Keep track of what you’ve shared, what’s still uploading, and what’s safe to recover."
+        title="My Vault"
+      />
 
       <section className="grid gap-3 sm:grid-cols-3">
         <Link className={!isTrash ? 'rounded-3xl border border-club-purple bg-club-purple p-4 text-club-paper [box-shadow:var(--elev-inline)]' : 'rounded-3xl border border-club-line bg-club-paper p-4 text-club-ink hover:border-club-purple'} data-cuelume-toggle href="/dashboard/vault">

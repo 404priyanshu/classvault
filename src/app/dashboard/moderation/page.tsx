@@ -11,6 +11,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
@@ -169,21 +170,18 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
   const items = (data || []) as QueueItem[]
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
+    <div className="mx-auto max-w-[1320px] space-y-4">
       <AuthMessage status={params.status} />
-      <section className="flex flex-col gap-5 border-b border-club-line pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#9a3f2f]"><ShieldAlert aria-hidden className="h-3.5 w-3.5" /> Scoped queue</p>
-          <h1 className="app-title mt-2">Moderation</h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-club-muted sm:text-base">
-            Review reports for notes in your campus scope. Platform moderators can see the full queue.
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-2 rounded-xl border border-club-line bg-club-paper px-3 py-2 text-xs font-black text-club-purple">
-          <Flag aria-hidden className="h-4 w-4" />
-          {items.length} open {items.length === 1 ? 'report' : 'reports'}
-        </span>
-      </section>
+      <PageHeader
+        action={
+          <span className="inline-flex items-center gap-2 rounded-xl border border-club-line bg-club-paper px-3 py-2 text-xs font-black text-club-purple">
+            <Flag aria-hidden className="h-4 w-4" />
+            {items.length} open {items.length === 1 ? 'report' : 'reports'}
+          </span>
+        }
+        description="Review reports for notes in your campus scope. Platform moderators can see the full queue."
+        title="Moderation"
+      />
 
       {items.length ? (
         <section className="space-y-4" aria-label="Open moderation reports">

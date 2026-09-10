@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   UsersRound,
 } from 'lucide-react'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 import { CreateStudyRoomForm } from '@/components/study-rooms/CreateStudyRoomForm'
 import { JoinStudyRoomForm } from '@/components/study-rooms/JoinStudyRoomForm'
 import { StudyRoomListCountdown } from '@/components/study-rooms/StudyRoomListCountdown'
@@ -143,7 +144,7 @@ export default async function StudyRoomsPage({
   const universityVerified = membershipResult.data?.status === 'verified'
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-4">
       <StudyRoomRealtime />
 
       {message ? (
@@ -155,26 +156,22 @@ export default async function StudyRoomsPage({
         </p>
       ) : null}
 
-      <header className="flex flex-col gap-5 border-b border-club-line pb-7 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <h1 className="app-title">
-            Study together, stay accountable
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
-            Join a focused session or open a room for your next revision block.
-          </p>
-        </div>
-        <a
-          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-sm bg-club-yellow px-5 text-sm font-black text-club-ink [box-shadow:var(--elev-inline)] transition hover:-translate-y-0.5"
-          href="#create-room"
-        >
-          <DoorOpen aria-hidden className="h-4 w-4" />
-          Create room
-        </a>
-      </header>
+      <PageHeader
+        action={
+          <a
+            className="inline-flex min-h-10 w-fit items-center gap-2 rounded-full bg-club-yellow px-4 text-sm font-bold text-club-ink transition hover:-translate-y-0.5"
+            href="#create-room"
+          >
+            <DoorOpen aria-hidden className="h-4 w-4" />
+            Create room
+          </a>
+        }
+        description="Join a focused session or open a room for your next revision block."
+        title="Study rooms"
+      />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="min-w-0 rounded-3xl border border-club-line bg-club-paper p-5 sm:p-7">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="min-w-0 rounded-3xl border border-club-line bg-club-paper p-4 sm:p-5">
           <div className="flex flex-col gap-4 border-b border-club-line pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display text-2xl font-black">Rooms you can join</h2>

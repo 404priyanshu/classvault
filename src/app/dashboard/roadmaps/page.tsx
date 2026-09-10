@@ -9,6 +9,7 @@ import {
   Sparkles,
   UsersRound,
 } from 'lucide-react'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 import { RoadmapRequestForm } from '@/components/roadmaps/RoadmapRequestForm'
 import {
   RetryRoadmapButton,
@@ -96,39 +97,27 @@ export default async function RoadmapsPage() {
   const workerConfigured = isRoadmapWorkerConfigured()
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-7 sm:space-y-8">
-      <section className="relative overflow-hidden rounded-3xl border border-club-line bg-club-paper p-5 [box-shadow:var(--elev-inline)] sm:p-7 lg:p-8">
-        <div className="relative z-10 max-w-3xl">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-[#b56d00]">
-            <Sparkles aria-hidden className="h-4 w-4" />
-            One topic at a time
-          </p>
-          <h1 className="app-title mt-3">
-            Study roadmaps
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-club-muted sm:text-base">
-            Turn the notes you can access into a plan you can actually follow.
-            Take it one section at a time, follow the sources, and keep your
-            progress private.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)] transition-transform hover:-translate-y-0.5"
-              href="#generate-roadmap"
-            >
-              <Sparkles aria-hidden className="h-4 w-4" />
-              Build a roadmap
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-club-line bg-club-lavender px-4 text-sm font-bold text-club-muted"
-              href="/dashboard/notes"
-            >
-              <FileText aria-hidden className="h-4 w-4" />
-              Review eligible notes
-            </Link>
-          </div>
-        </div>
-      </section>
+    <div className="mx-auto max-w-[1320px] space-y-4">
+      <PageHeader
+        description="Turn the notes you can access into a plan you can actually follow. Take it one section at a time, follow the sources, and keep your progress private."
+        title="Study roadmaps"
+      />
+      <div className="flex flex-wrap gap-2">
+        <Link
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-club-purple px-4 text-sm font-bold text-club-paper transition-transform hover:-translate-y-0.5"
+          href="#generate-roadmap"
+        >
+          <Sparkles aria-hidden className="h-4 w-4" />
+          Build a roadmap
+        </Link>
+        <Link
+          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-club-line bg-club-lavender px-4 text-sm font-bold text-club-muted"
+          href="/dashboard/notes"
+        >
+          <FileText aria-hidden className="h-4 w-4" />
+          Review eligible notes
+        </Link>
+      </div>
 
       <div id="generate-roadmap">
         <RoadmapRequestForm
@@ -156,7 +145,7 @@ export default async function RoadmapsPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-3xl border border-club-line bg-club-paper p-5">
             <BookOpenCheck aria-hidden className="h-5 w-5 text-club-purple" />
-            <p className="font-display mt-4 text-3xl font-black">
+            <p className="font-display mt-4 text-xl font-black">
               {Number(eligibility?.personal_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Personal uploads</h3>
@@ -166,7 +155,7 @@ export default async function RoadmapsPage() {
           </article>
           <article className="rounded-3xl border border-club-line bg-club-paper p-5">
             <FileText aria-hidden className="h-5 w-5 text-club-purple" />
-            <p className="font-display mt-4 text-3xl font-black">
+            <p className="font-display mt-4 text-xl font-black">
               {Number(eligibility?.public_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Public notes</h3>
@@ -176,7 +165,7 @@ export default async function RoadmapsPage() {
           </article>
           <article className="rounded-3xl border border-club-line bg-club-paper p-5">
             <UsersRound aria-hidden className="h-5 w-5 text-[#b56d00]" />
-            <p className="font-display mt-4 text-3xl font-black">
+            <p className="font-display mt-4 text-xl font-black">
               {Number(eligibility?.eligible_university_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Campus sources now</h3>
@@ -186,7 +175,7 @@ export default async function RoadmapsPage() {
           </article>
           <article className="rounded-3xl border border-dashed border-[#b56d00]/60 bg-club-yellow p-5">
             <Sparkles aria-hidden className="h-5 w-5 text-[#b56d00]" />
-            <p className="font-display mt-4 text-3xl font-black">
+            <p className="font-display mt-4 text-xl font-black">
               {Number(eligibility?.pro_university_count || 0)}
             </p>
             <h3 className="mt-1 text-sm font-black">Pro-ready campus pool</h3>
