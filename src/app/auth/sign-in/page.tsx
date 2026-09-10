@@ -61,25 +61,25 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                     type="email"
                   />
                 </label>
-                <label className="block">
-                  <span className="flex items-baseline justify-between gap-3">
+                <div className="relative">
+                  <label className="block">
                     <span className="club-pass-label">Password</span>
-                    <Link
-                      className="text-[11px] font-semibold text-club-purple underline"
-                      href="/auth/forgot-password"
-                    >
-                      Forgot it?
-                    </Link>
-                  </span>
-                  <input
-                    autoComplete="current-password"
-                    className="app-field mt-1.5 px-3.5 text-[13px]"
-                    minLength={8}
-                    name="password"
-                    required
-                    type="password"
-                  />
-                </label>
+                    <input
+                      autoComplete="current-password"
+                      className="app-field mt-1.5 px-3.5 text-[13px]"
+                      minLength={8}
+                      name="password"
+                      required
+                      type="password"
+                    />
+                  </label>
+                  <Link
+                    className="absolute right-0 top-0 text-[11px] font-semibold text-club-purple underline"
+                    href="/auth/forgot-password"
+                  >
+                    Forgot it?
+                  </Link>
+                </div>
 
                 <div className="pt-0.5">
                   <CaptchaWidget
