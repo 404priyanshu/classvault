@@ -1,0 +1,83 @@
+# Runs the checks that have to pass before main is deployed.
+#
+# `checks` and `e2e` are separate jobs so a type error reports in under a
+# minute rather than waiting behind a browser install and a production build.
+#
+# No repository secrets are required. Every value below is synthetic: the
+# specs only exercise signed-out routes, and `getClaims` returns without a
+# network call when the request carries no session cookie, so a well-formed
+# but fictional Supabase URL is enough to get past `isSupabaseConfigured`.
+# Wiring the real project in would buy nothing and would stop the workflow
+# running on forks.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://cipipeline.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_not_a_real_key
+  NEXT_PUBLIC_SITE_URL: http://localhost:3100
+  # Cloudflare's documented always-passes test key, not a ClassVault key.
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+  CRON_SECRET: ci-placeholder-secret
+  SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role
+
+jobs:
+  checks:
+    name: Types, lint, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run lint
+
+      - run: npm test
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Only chromium: playwright.config.ts defines exactly one project, and
+      # installing the other two engines triples the step for no coverage.
+      - run: npx playwright install --with-deps chromium
+
+      # Playwright starts the server itself, but it starts `npm run start`,
+      # which needs a build to serve.
+      - run: npm run build
+
+      - run: npm run test:e2e
+
+      # `trace: 'retain-on-failure'` only helps if the trace leaves the runner.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-trace
+          path: test-results/
+          retention-days: 7
