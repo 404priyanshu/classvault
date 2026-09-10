@@ -69,21 +69,25 @@ export async function completeOnboardingAction(
     redirect('/auth/sign-in?next=/onboarding')
   }
 
-  const { error } = await supabase.rpc('complete_student_onboarding', {
-    p_course: parsed.data.course,
-    p_display_name: parsed.data.displayName,
-    p_graduation_year: parsed.data.graduationYear,
-    p_primary_goal: parsed.data.primaryGoal,
-    p_study_preference: parsed.data.studyPreference,
-    p_university_id: parsed.data.universityId,
-  })
+  const save = () =>
+    supabase.rpc('complete_student_onboarding', {
+      p_course: parsed.data.course,
+      p_display_name: parsed.data.displayName,
+      p_graduation_year: parsed.data.graduationYear,
+      p_primary_goal: parsed.data.primaryGoal,
+      p_study_preference: parsed.data.studyPreference,
+      p_university_id: parsed.data.universityId,
+    })
 
-  if (error) {
+  try {
+    const { error } = await save()
+    if (error) throw error
+  } catch {
     return {
       error:
         'Your setup could not be saved right now. Your answers are still here—please try once more.',
     }
   }
 
-  redirect('/dashboard?status=Your+vault+is+ready.')
+  redirect('/onboarding/welcome')
 }

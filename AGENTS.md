@@ -756,6 +756,17 @@ fitting it there would push the captcha band outside the card entirely, so it
 was left alone. The check-email page also told students "Supabase will finish
 creating your session", naming the backend vendor in user-facing copy.
 
+Signup/onboarding update (2026-09-10): signup, email confirmation, phone/OTP,
+and student setup now share the scoped `components/journey/Journey.module.css`
+visual system and an original responsive pencil guide. Setup has five focused
+screens followed by `/onboarding/welcome`, which reads the saved profile,
+server-owned membership status, and authorized public-library notes. Temporary
+QA routes are not shipped. Answers use account-scoped, validated, expiring
+`sessionStorage` drafts; passwords and tokens are never persisted. Signup
+errors are inline and refresh CAPTCHA for retry; controlled forms prevent
+React's automatic reset from clearing selections after a failed action.
+See `docs/design/signup-onboarding.md` for visual decisions and verification.
+
 Treat the current UI, copy tone, and supplied image assets as the baseline design
 system unless the user explicitly asks for a redesign.
 

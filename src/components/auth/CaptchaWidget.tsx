@@ -2,7 +2,7 @@
 
 import { Turnstile } from '@marsidev/react-turnstile'
 import { CheckCircle2, ShieldAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type CaptchaWidgetProps = {
   action: string
@@ -25,6 +25,17 @@ export function CaptchaWidget({
     'checking',
   )
   const [token, setToken] = useState('')
+  const container = useRef<HTMLDivElement>(null)
+  const [compact, setCompact] = useState(false)
+
+  useEffect(() => {
+    if (!container.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      setCompact(entry.contentRect.width < 300)
+    })
+    observer.observe(container.current)
+    return () => observer.disconnect()
+  }, [siteKey])
 
   if (!siteKey) {
     return null
@@ -44,6 +55,7 @@ export function CaptchaWidget({
 
   return (
     <div
+      ref={container}
       className={`club-captcha transition-colors ${
         variant === 'stamp'
           ? ''
@@ -74,7 +86,7 @@ export function CaptchaWidget({
             appearance: 'interaction-only',
             refreshExpired: 'auto',
             responseField: false,
-            size: 'flexible',
+            size: compact ? 'compact' : 'flexible',
             theme: 'light',
           }}
           scriptOptions={{ async: true, defer: true }}

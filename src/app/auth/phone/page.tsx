@@ -2,7 +2,7 @@ import { ArrowLeft, Smartphone } from 'lucide-react'
 import Link from 'next/link'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { CaptchaWidget } from '@/components/auth/CaptchaWidget'
-import { AuthShell } from '@/components/auth/AuthShell'
+import { JourneyCheckpoint as AuthShell } from '@/components/journey/JourneyCheckpoint'
 import { SubmitButton } from '@/components/auth/SubmitButton'
 import { getTurnstileSiteKey } from '@/lib/auth/captcha'
 import {
@@ -39,7 +39,7 @@ export default async function PhoneAuthPage({
       footer={
         <Link
           className="inline-flex items-center gap-1.5 font-bold text-club-purple underline"
-          href="/auth/sign-in"
+          href={next === '/onboarding' ? '/auth/sign-up' : `/auth/sign-in?${new URLSearchParams({ next }).toString()}`}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to all sign-in options

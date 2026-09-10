@@ -20,6 +20,7 @@ import {
   requestPhoneOtpAction,
   signInAction,
   signUpAction,
+  signUpWithFeedbackAction,
 } from '@/app/auth/actions'
 
 function formData(values: Record<string, string>) {
@@ -262,5 +263,49 @@ describe('authentication server actions', () => {
     const url = redirectUrl(rejection)
     expect(url.searchParams.get('status')).toContain('If an account exists')
     expect(url.searchParams.has('error')).toBe(false)
+  })
+})
+
+describe('signup inline recovery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'site-key'
+  })
+  it('returns validation errors without redirecting or contacting the backend', async () => {
+    const result = await signUpWithFeedbackAction(
+      { error: null },
+      new FormData(),
+    )
+    expect(result.error).toContain('valid email')
+    expect(result.attempt).toBe(1)
+    expect(createClientMock).not.toHaveBeenCalled()
+    expect(redirectMock).not.toHaveBeenCalled()
+  })
+  it('refreshes the captcha attempt while retaining the stale-token explanation', async () => {
+    createClientMock.mockResolvedValue({
+      auth: {
+        signUp: vi
+          .fn()
+          .mockResolvedValue({
+            data: { session: null },
+            error: {
+              code: 'captcha_failed',
+              message: 'captcha: timeout-or-duplicate',
+            },
+          }),
+      },
+    })
+    const result = await signUpWithFeedbackAction(
+      { error: 'old error', attempt: 1 },
+      formData({
+        fullName: 'A Student',
+        email: 'student@example.test',
+        password: 'test-password',
+        captchaToken: 'spent-token',
+      }),
+    )
+    expect(result.attempt).toBe(2)
+    expect(result.error).toContain('once more')
+    expect(redirectMock).not.toHaveBeenCalled()
   })
 })

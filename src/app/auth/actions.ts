@@ -332,6 +332,17 @@ export async function signInAction(formData: FormData) {
 }
 
 export async function signUpAction(formData: FormData) {
+  const result = await signUpWithFeedbackAction({ error: null }, formData)
+  redirect(
+    withMessage('/auth/sign-up', 'error', result.error || 'Please try again.'),
+  )
+}
+
+export async function signUpWithFeedbackAction(
+  previous: { error: string | null; attempt?: number },
+  formData: FormData,
+): Promise<{ error: string | null; attempt?: number }> {
+  const attempt = (previous.attempt || 0) + 1
   const fullName = z
     .string()
     .trim()
@@ -342,21 +353,17 @@ export async function signUpAction(formData: FormData) {
   const password = passwordSchema.safeParse(readString(formData, 'password'))
 
   if (!fullName.success || !email.success || !password.success) {
-    redirect(
-      withMessage(
-        '/auth/sign-up',
-        'error',
+    return {
+      attempt,
+      error:
         'Use your name, a valid email, and a password between 8 and 72 characters.',
-      ),
-    )
+    }
   }
 
   const captchaToken = readCaptchaToken(formData)
 
   if (captchaToken === null) {
-    redirect(
-      withMessage('/auth/sign-up', 'error', CAPTCHA_ERROR_MESSAGE),
-    )
+    return { attempt, error: CAPTCHA_ERROR_MESSAGE }
   }
 
   const supabase = await createClient()
@@ -373,15 +380,12 @@ export async function signUpAction(formData: FormData) {
   })
 
   if (error) {
-    redirect(
-      withMessage(
-        '/auth/sign-up',
-        'error',
-        isCaptchaError(error)
-          ? captchaMessageFor(error)
-          : 'We could not create the account. Please try again shortly.',
-      ),
-    )
+    return {
+      attempt,
+      error: isCaptchaError(error)
+        ? captchaMessageFor(error)
+        : 'We could not create the account. Please try again shortly.',
+    }
   }
 
   if (data.session) {
