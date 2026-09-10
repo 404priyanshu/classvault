@@ -71,7 +71,7 @@ describe('onboarding server action', () => {
     await expect(
       completeOnboardingAction({ error: null }, validOnboardingForm()),
     ).rejects.toMatchObject({
-      url: '/dashboard?status=Your+vault+is+ready.',
+      url: '/onboarding/welcome',
     })
 
     expect(rpc).toHaveBeenCalledWith('complete_student_onboarding', {
@@ -83,4 +83,31 @@ describe('onboarding server action', () => {
       p_university_id: 42,
     })
   })
+})
+
+describe('onboarding save recovery', () => {
+  it.each(['returned', 'thrown'])(
+    'keeps a %s save failure recoverable instead of welcoming the student',
+    async (failure) => {
+      vi.clearAllMocks()
+      const rpc =
+        failure === 'returned'
+          ? vi.fn().mockResolvedValue({ error: { message: 'unavailable' } })
+          : vi.fn().mockRejectedValue(new Error('connection closed'))
+      createClientMock.mockResolvedValue({
+        auth: {
+          getClaims: vi
+            .fn()
+            .mockResolvedValue({ data: { claims: { sub: 'user-id' } } }),
+        },
+        rpc,
+      })
+      const result = await completeOnboardingAction(
+        { error: null },
+        validOnboardingForm(),
+      )
+      expect(result.error).toContain('answers are still here')
+      expect(redirectMock).not.toHaveBeenCalled()
+    },
+  )
 })

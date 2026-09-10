@@ -1,283 +1,420 @@
 'use client'
 
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Headphones,
+  Users,
+  HeartHandshake,
+} from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
 import Link from 'next/link'
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { completeOnboardingAction } from '@/app/onboarding/actions'
+import { JourneyShell } from '@/components/journey/JourneyShell'
+import type { PencilMood } from '@/components/journey/PencilGuide'
+import { Spinner } from '@/components/ui/spinner'
+import styles from '@/components/journey/Journey.module.css'
 import { CampusStep } from './CampusStep'
-import { STEPS } from './constants'
-import { emailMatchesUniversity, normalizeCourse } from './helpers'
-import { IdentityStep } from './IdentityStep'
-import { PreferencesStep } from './PreferencesStep'
-import { StepProgressHeader } from './StepProgressHeader'
-import { StepSidebar } from './StepSidebar'
-import { SubmitButton } from './SubmitButton'
+import { Choice } from './Choice'
+import { COURSE_OPTIONS, GOALS, STUDY_PREFERENCES } from './constants'
+import { normalizeCourse } from './helpers'
+import { draftKey, parseDraft } from './draft'
 import { INITIAL_ACTION_STATE, type OnboardingFlowProps } from './types'
+
+const screens = [
+  {
+    label: 'Your name',
+    title: 'What should we call you?',
+    description:
+      'Your name helps make this space feel like yours. A nickname works, too.',
+    message: 'Nice to meet you. Let’s make this yours.',
+  },
+  {
+    label: 'Your campus',
+    title: 'Where do you study?',
+    description:
+      'Find your university so we can connect your account to the right campus.',
+    message: 'Every good study session starts somewhere.',
+  },
+  {
+    label: 'Your course',
+    title: 'What’s your academic path?',
+    description:
+      'Your degree and graduation year help us understand where you are in your studies.',
+    message: 'One small step toward your next chapter.',
+  },
+  {
+    label: 'Your goal',
+    title: 'What are you working toward?',
+    description:
+      'Choose what matters most right now. You can change this later.',
+    message: 'Big goals. Small, steady steps.',
+  },
+  {
+    label: 'Your rhythm',
+    title: 'How do you like to study?',
+    description:
+      'There’s no right answer. Pick the rhythm that feels most like you.',
+    message: 'Your pace is a good pace.',
+  },
+]
 
 export function OnboardingFlow({
   accountEmail,
-  accountIdentifier,
   initialProfile,
   isEditing,
   universities,
+  userId,
 }: OnboardingFlowProps) {
-  const prefersReducedMotion = useReducedMotion()
+  const reducedMotion = useReducedMotion()
   const [step, setStep] = useState(0)
-  const [displayName, setDisplayName] = useState(initialProfile.displayName)
-  const [course, setCourse] = useState(() =>
-    normalizeCourse(initialProfile.course),
-  )
-  const [graduationYear, setGraduationYear] = useState(
-    initialProfile.graduationYear.toString(),
-  )
-  const [universityId, setUniversityId] = useState<number | null>(
-    initialProfile.universityId,
-  )
-  const [primaryGoal, setPrimaryGoal] = useState(initialProfile.primaryGoal)
-  const [studyPreference, setStudyPreference] = useState(
-    initialProfile.studyPreference,
-  )
-  const initialUniversity = universities.find(
-    (university) => university.id === initialProfile.universityId,
-  )
-  const [universityQuery, setUniversityQuery] = useState(
-    initialUniversity?.name || '',
-  )
-  const [isUniversitySearchOpen, setIsUniversitySearchOpen] = useState(false)
+  const [answers, setAnswers] = useState({
+    ...initialProfile,
+    course: normalizeCourse(initialProfile.course),
+    graduationYear: String(initialProfile.graduationYear),
+  })
+  const [ready, setReady] = useState(false)
   const [clientError, setClientError] = useState<string | null>(null)
-  const [actionState, formAction] = useActionState(
+  const [reaction, setReaction] = useState<PencilMood>('welcome')
+  const [actionState, formAction, pending] = useActionState(
     completeOnboardingAction,
     INITIAL_ACTION_STATE,
   )
+  const [slow, setSlow] = useState(false)
+  const [dismissedError, setDismissedError] = useState<string | null>(null)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const wasMounted = useRef(false)
+  const error = pending
+    ? null
+    : clientError ||
+      (dismissedError !== actionState.error ? actionState.error : null)
 
-  const activeUniversity = universities.find(
-    (university) => university.id === universityId,
-  )
-
-  const filteredUniversities = useMemo(() => {
-    const query = universityQuery.trim().toLowerCase()
-
-    if (query.length < 2) {
-      return []
-    }
-
-    return universities.filter((university) =>
-      [
-        university.name,
-        university.shortName,
-        university.city,
-        university.state,
-      ]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(query)),
-    )
-  }, [universities, universityQuery])
-
-  const willVerify = accountEmail
-    ? emailMatchesUniversity(accountEmail, activeUniversity)
-    : false
-  const showUniversityResults =
-    isUniversitySearchOpen && universityQuery.trim().length >= 2
-
-  function validateCurrentStep() {
-    if (step === 0) {
-      const year = Number(graduationYear)
-      if (
-        displayName.trim().length < 2 ||
-        course.trim().length < 2 ||
-        !Number.isInteger(year) ||
-        year < new Date().getFullYear() ||
-        year > new Date().getFullYear() + 12
-      ) {
-        setClientError(
-          'Add your name, course, and a realistic graduation year to continue.',
+  useEffect(() => {
+    const task = requestAnimationFrame(() => {
+      try {
+        const draft = parseDraft(
+          sessionStorage.getItem(draftKey(userId)),
+          universities.map((university) => university.id),
         )
-        return false
+        if (draft) {
+          setAnswers(draft)
+          setStep(draft.step)
+        }
+      } catch {
+        /* Private browsing may disable storage; in-memory answers still work. */
       }
-    }
+      setReady(true)
+    })
+    return () => cancelAnimationFrame(task)
+  }, [userId, universities])
 
-    if (step === 1 && !universityId) {
-      setClientError('Choose your university to continue.')
-      return false
+  useEffect(() => {
+    if (!ready) return
+    try {
+      sessionStorage.setItem(
+        draftKey(userId),
+        JSON.stringify({ ...answers, step, savedAt: Date.now() }),
+      )
+    } catch {
+      /* Storage is an enhancement, never a submission requirement. */
     }
+  }, [answers, step, ready, userId])
 
+  useEffect(() => {
+    if (wasMounted.current) heading.current?.focus({ preventScroll: true })
+    wasMounted.current = true
+  }, [step])
+  useEffect(() => {
+    if (!pending) return
+    const timer = setTimeout(() => setSlow(true), 12000)
+    return () => clearTimeout(timer)
+  }, [pending])
+
+  function change(key: keyof typeof answers, value: string | number | null) {
+    setAnswers((current) => ({ ...current, [key]: value }))
     setClientError(null)
-    return true
+    setDismissedError(actionState.error)
+    setReaction('acknowledge')
   }
-
-  function goForward() {
-    if (validateCurrentStep()) {
-      setStep((currentStep) => Math.min(currentStep + 1, STEPS.length - 1))
-    }
+  function validate() {
+    const year = Number(answers.graduationYear)
+    const message =
+      step === 0 && answers.displayName.trim().length < 2
+        ? 'Use at least two characters for your name.'
+        : step === 1 && !answers.universityId
+          ? 'Choose your university from the search results.'
+          : step === 2 &&
+              (!answers.course ||
+                !Number.isInteger(year) ||
+                year < 2000 ||
+                year > 2100)
+            ? 'Choose your degree and a graduation year between 2000 and 2100.'
+            : step === 3 && !answers.primaryGoal
+              ? 'Choose the goal that matters most to you.'
+              : step === 4 && !answers.studyPreference
+                ? 'Choose a study style to finish your setup.'
+                : null
+    setClientError(message)
+    return !message
   }
-
-  function goBack() {
+  function navigate(next: number) {
+    setStep(next)
     setClientError(null)
-    setStep((currentStep) => Math.max(currentStep - 1, 0))
+    setDismissedError(actionState.error)
+    setReaction('welcome')
   }
+  const screen = screens[step]
+  const mood = error ? 'help' : pending ? 'thinking' : reaction
 
   return (
-    <main className="club-onboarding">
-
-      <div className="club-onboarding-grid">
-        <StepSidebar step={step} />
-
-        <section className="flex min-w-0 flex-col px-4 py-5 sm:px-7 sm:py-7 lg:px-12 lg:py-9">
-          <StepProgressHeader step={step} />
-
-          <form
-            action={formAction}
-            className="club-onboarding-form"
-          >
-
-            <input name="displayName" type="hidden" value={displayName} />
-            <input name="course" type="hidden" value={course} />
-            <input
-              name="graduationYear"
-              type="hidden"
-              value={graduationYear}
+    <JourneyShell
+      mood={mood}
+      message={
+        error
+          ? 'No rush. We can fix this together.'
+          : pending
+            ? 'Saving your choices. Almost there.'
+            : reaction === 'acknowledge'
+              ? 'Got it. A little more you.'
+              : screen.message
+      }
+    >
+      <div className={styles.progress}>
+        <div
+          className={styles.segments}
+          role="progressbar"
+          aria-label="Student setup"
+          aria-valuemin={0}
+          aria-valuemax={5}
+          aria-valuenow={step}
+          aria-valuetext={`${step} of 5 steps completed. ${screen.label}.`}
+        >
+          {screens.map((item, index) => (
+            <span
+              key={item.label}
+              className={styles.segment}
+              data-complete={index < step}
+              data-current={index === step}
             />
-            <input name="universityId" type="hidden" value={universityId || ''} />
-            <input name="primaryGoal" type="hidden" value={primaryGoal} />
-            <input
-              name="studyPreference"
-              type="hidden"
-              value={studyPreference}
-            />
-
-            <div className="flex-1 px-5 pb-7 pt-10 sm:px-9 sm:pb-9 sm:pt-12 lg:px-12">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={
-                    prefersReducedMotion
-                      ? { opacity: 0 }
-                      : { opacity: 0, x: -18 }
-                  }
-                  initial={
-                    prefersReducedMotion
-                      ? { opacity: 0 }
-                      : { opacity: 0, x: 18 }
-                  }
-                  key={step}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.24 }}
-                >
-                  {step === 0 ? (
-                    <IdentityStep
-                      course={course}
-                      displayName={displayName}
-                      graduationYear={graduationYear}
-                      onCourseChange={(value) => {
-                        setCourse(value)
-                        setClientError(null)
-                      }}
-                      onDisplayNameChange={(value) => {
-                        setDisplayName(value)
-                        setClientError(null)
-                      }}
-                      onGraduationYearChange={(value) => {
-                        setGraduationYear(value)
-                        setClientError(null)
-                      }}
-                    />
-                  ) : null}
-
-                  {step === 1 ? (
-                    <CampusStep
-                      accountEmail={accountEmail}
-                      accountIdentifier={accountIdentifier}
-                      activeUniversity={activeUniversity}
-                      filteredUniversities={filteredUniversities}
-                      onQueryChange={(value) => {
-                        setUniversityQuery(value)
-                        setIsUniversitySearchOpen(
-                          value.trim().length >= 2,
-                        )
-
-                        if (
-                          activeUniversity &&
-                          value !== activeUniversity.name
-                        ) {
-                          setUniversityId(null)
-                        }
-                      }}
-                      onQueryFocus={() =>
-                        setIsUniversitySearchOpen(
-                          universityQuery.trim().length >= 2,
-                        )
-                      }
-                      onSelectUniversity={(university) => {
-                        setUniversityId(university.id)
-                        setUniversityQuery(university.name)
-                        setIsUniversitySearchOpen(false)
-                        setClientError(null)
-                      }}
-                      showUniversityResults={showUniversityResults}
-                      universityId={universityId}
-                      universityQuery={universityQuery}
-                      willVerify={willVerify}
-                    />
-                  ) : null}
-
-                  {step === 2 ? (
-                    <PreferencesStep
-                      onGoalChange={(value) => setPrimaryGoal(value)}
-                      onPreferenceChange={(value) =>
-                        setStudyPreference(value)
-                      }
-                      primaryGoal={primaryGoal}
-                      studyPreference={studyPreference}
-                    />
-                  ) : null}
-                </motion.div>
-              </AnimatePresence>
-
-              {clientError || actionState.error ? (
-                <p
-                  className="mt-6 border border-red-900/40 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900"
-                  role="alert"
-                >
-                  {clientError || actionState.error}
-                </p>
-              ) : null}
-            </div>
-
-            <footer className="flex items-center justify-between gap-3 border-t-[1.5px] border-club-line bg-club-paper/95 px-5 py-4 sm:px-9">
-              {step > 0 ? (
-                <button
-                  className="flex min-h-12 items-center gap-2 border border-club-line bg-club-paper px-5 py-3 text-sm font-black  transition-transform hover:-translate-y-0.5"
-                  onClick={goBack}
-                  type="button"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </button>
-              ) : (
-                <Link
-                  className="text-sm font-bold text-club-muted underline decoration-dashed underline-offset-4"
-                  href={isEditing ? '/dashboard' : '/'}
-                >
-                  {isEditing ? 'Cancel' : 'Do this later'}
-                </Link>
-              )}
-
-              {step < STEPS.length - 1 ? (
-                <button
-                  className="flex min-h-12 items-center gap-2 border border-club-ink bg-club-purple px-6 py-3 text-sm font-black text-club-bg  transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 "
-                  onClick={goForward}
-                  type="button"
-                >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              ) : (
-                <SubmitButton />
-              )}
-            </footer>
-          </form>
-        </section>
+          ))}
+        </div>
+        <p>
+          Step {step + 1} of 5 · {screen.label}
+        </p>
       </div>
-    </main>
+      <form
+        action={formAction}
+        onReset={(event) => event.preventDefault()}
+        className={styles.form}
+        aria-busy={pending}
+        onSubmit={(event) => {
+          if (pending || !validate()) {
+            event.preventDefault()
+            return
+          }
+          if (step < 4) {
+            event.preventDefault()
+            navigate(step + 1)
+            return
+          }
+          setDismissedError(null)
+          setSlow(false)
+        }}
+      >
+        {Object.entries(answers)
+          .filter(([key]) =>
+            [
+              'displayName',
+              'course',
+              'graduationYear',
+              'universityId',
+              'primaryGoal',
+              'studyPreference',
+            ].includes(key),
+          )
+          .map(([key, value]) => (
+            <input key={key} name={key} type="hidden" value={value ?? ''} />
+          ))}
+        <fieldset disabled={pending || !ready} className={styles.step}>
+          <legend className="sr-only">{screen.label}</legend>
+          <motion.div
+            key={step}
+            initial={reducedMotion ? false : { x: 12 }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <h1 ref={heading} tabIndex={-1} className={styles.heading}>
+              {screen.title}
+            </h1>
+            <p className={styles.description}>{screen.description}</p>
+            {step === 0 ? (
+              <div className={styles.fields}>
+                <label htmlFor="display-name" className={styles.label}>
+                  Display name
+                </label>
+                <input
+                  id="display-name"
+                  className={styles.input}
+                  autoComplete="nickname"
+                  maxLength={80}
+                  value={answers.displayName}
+                  onChange={(event) =>
+                    change('displayName', event.target.value)
+                  }
+                  placeholder="Your name or nickname"
+                  aria-invalid={!!clientError}
+                  aria-describedby="name-hint"
+                />
+                <p id="name-hint" className={styles.hint}>
+                  This appears on your profile. You can update it in settings.
+                </p>
+              </div>
+            ) : null}
+            {step === 1 ? (
+              <CampusStep
+                accountEmail={accountEmail}
+                universities={universities}
+                universityId={answers.universityId}
+                onSelect={(id) => change('universityId', id)}
+                invalid={!!clientError}
+              />
+            ) : null}
+            {step === 2 ? (
+              <div className={styles.fields}>
+                <fieldset>
+                  <legend className={styles.label}>Your degree</legend>
+                  <div className={`${styles.choices} ${styles.degrees}`}>
+                    {COURSE_OPTIONS.map((course) => (
+                      <Choice
+                        key={course}
+                        group="degree-choice"
+                        value={course}
+                        label={course}
+                        checked={answers.course === course}
+                        onChange={(value) => change('course', value)}
+                      />
+                    ))}
+                  </div>
+                </fieldset>
+                <label className={styles.label} htmlFor="graduation-year">
+                  Graduation year
+                </label>
+                <input
+                  id="graduation-year"
+                  className={styles.input}
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={answers.graduationYear}
+                  onChange={(event) =>
+                    change(
+                      'graduationYear',
+                      event.target.value.replace(/\D/g, ''),
+                    )
+                  }
+                  aria-describedby="year-hint"
+                />
+                <p className={styles.hint} id="year-hint">
+                  Your expected year is fine if you’re still studying.
+                </p>
+              </div>
+            ) : null}
+            {step === 3 ? (
+              <fieldset>
+                <legend className="sr-only">Main study goal</legend>
+                <div className={styles.choices}>
+                  {GOALS.map(({ icon: Icon, ...goal }) => (
+                    <Choice
+                      key={goal.value}
+                      group="goal-choice"
+                      {...goal}
+                      icon={<Icon aria-hidden="true" />}
+                      checked={answers.primaryGoal === goal.value}
+                      onChange={(value) => change('primaryGoal', value)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
+            {step === 4 ? (
+              <fieldset>
+                <legend className="sr-only">Study preference</legend>
+                <div className={styles.choices}>
+                  {STUDY_PREFERENCES.map((preference, index) => {
+                    const Icon = [Headphones, HeartHandshake, Users][index]
+                    return (
+                      <Choice
+                        key={preference.value}
+                        group="preference-choice"
+                        {...preference}
+                        icon={<Icon aria-hidden="true" />}
+                        checked={answers.studyPreference === preference.value}
+                        onChange={(value) => change('studyPreference', value)}
+                      />
+                    )
+                  })}
+                </div>
+                <p className={styles.hint}>
+                  You’ll still have access to public notes and study rooms,
+                  whichever you choose.
+                </p>
+              </fieldset>
+            ) : null}
+          </motion.div>
+          {error ? (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          ) : null}
+        </fieldset>
+        <div className={styles.actions}>
+          {step > 0 ? (
+            <button
+              type="button"
+              className={styles.back}
+              disabled={pending}
+              onClick={() => navigate(step - 1)}
+            >
+              <ArrowLeft aria-hidden="true" />
+              Back
+            </button>
+          ) : (
+            <Link
+              className={styles.back}
+              href={isEditing ? '/dashboard/settings' : '/'}
+            >
+              {isEditing ? 'Cancel' : 'Back to home'}
+            </Link>
+          )}
+          <button
+            type="submit"
+            className={styles.primary}
+            disabled={pending || !ready}
+          >
+            {pending ? <Spinner decorative size={22} /> : null}
+            {pending
+              ? 'Saving your setup…'
+              : step === 4
+                ? 'Finish setup'
+                : 'Continue'}
+            {!pending ? (
+              step === 4 ? (
+                <BookOpen aria-hidden="true" />
+              ) : (
+                <ArrowRight aria-hidden="true" />
+              )
+            ) : null}
+          </button>
+        </div>
+        {pending ? (
+          <p className={styles.saveStatus} role="status">
+            {slow
+              ? 'This is taking longer than usual. Keep this tab open while we finish. If the connection has stalled, reload to try recovering your setup.'
+              : 'We’re saving your profile and checking campus access.'}
+          </p>
+        ) : null}
+      </form>
+    </JourneyShell>
   )
 }

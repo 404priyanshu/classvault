@@ -10,6 +10,7 @@ export type University = {
 }
 
 export type OnboardingFlowProps = {
+  userId: string
   accountEmail: string | null
   accountIdentifier: string
   initialProfile: {

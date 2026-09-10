@@ -96,6 +96,7 @@ export default async function OnboardingPage({
 
   return (
     <OnboardingFlow
+      userId={claims.sub}
       accountEmail={accountEmail}
       accountIdentifier={accountIdentifier}
       initialProfile={{
@@ -103,8 +104,8 @@ export default async function OnboardingPage({
         displayName: profile?.display_name || '',
         graduationYear:
           profile?.graduation_year || new Date().getFullYear() + 3,
-        primaryGoal: profile?.primary_goal || 'stay_consistent',
-        studyPreference: profile?.study_preference || 'accountability',
+        primaryGoal: profile?.primary_goal || '',
+        studyPreference: profile?.study_preference || '',
         universityId: membership?.university_id || null,
       }}
       isEditing={edit === '1'}
