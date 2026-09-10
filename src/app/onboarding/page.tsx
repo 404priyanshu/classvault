@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -13,8 +14,7 @@ export default async function OnboardingPage({
 }: OnboardingPageProps) {
   const { edit } = await searchParams
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/onboarding')

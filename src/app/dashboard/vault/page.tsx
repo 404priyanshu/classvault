@@ -21,6 +21,7 @@ import {
   type OwnedNote,
   type OwnedModerationNotice,
 } from '@/lib/notes/vault'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 import { deleteNoteAction, restoreNoteAction } from './actions'
 
@@ -147,9 +148,9 @@ export default async function VaultPage({ searchParams }: VaultPageProps) {
   const params = await searchParams
   const isTrash = params.view === 'trash'
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
+  const claims = await getRequestClaims()
 
-  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/vault')
+  if (!claims) redirect('/auth/sign-in?next=/dashboard/vault')
 
   const [{ data, error }, noticesResult] = await Promise.all([
     supabase.rpc('list_owned_notes', {

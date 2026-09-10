@@ -17,6 +17,7 @@ import { PasswordSettingsForm } from '@/components/settings/PasswordSettingsForm
 import { ProfileDetailsForm } from '@/components/settings/ProfileDetailsForm'
 import { SoundCuesToggle } from '@/components/settings/SoundCuesToggle'
 import { StudyPreferencesForm } from '@/components/settings/StudyPreferencesForm'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -80,8 +81,7 @@ function AccountRow({
 
 export default async function SettingsPage() {
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
   if (!claims) redirect('/auth/sign-in?next=/dashboard/settings')
 
   const [profileResult, membershipResult] = await Promise.all([

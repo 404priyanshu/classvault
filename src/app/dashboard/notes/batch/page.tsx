@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation'
 import { BatchUploadForm } from '@/components/notes/BatchUploadForm'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function BatchNotePage() {
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/dashboard/notes/batch')

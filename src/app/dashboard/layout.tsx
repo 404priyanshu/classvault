@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { SoundCues } from '@/components/ui/SoundCues'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 import { signOutAction } from '../auth/actions'
 
@@ -14,8 +15,7 @@ export default async function DashboardLayout({
   children: ReactNode
 }) {
   const supabase = await createClient()
-  const { data } = await supabase.auth.getClaims()
-  const claims = data?.claims
+  const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/dashboard')

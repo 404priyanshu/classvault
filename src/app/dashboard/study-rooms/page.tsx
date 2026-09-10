@@ -15,6 +15,7 @@ import { JoinStudyRoomForm } from '@/components/study-rooms/JoinStudyRoomForm'
 import { StudyRoomListCountdown } from '@/components/study-rooms/StudyRoomListCountdown'
 import { StudyRoomRealtime } from '@/components/study-rooms/StudyRoomRealtime'
 import type { StudyRoomListItem } from '@/lib/study-rooms/types'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 
@@ -110,8 +111,7 @@ export default async function StudyRoomsPage({
   const { scope = 'all', status } = await searchParams
   const selectedScope = scopes.some((item) => item.value === scope) ? scope : 'all'
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
   if (!claims) redirect('/auth/sign-in?next=/dashboard/study-rooms')
 
   const [roomsResult, profileResult, membershipResult] = await Promise.all([

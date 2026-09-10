@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { AuthMessage } from '@/components/auth/AuthMessage'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 import { moderateNoteAction } from './actions'
 
@@ -160,8 +161,8 @@ function QueueCard({ item }: { item: QueueItem }) {
 export default async function ModerationPage({ searchParams }: ModerationPageProps) {
   const params = await searchParams
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/moderation')
+  const claims = await getRequestClaims()
+  if (!claims) redirect('/auth/sign-in?next=/dashboard/moderation')
 
   const { data, error } = await supabase.rpc('list_moderation_queue', { p_limit: 100 })
   if (error) throw new Error('The moderation queue could not be loaded.')

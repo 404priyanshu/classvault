@@ -18,6 +18,7 @@ import {
 } from '@/lib/notes/storage/access'
 import { RatingStars } from '@/components/notes/RatingStars'
 import { ReportNoteForm } from '@/components/notes/ReportNoteForm'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -79,7 +80,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
         .select('rating')
         .eq('note_id', note.id)
         .maybeSingle(),
-      supabase.auth.getClaims(),
+      getRequestClaims(),
       getAccessibleNoteFile(supabase, note.id),
     ])
   const contributor = contributorResult.data?.[0]
@@ -88,7 +89,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
     rating?.average_rating === null || rating?.average_rating === undefined
       ? null
       : Number(rating.average_rating)
-  const viewerId = claimsResult.data?.claims?.sub ?? null
+  const viewerId = claimsResult?.sub ?? null
   const canRate = viewerId !== null && viewerId !== note.owner_id
   let previewUrl: string | null = null
 

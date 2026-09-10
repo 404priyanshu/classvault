@@ -17,6 +17,7 @@ import { StudyRoomMembers } from '@/components/study-rooms/StudyRoomMembers'
 import { StudyRoomRealtime } from '@/components/study-rooms/StudyRoomRealtime'
 import { StudyRoomTimer } from '@/components/study-rooms/StudyRoomTimer'
 import { parseStudyRoomSnapshot } from '@/lib/study-rooms/types'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -45,8 +46,7 @@ export default async function StudyRoomPage({
   if (!roomId.success) redirect('/dashboard/study-rooms')
 
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
   if (!claims) {
     redirect(`/auth/sign-in?next=/dashboard/study-rooms/${roomId.data}`)
   }

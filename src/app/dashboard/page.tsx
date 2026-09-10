@@ -8,6 +8,7 @@ import {
   formatTimerSeconds,
   type StudyRoomListItem,
 } from '@/lib/study-rooms/types'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -71,30 +72,10 @@ export default async function DashboardPage({
   const { q = '', status } = await searchParams
   const query = q.trim().slice(0, 80)
   const supabase = await createClient()
-  const { data } = await supabase.auth.getClaims()
-  const claims = data?.claims
+  const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/dashboard')
-  }
-
-  const [profileResult, membershipResult] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('display_name, onboarding_completed_at')
-      .eq('id', claims.sub)
-      .maybeSingle(),
-    supabase
-      .from('university_memberships')
-      .select('status')
-      .eq('user_id', claims.sub)
-      .maybeSingle(),
-  ])
-
-  const profile = profileResult.data
-
-  if (!profile?.onboarding_completed_at) {
-    redirect('/onboarding')
   }
 
   let notesQuery = supabase
@@ -110,10 +91,35 @@ export default async function DashboardPage({
     notesQuery = notesQuery.ilike('title', `%${query}%`)
   }
 
-  const [{ data: recentNotes }, { data: roomRows }] = await Promise.all([
+  // One trip instead of two. The feed and rooms do not depend on the profile,
+  // so chaining the blocks only bought a second Mumbai round trip before the
+  // page could start rendering. The onboarding redirect below still guards the
+  // screen; it just no longer gates the queries that never needed it.
+  const [
+    profileResult,
+    membershipResult,
+    { data: recentNotes },
+    { data: roomRows },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('display_name, onboarding_completed_at')
+      .eq('id', claims.sub)
+      .maybeSingle(),
+    supabase
+      .from('university_memberships')
+      .select('status')
+      .eq('user_id', claims.sub)
+      .maybeSingle(),
     notesQuery,
     supabase.rpc('list_study_rooms'),
   ])
+
+  const profile = profileResult.data
+
+  if (!profile?.onboarding_completed_at) {
+    redirect('/onboarding')
+  }
   const email =
     typeof claims.email === 'string' && claims.email ? claims.email : null
   const phone =

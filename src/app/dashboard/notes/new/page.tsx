@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation'
 import { UploadNoteForm } from '@/components/notes/UploadNoteForm'
+import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NewNotePage() {
   const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/dashboard/notes/new')
