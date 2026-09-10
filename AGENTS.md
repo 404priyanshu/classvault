@@ -34,7 +34,9 @@ git_repository: true
 git_branch: main
 git_remote: git@github.com:404priyanshu/classvault.git
 deployment_configured: true
-deployment_platform: Vercel — project `classvault-g8qx`, linked in .vercel/project.json, serving https://classvault-g8qx.vercel.app
+deployment_platform: Vercel — project `classvault-g8qx`, linked in .vercel/project.json
+primary_domain: https://www.classvault.in — canonical. The apex classvault.in 308-redirects to it, because an apex cannot be a CNAME and www can be re-pointed without touching DNS. classvault-g8qx.vercel.app still resolves and is not the address to publish.
+dns_provider: Hostinger (classvault.in). Records are managed through the hostinger-dns MCP; DNS_getDNSSnapshotListV1 gives rollback points before any zone edit.
 scheduled_workers: GitHub Actions (.github/workflows/scheduled-workers.yml), not Vercel Cron — see that file for why
 environment_variables_required: true
 authentication_provider: Supabase Auth
@@ -51,8 +53,8 @@ authentication_provider_configuration:
 authentication_protection:
   captcha: Cloudflare Turnstile enabled in hosted Supabase for public email/password, password-recovery, and phone-OTP requests
   sms_rate_limit: 10 messages per hour across the hosted project
-authentication_email_template: Branded ClassVault sign-up confirmation template implemented locally
-authentication_email_sender_status: Custom SMTP deferred until the user owns a domain; hosted mail still identifies Supabase as sender
+authentication_email_template: supabase/templates/confirmation.html, applied in the hosted dashboard as well as wired into the local stack. Its only variable is `{{ .ConfirmationURL }}`.
+authentication_email_sender_status: Live. Custom SMTP through Resend, sending as `ClassVault <no-reply@classvault.in>`, which replaces the 2-messages-per-hour built-in service that could only reach project team addresses.
 loading_feedback:
   shared_component: src/components/ui/spinner.tsx
   visual: Animated ClassVault pencil derived from the supplied loader component
@@ -180,10 +182,30 @@ lost. All 57 hosted study-room pgTAP assertions pass
 transactionally.
 
 The canonical sign-up confirmation email is
-`supabase/templates/confirmation.html` and is wired into the local stack through
-`supabase/config.toml`. The hosted project still requires custom SMTP plus the
-template to be applied in the Supabase Dashboard before Gmail will show a
-ClassVault-owned sender instead of `Supabase Auth`.
+`supabase/templates/confirmation.html`, wired into the local stack through
+`supabase/config.toml` and pasted into the hosted dashboard separately. Mail
+now leaves through Resend as `ClassVault <no-reply@classvault.in>`.
+
+`classvault.in` is registered at Hostinger and its zone carries both the site
+and the mail identity, so a careless overwrite of one breaks the other:
+
+```
+A      @                   216.198.79.1                              Vercel apex
+CNAME  www                 c703853e552669bb.vercel-dns-017.com.      Vercel, project-specific
+MX     @                   10 inbound-smtp.ap-northeast-1.amazonaws.com.
+CNAME  send                send.forge.rmta.net.                      Resend
+CNAME  rsend               rsend-apne1.forge.rmta.net.               Resend
+TXT    resend._domainkey   p=MIGf...                                 DKIM
+TXT    _dmarc              v=DMARC1; p=none;
+```
+
+Three things to know before touching this zone. The `www` CNAME target is
+issued per Vercel project and is not the shared `cname.vercel-dns.com`; copying
+another project's value produces an invalid configuration. The apex MX points
+at Resend inbound, so mail to any `@classvault.in` address goes there and a
+Google Workspace mailbox on the apex would have to replace it. And `_dmarc` is
+`p=none`, which only monitors — tighten it to `p=quarantine` once a few weeks of
+sending look clean.
 
 Google and GitHub OAuth initiation, the PKCE callback, and phone OTP
 request/verification are implemented in application code. Google OAuth is
@@ -226,9 +248,10 @@ email_password:
   hosted_provider_status: enabled
   sender_branding:
     local_html_template: supabase/templates/confirmation.html
-    hosted_custom_smtp: deferred
-    reason: User does not own a ClassVault domain yet
-    current_sender_identity: Supabase-hosted sender
+    hosted_custom_smtp: Resend, smtp.resend.com:587, username `resend`, password is a Resend API key
+    current_sender_identity: ClassVault <no-reply@classvault.in>
+    resend_region: ap-northeast-1
+    caveat: The hosted dashboard does not read supabase/config.toml. Editing the template in this repo changes local mail only; the hosted copy has to be pasted in again.
 
 oauth:
   google:

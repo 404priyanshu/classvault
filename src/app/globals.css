@@ -903,6 +903,15 @@ body:has(.club-drawer[open]) { overflow: hidden; }
 .club-pass-foot nav { display: flex; flex-wrap: wrap; gap: 16px; }
 .club-pass-foot a:hover { color: #4144ad; text-decoration: underline; }
 
+/*
+ * Sign-in presents a card that already exists, so it is deliberately the
+ * smaller object: one column, no portrait, two fields. A returning student
+ * should not be handed the same amount of surface as someone joining.
+ */
+.club-pass-slim { width: min(100%, 452px); }
+.club-pass-slim .club-pass-body { grid-template-columns: minmax(0, 1fr); padding: 24px; }
+.club-pass-slim .club-pass-foot { justify-content: center; text-align: center; }
+
 @media (max-width: 820px) {
   .club-pass-body { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 22px; }
   .club-pass-photo { flex-direction: row; align-items: center; gap: 14px; padding: 12px; }
@@ -915,6 +924,10 @@ body:has(.club-drawer[open]) { overflow: hidden; }
 /* Short screens: the portrait is the first thing that can go, then padding
  * and type steps. The fields keep 44px targets and nothing is removed that
  * the student needs to read. */
+@media (max-height: 760px) {
+  .club-pass-slim .club-pass-body { padding: 18px; }
+}
+
 @media (max-height: 760px) and (max-width: 820px) {
   .club-pass-ground { padding: 10px; }
   .club-pass-photo { display: none; }
