@@ -545,6 +545,10 @@
 .signupTitle {
   margin: 4px 0 22px;
 }
+.signupOauth :global(.my-4) {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
 .signupForm {
   display: grid;
   gap: 17px;
@@ -723,9 +727,6 @@
   .heading {
     font-size: 29px;
   }
-  .signupPair {
-    grid-template-columns: 1fr;
-  }
 }
 @media (max-width: 700px) {
   .ground {
@@ -882,6 +883,115 @@
     gap: 12px;
   }
 }
+/* The account-creation journey is intentionally denser than the longer
+   onboarding steps. It uses the available viewport at ordinary laptop sizes,
+   but remains content-led when an error or a very short viewport needs space. */
+.signupShell {
+  min-height: 0;
+}
+.signupSurface {
+  padding: 28px 48px 24px;
+}
+.signupWorld {
+  padding-top: 38px;
+  padding-bottom: 24px;
+}
+.signupWorld h2 {
+  font-size: 30px;
+}
+.signupWorld .character {
+  min-height: 260px;
+}
+.signupWorld .pencil {
+  height: 290px;
+}
+.signupTitle {
+  margin: 0 0 14px;
+}
+.signupTitle .heading {
+  font-size: 29px;
+}
+.signupTitle .description {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.signupForm {
+  gap: 10px;
+}
+.signupForm .label {
+  margin-bottom: 6px;
+}
+.signupForm .input {
+  min-height: 50px;
+  padding-block: 11px;
+}
+.signupForm .hint {
+  margin-top: 5px;
+  line-height: 1.45;
+}
+.signupForm :global(.club-captcha) {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+.signupForm .primary {
+  min-height: 48px;
+}
+@media (min-width: 461px) {
+  .signupPair {
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+@media (min-width: 701px) and (max-height: 920px) {
+  .signupGround {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+  .signupGround .header {
+    padding-bottom: 14px;
+  }
+  .signupGround .pageFooter {
+    padding-top: 14px;
+  }
+}
+@media (max-width: 700px) {
+  .signupWorld {
+    min-height: 98px;
+    max-height: 98px;
+    padding: 18px 20px;
+  }
+  .signupWorld h2 {
+    font-size: 20px;
+  }
+  .signupWorld .character {
+    top: -40px;
+    min-height: 0;
+    height: 132px;
+    width: 100px;
+  }
+  .signupWorld .pencil {
+    height: 128px;
+    width: 96px;
+  }
+  .signupSurface {
+    min-height: 0;
+    padding: 18px 20px 20px;
+  }
+  .signupTitle .heading {
+    font-size: 25px;
+  }
+  .signupForm {
+    gap: 9px;
+  }
+  .signupOauth :global(.my-4) {
+    margin-top: 9px;
+    margin-bottom: 9px;
+  }
+}
+@media (max-width: 460px) {
+  .signupPair {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 359px) {
   .ground {
     padding: 14px 10px;
@@ -995,4 +1105,109 @@
 }
 .signupForm > * {
   min-width: 0;
+}
+
+/* Let the card occupy the quiet space on taller screens without reintroducing
+   a fixed minimum that would force a laptop viewport to scroll. */
+@media (min-width: 701px) {
+  .signupGround {
+    display: flex;
+    flex-direction: column;
+  }
+  .signupShell {
+    flex: 1;
+  }
+  .signupSurface {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .signupWorld:has(+ .signupSurface .signupForm) {
+    min-height: 98px;
+    max-height: 98px;
+  }
+  .signupSurface:has(.signupForm) {
+    min-height: 0;
+    padding: 18px 20px 20px;
+  }
+}
+
+/* These two fields still have enough room beside one another on common phone
+   widths. */
+@media (min-width: 350px) and (max-width: 460px) {
+  .signupPair {
+    grid-template-columns: 1fr 1.4fr;
+  }
+  .signupForm {
+    gap: 7px;
+  }
+  .signupForm .label {
+    margin-bottom: 4px;
+  }
+  .signupForm .input {
+    min-height: 44px;
+    padding-block: 8px;
+  }
+  .signupForm .hint {
+    margin-top: 3px;
+  }
+  .signupForm .primary {
+    min-height: 44px;
+  }
+  .signupSurface:has(.signupForm) {
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+  .signupWorld:has(+ .signupSurface .signupForm) {
+    min-height: 90px;
+    max-height: 90px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+  .signupTitle {
+    margin-bottom: 10px;
+  }
+  .signupTitle .description {
+    line-height: 1.4;
+  }
+  .signupOauth :global(.my-4) {
+    margin-top: 7px;
+    margin-bottom: 7px;
+  }
+}
+
+@media (min-width: 350px) and (max-width: 460px) and (max-height: 700px) {
+  .signupGround {
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+  .signupGround .header {
+    padding-bottom: 10px;
+  }
+  .signupGround .pageFooter {
+    padding-top: 10px;
+  }
+  .signupWorld:has(+ .signupSurface .signupForm) {
+    min-height: 76px;
+    max-height: 76px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .signupWorld h2 {
+    font-size: 18px;
+    line-height: 1.05;
+  }
+  .signupWorld .character {
+    top: -8px;
+    height: 90px;
+  }
+  .signupWorld .pencil {
+    height: 86px;
+    width: 66px;
+  }
+  .signupSurface:has(.signupForm) {
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
 }

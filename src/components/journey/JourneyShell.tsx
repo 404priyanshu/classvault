@@ -15,15 +15,17 @@ export function JourneyShell({
     </>
   ),
   account = false,
+  variant,
 }: {
   children: ReactNode
   mood?: PencilMood
   message?: string
   title?: ReactNode
   account?: boolean
+  variant?: 'signup'
 }) {
   return (
-    <main className={styles.ground}>
+    <main className={`${styles.ground} ${variant ? styles[`${variant}Ground`] : ''}`}>
       <header className={styles.header}>
         <Brand href="/" />
         {account ? (
@@ -34,8 +36,8 @@ export function JourneyShell({
           <p>Your student setup</p>
         )}
       </header>
-      <div className={styles.shell}>
-        <aside className={styles.world}>
+      <div className={`${styles.shell} ${variant ? styles[`${variant}Shell`] : ''}`}>
+        <aside className={`${styles.world} ${variant ? styles[`${variant}World`] : ''}`}>
           <h2>{title}</h2>
           <div className={styles.character}>
             <PencilGuide mood={mood} />
@@ -44,7 +46,9 @@ export function JourneyShell({
             {message}
           </p>
         </aside>
-        <section className={styles.surface}>{children}</section>
+        <section className={`${styles.surface} ${variant ? styles[`${variant}Surface`] : ''}`}>
+          {children}
+        </section>
       </div>
       <footer className={styles.pageFooter}>
         <span>A little setup. A fresh start.</span>

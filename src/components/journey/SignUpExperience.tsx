@@ -29,6 +29,7 @@ export function SignUpExperience({
   return (
     <JourneyShell
       account
+      variant="signup"
       mood={pending ? 'thinking' : error ? 'help' : 'welcome'}
       title={
         <>
@@ -49,11 +50,13 @@ export function SignUpExperience({
           you study.
         </p>
       </div>
-      <AuthProviderButtons
-        formId="sign-up-oauth-form"
-        next="/onboarding"
-        source="/auth/sign-up"
-      />
+      <div className={styles.signupOauth}>
+        <AuthProviderButtons
+          formId="sign-up-oauth-form"
+          next="/onboarding"
+          source="/auth/sign-up"
+        />
+      </div>
       <form
         action={action}
         onReset={(event) => event.preventDefault()}
