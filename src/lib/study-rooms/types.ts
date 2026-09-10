@@ -20,6 +20,37 @@ const messageSchema = z.object({
   id: z.number().int().positive(),
 })
 
+/**
+ * A realtime `study_room_messages` row, reshaped like the snapshot's messages.
+ *
+ * Realtime delivers raw columns while the page renders camelCase, and it only
+ * delivers rows the subscriber's own select policy already allows -- the same
+ * boundary `get_study_room_snapshot` renders behind. Parsing rather than
+ * casting keeps a column change from reaching the chat list as `undefined`.
+ */
+const messageRowSchema = z.object({
+  author_display_name: z.string(),
+  author_id: z.string().uuid().nullable(),
+  body: z.string(),
+  created_at: z.string(),
+  id: z.number().int().positive(),
+})
+
+export function parseStudyRoomMessageRow(
+  value: unknown,
+): StudyRoomMessage | null {
+  const parsed = messageRowSchema.safeParse(value)
+  if (!parsed.success) return null
+
+  return {
+    authorDisplayName: parsed.data.author_display_name,
+    authorId: parsed.data.author_id,
+    body: parsed.data.body,
+    createdAt: parsed.data.created_at,
+    id: parsed.data.id,
+  }
+}
+
 const snapshotSchema = z.object({
   members: z.array(memberSchema),
   messages: z.array(messageSchema),
@@ -44,6 +75,7 @@ const snapshotSchema = z.object({
   viewerRole: z.enum(['host', 'cohost', 'member']),
 })
 
+export type StudyRoomMessage = z.infer<typeof messageSchema>
 export type StudyRoomSnapshot = z.infer<typeof snapshotSchema>
 
 export function parseStudyRoomSnapshot(value: Json): StudyRoomSnapshot | null {

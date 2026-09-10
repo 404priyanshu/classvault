@@ -4,6 +4,18 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+/**
+ * Re-renders the room when its shape changes.
+ *
+ * Membership and the shared timer alter what the page is made of -- who is
+ * listed, who may press play, how many seats are left -- so they still go
+ * through the server, and both change a handful of times per session.
+ *
+ * Chat deliberately does not. It is the one event a busy room produces
+ * constantly, and `StudyRoomChat` appends it from the realtime payload instead,
+ * which is what stops ten people talking from costing ten server renders per
+ * message.
+ */
 export function StudyRoomRealtime({ roomId }: { roomId?: string }) {
   const router = useRouter()
 
@@ -39,16 +51,6 @@ export function StudyRoomRealtime({ roomId }: { roomId?: string }) {
             filter: childFilter,
             schema: 'public',
             table: 'study_room_members',
-          },
-          scheduleRefresh,
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            filter: childFilter,
-            schema: 'public',
-            table: 'study_room_messages',
           },
           scheduleRefresh,
         )
