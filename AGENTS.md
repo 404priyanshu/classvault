@@ -248,7 +248,8 @@ email_password:
   hosted_provider_status: enabled
   sender_branding:
     local_html_template: supabase/templates/confirmation.html
-    hosted_custom_smtp: Resend, smtp.resend.com:587, username `resend`, password is a Resend API key
+    hosted_custom_smtp: Resend, smtp.resend.com port 465, username `resend`, password is a Resend API key
+    smtp_port_warning: Use 465 (implicit TLS), not 587. On 587 the STARTTLS upgrade hangs and blows GoTrue's ten second send deadline, so /signup returns 504 `context deadline exceeded`. The retry then reuses the spent single-use Turnstile token, Cloudflare answers `timeout-or-duplicate`, and the student is shown a captcha error for what is really a mail timeout. Verified working on 465 on 2026-09-10: /signup 200 in 3.36s, confirmation sent 33ms after account creation.
     current_sender_identity: ClassVault <no-reply@classvault.in>
     resend_region: ap-northeast-1
     caveat: The hosted dashboard does not read supabase/config.toml. Editing the template in this repo changes local mail only; the hosted copy has to be pasted in again.

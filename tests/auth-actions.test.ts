@@ -143,6 +143,64 @@ describe('authentication server actions', () => {
     })
   })
 
+  it('tells a student their check went stale rather than that it failed', async () => {
+    // Reproduces the live failure: a slow mail send blew the auth service's
+    // deadline, the retry carried the already-spent Turnstile token, and
+    // Cloudflare answered `timeout-or-duplicate`. The student had passed the
+    // check, so being told to "complete" it read as the app ignoring them.
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = '0xTEST'
+    createClientMock.mockResolvedValue({
+      auth: {
+        signUp: vi.fn().mockResolvedValue({
+          data: { session: null },
+          error: {
+            code: 'captcha_failed',
+            message:
+              '400: captcha protection: request disallowed (timeout-or-duplicate)',
+          },
+        }),
+      },
+    })
+
+    const error = await signUpAction(
+      formData({
+        captchaToken: 'spent-token',
+        email: 'student@bennett.edu.in',
+        fullName: 'Test Student',
+        password: 'a-good-password',
+      }),
+    ).catch((thrown: unknown) => thrown)
+
+    const message = redirectUrl(error).searchParams.get('error')
+    expect(message).toContain('took a moment too long')
+    expect(message).not.toContain('Complete the security check')
+  })
+
+  it('still says to complete the check when one was genuinely failed', async () => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = '0xTEST'
+    createClientMock.mockResolvedValue({
+      auth: {
+        signUp: vi.fn().mockResolvedValue({
+          data: { session: null },
+          error: { code: 'captcha_failed', message: 'captcha protection: failed' },
+        }),
+      },
+    })
+
+    const error = await signUpAction(
+      formData({
+        captchaToken: 'bad-token',
+        email: 'student@bennett.edu.in',
+        fullName: 'Test Student',
+        password: 'a-good-password',
+      }),
+    ).catch((thrown: unknown) => thrown)
+
+    expect(redirectUrl(error).searchParams.get('error')).toContain(
+      'Complete the security check',
+    )
+  })
+
   it('normalizes a phone number and protects the OTP request', async () => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'site-key'
     const signInWithOtp = vi.fn().mockResolvedValue({ error: null })

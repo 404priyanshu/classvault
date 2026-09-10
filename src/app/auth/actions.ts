@@ -33,6 +33,24 @@ type PhoneOtpRequestError = {
 const CAPTCHA_ERROR_MESSAGE =
   'Complete the security check, then submit the form again.'
 
+const CAPTCHA_STALE_MESSAGE =
+  'That took a moment too long. Complete the check once more and resubmit.'
+
+/**
+ * A Turnstile token is single use and short lived. When something upstream is
+ * slow -- a mail send stalling long enough to blow the auth service's ten
+ * second deadline, say -- the retry arrives carrying the token that was
+ * already spent, and Cloudflare answers `timeout-or-duplicate`.
+ *
+ * That is not the student failing a check; they may have passed it seconds
+ * earlier. Telling them to "complete the security check" then reads as the app
+ * ignoring what they just did, so the stale case gets its own wording and asks
+ * for a fresh token rather than implying they got it wrong.
+ */
+function isStaleCaptchaToken(error: PhoneOtpRequestError) {
+  return error.message.toLowerCase().includes('timeout-or-duplicate')
+}
+
 function isCaptchaError(error: PhoneOtpRequestError) {
   return (
     error.code === 'captcha_failed' ||
@@ -40,10 +58,14 @@ function isCaptchaError(error: PhoneOtpRequestError) {
   )
 }
 
+function captchaMessageFor(error: PhoneOtpRequestError) {
+  return isStaleCaptchaToken(error) ? CAPTCHA_STALE_MESSAGE : CAPTCHA_ERROR_MESSAGE
+}
+
 function getPhoneOtpRequestErrorMessage(error: PhoneOtpRequestError) {
   switch (error.code) {
     case 'captcha_failed':
-      return CAPTCHA_ERROR_MESSAGE
+      return captchaMessageFor(error)
     case 'over_sms_send_rate_limit':
       return 'A code was requested too recently. Wait at least 60 seconds, then try again.'
     case 'over_request_rate_limit':
@@ -151,7 +173,7 @@ export async function signInWithOAuthAction(formData: FormData) {
         source,
         'error',
         error && isCaptchaError(error)
-          ? CAPTCHA_ERROR_MESSAGE
+          ? captchaMessageFor(error)
           : `${provider.data === 'google' ? 'Google' : 'GitHub'} sign-in is not configured yet.`,
         { next },
       ),
@@ -299,7 +321,7 @@ export async function signInAction(formData: FormData) {
         '/auth/sign-in',
         'error',
         isCaptchaError(error)
-          ? CAPTCHA_ERROR_MESSAGE
+          ? captchaMessageFor(error)
           : 'The email or password is incorrect.',
         { next },
       ),
@@ -356,7 +378,7 @@ export async function signUpAction(formData: FormData) {
         '/auth/sign-up',
         'error',
         isCaptchaError(error)
-          ? CAPTCHA_ERROR_MESSAGE
+          ? captchaMessageFor(error)
           : 'We could not create the account. Please try again shortly.',
       ),
     )
