@@ -311,7 +311,7 @@ export type Database = {
           id: string
           moderation_status: string
           note_type: string
-          owner_id: string
+          owner_id: string | null
           publication_status: string
           published_at: string | null
           purge_claimed_at: string | null
@@ -332,7 +332,7 @@ export type Database = {
           id?: string
           moderation_status?: string
           note_type?: string
-          owner_id: string
+          owner_id: string | null
           publication_status?: string
           published_at?: string | null
           purge_claimed_at?: string | null
@@ -353,7 +353,7 @@ export type Database = {
           id?: string
           moderation_status?: string
           note_type?: string
-          owner_id?: string
+          owner_id?: string | null
           publication_status?: string
           published_at?: string | null
           purge_claimed_at?: string | null
@@ -1102,6 +1102,7 @@ export type Database = {
         Returns: boolean
       }
       can_access_study_room: { Args: { p_room_id: string }; Returns: boolean }
+      can_close_own_account: { Args: Record<PropertyKey, never>; Returns: boolean }
       can_consume_note: { Args: { target_note_id: string }; Returns: boolean }
       can_delete_cancelled_note_object: {
         Args: { target_object_key: string }
@@ -1159,6 +1160,10 @@ export type Database = {
           study_mode: string | null
           topic: string | null
         }[]
+      }
+      close_own_account: {
+        Args: { p_keep_published: boolean }
+        Returns: Json
       }
       complete_note_extraction: {
         Args: {
@@ -1397,6 +1402,13 @@ export type Database = {
           p_roadmap_id: string
         }
         Returns: boolean
+      }
+      list_account_deletion_object_keys: {
+        Args: { p_keep_published: boolean }
+        Returns: {
+          object_key: string
+          preview_object_key: string | null
+        }[]
       }
       list_moderation_queue: {
         Args: { p_limit?: number }

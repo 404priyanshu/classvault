@@ -9,10 +9,12 @@ import {
   Settings2,
   Smartphone,
   Sparkles,
+  TriangleAlert,
   UserRound,
 } from 'lucide-react'
 import { AvatarSettingsForm } from '@/components/settings/AvatarSettingsForm'
 import { CopyAccountId } from '@/components/settings/CopyAccountId'
+import { DeleteAccountForm } from '@/components/settings/DeleteAccountForm'
 import { PasswordSettingsForm } from '@/components/settings/PasswordSettingsForm'
 import { ProfileDetailsForm } from '@/components/settings/ProfileDetailsForm'
 import { SoundCuesToggle } from '@/components/settings/SoundCuesToggle'
@@ -27,6 +29,7 @@ const settingsLinks = [
   { href: '#account', icon: Fingerprint, label: 'Account' },
   { href: '#preferences', icon: Sparkles, label: 'Preferences' },
   { href: '#security', icon: KeyRound, label: 'Password & security' },
+  { href: '#danger', icon: TriangleAlert, label: 'Close account' },
 ]
 
 function SettingsSection({
@@ -84,7 +87,7 @@ export default async function SettingsPage() {
   const claims = await getRequestClaims()
   if (!claims) redirect('/auth/sign-in?next=/dashboard/settings')
 
-  const [profileResult, membershipResult] = await Promise.all([
+  const [profileResult, membershipResult, noteCountResult] = await Promise.all([
     supabase
       .from('profiles')
       .select(
@@ -97,6 +100,12 @@ export default async function SettingsPage() {
       .select('academic_email, status')
       .eq('user_id', claims.sub)
       .maybeSingle(),
+    // Only to word the closing question. A student with nothing uploaded is
+    // never asked what should happen to their uploads.
+    supabase
+      .from('notes')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', claims.sub),
   ])
 
   if (profileResult.error || !profileResult.data) {
@@ -258,6 +267,14 @@ export default async function SettingsPage() {
             title="Password & security"
           >
             <PasswordSettingsForm />
+          </SettingsSection>
+
+          <SettingsSection
+            description="Leave ClassVault for good. This removes your account and cannot be undone."
+            id="danger"
+            title="Close account"
+          >
+            <DeleteAccountForm noteCount={noteCountResult.count || 0} />
           </SettingsSection>
         </div>
       </div>

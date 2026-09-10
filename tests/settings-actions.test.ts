@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Closing an account reaches the admin client, which is server-only.
+vi.mock('server-only', () => ({}))
+
 const { createClientMock, revalidatePathMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
   revalidatePathMock: vi.fn(),
