@@ -127,7 +127,7 @@ export function BatchUploadForm({
                 Drop your files here
               </span>
               <span className="mt-1 text-sm text-club-muted">
-                PDF, JPG, PNG or WebP · up to 25 MiB each · pick as many as you like
+                PDF, JPG, PNG or WebP · up to 10 MiB each · pick as many as you like
               </span>
             </>
           ) : (

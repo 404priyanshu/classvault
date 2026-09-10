@@ -1,5 +1,12 @@
 export const NOTE_FILE_BUCKET = 'note-files'
-export const NOTE_FILE_MAX_BYTES = 25 * 1024 * 1024
+/**
+ * 10 MiB. Held down deliberately: the free tier gives 1 GB of storage and 5 GB
+ * of monthly egress, and every view of a note spends that egress again, so an
+ * oversized upload is charged repeatedly. Scanned unit notes fit well inside
+ * this. Changing it means changing the storage bucket, the note_assets check
+ * constraint and create_note_upload_draft in the same migration.
+ */
+export const NOTE_FILE_MAX_BYTES = 10 * 1024 * 1024
 
 export const NOTE_FILE_MIME_TYPES = [
   'application/pdf',

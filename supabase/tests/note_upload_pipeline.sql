@@ -10,9 +10,9 @@ select extensions.ok(
     from storage.buckets as bucket
     where bucket.id = 'note-files'
       and not bucket.public
-      and bucket.file_size_limit = 26214400
+      and bucket.file_size_limit = 10485760
   ),
-  'note source files use a private 25 MiB bucket'
+  'note source files use a private 10 MiB bucket'
 );
 
 select extensions.ok(

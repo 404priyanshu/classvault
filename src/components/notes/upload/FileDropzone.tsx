@@ -75,7 +75,7 @@ export function FileDropzone({
               Drop your note here
             </h2>
             <p className="mt-2 text-sm font-bold text-club-muted sm:text-base">
-              PDF, JPG, PNG or WebP · up to 25 MiB
+              PDF, JPG, PNG or WebP · up to 10 MiB
             </p>
             <span className="my-5 text-sm text-club-muted">or</span>
             <label

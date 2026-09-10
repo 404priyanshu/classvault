@@ -23,7 +23,7 @@ export function validateSelectedFile(file: File) {
   }
 
   if (file.size > NOTE_FILE_MAX_BYTES) {
-    return 'Your note must be 25 MiB or smaller.'
+    return `Your note must be ${NOTE_FILE_MAX_BYTES / 1024 / 1024} MiB or smaller.`
   }
 
   return null

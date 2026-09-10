@@ -16,7 +16,7 @@ const term = [
   {
     stage: 'WEEK 01',
     title: 'Notes go up as the unit is taught',
-    copy: 'Share a PDF or image up to 25 MiB. Add a subject and tags so classmates can find it later.',
+    copy: 'Share a PDF or image up to 10 MiB. Add a subject and tags so classmates can find it later.',
     surface: 'UPLOAD',
   },
   {

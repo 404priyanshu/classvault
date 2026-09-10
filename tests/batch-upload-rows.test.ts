@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { NOTE_FILE_MAX_BYTES } from '@/lib/notes/storage/contracts'
 
 // The hook module reaches the server actions, which pull in server-only code
 // through the extraction runner. Only the pure row builder is under test here.
@@ -8,7 +9,8 @@ vi.mock('next/server', () => ({ after: (fn: () => unknown) => void fn() }))
 
 import { createBatchRows } from '@/components/notes/upload/use-batch-upload'
 
-const MAX_BYTES = 25 * 1024 * 1024
+// Read from the shared contract so lowering the cap cannot leave this behind.
+const MAX_BYTES = NOTE_FILE_MAX_BYTES
 
 function fileOf(name: string, bytes: number) {
   return new File([new Uint8Array(bytes)], name, { type: 'application/pdf' })
@@ -52,7 +54,9 @@ describe('createBatchRows', () => {
       'Huge scan.pdf',
       'Empty.pdf',
     ])
-    expect(rejected[0].reason).toMatch(/25 MiB/)
+    expect(rejected[0].reason).toMatch(
+      new RegExp(`${MAX_BYTES / 1024 / 1024} MiB`),
+    )
   })
 
   it('leaves an untitleable file blank rather than inventing a title', () => {

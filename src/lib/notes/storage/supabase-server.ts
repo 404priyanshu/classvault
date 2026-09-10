@@ -24,7 +24,7 @@ export async function verifyStoredNoteFile(
   }
 
   if (data.size < 1 || data.size > NOTE_FILE_MAX_BYTES) {
-    throw new Error('The uploaded file is larger than 25 MiB.')
+    throw new Error(`The uploaded file is larger than ${NOTE_FILE_MAX_BYTES / 1024 / 1024} MiB.`)
   }
 
   const bytes = new Uint8Array(await data.arrayBuffer())
