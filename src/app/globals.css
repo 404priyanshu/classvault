@@ -443,6 +443,37 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 .club-welcome { display: grid; grid-template-columns: 1.3fr .7fr; gap: 24px; align-items: center; padding: 30px; background: #e7e4fa; border-radius: 28px; overflow: hidden; }
 .club-welcome h1 { max-width: 570px; }
 .club-welcome-art { width: 100%; max-height: 200px; object-fit: cover; border-radius: 22px; }
+/* Dashboard home: a working surface, not a landing page.
+
+   The greeting used to be a 260px illustrated band above three large tiles,
+   which pushed the notes below the fold on a laptop. It is now one strip --
+   words, a few counts, and a small piece of the artwork that only appears once
+   there is width to spare for it. */
+.club-home-greet { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: center; padding: 18px 22px; background: #e7e4fa; border-radius: 20px; }
+.club-home-stats { display: grid; grid-auto-flow: column; gap: 8px; }
+.club-home-art { display: none; }
+@media (min-width: 1280px) {
+  .club-home-greet { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .club-home-art { display: block; width: 168px; max-height: 104px; object-fit: cover; border-radius: 14px; }
+}
+@media (max-width: 720px) {
+  .club-home-greet { grid-template-columns: 1fr; padding: 16px 18px; }
+  .club-home-stats { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Quick actions as a rail. Three 20px-padded cards spanning the page bought
+   one line of text each; stacked beside the library they cost no vertical
+   room at all on a wide screen. */
+.club-home-actions { display: grid; gap: 6px; padding: 8px; background: #e7e4fa; border-radius: 16px; }
+.club-home-actions a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 11px; font-size: 13px; font-weight: 700; color: #202044; transition: background 160ms, transform 160ms; }
+.club-home-actions a:hover { background: #fffdf5; transform: translateX(2px); }
+.club-home-actions svg:first-child { color: #5b5fd7; flex-shrink: 0; }
+/* Between the rail collapsing and the phone layout, three stacked rows of two
+   words each span the whole page. Side by side they read as one control. */
+@media (min-width: 721px) and (max-width: 1279px) {
+  .club-home-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 .club-quick-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .club-quick-links a { display: flex; align-items: center; gap: 14px; padding: 20px; border-radius: 22px; background: #e7e4fa; transition: transform 180ms; }
 .club-quick-links a:nth-child(2) { background: #fff1a8; }
