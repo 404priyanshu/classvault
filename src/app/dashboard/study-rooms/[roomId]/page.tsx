@@ -51,7 +51,15 @@ export default async function StudyRoomPage({
   const snapshot = data ? parseStudyRoomSnapshot(data) : null
   if (!snapshot) redirect('/dashboard/study-rooms?status=not-member')
 
-  const { room, members, messages, viewerRole } = snapshot
+  const { room, members, messages, mutedUserIds, viewerMuted, viewerRole } =
+    snapshot
+  const currentUserId = String(claims.sub)
+  // The viewer's own mute reaches them through `viewerMuted`; `mutedUserIds` is
+  // empty unless they run the room. Merging the two means the participant list
+  // shows a student their own mute without showing it to the rest of the room.
+  const mutedInRoom = viewerMuted
+    ? [...new Set([...mutedUserIds, currentUserId])]
+    : mutedUserIds
   const canControl = viewerRole === 'host' || viewerRole === 'cohost'
   const isHost = viewerRole === 'host'
 
@@ -135,7 +143,8 @@ export default async function StudyRoomPage({
               <div>
                 <h2 className="font-display text-2xl font-black">Participants</h2>
                 <p className="mt-1 text-xs text-club-muted">
-                  Hosts can appoint co-hosts to keep timer controls available.
+                  Hosts and co-hosts can mute or remove a participant for this
+                  room. Anyone can report one to ClassVault&rsquo;s moderators.
                 </p>
               </div>
               <span className="text-xs font-bold text-club-purple">
@@ -143,8 +152,10 @@ export default async function StudyRoomPage({
               </span>
             </div>
             <StudyRoomMembers
-              currentUserId={String(claims.sub)}
+              currentUserId={currentUserId}
               members={members}
+              messages={messages}
+              mutedUserIds={mutedInRoom}
               roomId={room.id}
               viewerRole={viewerRole}
             />
@@ -152,9 +163,10 @@ export default async function StudyRoomPage({
         </div>
 
         <StudyRoomChat
-          currentUserId={String(claims.sub)}
+          currentUserId={currentUserId}
           initialMessages={messages}
           roomId={room.id}
+          viewerMuted={viewerMuted}
         />
       </div>
     </div>

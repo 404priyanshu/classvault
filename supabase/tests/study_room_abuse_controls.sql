@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(28);
+select extensions.plan(31);
 
 create temp table room_abuse_state (
   room_id uuid primary key,
@@ -170,6 +170,29 @@ select extensions.throws_ok(
   '42501',
   'You cannot post in this room',
   'a muted participant cannot post'
+);
+
+-- A control nobody can read is not a control. The muted student has to learn
+-- they are muted without writing a message first, and the host has to be able
+-- to see the mute in order to lift it -- while the rest of the room does not.
+select extensions.is(
+  public.get_study_room_snapshot((select room_id from room_abuse_state)) ->> 'viewerMuted',
+  'true',
+  'the muted student is told they are muted'
+);
+select extensions.is(
+  public.get_study_room_snapshot((select room_id from room_abuse_state)) -> 'mutedUserIds',
+  '[]'::jsonb,
+  'an ordinary member is not shown who else is muted'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'abababab-0000-4000-8000-00000000a001', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-0000-4000-8000-00000000a001","role":"authenticated"}', true);
+select extensions.is(
+  public.get_study_room_snapshot((select room_id from room_abuse_state)) -> 'mutedUserIds',
+  jsonb_build_array('abababab-0000-4000-8000-00000000a002'::uuid),
+  'the host sees the mute they applied, so they can lift it'
 );
 
 -- Unmuting restores posting and leaves the mute in the audit trail.

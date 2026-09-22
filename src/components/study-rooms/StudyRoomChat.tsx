@@ -40,10 +40,12 @@ export function StudyRoomChat({
   currentUserId,
   initialMessages,
   roomId,
+  viewerMuted,
 }: {
   currentUserId: string
   initialMessages: StudyRoomMessage[]
   roomId: string
+  viewerMuted: boolean
 }) {
   const [liveMessages, setLiveMessages] = useState<StudyRoomMessage[]>([])
 
@@ -158,7 +160,7 @@ export function StudyRoomChat({
         )}
       </div>
 
-      <StudyRoomChatForm roomId={roomId} />
+      <StudyRoomChatForm muted={viewerMuted} roomId={roomId} />
     </section>
   )
 }

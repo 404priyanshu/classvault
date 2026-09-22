@@ -29,6 +29,33 @@ const roleSchema = z.object({
   userId: z.string().uuid(),
 })
 
+// The three abuse controls from ADR 0030. Each carries a reason because the
+// database refuses without one: a moderation action nobody has to justify is
+// the kind that gets used casually.
+const moderationSchema = z.object({
+  reason: z.string().trim().min(1).max(500),
+  roomId: roomIdSchema,
+  userId: z.string().uuid(),
+})
+const muteSchema = moderationSchema.extend({
+  muted: z.enum(['true', 'false']),
+})
+const reportSchema = z.object({
+  category: z.enum([
+    'harassment',
+    'spam',
+    'hate_speech',
+    'sexual_content',
+    'other',
+  ]),
+  details: z.string().trim().max(1000),
+  // Capped here as well as in the database, so a hand-built post cannot ask a
+  // reviewer to read a hundred messages.
+  messageIds: z.array(z.coerce.number().int().positive()).max(10),
+  roomId: roomIdSchema,
+  userId: z.string().uuid(),
+})
+
 async function authenticatedRoomClient() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getClaims()
@@ -50,6 +77,9 @@ function mapRoomError(message: string | undefined) {
   }
   if (normalized.includes('active room membership')) {
     return 'Join the room before sending a message.'
+  }
+  if (normalized.includes('cannot post in this room')) {
+    return 'A host muted you in this room, so you cannot post here.'
   }
   if (normalized.includes('unavailable')) {
     return 'That study room is no longer available.'
@@ -245,4 +275,153 @@ export async function setStudyRoomMemberRoleAction(formData: FormData) {
     p_user_id: parsed.data.userId,
   })
   refreshRoom(parsed.data.roomId)
+}
+
+/**
+ * Removes a participant from this room and blocks them rejoining it.
+ *
+ * The database refuses for several distinct reasons -- the target holds a
+ * platform role, the target is the host, the caller lost control of the room --
+ * and reports all of them as a plain `false`. That is deliberate, so the copy
+ * here stays equally plain rather than inventing a reason it was not told.
+ */
+export async function removeStudyRoomMemberAction(
+  _previousState: StudyRoomActionState,
+  formData: FormData,
+): Promise<StudyRoomActionState> {
+  const parsed = moderationSchema.safeParse({
+    reason: formData.get('reason'),
+    roomId: formData.get('roomId'),
+    userId: formData.get('userId'),
+  })
+  if (!parsed.success) {
+    return { kind: 'error', message: 'Give a reason of up to 500 characters.' }
+  }
+
+  const authenticated = await authenticatedRoomClient()
+  if (!authenticated) {
+    return { kind: 'error', message: 'Your session expired. Sign in again.' }
+  }
+
+  const { data: removed, error } = await authenticated.supabase.rpc(
+    'remove_study_room_member',
+    {
+      p_reason: parsed.data.reason,
+      p_room_id: parsed.data.roomId,
+      p_user_id: parsed.data.userId,
+    },
+  )
+
+  if (error) return { kind: 'error', message: mapRoomError(error.message) }
+  if (!removed) {
+    return {
+      kind: 'error',
+      message: 'That participant cannot be removed from this room.',
+    }
+  }
+
+  refreshRoom(parsed.data.roomId)
+  return { kind: 'success', message: 'Removed from the room.' }
+}
+
+/** Withdraws or restores a participant's ability to post in this room. */
+export async function setStudyRoomMuteAction(
+  _previousState: StudyRoomActionState,
+  formData: FormData,
+): Promise<StudyRoomActionState> {
+  const parsed = muteSchema.safeParse({
+    muted: formData.get('muted'),
+    reason: formData.get('reason'),
+    roomId: formData.get('roomId'),
+    userId: formData.get('userId'),
+  })
+  if (!parsed.success) {
+    return { kind: 'error', message: 'Give a reason of up to 500 characters.' }
+  }
+
+  const muting = parsed.data.muted === 'true'
+  const authenticated = await authenticatedRoomClient()
+  if (!authenticated) {
+    return { kind: 'error', message: 'Your session expired. Sign in again.' }
+  }
+
+  const { data: applied, error } = await authenticated.supabase.rpc(
+    'set_study_room_mute',
+    {
+      p_muted: muting,
+      p_reason: parsed.data.reason,
+      p_room_id: parsed.data.roomId,
+      p_user_id: parsed.data.userId,
+    },
+  )
+
+  if (error) return { kind: 'error', message: mapRoomError(error.message) }
+  if (!applied) {
+    return {
+      kind: 'error',
+      message: muting
+        ? 'That participant cannot be muted in this room.'
+        : 'That mute could not be lifted.',
+    }
+  }
+
+  refreshRoom(parsed.data.roomId)
+  return {
+    kind: 'success',
+    message: muting ? 'Muted for this room.' : 'Mute lifted.',
+  }
+}
+
+/**
+ * Reports a participant to platform moderators, optionally citing messages.
+ *
+ * The cited messages are copied into the report as it is filed, because the
+ * room's chat is deleted when the room ends -- see ADR 0030. Ids the reporter
+ * cannot see are dropped by the database rather than rejected, so a report that
+ * cites nothing still files.
+ */
+export async function reportStudyRoomParticipantAction(
+  _previousState: StudyRoomActionState,
+  formData: FormData,
+): Promise<StudyRoomActionState> {
+  const parsed = reportSchema.safeParse({
+    category: formData.get('category'),
+    details: formData.get('details') ?? '',
+    messageIds: formData.getAll('messageIds'),
+    roomId: formData.get('roomId'),
+    userId: formData.get('userId'),
+  })
+  if (!parsed.success) {
+    return {
+      kind: 'error',
+      message: 'Choose a reason, and cite at most ten messages.',
+    }
+  }
+
+  const authenticated = await authenticatedRoomClient()
+  if (!authenticated) {
+    return { kind: 'error', message: 'Your session expired. Sign in again.' }
+  }
+
+  const { data: filed, error } = await authenticated.supabase.rpc(
+    'report_study_room_participant',
+    {
+      p_category: parsed.data.category,
+      p_details: parsed.data.details,
+      p_message_ids: parsed.data.messageIds,
+      p_room_id: parsed.data.roomId,
+      p_user_id: parsed.data.userId,
+    },
+  )
+
+  if (error) return { kind: 'error', message: mapRoomError(error.message) }
+  if (!filed) {
+    return { kind: 'error', message: 'That report could not be filed.' }
+  }
+
+  revalidatePath('/dashboard/moderation')
+  return {
+    kind: 'success',
+    message: 'Sent to the platform moderators. Thank you.',
+  }
 }

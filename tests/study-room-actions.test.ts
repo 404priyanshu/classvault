@@ -210,4 +210,125 @@ describe('study-room server actions', () => {
       '/dashboard/study-rooms?status=ended',
     )
   })
+  // The three abuse controls from ADR 0030. What matters in each is that a
+  // refusal the database expresses as a plain `false` does not reach the room
+  // as a success -- the RPCs raise nothing when they decline.
+  it('reports a refused removal as an error rather than a silent success', async () => {
+    const rpc = authenticatedClient(() => ({ data: false, error: null }))
+    const formData = new FormData()
+    formData.set('reason', 'Repeated abuse after a mute')
+    formData.set('roomId', ROOM_ID)
+    formData.set('userId', PEER_ID)
+
+    await expect(
+      studyRoomActions.removeStudyRoomMemberAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({ kind: 'error' })
+    expect(rpc).toHaveBeenCalledWith('remove_study_room_member', {
+      p_reason: 'Repeated abuse after a mute',
+      p_room_id: ROOM_ID,
+      p_user_id: PEER_ID,
+    })
+  })
+
+  it('refuses to remove a participant without a reason', async () => {
+    const formData = new FormData()
+    formData.set('reason', '   ')
+    formData.set('roomId', ROOM_ID)
+    formData.set('userId', PEER_ID)
+
+    await expect(
+      studyRoomActions.removeStudyRoomMemberAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({ kind: 'error' })
+    expect(createClientMock).not.toHaveBeenCalled()
+  })
+
+  it('carries the mute flag through as a boolean the database can read', async () => {
+    const rpc = authenticatedClient(() => ({ data: true, error: null }))
+    const formData = new FormData()
+    formData.set('muted', 'false')
+    formData.set('reason', 'Apologised')
+    formData.set('roomId', ROOM_ID)
+    formData.set('userId', PEER_ID)
+
+    await expect(
+      studyRoomActions.setStudyRoomMuteAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({ kind: 'success' })
+    expect(rpc).toHaveBeenCalledWith('set_study_room_mute', {
+      p_muted: false,
+      p_reason: 'Apologised',
+      p_room_id: ROOM_ID,
+      p_user_id: PEER_ID,
+    })
+  })
+
+  it('sends the cited message ids as numbers, and files a report without any', async () => {
+    const rpc = authenticatedClient(() => ({ data: true, error: null }))
+    const formData = new FormData()
+    formData.set('category', 'harassment')
+    formData.set('details', 'Abusive in chat')
+    formData.append('messageIds', '12')
+    formData.append('messageIds', '18')
+    formData.set('roomId', ROOM_ID)
+    formData.set('userId', PEER_ID)
+
+    await expect(
+      studyRoomActions.reportStudyRoomParticipantAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({ kind: 'success' })
+    expect(rpc).toHaveBeenCalledWith('report_study_room_participant', {
+      p_category: 'harassment',
+      p_details: 'Abusive in chat',
+      p_message_ids: [12, 18],
+      p_room_id: ROOM_ID,
+      p_user_id: PEER_ID,
+    })
+
+    const bare = new FormData()
+    bare.set('category', 'spam')
+    bare.set('roomId', ROOM_ID)
+    bare.set('userId', PEER_ID)
+
+    await expect(
+      studyRoomActions.reportStudyRoomParticipantAction(
+        initialStudyRoomActionState,
+        bare,
+      ),
+    ).resolves.toMatchObject({ kind: 'success' })
+    expect(rpc).toHaveBeenLastCalledWith('report_study_room_participant', {
+      p_category: 'spam',
+      p_details: '',
+      p_message_ids: [],
+      p_room_id: ROOM_ID,
+      p_user_id: PEER_ID,
+    })
+  })
+
+  it('rejects a report that cites more than the ten messages the database keeps', async () => {
+    const formData = new FormData()
+    formData.set('category', 'spam')
+    formData.set('roomId', ROOM_ID)
+    formData.set('userId', PEER_ID)
+    for (let id = 1; id <= 11; id += 1) {
+      formData.append('messageIds', String(id))
+    }
+
+    await expect(
+      studyRoomActions.reportStudyRoomParticipantAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({ kind: 'error' })
+    expect(createClientMock).not.toHaveBeenCalled()
+  })
 })

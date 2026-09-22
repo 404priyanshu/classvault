@@ -648,6 +648,17 @@ These are product claims, not implemented or validated system behavior.
   host promotion, hostless continuation, and temporary room-scoped chat.
   Supabase Realtime publishes room, member, and message changes as refresh
   signals without bypassing RLS or the server-owned RPC mutation boundary.
+- Room-scoped abuse controls are implemented in the room itself (ADR 0030). A
+  host or co-host can mute or remove a participant, each with a required reason;
+  any member can report a participant to platform moderators and cite up to ten
+  of that participant's messages, which are copied into the report because the
+  chat is deleted with the room. The controls are never offered against a host,
+  a co-host, or a platform moderator, because the database refuses them. The
+  room snapshot carries `viewerMuted` for the caller and `mutedUserIds` only for
+  a host or co-host, so a mute is visible to the person it silences and to the
+  person who can lift it, and to nobody else. The reports themselves have no
+  reviewer surface yet: they are filed and stored, and `/dashboard/moderation`
+  still lists note reports only.
 - Rooms delete with their messages when ended, when the last member leaves, or
   through the service-role-only `/api/cron/purge-study-rooms` expiry worker.
   Plan capacity/duration values are server-owned snapshots; all users currently

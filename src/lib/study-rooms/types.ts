@@ -54,6 +54,10 @@ export function parseStudyRoomMessageRow(
 const snapshotSchema = z.object({
   members: z.array(memberSchema),
   messages: z.array(messageSchema),
+  // Defaulted rather than required: a room must not disappear because the
+  // deployed snapshot function is a migration behind the deployed page. An old
+  // database then renders a room with no mutes known, which is what it is.
+  mutedUserIds: z.array(z.string().uuid()).default([]),
   room: z.object({
     breakMinutes: z.number().int(),
     createdAt: z.string(),
@@ -72,9 +76,11 @@ const snapshotSchema = z.object({
     universityName: z.string().nullable(),
     visibility: z.enum(['public', 'university']),
   }),
+  viewerMuted: z.boolean().default(false),
   viewerRole: z.enum(['host', 'cohost', 'member']),
 })
 
+export type StudyRoomMember = z.infer<typeof memberSchema>
 export type StudyRoomMessage = z.infer<typeof messageSchema>
 export type StudyRoomSnapshot = z.infer<typeof snapshotSchema>
 

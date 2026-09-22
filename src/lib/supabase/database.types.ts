@@ -39,6 +39,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_suspension_actions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          reason: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_suspension_actions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_suspension_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_verification_requests: {
+        Row: {
+          decision_reason: string | null
+          enrolment_id: string
+          evidence_method: string | null
+          id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          student_context: string
+          submitted_at: string
+          university_id: number
+          user_id: string
+        }
+        Insert: {
+          decision_reason?: string | null
+          enrolment_id: string
+          evidence_method?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          student_context?: string
+          submitted_at?: string
+          university_id: number
+          user_id: string
+        }
+        Update: {
+          decision_reason?: string | null
+          enrolment_id?: string
+          evidence_method?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          student_context?: string
+          submitted_at?: string
+          university_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_verification_requests_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "university_memberships"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       note_assets: {
         Row: {
           byte_size: number
@@ -314,8 +413,8 @@ export type Database = {
           owner_id: string | null
           publication_status: string
           published_at: string | null
-          purge_claimed_at: string | null
           purge_after: string | null
+          purge_claimed_at: string | null
           retention_hold: boolean
           subject_id: number | null
           superseded_by_note_id: string | null
@@ -332,11 +431,11 @@ export type Database = {
           id?: string
           moderation_status?: string
           note_type?: string
-          owner_id: string | null
+          owner_id?: string | null
           publication_status?: string
           published_at?: string | null
-          purge_claimed_at?: string | null
           purge_after?: string | null
+          purge_claimed_at?: string | null
           retention_hold?: boolean
           subject_id?: number | null
           superseded_by_note_id?: string | null
@@ -356,8 +455,8 @@ export type Database = {
           owner_id?: string | null
           publication_status?: string
           published_at?: string | null
-          purge_claimed_at?: string | null
           purge_after?: string | null
+          purge_claimed_at?: string | null
           retention_hold?: boolean
           subject_id?: number | null
           superseded_by_note_id?: string | null
@@ -445,10 +544,10 @@ export type Database = {
           onboarding_completed_at: string | null
           primary_goal: string | null
           study_preference: string | null
-          university_name: string | null
-          updated_at: string
           suspended_at: string | null
           suspension_reason: string | null
+          university_name: string | null
+          updated_at: string
         }
         Insert: {
           avatar_url?: string | null
@@ -460,10 +559,10 @@ export type Database = {
           onboarding_completed_at?: string | null
           primary_goal?: string | null
           study_preference?: string | null
-          university_name?: string | null
-          updated_at?: string
           suspended_at?: string | null
           suspension_reason?: string | null
+          university_name?: string | null
+          updated_at?: string
         }
         Update: {
           avatar_url?: string | null
@@ -475,10 +574,10 @@ export type Database = {
           onboarding_completed_at?: string | null
           primary_goal?: string | null
           study_preference?: string | null
-          university_name?: string | null
-          updated_at?: string
           suspended_at?: string | null
           suspension_reason?: string | null
+          university_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -839,6 +938,44 @@ export type Database = {
           },
         ]
       }
+      study_room_moderation_actions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: number
+          reason: string
+          room_id: string
+          target_user_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          reason: string
+          room_id: string
+          target_user_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          reason?: string
+          room_id?: string
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_room_moderation_actions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_room_plan_limits: {
         Row: {
           duration_minutes: number
@@ -862,6 +999,138 @@ export type Database = {
           plan?: string
         }
         Relationships: []
+      }
+      study_room_report_messages: {
+        Row: {
+          author_display_name: string
+          body: string
+          position: number
+          report_id: string
+          sent_at: string
+        }
+        Insert: {
+          author_display_name: string
+          body: string
+          position: number
+          report_id: string
+          sent_at: string
+        }
+        Update: {
+          author_display_name?: string
+          body?: string
+          position?: number
+          report_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_room_report_messages_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "study_room_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_room_reports: {
+        Row: {
+          category: string
+          created_at: string
+          details: string
+          id: string
+          reported_user_id: string
+          reporter_id: string
+          room_id: string
+          room_name_snapshot: string
+          status: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          details?: string
+          id?: string
+          reported_user_id: string
+          reporter_id: string
+          room_id: string
+          room_name_snapshot: string
+          status?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          details?: string
+          id?: string
+          reported_user_id?: string
+          reporter_id?: string
+          room_id?: string
+          room_name_snapshot?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_room_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_room_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_room_restrictions: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          kind: string
+          reason: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          kind: string
+          reason: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          kind?: string
+          reason?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_room_restrictions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_room_restrictions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "study_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_room_restrictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       study_rooms: {
         Row: {
@@ -1094,110 +1363,11 @@ export type Database = {
           },
         ]
       }
-      membership_verification_requests: {
-        Row: {
-          id: string
-          user_id: string
-          university_id: number
-          enrolment_id: string
-          student_context: string
-          status: string
-          submitted_at: string
-          reviewed_at: string | null
-          reviewer_id: string | null
-          evidence_method: string | null
-          decision_reason: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          university_id: number
-          enrolment_id: string
-          student_context?: string
-          status?: string
-          submitted_at?: string
-          reviewed_at?: string | null
-          reviewer_id?: string | null
-          evidence_method?: string | null
-          decision_reason?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          university_id?: number
-          enrolment_id?: string
-          student_context?: string
-          status?: string
-          submitted_at?: string
-          reviewed_at?: string | null
-          reviewer_id?: string | null
-          evidence_method?: string | null
-          decision_reason?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "membership_verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "university_memberships"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "membership_verification_requests_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      can_review_membership: {
-        Args: { target_university_id: number }
-        Returns: boolean
-      }
-      submit_membership_verification_request: {
-        Args: { p_enrolment_id: string; p_student_context?: string }
-        Returns: string
-      }
-      list_own_membership_verification_requests: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          request_id: string
-          status: string
-          submitted_at: string
-          reviewed_at: string | null
-          decision_reason: string | null
-        }[]
-      }
-      list_membership_verification_queue: {
-        Args: { p_limit?: number }
-        Returns: {
-          request_id: string
-          university_id: number
-          university_name: string
-          display_name: string
-          course: string | null
-          graduation_year: number | null
-          account_email: string | null
-          enrolment_id: string
-          student_context: string
-          submitted_at: string
-        }[]
-      }
-      review_membership_verification_request: {
-        Args: {
-          p_request_id: string
-          p_decision: string
-          p_evidence_method: string
-          p_reason: string
-        }
-        Returns: boolean
-      }
       are_note_tags_valid: {
         Args: { candidate_tags: string[] }
         Returns: boolean
@@ -1207,8 +1377,9 @@ export type Database = {
         Returns: boolean
       }
       can_access_study_room: { Args: { p_room_id: string }; Returns: boolean }
-      can_close_own_account: { Args: Record<PropertyKey, never>; Returns: boolean }
+      can_close_own_account: { Args: never; Returns: boolean }
       can_consume_note: { Args: { target_note_id: string }; Returns: boolean }
+      can_control_study_room: { Args: { p_room_id: string }; Returns: boolean }
       can_delete_cancelled_note_object: {
         Args: { target_object_key: string }
         Returns: boolean
@@ -1218,12 +1389,8 @@ export type Database = {
         Returns: boolean
       }
       can_moderate_note: { Args: { target_note_id: string }; Returns: boolean }
-      can_view_roadmap_section: {
-        Args: { p_section_id: number; p_viewer_id: string | null }
-        Returns: boolean
-      }
-      can_view_roadmap_source: {
-        Args: { p_source_id: number; p_viewer_id: string | null }
+      can_review_membership: {
+        Args: { target_university_id: number }
         Returns: boolean
       }
       can_upload_note_object: {
@@ -1234,12 +1401,20 @@ export type Database = {
         Args: { target_note_id: string }
         Returns: boolean
       }
+      can_view_roadmap_section: {
+        Args: { p_section_id: number; p_viewer_id: string }
+        Returns: boolean
+      }
+      can_view_roadmap_source: {
+        Args: { p_source_id: number; p_viewer_id: string }
+        Returns: boolean
+      }
       claim_expired_note_purges: {
         Args: { p_limit?: number }
         Returns: {
           note_id: string
-          object_key: string | null
-          preview_object_key: string | null
+          object_key: string
+          preview_object_key: string
         }[]
       }
       claim_pending_note_extractions: {
@@ -1262,19 +1437,16 @@ export type Database = {
           roadmap_id: string
           source_count: number
           sources: Json
-          study_mode: string | null
-          topic: string | null
+          study_mode: string
+          topic: string
         }[]
       }
-      close_own_account: {
-        Args: { p_keep_published: boolean }
-        Returns: Json
-      }
+      close_own_account: { Args: { p_keep_published: boolean }; Returns: Json }
       complete_note_extraction: {
         Args: {
-          p_extracted_text?: string | null
-          p_extractor_version: string
+          p_extracted_text: string
           p_extraction_status: string
+          p_extractor_version: string
           p_note_id: string
         }
         Returns: boolean
@@ -1294,6 +1466,20 @@ export type Database = {
         }[]
       }
       complete_student_onboarding: {
+        Args: {
+          p_course: string
+          p_display_name: string
+          p_graduation_year: number
+          p_primary_goal: string
+          p_study_preference: string
+          p_university_id: number
+        }
+        Returns: {
+          membership_status: string
+          selected_university_name: string
+        }[]
+      }
+      complete_student_onboarding_initial: {
         Args: {
           p_course: string
           p_display_name: string
@@ -1346,10 +1532,6 @@ export type Database = {
       }
       current_roadmap_plan: { Args: never; Returns: string }
       current_study_room_plan: { Args: never; Returns: string }
-      discard_note_upload_draft: {
-        Args: { p_note_id: string }
-        Returns: boolean
-      }
       delete_note: {
         Args: { p_note_id: string }
         Returns: {
@@ -1358,18 +1540,19 @@ export type Database = {
           purge_after: string
         }[]
       }
-      end_study_room: { Args: { p_room_id: string }; Returns: boolean }
-      finalize_note_purge: {
+      discard_note_upload_draft: {
         Args: { p_note_id: string }
         Returns: boolean
       }
+      end_study_room: { Args: { p_room_id: string }; Returns: boolean }
+      finalize_note_purge: { Args: { p_note_id: string }; Returns: boolean }
       find_or_create_subject: {
         Args: { p_name: string }
         Returns: {
-          code: string | null
+          code: string
           id: number
           name: string
-          university_id: number | null
+          university_id: number
         }[]
       }
       get_accessible_note_contributors: {
@@ -1402,19 +1585,16 @@ export type Database = {
       }
       get_own_account_status: {
         Args: never
-        // Both are null unless the account is suspended.
         Returns: {
           suspended: boolean
-          suspended_at: string | null
-          suspension_reason: string | null
+          suspended_at: string
+          suspension_reason: string
         }[]
       }
       get_roadmap_share_state: {
         Args: { p_roadmap_id: string }
-        // share_token is null once sharing is revoked; the CLI generator types
-        // it as a plain string.
         Returns: {
-          share_token: string | null
+          share_token: string
           sharing_enabled: boolean
         }[]
       }
@@ -1432,6 +1612,7 @@ export type Database = {
         Returns: boolean
       }
       is_account_suspended: { Args: never; Returns: boolean }
+      is_muted_in_study_room: { Args: { p_room_id: string }; Returns: boolean }
       is_notes_eligible: { Args: never; Returns: boolean }
       is_study_room_eligible: { Args: never; Returns: boolean }
       is_study_room_member: { Args: { p_room_id: string }; Returns: boolean }
@@ -1439,99 +1620,30 @@ export type Database = {
       leave_study_room: {
         Args: { p_room_id: string }
         Returns: {
-          new_host_id: string | null
+          new_host_id: string
           room_deleted: boolean
         }[]
-      }
-      list_owned_notes: {
-        Args: { p_include_deleted?: boolean }
-        Returns: {
-          average_rating: number | null
-          byte_size: number | null
-          created_at: string
-          deleted_at: string | null
-          description: string | null
-          detected_mime_type: string | null
-          moderation_status: string
-          note_id: string
-          note_type: string
-          original_filename: string | null
-          processing_status: string | null
-          publication_status: string
-          published_at: string | null
-          purge_after: string | null
-          rating_count: number
-          retention_hold: boolean
-          subject_code: string | null
-          subject_name: string | null
-          title: string
-          updated_at: string
-          visibility: string
-        }[]
-      }
-      list_owned_roadmaps: {
-        Args: never
-        Returns: {
-          completed_task_count: number
-          created_at: string
-          generated_at: string | null
-          generation_plan: string
-          roadmap_id: string
-          section_count: number
-          sharing_enabled: boolean
-          source_count: number
-          status: string
-          study_mode: string
-          title: string
-          topic: string
-          total_task_count: number
-        }[]
-      }
-      list_plan_eligible_roadmap_sources: {
-        Args: { p_owner_id: string; p_plan: string }
-        Returns: {
-          note_id: string
-          source_scope: string
-          source_university_id: number | null
-          title_snapshot: string
-          visibility_snapshot: string
-        }[]
-      }
-      list_study_rooms: {
-        Args: never
-        Returns: {
-          created_at: string
-          current_user_joined: boolean
-          cycles_completed: number
-          ends_at: string
-          host_display_name: string | null
-          member_capacity: number
-          member_count: number
-          room_id: string
-          room_name: string
-          subject_tag: string
-          timer_phase: string
-          timer_remaining_seconds: number
-          timer_revision: number
-          timer_status: string
-          university_id: number | null
-          university_name: string | null
-          visibility: string
-        }[]
-      }
-      mark_roadmap_generation_failed: {
-        Args: {
-          p_failure_code: string
-          p_owner_id: string
-          p_roadmap_id: string
-        }
-        Returns: boolean
       }
       list_account_deletion_object_keys: {
         Args: { p_keep_published: boolean }
         Returns: {
           object_key: string
-          preview_object_key: string | null
+          preview_object_key: string
+        }[]
+      }
+      list_membership_verification_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          account_email: string
+          course: string
+          display_name: string
+          enrolment_id: string
+          graduation_year: number
+          request_id: string
+          student_context: string
+          submitted_at: string
+          university_id: number
+          university_name: string
         }[]
       }
       list_moderation_queue: {
@@ -1539,7 +1651,7 @@ export type Database = {
         Returns: {
           category: string
           created_at: string
-          details: string | null
+          details: string
           moderation_status: string
           note_id: string
           note_title: string
@@ -1548,31 +1660,7 @@ export type Database = {
           report_id: string
           report_status: string
           reporter_label: string
-          university_name: string | null
-        }[]
-      }
-      list_owned_note_moderation_notices: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          action: string
-          created_at: string
-          moderation_status: string
-          note_id: string
-          note_title: string
-          safe_owner_message: string
-        }[]
-      }
-      list_suspended_accounts: {
-        Args: { p_limit?: number }
-        // display_name and decided_by_label are nullable: a profile may have no
-        // display name, and the deciding administrator's account may since have
-        // been removed.
-        Returns: {
-          decided_by_label: string | null
-          display_name: string | null
-          suspended_at: string
-          suspension_reason: string
-          user_id: string
+          university_name: string
         }[]
       }
       list_notes_for_library: {
@@ -1595,7 +1683,7 @@ export type Database = {
           published_at: string
           rating_count: number
           search_rank: number
-          search_snippet: string | null
+          search_snippet: string
           subject_code: string
           subject_name: string
           tags: string[]
@@ -1604,17 +1692,136 @@ export type Database = {
           visibility: string
         }[]
       }
-      rate_note: {
-        Args: { p_note_id: string; p_rating: number }
+      list_own_membership_verification_requests: {
+        Args: never
         Returns: {
-          average_rating: number
-          effective_rating_count: number
-          error_code: string
-          rating_count: number
-          success: boolean
-          weighted_score: number
+          decision_reason: string
+          request_id: string
+          reviewed_at: string
+          status: string
+          submitted_at: string
         }[]
       }
+      list_owned_note_moderation_notices: {
+        Args: never
+        Returns: {
+          action: string
+          created_at: string
+          moderation_status: string
+          note_id: string
+          note_title: string
+          safe_owner_message: string
+        }[]
+      }
+      list_owned_notes: {
+        Args: { p_include_deleted?: boolean }
+        Returns: {
+          average_rating: number
+          byte_size: number
+          created_at: string
+          deleted_at: string
+          description: string
+          detected_mime_type: string
+          moderation_status: string
+          note_id: string
+          note_type: string
+          original_filename: string
+          processing_status: string
+          publication_status: string
+          published_at: string
+          purge_after: string
+          rating_count: number
+          retention_hold: boolean
+          subject_code: string
+          subject_name: string
+          title: string
+          updated_at: string
+          visibility: string
+        }[]
+      }
+      list_owned_roadmaps: {
+        Args: never
+        Returns: {
+          completed_task_count: number
+          created_at: string
+          generated_at: string
+          generation_plan: string
+          roadmap_id: string
+          section_count: number
+          sharing_enabled: boolean
+          source_count: number
+          status: string
+          study_mode: string
+          title: string
+          topic: string
+          total_task_count: number
+        }[]
+      }
+      list_plan_eligible_roadmap_sources: {
+        Args: { p_owner_id: string; p_plan: string }
+        Returns: {
+          note_id: string
+          source_scope: string
+          source_university_id: number
+          title_snapshot: string
+          visibility_snapshot: string
+        }[]
+      }
+      list_study_rooms: {
+        Args: never
+        Returns: {
+          created_at: string
+          current_user_joined: boolean
+          cycles_completed: number
+          ends_at: string
+          host_display_name: string
+          member_capacity: number
+          member_count: number
+          room_id: string
+          room_name: string
+          subject_tag: string
+          timer_phase: string
+          timer_remaining_seconds: number
+          timer_revision: number
+          timer_status: string
+          university_id: number
+          university_name: string
+          visibility: string
+        }[]
+      }
+      list_suspended_accounts: {
+        Args: { p_limit?: number }
+        Returns: {
+          decided_by_label: string
+          display_name: string
+          suspended_at: string
+          suspension_reason: string
+          user_id: string
+        }[]
+      }
+      mark_roadmap_generation_failed: {
+        Args: {
+          p_failure_code: string
+          p_owner_id: string
+          p_roadmap_id: string
+        }
+        Returns: boolean
+      }
+      moderate_note: {
+        Args: {
+          p_action: string
+          p_note_id: string
+          p_reason_code: string
+          p_safe_owner_message?: string
+        }
+        Returns: {
+          error_code: string
+          moderation_status: string
+          note_id: string
+          success: boolean
+        }[]
+      }
+      normalize_subject_slug: { Args: { p_name: string }; Returns: string }
       preview_roadmap_source_eligibility: {
         Args: never
         Returns: {
@@ -1627,52 +1834,68 @@ export type Database = {
         }[]
       }
       purge_expired_study_rooms: { Args: never; Returns: number }
-      moderate_note: {
-        Args: {
-          p_action: string
-          p_note_id: string
-          p_reason_code: string
-          p_safe_owner_message?: string
-        }
+      rate_note: {
+        Args: { p_note_id: string; p_rating: number }
         Returns: {
-          error_code: string | null
-          moderation_status: string | null
-          note_id: string | null
+          average_rating: number
+          effective_rating_count: number
+          error_code: string
+          rating_count: number
           success: boolean
-        }[]
-      }
-      report_note: {
-        Args: {
-          p_category: string
-          p_details?: string
-          p_note_id: string
-        }
-        Returns: {
-          error_code: string | null
-          report_id: string | null
-          success: boolean
+          weighted_score: number
         }[]
       }
       refresh_note_rating_summary: {
         Args: { p_note_id: string }
         Returns: undefined
       }
+      remove_study_room_member: {
+        Args: { p_reason: string; p_room_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      report_note: {
+        Args: { p_category: string; p_details?: string; p_note_id: string }
+        Returns: {
+          error_code: string
+          report_id: string
+          success: boolean
+        }[]
+      }
+      report_study_room_participant: {
+        Args: {
+          p_category: string
+          p_details?: string
+          p_message_ids?: number[]
+          p_room_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       restore_note: {
         Args: { p_note_id: string }
         Returns: {
-          error_code: string | null
-          note_id: string | null
-          publication_status: string | null
+          error_code: string
+          note_id: string
+          publication_status: string
           success: boolean
         }[]
+      }
+      review_membership_verification_request: {
+        Args: {
+          p_decision: string
+          p_evidence_method: string
+          p_reason: string
+          p_request_id: string
+        }
+        Returns: boolean
       }
       save_roadmap_snapshot: {
         Args: { p_roadmap_id: string; p_sections: Json; p_title: string }
         Returns: boolean
       }
-      suspend_note_owner: {
-        Args: { p_note_id: string; p_reason: string }
-        Returns: boolean
+      send_study_room_message: {
+        Args: { p_body: string; p_room_id: string }
+        Returns: number
       }
       set_account_suspension: {
         Args: { p_reason: string; p_suspended: boolean; p_user_id: string }
@@ -1680,32 +1903,45 @@ export type Database = {
       }
       set_roadmap_sharing: {
         Args: { p_enabled: boolean; p_roadmap_id: string }
-        Returns: string | null
+        Returns: string
       }
       set_roadmap_task_progress: {
         Args: { p_completed: boolean; p_task_id: number }
         Returns: boolean
       }
-      send_study_room_message: {
-        Args: { p_body: string; p_room_id: string }
-        Returns: number
-      }
       set_study_room_member_role: {
         Args: { p_role: string; p_room_id: string; p_user_id: string }
         Returns: boolean
       }
+      set_study_room_mute: {
+        Args: {
+          p_muted: boolean
+          p_reason: string
+          p_room_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       study_room_timer_remaining: {
         Args: {
-          p_anchor_at: string | null
+          p_anchor_at: string
           p_remaining_seconds: number
           p_status: string
         }
         Returns: number
       }
+      submit_membership_verification_request: {
+        Args: { p_enrolment_id: string; p_student_context?: string }
+        Returns: string
+      }
+      suspend_note_owner: {
+        Args: { p_note_id: string; p_reason: string }
+        Returns: boolean
+      }
       update_study_room_timer: {
         Args: {
           p_action: string
-          p_expected_revision?: number | null
+          p_expected_revision?: number
           p_room_id: string
         }
         Returns: {
@@ -1852,3 +2088,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

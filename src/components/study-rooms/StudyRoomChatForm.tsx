@@ -1,13 +1,19 @@
 'use client'
 
 import { useActionState, useEffect, useRef } from 'react'
-import { Send } from 'lucide-react'
+import { MicOff, Send } from 'lucide-react'
 import { sendStudyRoomMessageAction } from '@/app/dashboard/study-rooms/actions'
 import { initialStudyRoomActionState } from '@/lib/study-rooms/action-state'
 import { StudyRoomActionStatus } from './StudyRoomActionStatus'
 import { StudyRoomSubmitButton } from './StudyRoomSubmitButton'
 
-export function StudyRoomChatForm({ roomId }: { roomId: string }) {
+export function StudyRoomChatForm({
+  muted,
+  roomId,
+}: {
+  muted: boolean
+  roomId: string
+}) {
   const formRef = useRef<HTMLFormElement>(null)
   const [state, formAction] = useActionState(
     sendStudyRoomMessageAction,
@@ -17,6 +23,23 @@ export function StudyRoomChatForm({ roomId }: { roomId: string }) {
   useEffect(() => {
     if (state.kind === 'success') formRef.current?.reset()
   }, [state.kind])
+
+  // The database refuses the post either way; this only stops a muted student
+  // writing a paragraph before finding that out.
+  if (muted) {
+    return (
+      <p
+        className="flex items-start gap-2 border-t border-club-line pt-4 text-xs leading-relaxed text-club-muted"
+        role="status"
+      >
+        <MicOff aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#9a3328]" />
+        <span>
+          A host muted you in this room, so you cannot post here. You can still
+          read the chat and use the timer, and the mute ends with the room.
+        </span>
+      </p>
+    )
+  }
 
   return (
     <form action={formAction} className="border-t border-club-line pt-4" ref={formRef}>
