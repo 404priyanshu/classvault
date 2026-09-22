@@ -1006,8 +1006,10 @@ npm run db:test
 `npm run test:e2e` builds nothing itself; it starts the production server on
 port 3100, so run `npm run build` first (the script order above does).
 
-`npm run db:test` requires a running local Supabase/Postgres stack or an
-explicitly connected test database. Without Docker, the pgTAP suites run
+`npm run db:test` runs the pgTAP suites against the local stack, which is the
+normal way to run them now: all 311 assertions across 11 suites passed there on
+2026-09-22, the first run anywhere since 2026-08-24. It requires a running local
+Supabase/Postgres stack or an explicitly connected test database. Without Docker, the pgTAP suites run
 against the linked hosted project through `npm run db:test:hosted` (every suite)
 or `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql` (one). The
 runner takes its target from the linked ref or `SUPABASE_PROJECT_REF`, never a
@@ -1096,6 +1098,24 @@ interactions_checked:
   note_detail_private_pdf_preview: pass
   note_detail_signed_download: pass
   notes_library_browser_console_errors: none observed
+local_stack_acceptance_2026_09_22:
+  note: Driven through the UI against the local Supabase stack. Production was read-only throughout and its migration history still ends at 20260910195758, 32 migrations.
+  email_signup_and_mailpit_confirmation: pass
+  pkce_confirm_to_onboarding: pass
+  onboarding_five_steps: pass
+  automatic_bennett_membership_from_email_domain: verified
+  university_typeahead_anon_read: pass, Bennett only
+  anon_denied_notes_table: 401
+  pdf_upload_and_publication: pass
+  note_file_cap_shown: 10 MiB, matching the migration
+  scheduled_pdf_extraction: ready, unpdf-1.8.1-v1, indexed
+  full_text_search_on_pdf_body: pass, matched "congestion window" from body text only
+  private_signed_pdf_preview: pass
+  deterministic_roadmap_generation: pass, cited the uploaded note
+  campus_scoped_room_creation: pass
+  synchronized_pomodoro_timer: pass
+  cron_routes_with_secret: 200
+  cron_routes_without_secret: 401
 ```
 
 Node tooling currently installed on the machine:
