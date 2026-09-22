@@ -3,8 +3,8 @@
 ```yaml
 document:
   purpose: Canonical repository handoff for coding agents
-  context_version: 26
-  last_verified: 2026-08-24
+  context_version: 27
+  last_verified: 2026-09-22
   scope: Entire repository
   repository_root: /Users/ainz/projects/classvault
   source_of_truth_priority:
@@ -18,9 +18,9 @@ document:
 
 ```yaml
 project_name: ClassVault
-product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study rooms
-production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and live in production
-supabase_project: Production is ref hndgstbutlkjqnrxvqtm, ap-south-1. A separate hosted staging project is the intended target for all local development and every pgTAP run; docs/staging.md is its runbook. The staging project does not exist yet — the Supabase organization is on the Free plan, whose two-active-project limit is already taken by ClassVault and an unrelated project, so an operator has to free a slot or upgrade before it can be created. Until then production still backs local development, and a migration or data edit run from a laptop lands on live student data. scripts/supabase-target.mjs and scripts/run-pgtap-hosted.py refuse to target production unless ALLOW_PRODUCTION_DB_WRITE=1 is set deliberately; npm run db:push, db:reset:staging, and db:test:hosted all go through that guard. Promote a proven migration with npm run db:push:production as a separately reviewed act. Apply migrations through the CLI, not the dashboard: the dashboard stamps wall-clock time instead of the filename's version, which is how five 2026-09-10 migrations came to be recorded under versions the repository did not have. Those files were renamed on 2026-09-22 and the two histories now match exactly at 32 migrations; npm run db:status re-checks that against whichever project is linked.
+product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation with sharing, realtime study rooms with room-scoped abuse controls, campus membership review, and account suspension
+production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation and sharing, temporary realtime study rooms with the full ADR 0030 abuse controls, campus membership review, and account suspension are implemented and live in production. No campus reviewer has been appointed: that is deliberate and waits on the operator inviting students, so the review queue exists with nobody staffing it
+supabase_project: Production is ref hndgstbutlkjqnrxvqtm, ap-south-1. Development and every pgTAP run target a LOCAL Supabase stack in Docker, not a hosted project — `npm run local:bootstrap` starts it, resets it, runs `supabase test db`, and writes `.env.local` from `supabase status`. ADR 0029 decided that development must never target production and assumed a second hosted project; the Supabase organization is on the Free plan, whose two-active-project limit is already taken, so the isolation is provided by the local stack instead. The ADR text still describes the hosted-staging mechanism and is out of step with what was built, though its decision — development never writes to live student data — holds. docs/staging.md remains the runbook if a hosted staging project is ever created. scripts/supabase-target.mjs and scripts/run-pgtap-hosted.py refuse to target production unless ALLOW_PRODUCTION_DB_WRITE=1 is set deliberately; npm run db:push, db:reset:staging, and db:test:hosted all go through that guard. Promote a proven migration with npm run db:push:production as a separately reviewed act, and dry-run it first — `db push` promotes everything pending on disk, so check out the branch whose state you intend to promote rather than pushing from a feature branch that carries unmerged migrations. Apply migrations through the CLI, not the dashboard: the dashboard stamps wall-clock time instead of the filename's version, which is how five 2026-09-10 migrations came to be recorded under versions the repository did not have. Those files were renamed on 2026-09-22; the two histories match exactly at 41 migrations as of 2026-09-22, with nothing unpromoted. npm run db:status re-checks that against whichever project is linked.
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 158 Vitest tests, 27 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57 hosted study-room pgTAP tests
+automated_test_suite: 175 Vitest tests (28 files), 28 Playwright smoke tests, and 427 pgTAP tests across 16 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-22)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -425,13 +425,13 @@ product_pillars:
     intent:
       - Scope communities and content to universities
       - Verify membership using institution email domains
-    implementation_status: Membership verification and notes authorization foundation implemented; university-scoped product UI is not implemented
+    implementation_status: Academic-email verification, the manual campus membership-review route (`/dashboard/verification`, live in production but with no reviewer appointed), and campus-scoped notes and rooms are implemented
 
   live_study_rooms:
     intent:
       - Video, audio, chat, and synchronized Pomodoro sessions
       - Keep a room active if its original host leaves
-    implementation_status: Temporary public/campus rooms, membership and host transfer, synchronized Pomodoro state, room-scoped chat, Realtime refresh, and expiry cleanup are implemented; video/audio and moderation controls remain deferred, while the landing-page demo remains simulated
+    implementation_status: Temporary public/campus rooms, membership and host transfer, synchronized Pomodoro state, room-scoped chat, Realtime refresh, and expiry cleanup are implemented; host/co-host mute and removal, participant reports with a platform review queue, and database-enforced chat and room-creation rate limits (ADR 0030) are implemented; video/audio remains deferred, while the landing-page demo remains simulated
 
   ai_study_roadmaps:
     intent:
@@ -684,30 +684,24 @@ These are product claims, not implemented or validated system behavior.
   resolve to Free until billing supplies real entitlements. The 57-test hosted
   study-room pgTAP suite covers privileges, campus isolation, lifecycle, role
   transfer, timer concurrency, chat scope, cleanup, and Realtime publication.
-- A 90-test Vitest suite covering Auth, onboarding, route protection, file
-  signatures, upload preparation, signed-upload intent creation, server-side
-  completion, stalled-response recovery, retry preservation, and rejected-file
-  cleanup, plus Notes Library query normalization, onboarding helpers, and
-  rating-action validation, search/moderation helpers, roadmap formatting,
-  deterministic output validation, worker behavior, roadmap actions, and
-  validated settings/profile/avatar/password server actions, and validated
-  study-room mutations.
-- A 27-test Playwright smoke suite (`npm run test:e2e`) covering the landing
-  page, security headers, sign-in/sign-up/phone routes, unauthenticated
-  redirects for protected routes including roadmap detail, settings, and both
-  study-room routes, scheduler-secret rejection, and the interactive roadmap
-  demo.
+- Automated coverage as of 2026-09-22: 175 Vitest tests across 28 files
+  (server actions, validation, helpers, the Supabase target guard), 28
+  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), and
+  427 pgTAP tests across 16 suites in `supabase/tests/`, run locally with
+  `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
+  database: rows left behind by manual browser testing have broken assertions
+  that pass after `supabase db reset`.
 
 ### Simulated or absent
 
 ```yaml
 not_implemented:
-  - Live manual review/rejection workflow for pending university memberships (implementation prepared in migration `20260922000000`, not applied to production)
+  - A staffed campus membership-review queue (the workflow is live; no reviewer has been appointed, deliberately, until the operator invites students)
   - Payments or subscriptions
   - Live AI model calls, prompt orchestration, or model evaluation
   - WebRTC video/audio
   - Durable cross-room chat or message history
-  - Study-room kick, mute, report, and moderation controls
+  - Image OCR for note search (blocked on a Google Cloud Vision account)
   - Analytics
 ```
 
@@ -1163,15 +1157,9 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 158 Vitest tests, a 27-test Playwright smoke
-   suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
-   notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
-   hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 22 hosted
-   lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search
-   pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted
-   roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57
-   hosted study-room pgTAP tests. Authenticated upload/download and multi-user
-   room journeys still rely on manual acceptance runs.
+1. Automated coverage is listed in section 3. Authenticated multi-user
+   journeys (upload/download, rooms, moderation) have no automated browser
+   coverage and rely on manual runs against the local stack.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
    deliberate in-range upgrade verified by the full suite.
@@ -1184,9 +1172,9 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    where the Supabase CLI
    generator is more permissive. Compare against `npm run db:types` whenever
    migrations change; do not mechanically replace more accurate types.
-5. Study-room chat is temporary coordination data and currently has no kick,
-   mute, report, rate limit, or moderation audit workflow. Define those abuse
-   boundaries before broad public launch.
+5. Vercel Preview deployments still use the production Supabase URL and keys,
+   so any PR preview reads and writes live data. Point Preview at a separate
+   database, or strip its Supabase variables, before inviting contributors.
 6. Supabase Realtime synchronizes room state but video/audio remains
    unimplemented. Do not imply that the room route provides WebRTC media.
 7. Phone OTP sends can create direct variable cost and remain an abuse target.
@@ -1197,6 +1185,16 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    permanent proof of a student's identity or university membership.
 9. Production SMS delivery to Indian users may require TRAI DLT registration
    and approved sender/template configuration depending on the delivery route.
+10. Two Vercel projects, `classvault-g8qx` (canonical, per section 1) and
+    `classvault`, both build every commit and both report as PR checks.
+11. `database.types.ts` is regenerated by hand and drifted five migrations
+    behind before 2026-09-22. Regenerate from the local stack
+    (`supabase gen types typescript --local`) after every migration, keep the
+    `__InternalSupabase` header, and review the diff: newer CLI versions type
+    default-less nullable-tolerant arguments as non-null.
+12. There are no real users yet. As of 2026-09-22 production holds 3 accounts,
+    0 notes, 0 ratings, 0 roadmaps, and 0 verified campus members. Nothing in
+    production is evidence of demand, and further features do not change that.
 
 ## 9. Undecided product and infrastructure choices
 
@@ -1207,7 +1205,6 @@ open_decisions:
   - Reviewer staffing and trusted roster/campus-staff access for the prepared membership-review workflow
   - AI provider, models, prompting, evaluation, and grounding strategy
   - WebRTC video/audio provider and topology
-  - Study-room moderation and abuse controls
   - Payment provider
   - Analytics
   - Hosting and deployment
@@ -1232,13 +1229,16 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Verify and deploy the manual membership-review migration and route after its pgTAP suite passes against an isolated database. The code is in `20260922000000_create_membership_review.sql` and `/dashboard/verification`; `docs/membership-review.md` defines the reviewer process.
-2. Evaluate and connect a live AI roadmap provider behind the existing worker
+1. Fix the Preview-environment database exposure in section 8, item 5.
+2. Validate demand before building further: seed notes for a few high-enrolment
+   courses at the launch campus and measure whether students search, open, and
+   upload. The product pillars depend on note density; features built ahead of
+   it protect or decorate an empty library.
+3. Image OCR for search once a Google Cloud Vision account exists.
+4. Evaluate and connect a live AI roadmap provider behind the existing worker
    contract only after choosing model, prompt, evaluation, cost, and privacy
    requirements.
-3. Define study-room moderation/abuse controls before adding kick, mute, or
-   report actions.
-4. Add billing and expanded study-room media only after choosing providers and
+5. Add billing and study-room media only after choosing providers and
    cost/privacy boundaries.
 
 Regenerate database types when the CLI environment supports it, and expand the
@@ -1282,7 +1282,18 @@ mechanism.
 
 ## 12. Definition of the continuation point
 
-The correct starting assumption for future work is:
+The correct starting assumption for future work, as of 2026-09-22:
+
+> Every pillar except live AI calls, image OCR, payments, and room media is
+> implemented, tested, and live in production at https://www.classvault.in,
+> with the production database matching the repository at 41 migrations.
+> Study rooms carry the full ADR 0030 abuse controls; account suspension,
+> campus membership review, and roadmap sharing shipped on 2026-09-22.
+> Development runs against a local Supabase stack in Docker. The product has no
+> real users yet.
+
+The paragraph below is the older accumulated history. Where it conflicts with
+the sections above, the sections above are current.
 
 > ClassVault currently has a visually complete Next.js landing-page prototype,
 > Supabase authentication, a protected three-step onboarding flow, secure
