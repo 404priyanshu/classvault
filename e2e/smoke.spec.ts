@@ -228,6 +228,16 @@ test.describe('protected routes', () => {
     )
   })
 
+  test('campus verification redirects unauthenticated visitors to sign-in', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/verification')
+
+    await expect(page).toHaveURL(
+      /\/auth\/sign-in\?next=%2Fdashboard%2Fverification/,
+    )
+  })
+
   test('study-room lobby redirects unauthenticated visitors to sign-in', async ({
     page,
   }) => {

@@ -672,7 +672,7 @@ These are product claims, not implemented or validated system behavior.
 
 ```yaml
 not_implemented:
-  - Manual review/rejection workflow for pending university memberships
+  - Live manual review/rejection workflow for pending university memberships (implementation prepared in migration `20260922000000`, not applied to production)
   - Payments or subscriptions
   - Live AI model calls, prompt orchestration, or model evaluation
   - WebRTC video/audio
@@ -1174,7 +1174,7 @@ No decision has been made for any of the following:
 
 ```yaml
 open_decisions:
-  - Manual review and evidence process for pending university memberships
+  - Reviewer staffing and trusted roster/campus-staff access for the prepared membership-review workflow
   - AI provider, models, prompting, evaluation, and grounding strategy
   - WebRTC video/audio provider and topology
   - Study-room moderation and abuse controls
@@ -1202,7 +1202,7 @@ verification were validated on 2026-07-29.
 
 Unless the user gives a different priority, continue in this order:
 
-1. Add manual review/rejection tooling for pending university memberships.
+1. Verify and deploy the manual membership-review migration and route after its pgTAP suite passes against an isolated database. The code is in `20260922000000_create_membership_review.sql` and `/dashboard/verification`; `docs/membership-review.md` defines the reviewer process.
 2. Evaluate and connect a live AI roadmap provider behind the existing worker
    contract only after choosing model, prompt, evaluation, cost, and privacy
    requirements.
