@@ -81,6 +81,14 @@ function mapRoomError(message: string | undefined) {
   if (normalized.includes('cannot post in this room')) {
     return 'A host muted you in this room, so you cannot post here.'
   }
+  // Both caps are deliberately vague about the exact number: the limits are
+  // configurable, so copy that quotes one would be wrong the moment it changes.
+  if (normalized.includes('too many rooms created')) {
+    return 'You have started several rooms just now. Wait a few minutes before opening another.'
+  }
+  if (normalized.includes('sending messages too quickly')) {
+    return 'You are sending messages too quickly. Wait a moment and try again.'
+  }
   if (normalized.includes('unavailable')) {
     return 'That study room is no longer available.'
   }
