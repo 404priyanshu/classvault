@@ -1172,9 +1172,15 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
    where the Supabase CLI
    generator is more permissive. Compare against `npm run db:types` whenever
    migrations change; do not mechanically replace more accurate types.
-5. Vercel Preview deployments still use the production Supabase URL and keys,
-   so any PR preview reads and writes live data. Point Preview at a separate
-   database, or strip its Supabase variables, before inviting contributors.
+5. Vercel Preview deployments use the production Supabase URL and publishable
+   key. The service-role key and `CRON_SECRET` were removed from Preview on
+   2026-09-22, so previews cannot bypass row-level security, run the cron
+   workers, generate roadmaps, or delete accounts. What remains: a PR's
+   unreviewed code runs against live data, under RLS, as whoever signs in to
+   test it. Full isolation needs a second database (Supabase branching on the
+   Pro plan, or a freed project slot); revisit before anyone other than the
+   operator opens PRs. The Vercel Development environment has not been audited
+   for the service-role key; `vercel env pull` would write it to a laptop.
 6. Supabase Realtime synchronizes room state but video/audio remains
    unimplemented. Do not imply that the room route provides WebRTC media.
 7. Phone OTP sends can create direct variable cost and remain an abuse target.
