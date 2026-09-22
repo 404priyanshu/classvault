@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
+  adminCountMock,
   createClientMock,
   generateRoadmapForOwnerMock,
   isRoadmapWorkerConfiguredMock,
   revalidatePathMock,
 } = vi.hoisted(() => ({
+  adminCountMock: vi.fn(),
   createClientMock: vi.fn(),
   generateRoadmapForOwnerMock: vi.fn(),
   isRoadmapWorkerConfiguredMock: vi.fn(),
@@ -18,6 +20,14 @@ vi.mock('@/lib/roadmaps/worker', () => ({
   isRoadmapWorkerConfigured: isRoadmapWorkerConfiguredMock,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: revalidatePathMock }))
+// The daily-cap count: a chain ending in the awaited count result.
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
+    from: () => ({
+      select: () => ({ eq: () => ({ gte: adminCountMock }) }),
+    }),
+  }),
+}))
 
 import * as roadmapActions from '@/app/dashboard/roadmaps/actions'
 import { initialRoadmapGenerationState } from '@/lib/roadmaps/action-state'
@@ -192,5 +202,45 @@ describe('roadmap generation actions', () => {
     await roadmapActions.setRoadmapSharingAction(formData)
 
     expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+  // A quota guard for the shared free Gemini tier. It applies only while an AI
+  // provider is configured, and it must stop before the source snapshot is
+  // created, or a refused request would still leave a roadmap row behind.
+  it('refuses a new roadmap once today\'s AI limit is reached', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'test-key')
+    vi.stubEnv('ROADMAP_DAILY_LIMIT', '2')
+    adminCountMock.mockResolvedValue({ count: 2, error: null })
+    const rpc = authenticatedClient()
+
+    await expect(
+      createRoadmapAction(initialRoadmapGenerationState, requestForm()),
+    ).resolves.toMatchObject({ kind: 'error', message: expect.stringContaining('limit') })
+    expect(rpc).not.toHaveBeenCalled()
+    expect(generateRoadmapForOwnerMock).not.toHaveBeenCalled()
+    vi.unstubAllEnvs()
+  })
+
+  it('fails closed when the daily count cannot be read', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'test-key')
+    adminCountMock.mockResolvedValue({ count: null, error: { message: 'down' } })
+    const rpc = authenticatedClient()
+
+    await expect(
+      createRoadmapAction(initialRoadmapGenerationState, requestForm()),
+    ).resolves.toMatchObject({ kind: 'error' })
+    expect(rpc).not.toHaveBeenCalled()
+    vi.unstubAllEnvs()
+  })
+
+  it('applies no cap when no AI provider is configured', async () => {
+    vi.stubEnv('GEMINI_API_KEY', '')
+    authenticatedClient()
+    generateRoadmapForOwnerMock.mockResolvedValue({ roadmapId: ROADMAP_ID, status: 'ready' })
+
+    await expect(
+      createRoadmapAction(initialRoadmapGenerationState, requestForm()),
+    ).resolves.toMatchObject({ kind: 'success' })
+    expect(adminCountMock).not.toHaveBeenCalled()
+    vi.unstubAllEnvs()
   })
 })

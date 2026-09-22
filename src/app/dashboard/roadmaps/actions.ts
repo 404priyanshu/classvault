@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { RoadmapGenerationActionState } from '@/lib/roadmaps/action-state'
 import { generateRoadmapForOwner, isRoadmapWorkerConfigured } from '@/lib/roadmaps/worker'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 const roadmapRequestSchema = z.object({
@@ -31,6 +32,36 @@ async function authenticatedOwner() {
 
   if (!ownerId.success) return null
   return { ownerId: ownerId.data, supabase }
+}
+
+const DEFAULT_DAILY_AI_ROADMAPS = 5
+
+/**
+ * How many roadmaps this student may start per rolling day while an AI
+ * provider is configured.
+ *
+ * A quota guard, not an abuse boundary: the free Gemini tier has a daily
+ * request ceiling shared by every student, and without a per-student cap one
+ * person could spend it for everyone. Counted with the service role because
+ * study_roadmaps is reachable by students only through definer functions.
+ */
+async function hasReachedDailyRoadmapLimit(ownerId: string) {
+  if (!process.env.GEMINI_API_KEY?.trim()) return false
+
+  const limit = Number.parseInt(process.env.ROADMAP_DAILY_LIMIT || '', 10)
+  const dailyLimit =
+    Number.isFinite(limit) && limit > 0 ? limit : DEFAULT_DAILY_AI_ROADMAPS
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+  const { count, error } = await createAdminClient()
+    .from('study_roadmaps')
+    .select('id', { count: 'exact', head: true })
+    .eq('owner_id', ownerId)
+    .gte('created_at', since)
+
+  // Fail closed: if the count cannot be read, do not spend shared quota.
+  if (error || count === null) return true
+  return count >= dailyLimit
 }
 
 function generationFailureMessage(failureCode: string) {
@@ -77,6 +108,14 @@ export async function createRoadmapAction(
     return {
       kind: 'error',
       message: 'The server-side roadmap worker is not configured yet.',
+    }
+  }
+
+  if (await hasReachedDailyRoadmapLimit(authenticated.ownerId)) {
+    return {
+      kind: 'error',
+      message:
+        'You have reached today\'s roadmap limit. You can create another tomorrow, or retry a saved one.',
     }
   }
 

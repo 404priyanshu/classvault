@@ -3,8 +3,8 @@ import 'server-only'
 import { z } from 'zod'
 import type { Json } from '@/lib/supabase/database.types'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveRoadmapProvider } from './gemini'
 import {
-  deterministicRoadmapProvider,
   roadmapGenerationSourceSchema,
   roadmapStudyModeSchema,
   validateRoadmapGenerationOutput,
@@ -78,7 +78,7 @@ export async function generateRoadmapForOwner(
   ownerId: string,
   dependencies: WorkerDependencies = {},
 ): Promise<RoadmapWorkerResult> {
-  const provider = dependencies.provider || deterministicRoadmapProvider
+  const provider = dependencies.provider || resolveRoadmapProvider()
   const admin = dependencies.admin || createAdminClient()
   const { data, error } = await admin.rpc('claim_roadmap_generation', {
     p_generator_key: provider.id,
