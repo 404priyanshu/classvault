@@ -135,3 +135,89 @@ export async function restoreAccountAction(formData: FormData) {
   revalidatePath('/dashboard/moderation')
   redirect(moderationRedirect('Suspension lifted.'))
 }
+
+const roomReportSchema = z.object({
+  reportId: z.string().uuid(),
+  reviewNote: z.string().trim().max(1000),
+  status: z.enum(['reviewing', 'closed']),
+})
+
+const suspendReportedSchema = z.object({
+  reason: z.string().trim().min(1).max(500),
+  reportId: z.string().uuid(),
+})
+
+/**
+ * Takes a study-room report under review, or closes it.
+ *
+ * Closing requires a note in the database as well as here, because closing is
+ * how a report leaves the queue: without one, the next reviewer cannot tell a
+ * decision from a dismissal.
+ */
+export async function reviewStudyRoomReportAction(formData: FormData) {
+  const parsed = roomReportSchema.safeParse({
+    reportId: formData.get('reportId'),
+    reviewNote: formData.get('reviewNote') ?? '',
+    status: formData.get('status'),
+  })
+  if (!parsed.success) {
+    redirect(moderationRedirect('Check the review fields and try again.'))
+  }
+  if (parsed.data.status === 'closed' && parsed.data.reviewNote === '') {
+    redirect(moderationRedirect('Closing a report needs a note saying what was decided.'))
+  }
+
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/moderation')
+
+  const { data, error } = await supabase.rpc('set_study_room_report_status', {
+    p_report_id: parsed.data.reportId,
+    p_review_note: parsed.data.reviewNote,
+    p_status: parsed.data.status,
+  })
+
+  if (error || !data) {
+    redirect(moderationRedirect('That report could not be updated.'))
+  }
+
+  revalidatePath('/dashboard/moderation')
+  redirect(
+    moderationRedirect(
+      parsed.data.status === 'closed' ? 'Report closed.' : 'Report under review.',
+    ),
+  )
+}
+
+/**
+ * Suspends the participant a study-room report names.
+ *
+ * Addressed by report rather than by student, for the same reason
+ * `suspendNoteOwnerAction` is addressed by note: the queue shows a label and no
+ * id, and the database resolves the account itself.
+ */
+export async function suspendReportedParticipantAction(formData: FormData) {
+  const parsed = suspendReportedSchema.safeParse({
+    reason: formData.get('reason'),
+    reportId: formData.get('reportId'),
+  })
+  if (!parsed.success) {
+    redirect(moderationRedirect('A suspension needs a reason of up to 500 characters.'))
+  }
+
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/moderation')
+
+  const { data, error } = await supabase.rpc('suspend_study_room_reported_user', {
+    p_reason: parsed.data.reason,
+    p_report_id: parsed.data.reportId,
+  })
+
+  if (error || !data) {
+    redirect(moderationRedirect('That account could not be suspended.'))
+  }
+
+  revalidatePath('/dashboard/moderation')
+  redirect(moderationRedirect('Account suspended.'))
+}

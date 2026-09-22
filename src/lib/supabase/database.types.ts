@@ -1040,6 +1040,9 @@ export type Database = {
           id: string
           reported_user_id: string
           reporter_id: string
+          review_note: string
+          reviewed_at: string | null
+          reviewer_id: string | null
           room_id: string
           room_name_snapshot: string
           status: string
@@ -1051,6 +1054,9 @@ export type Database = {
           id?: string
           reported_user_id: string
           reporter_id: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
           room_id: string
           room_name_snapshot: string
           status?: string
@@ -1062,6 +1068,9 @@ export type Database = {
           id?: string
           reported_user_id?: string
           reporter_id?: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
           room_id?: string
           room_name_snapshot?: string
           status?: string
@@ -1077,6 +1086,13 @@ export type Database = {
           {
             foreignKeyName: "study_room_reports_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_room_reports_reviewer_id_fkey"
+            columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1767,6 +1783,25 @@ export type Database = {
           visibility_snapshot: string
         }[]
       }
+      list_study_room_reports: {
+        Args: { p_limit?: number }
+        Returns: {
+          category: string
+          cited_messages: Json
+          created_at: string
+          details: string
+          report_id: string
+          reported_label: string
+          reported_suspended: boolean
+          reporter_label: string
+          review_note: string
+          reviewed_at: string
+          reviewer_label: string
+          room_name: string
+          room_still_live: boolean
+          status: string
+        }[]
+      }
       list_study_rooms: {
         Args: never
         Returns: {
@@ -1922,6 +1957,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_study_room_report_status: {
+        Args: { p_report_id: string; p_review_note?: string; p_status: string }
+        Returns: boolean
+      }
       study_room_timer_remaining: {
         Args: {
           p_anchor_at: string
@@ -1936,6 +1975,10 @@ export type Database = {
       }
       suspend_note_owner: {
         Args: { p_note_id: string; p_reason: string }
+        Returns: boolean
+      }
+      suspend_study_room_reported_user: {
+        Args: { p_reason: string; p_report_id: string }
         Returns: boolean
       }
       update_study_room_timer: {
