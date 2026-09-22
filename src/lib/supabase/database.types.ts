@@ -1088,11 +1088,110 @@ export type Database = {
           },
         ]
       }
+      membership_verification_requests: {
+        Row: {
+          id: string
+          user_id: string
+          university_id: number
+          enrolment_id: string
+          student_context: string
+          status: string
+          submitted_at: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          evidence_method: string | null
+          decision_reason: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          university_id: number
+          enrolment_id: string
+          student_context?: string
+          status?: string
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          evidence_method?: string | null
+          decision_reason?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          university_id?: number
+          enrolment_id?: string
+          student_context?: string
+          status?: string
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          evidence_method?: string | null
+          decision_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "university_memberships"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "membership_verification_requests_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_review_membership: {
+        Args: { target_university_id: number }
+        Returns: boolean
+      }
+      submit_membership_verification_request: {
+        Args: { p_enrolment_id: string; p_student_context?: string }
+        Returns: string
+      }
+      list_own_membership_verification_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          request_id: string
+          status: string
+          submitted_at: string
+          reviewed_at: string | null
+          decision_reason: string | null
+        }[]
+      }
+      list_membership_verification_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          request_id: string
+          university_id: number
+          university_name: string
+          display_name: string
+          course: string | null
+          graduation_year: number | null
+          account_email: string | null
+          enrolment_id: string
+          student_context: string
+          submitted_at: string
+        }[]
+      }
+      review_membership_verification_request: {
+        Args: {
+          p_request_id: string
+          p_decision: string
+          p_evidence_method: string
+          p_reason: string
+        }
+        Returns: boolean
+      }
       are_note_tags_valid: {
         Args: { candidate_tags: string[] }
         Returns: boolean
