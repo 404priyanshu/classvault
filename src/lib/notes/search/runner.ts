@@ -59,7 +59,12 @@ export async function runNoteExtraction(
     const { data: finalized, error: finalizeError } = await supabase.rpc(
       'complete_note_extraction',
       {
-        p_extracted_text: extraction.text,
+        // The function's first statement is
+        // `nullif(trim(coalesce(p_extracted_text, '')), '')`, so an empty
+        // string and null are the same input to it. Sending '' keeps the call
+        // inside the generated signature, which types the argument as non-null
+        // because the parameter carries no default.
+        p_extracted_text: extraction.text ?? '',
         p_extractor_version: NOTE_EXTRACTOR_VERSION,
         p_extraction_status: extraction.status,
         p_note_id: candidate.note_id,
