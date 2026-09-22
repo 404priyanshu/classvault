@@ -447,6 +447,8 @@ export type Database = {
           study_preference: string | null
           university_name: string | null
           updated_at: string
+          suspended_at: string | null
+          suspension_reason: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -460,6 +462,8 @@ export type Database = {
           study_preference?: string | null
           university_name?: string | null
           updated_at?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -473,6 +477,8 @@ export type Database = {
           study_preference?: string | null
           university_name?: string | null
           updated_at?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
         }
         Relationships: []
       }
@@ -1394,6 +1400,24 @@ export type Database = {
           publication_status: string
         }[]
       }
+      get_own_account_status: {
+        Args: never
+        // Both are null unless the account is suspended.
+        Returns: {
+          suspended: boolean
+          suspended_at: string | null
+          suspension_reason: string | null
+        }[]
+      }
+      get_roadmap_share_state: {
+        Args: { p_roadmap_id: string }
+        // share_token is null once sharing is revoked; the CLI generator types
+        // it as a plain string.
+        Returns: {
+          share_token: string | null
+          sharing_enabled: boolean
+        }[]
+      }
       get_roadmap_snapshot: {
         Args: { p_roadmap_id: string; p_share_token?: string }
         Returns: Json
@@ -1407,6 +1431,7 @@ export type Database = {
         Args: { target_university_id: number }
         Returns: boolean
       }
+      is_account_suspended: { Args: never; Returns: boolean }
       is_notes_eligible: { Args: never; Returns: boolean }
       is_study_room_eligible: { Args: never; Returns: boolean }
       is_study_room_member: { Args: { p_room_id: string }; Returns: boolean }
@@ -1537,6 +1562,19 @@ export type Database = {
           safe_owner_message: string
         }[]
       }
+      list_suspended_accounts: {
+        Args: { p_limit?: number }
+        // display_name and decided_by_label are nullable: a profile may have no
+        // display name, and the deciding administrator's account may since have
+        // been removed.
+        Returns: {
+          decided_by_label: string | null
+          display_name: string | null
+          suspended_at: string
+          suspension_reason: string
+          user_id: string
+        }[]
+      }
       list_notes_for_library: {
         Args: {
           p_access: string
@@ -1630,6 +1668,14 @@ export type Database = {
       }
       save_roadmap_snapshot: {
         Args: { p_roadmap_id: string; p_sections: Json; p_title: string }
+        Returns: boolean
+      }
+      suspend_note_owner: {
+        Args: { p_note_id: string; p_reason: string }
+        Returns: boolean
+      }
+      set_account_suspension: {
+        Args: { p_reason: string; p_suspended: boolean; p_user_id: string }
         Returns: boolean
       }
       set_roadmap_sharing: {

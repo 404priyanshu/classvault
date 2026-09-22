@@ -23,7 +23,7 @@ export default async function OnboardingPage({
   const profileRequest = supabase
     .from('profiles')
     .select(
-      'display_name, course, graduation_year, primary_goal, study_preference, onboarding_completed_at',
+      'display_name, course, graduation_year, primary_goal, study_preference, onboarding_completed_at, suspended_at',
     )
     .eq('id', claims.sub)
     .maybeSingle()
@@ -55,6 +55,12 @@ export default async function OnboardingPage({
     universitiesRequest,
     domainsRequest,
   ])
+
+  // A suspended student has no business finishing or re-editing setup; the
+  // dashboard layout cannot catch them here because this route is outside it.
+  if (profile?.suspended_at) {
+    redirect('/suspended')
+  }
 
   if (profile?.onboarding_completed_at && edit !== '1') {
     redirect('/dashboard')

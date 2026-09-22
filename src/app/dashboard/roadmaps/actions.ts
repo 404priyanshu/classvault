@@ -19,6 +19,11 @@ const taskProgressSchema = z.object({
   taskId: z.coerce.number().int().positive(),
 })
 
+const sharingSchema = z.object({
+  enabled: z.enum(['true', 'false']),
+  roadmapId: z.string().uuid(),
+})
+
 async function authenticatedOwner() {
   const supabase = await createClient()
   const { data: claimsData } = await supabase.auth.getClaims()
@@ -178,6 +183,34 @@ export async function setRoadmapTaskProgressAction(formData: FormData) {
     },
   )
   if (error || !updated) return
+
+  revalidatePath('/dashboard/roadmaps')
+  revalidatePath(`/dashboard/roadmaps/${parsed.data.roadmapId}`)
+}
+
+/**
+ * Turns a roadmap's share link on or off.
+ *
+ * `set_roadmap_sharing` owns the decision: it checks ownership and readiness,
+ * reuses an existing token rather than rotating it on every enable, and returns
+ * null when it refuses. Nothing here re-derives that — the action only
+ * translates a form post and revalidates.
+ */
+export async function setRoadmapSharingAction(formData: FormData) {
+  const parsed = sharingSchema.safeParse({
+    enabled: formData.get('enabled'),
+    roadmapId: formData.get('roadmapId'),
+  })
+  if (!parsed.success) return
+
+  const authenticated = await authenticatedOwner()
+  if (!authenticated) return
+
+  const { error } = await authenticated.supabase.rpc('set_roadmap_sharing', {
+    p_enabled: parsed.data.enabled === 'true',
+    p_roadmap_id: parsed.data.roadmapId,
+  })
+  if (error) return
 
   revalidatePath('/dashboard/roadmaps')
   revalidatePath(`/dashboard/roadmaps/${parsed.data.roadmapId}`)

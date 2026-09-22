@@ -3,7 +3,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(39);
+select extensions.plan(44);
 
 create temp table roadmap_test_state (
   roadmap_id uuid primary key,
@@ -238,6 +238,24 @@ from public.list_owned_roadmaps()
 limit 1;
 
 select extensions.ok(
+  not has_function_privilege('anon',
+    'public.get_roadmap_share_state(uuid)', 'EXECUTE'),
+  'anonymous viewers cannot read share state'
+);
+select extensions.is(
+  (select sharing_enabled from public.get_roadmap_share_state(
+     (select roadmap_id from roadmap_test_state limit 1))),
+  true,
+  'an owner sees that sharing is enabled'
+);
+select extensions.is(
+  (select share_token from public.get_roadmap_share_state(
+     (select roadmap_id from roadmap_test_state limit 1))),
+  (select share_token from roadmap_test_state limit 1),
+  'an owner reads back the token set_roadmap_sharing issued'
+);
+
+select extensions.ok(
   (select share_token is not null from roadmap_test_state limit 1),
   'Owners can enable a revocable share token'
 );
@@ -340,6 +358,26 @@ select extensions.is(
   false,
   'Revoked roadmap sharing is reflected in the owner summary'
 );
+select extensions.is(
+  (select share_token from public.get_roadmap_share_state(
+     (select roadmap_id from roadmap_test_state limit 1))),
+  null::uuid,
+  'a revoked share stops returning its token to the owner'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'abababab-abab-4bab-8bab-ababababab02', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-abab-4bab-8bab-ababababab02","role":"authenticated"}', true);
+select extensions.is(
+  (select count(*) from public.get_roadmap_share_state(
+     (select roadmap_id from roadmap_test_state limit 1))),
+  0::bigint,
+  'share state tells a non-owner nothing about someone else''s roadmap'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'abababab-abab-4bab-8bab-ababababab01', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-abab-4bab-8bab-ababababab01","role":"authenticated"}', true);
 
 set local role anon;
 select set_config('request.jwt.claim.sub', '', true);
