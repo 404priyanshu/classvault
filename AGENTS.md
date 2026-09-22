@@ -981,12 +981,15 @@ npm run dev
 
 Default development URL: `http://localhost:3000`
 
-`.env.local` is not in the repository and cannot be reconstructed from it. Restore
-it with `scripts/bootstrap-staging.sh <staging-ref>`, which links the CLI to
-staging, pushes migrations, runs the pgTAP suites, and pulls the six variables from
-the Vercel **Development** environment. `npm run check:env` reports every missing,
-placeholder, or production-pointing value at once and never prints one. The full
-sequence, including the dashboard steps no script can perform, is in
+`.env.local` is not in the repository and cannot be reconstructed from it.
+`npm run local:bootstrap` is the usual way back: it starts the local Supabase stack,
+applies every migration, runs the pgTAP suites, and writes a `.env.local` pointing at
+127.0.0.1. `scripts/bootstrap-staging.sh <staging-ref>` does the hosted-staging
+equivalent, pulling the six variables from the Vercel **Development** environment, and
+is needed only for what local cannot reproduce — OAuth callbacks, real SMTP, CAPTCHA
+enforcement, and a genuine multi-user walkthrough. `npm run check:env` reports every
+missing, placeholder, or production-pointing value at once and never prints one. The
+full sequence, including the dashboard steps no script can perform, is in
 `docs/staging.md`.
 
 Required verification before handing off code changes:

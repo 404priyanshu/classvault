@@ -24,6 +24,7 @@
     "db:test": "supabase test db",
     "db:test:hosted": "python3 scripts/run-pgtap-hosted.py --all",
     "check:env": "node scripts/check-env.mjs",
+    "local:bootstrap": "scripts/bootstrap-local.sh",
     "staging:bootstrap": "scripts/bootstrap-staging.sh",
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts"
   },

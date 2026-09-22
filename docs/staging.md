@@ -1,17 +1,61 @@
-# Staging environment
+# Development and staging databases
 
 Until now one hosted Supabase project (`hndgstbutlkjqnrxvqtm`, `ap-south-1`) backed
 both local development and the production deployment. A migration run from a laptop
 landed on live student data, and the pgTAP suites — which insert rows and roll them
-back — ran against the same database. This document sets up a separate hosted
-staging project and points this laptop at it.
+back — ran against the same database. This document replaces that with a local stack
+for everyday work and a hosted staging project for the things a local stack cannot
+reproduce.
 
 Production is never the target of a command in this document. The guards in
 `scripts/supabase-target.mjs` and `scripts/run-pgtap-hosted.py` enforce that; both
 recognise the production ref and refuse unless `ALLOW_PRODUCTION_DB_WRITE=1` is set
 deliberately, which is reserved for promoting a reviewed migration.
 
-## What this repository can and cannot do
+## Two databases, not one
+
+**The local stack is the development database.** Docker, `npm run local:bootstrap`,
+disposable, free, and unreachable from the internet. It runs every migration and every
+pgTAP suite, so it catches the thing that actually matters — a migration that is wrong
+reaching live data. Use it for day-to-day work.
+
+**The hosted staging project is for what local cannot reproduce.** OAuth callbacks,
+Resend SMTP, Turnstile enforcement and a genuine two-people-two-laptops walkthrough are
+hosted Auth settings; `supabase/config.toml` does not carry them, and nothing on
+`127.0.0.1` can receive a Google redirect. Stand it up when a stage needs those — the
+pilot's acceptance rule ("a real multi-user staging walkthrough") does.
+
+Production is never the target of either.
+
+## The local stack
+
+```bash
+npm run local:bootstrap
+```
+
+Starts the stack, applies every migration, runs the pgTAP suites, and writes a
+`.env.local` pointing at `127.0.0.1` (backing up any existing one). Then:
+
+| | |
+| --- | --- |
+| `npm run dev` | http://localhost:3000 |
+| Mailpit — signup and recovery mail | http://127.0.0.1:54324 |
+| Studio | http://127.0.0.1:54323 |
+| `npm run db:test` | re-run the pgTAP suites |
+| `npm run db:reset` | throw the database away and rebuild it from migrations |
+| `npm run supabase:stop` | stop the stack |
+
+Both Storage buckets (`note-files`, `profile-avatars`) are created by migrations, so a
+reset restores them. CAPTCHA is disabled in `config.toml`, so the forms take
+Cloudflare's always-passes test key. Confirmation mail never leaves the machine —
+open the link from Mailpit.
+
+What will not work locally, by design: Google and GitHub sign-in, real email delivery,
+CAPTCHA enforcement, and phone OTP. Use email/password.
+
+## The hosted staging project
+
+### What this repository can and cannot do
 
 Automated by `scripts/bootstrap-staging.sh`: linking the CLI, applying migrations,
 running every pgTAP suite, linking Vercel, pulling `.env.local`, and verifying it.
