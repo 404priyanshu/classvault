@@ -22,12 +22,14 @@ const productionContentSecurityPolicy = [
   "default-src 'self'",
   // 'unsafe-inline' stays required by Next.js hydration/flight inline scripts
   // and by Framer Motion inline styles. challenges.cloudflare.com serves the
-  // Turnstile widget script and frame.
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  // Turnstile widget script and frame. va.vercel-scripts.com serves Vercel
+  // Speed Insights scripts.
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co",
   "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  // vitals.vercel-insights.com is used by Vercel Speed Insights for analytics.
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com",
   // Chrome renders a PDF <object> in a nested browsing context, which frame-src
   // governs rather than object-src, so note previews need Storage listed here
   // too or they silently fail to paint.
