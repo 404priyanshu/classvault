@@ -11,7 +11,7 @@ export function AccessChapter() {
       <div className={styles.faqList}>
         <details open>
           <summary>Is my university on ClassVault?</summary>
-          <p>We’re starting with Bennett University and growing one campus at a time. A confirmed academic email can verify your university membership and unlock campus-only notes and rooms.</p>
+          <p>We’re starting with Bennett University and growing one campus at a time. A confirmed academic email verifies your university membership on its own and unlocks campus-only notes and rooms. No campus email yet? Submit your enrolment details and a reviewer checks them against the university’s own records.</p>
         </details>
         <details>
           <summary>Who can see the notes I share?</summary>
@@ -27,7 +27,7 @@ export function AccessChapter() {
         </details>
         <details>
           <summary>What if something doesn’t belong here?</summary>
-          <p>You can report a note privately from its detail page. Campus and platform moderators review reports within their roles. For copyright concerns, use our <a href="/legal/takedown">content report page</a>.</p>
+          <p>You can report a note privately from its detail page. Campus and platform moderators review reports within their roles, and an administrator can suspend an account that keeps causing harm — that restricts access without deleting the work already shared. For copyright concerns, use our <a href="/legal/takedown">content report page</a>.</p>
         </details>
       </div>
     </section>
