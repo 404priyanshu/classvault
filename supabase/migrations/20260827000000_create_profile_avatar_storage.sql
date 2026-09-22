@@ -51,9 +51,14 @@ create policy "profile_avatars_delete_own"
     and name = (select auth.uid())::text || '/avatar'
   );
 
-comment on policy "profile_avatars_insert_own" on storage.objects is
-  'Authenticated students may create only their exact stable avatar object.';
-comment on policy "profile_avatars_update_own" on storage.objects is
-  'Authenticated students may replace only their exact stable avatar object.';
-comment on policy "profile_avatars_delete_own" on storage.objects is
-  'Authenticated students may remove only their exact stable avatar object.';
+-- Skipped on a local stack: COMMENT ON POLICY needs ownership of
+-- storage.objects, which only hosted Supabase's migration role has (42501).
+do $$
+begin
+  execute $c$comment on policy "profile_avatars_insert_own" on storage.objects is 'Authenticated students may create only their exact stable avatar object.'$c$;
+  execute $c$comment on policy "profile_avatars_update_own" on storage.objects is 'Authenticated students may replace only their exact stable avatar object.'$c$;
+  execute $c$comment on policy "profile_avatars_delete_own" on storage.objects is 'Authenticated students may remove only their exact stable avatar object.'$c$;
+exception when insufficient_privilege then
+  raise notice 'skipped comments on profile_avatars policies: %', sqlerrm;
+end
+$$;

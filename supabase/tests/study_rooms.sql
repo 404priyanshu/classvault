@@ -592,15 +592,20 @@ select extensions.is(
 
 set local role postgres;
 select set_config('request.jwt.claims', '{"role":"postgres"}', true);
+-- Until 20260910195758_keep_study_rooms_hosted.sql, a departing host was
+-- replaced only from among cohosts, so a room that never appointed one was left
+-- with nobody able to run the timer or end it. That migration promotes the
+-- longest-standing member instead, and this asserts the replacement rather than
+-- the absence it used to check for.
 select extensions.is(
   (
-    select count(*)
+    select member.user_id
     from public.study_room_members as member
     where member.room_id = (select room_id from study_room_test_state where key = 'hostless')
       and member.role = 'host'
   ),
-  0::bigint,
-  'a room without a co-host continues without active host controls'
+  '51515151-5151-4151-8151-515151515104'::uuid,
+  'the longest-standing member inherits a departing host''s room'
 );
 
 set local role authenticated;

@@ -100,5 +100,12 @@ comment on function public.get_accessible_note_file(uuid) is
 comment on function public.can_download_note_object(text) is
   'Authorizes private Storage reads only for ready source objects attached to currently consumable notes.';
 
-comment on policy "note_files_select_accessible_download" on storage.objects is
-  'Allows authenticated students to read ready source objects only while they may consume the associated note.';
+-- Skipped on a local stack: COMMENT ON POLICY needs ownership of
+-- storage.objects, which only hosted Supabase's migration role has (42501).
+do $$
+begin
+  execute $c$comment on policy "note_files_select_accessible_download" on storage.objects is 'Allows authenticated students to read ready source objects only while they may consume the associated note.'$c$;
+exception when insufficient_privilege then
+  raise notice 'skipped comment on note_files_select_accessible_download: %', sqlerrm;
+end
+$$;

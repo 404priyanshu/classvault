@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 .next
 supabase/.temp/
+supabase/.branches/
 out
 dist
 dist-ssr
