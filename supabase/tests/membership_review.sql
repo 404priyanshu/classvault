@@ -125,8 +125,11 @@ select extensions.is(
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '71717171-7171-4171-8171-717171717102', true);
 select extensions.throws_ok(
+  -- 2028 without the cast is an integer, and with every other argument
+  -- untyped there is no candidate to resolve against smallint. The call then
+  -- failed with 42883 before it ever reached the guard this asserts.
   $$select * from public.complete_student_onboarding(
-    'Student', 'B.Tech', 2028, (select id from public.universities where slug = 'bennett-university'),
+    'Student', 'B.Tech', 2028::smallint, (select id from public.universities where slug = 'bennett-university'),
     'ace_exams', 'solo')$$,
   '42501', 'Onboarding is already complete', 're-onboarding cannot reset a reviewed membership'
 );
