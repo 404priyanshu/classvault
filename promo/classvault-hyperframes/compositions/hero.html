@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head><body><template>
+<style>#hero-root {position:absolute;inset:0;width:100%;height:100%;}
+    @font-face { font-family: "ClassVault Inter"; src: url("assets/inter.woff2") format("woff2"); font-style: normal; font-weight: 100 900; }
+    :root { --ink:#202044; --purple:#5b5fd7; --cream:#fffdf5; --yellow:#fff1a8; --mint:#c7eea4; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:1920px; height:1080px; overflow:hidden; }
+    body { font-family:"ClassVault Inter",Arial,sans-serif; color:var(--ink); }
+    #root { position:relative; width:100%; height:100%; overflow:hidden; }
+    .clip { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
+    .brand { position:absolute; z-index:4; top:72px; left:112px; display:flex; align-items:center; gap:17px; font-size:34px; font-weight:850; letter-spacing:-.065em; }
+    .brand.light { color:var(--cream); }
+    .mark { width:47px; height:47px; display:block; flex:none; }
+    .eyebrow { font-size:23px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }
+    .scene-number { position:absolute; top:73px; right:115px; font-size:21px; font-weight:800; letter-spacing:.15em; }
+    .hero { background:var(--purple); color:var(--cream); }
+    .hero::before { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,#5b5fd7 0%,#5b5fd7 27%,rgba(91,95,215,.95) 39%,rgba(91,95,215,.62) 55%,transparent 76%); }
+    .hero-image { position:absolute; top:0; right:0; width:1210px; height:1080px; object-fit:cover; object-position:center; mask-image:linear-gradient(to right,transparent 0%,#000 18%); }
+    .hero-copy { position:absolute; z-index:2; left:113px; top:290px; width:980px; }
+    .hero-eyebrow { color:var(--yellow); margin:0 0 38px; }
+    .hero-title { font-size:113px; font-weight:900; letter-spacing:-.067em; line-height:.98; text-transform:uppercase; margin:0; }
+    .hero-title .line { display:block; width:max-content; }
+    .yellow { color:var(--yellow); }
+    .hero-sub { width:705px; margin-top:42px; font-size:27px; line-height:1.34; font-weight:550; }
+    .hero-sticker { position:absolute; z-index:3; top:174px; right:142px; width:184px; height:184px; display:grid; place-items:center; border-radius:49% 51% 42% 58% / 58% 41% 59% 42%; background:var(--mint); color:var(--ink); font-size:25px; line-height:1.03; font-weight:850; text-align:center; }
+    .hero-bottom { position:absolute; z-index:2; left:113px; bottom:72px; display:flex; align-items:center; gap:23px; font-size:20px; font-weight:750; }
+    .hero-bottom i { width:10px; height:10px; border-radius:50%; background:var(--mint); }
+    .feature { background:#f8f5ee; }
+    .feature .topline { position:absolute; top:87px; left:114px; display:flex; gap:20px; align-items:center; }
+    .feature .topline span { width:15px; height:15px; border-radius:50%; background:var(--purple); }
+    .feature .topline .eyebrow { font-size:23px; margin:0; }
+    .feature .plate { position:absolute; left:158px; top:190px; width:1604px; height:auto; border-radius:44px; box-shadow:0 34px 0 rgba(32,32,68,.075); }
+    .feature .footer-note { position:absolute; left:158px; bottom:65px; font-size:20px; font-weight:750; color:#5b5570; }
+    .feature .footer-note em { font-style:normal; color:var(--purple); }
+    .feature .arrow { position:absolute; right:137px; bottom:60px; font-size:42px; font-weight:500; }
+    .notes { background:#f2efff; }
+    .roadmap { background:#fff7d5; }
+    .rooms { background:#e8f5e5; }
+    .close { background:var(--purple); color:var(--cream); text-align:center; }
+    .close-doodle { position:absolute; color:var(--yellow); font-size:130px; line-height:1; }
+    .doodle-left { top:235px; left:210px; }
+    .doodle-right { right:226px; bottom:226px; }
+    .close-mark { position:absolute; top:171px; left:50%; margin-left:-41px; width:82px; height:82px; color:var(--cream); }
+    .close-copy { position:absolute; top:306px; width:100%; }
+    .close-title { font-size:104px; font-weight:900; line-height:1.03; letter-spacing:-.07em; text-transform:uppercase; margin:0; }
+    .close-title span { display:block; }
+    .close-sub { margin:30px 0 0; font-size:27px; font-weight:550; }
+    .cta { display:inline-flex; align-items:center; justify-content:center; gap:20px; height:80px; margin-top:45px; padding:0 42px; border-radius:999px; background:var(--yellow); color:var(--ink); font-size:29px; font-weight:800; }
+    .url { position:absolute; width:100%; bottom:96px; font-size:27px; font-weight:800; letter-spacing:.015em; }
+    .early { position:absolute; width:100%; bottom:51px; font-size:18px; opacity:.85; }
+  </style>
+<div data-hf-id="hf-ajkr" id="hero-root" data-composition-id="hero-scene" data-width="1920" data-height="1080" data-duration="4.4">
+<section data-hf-id="hf-wltm" id="hero" class="clip hero">
+    <img data-hf-id="hf-wf7v" class="hero-image" src="assets/study-clubhouse.webp" alt="">
+    <div data-hf-id="hf-q5bi" class="brand light" aria-label="ClassVault"><svg data-hf-id="hf-3k5k" class="mark" viewBox="0 0 64 64" aria-hidden="true"><path data-hf-id="hf-b3fo" id="leaf" d="M10 6h21l9 9-8 8-7-7h-9v9L6 15v-5a4 4 0 0 1 4-4Z" fill="currentColor" /><use data-hf-id="hf-ilby" href="#leaf" transform="rotate(90 32 32)" /><use data-hf-id="hf-jh3c" href="#leaf" transform="rotate(180 32 32)" /><use data-hf-id="hf-j0p2" href="#leaf" transform="rotate(270 32 32)" /></svg>ClassVault</div>
+    <div data-hf-id="hf-jloi" class="hero-copy"><p data-hf-id="hf-ua0p" class="eyebrow hero-eyebrow">Your campus. Your people. Your little head start.</p><h1 data-hf-id="hf-e5h7" class="hero-title"><span data-hf-id="hf-u7m3" class="line">Good notes.</span><span data-hf-id="hf-sonb" class="line">Great company.</span><span data-hf-id="hf-uo9m" class="line yellow">You’ve got this.</span></h1><p data-hf-id="hf-d48z" class="hero-sub">Find your next read, make a study plan, and settle into a focus session with your people.</p></div>
+    <div data-hf-id="hf-hhkl" class="hero-sticker" data-layout-ignore="">Big<br data-hf-id="hf-x5px">study-buddy<br data-hf-id="hf-rsrt">energy.</div>
+    <div data-hf-id="hf-8x9s" class="hero-bottom"><span data-hf-id="hf-oubc">SHARE KNOWLEDGE</span><i data-hf-id="hf-wt6k"></i><span data-hf-id="hf-5jxa">FIND FOCUS</span><i data-hf-id="hf-zeb8"></i><span data-hf-id="hf-cq7e">MAKE PROGRESS</span></div>
+  </section>
+</div>
+<script>const tl=gsap.timeline({paused:true});
+ tl.fromTo("#hero .brand",{opacity:0,y:-22},{opacity:1,y:0,duration:.55,ease:"power3.out"},.12);
+ tl.fromTo("#hero .hero-image",{opacity:0,x:80,scale:1.07},{opacity:1,x:0,scale:1,duration:1.4,ease:"power3.out"},.12);
+ tl.fromTo("#hero .hero-eyebrow",{opacity:0,y:22},{opacity:1,y:0,duration:.6,ease:"power3.out"},.32);
+ tl.fromTo("#hero .line",{opacity:0,x:-50},{opacity:1,x:0,duration:.62,stagger:.21,ease:"power3.out"},.48);
+ tl.fromTo("#hero .hero-sub",{opacity:0,y:30},{opacity:1,y:0,duration:.62,ease:"power3.out"},1.45);
+ tl.fromTo("#hero .hero-sticker",{opacity:0,scale:.72,rotation:-10},{opacity:1,scale:1,rotation:13,duration:.7,ease:"back.out(1.5)"},1.65);
+ tl.fromTo("#hero .hero-bottom",{opacity:0,y:20},{opacity:1,y:0,duration:.55},2.15);
+
+window.__timelines=window.__timelines||{};window.__timelines["hero-scene"]=tl;</script>
+</template></body></html>

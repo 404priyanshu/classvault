@@ -1,0 +1,8 @@
+capture/
+snapshots/
+.hyperframes/
+.media/
+.hf-tmp/
+.thumbnails/
+.waveform-cache/
+node_modules/
