@@ -8,11 +8,13 @@ import { Spinner } from '@/components/ui/spinner'
 import { initialRoadmapGenerationState } from '@/lib/roadmaps/action-state'
 
 type RoadmapRequestFormProps = {
+  aiEnabled: boolean
   sourceCount: number
   workerConfigured: boolean
 }
 
 export function RoadmapRequestForm({
+  aiEnabled,
   sourceCount,
   workerConfigured,
 }: RoadmapRequestFormProps) {
@@ -120,7 +122,7 @@ export function RoadmapRequestForm({
             </button>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-club-purple">
               <BookOpenCheck aria-hidden className="h-4 w-4" />
-              {sourceCount} available source{sourceCount === 1 ? '' : 's'}
+              {sourceCount} note{sourceCount === 1 ? '' : 's'} you can use
             </span>
           </div>
 
@@ -150,10 +152,12 @@ export function RoadmapRequestForm({
           </p>
           <h3 className="font-display mt-2 text-2xl font-black">A plan you can trace</h3>
           <p className="mt-3 text-sm leading-relaxed text-white/85">
-            Each plan uses a structured template and cites your source notes. AI generation is coming later; you can start studying with this version today.
+            {aiEnabled
+              ? 'An AI model writes each plan from the public notes that match your topic, and every section cites the notes it uses. Campus-only notes are listed alongside the plan but never sent to the model.'
+              : 'Each plan follows a structured template built from the notes that match your topic, and every section cites the notes it uses.'}
           </p>
           <ul className="mt-5 space-y-3 text-xs font-bold text-white/85">
-            <li>✓ All eligible sources are cited</li>
+            <li>✓ Every section cites its notes</li>
             <li>✓ Check off tasks as you go</li>
             <li>✓ Your progress stays private</li>
             <li>✓ Pick up where you left off</li>

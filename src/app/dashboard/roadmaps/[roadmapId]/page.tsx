@@ -79,7 +79,7 @@ export default async function RoadmapDetailPage({
           {roadmap.title}
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-club-muted">
-          A static, source-cited roadmap for {roadmap.topic}. Source access is
+          A source-cited roadmap for {roadmap.topic}. Source access is
           rechecked every time this page opens.
         </p>
         <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-club-muted">

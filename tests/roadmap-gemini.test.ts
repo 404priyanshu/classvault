@@ -136,6 +136,36 @@ describe('Gemini roadmap provider', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
+  // Free-tier models are withdrawn (404) and overloaded (503) without notice;
+  // both happened on the first live run. Either should hand over to the next
+  // model rather than fail the student's roadmap.
+  it('falls back to the next model when one is overloaded or withdrawn', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('busy', { status: 503 }))
+      .mockResolvedValueOnce(new Response('gone', { status: 404 }))
+      .mockResolvedValueOnce(geminiResponse(goodPayload))
+    const provider = createGeminiRoadmapProvider({ apiKey: 'test-key', fetch: fetchMock })
+
+    await expect(provider.generate(request([PUBLIC_A, PUBLIC_B]))).resolves.toMatchObject({
+      title: 'Deadlocks exam plan',
+    })
+    const models = fetchMock.mock.calls.map(([url]) => String(url).split('/models/')[1].split(':')[0])
+    expect(models).toEqual(['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'])
+  })
+
+  it('stops trying models once the time budget is spent', async () => {
+    let clock = 0
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      clock += 30_000
+      return new Response('busy', { status: 503 })
+    })
+    const provider = createGeminiRoadmapProvider({ apiKey: 'test-key', fetch: fetchMock, now: () => clock })
+
+    await expect(provider.generate(request([PUBLIC_A]))).rejects.toThrow('status 503')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('reports an HTTP failure by status only', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('quota detail', { status: 429 }))
     const provider = createGeminiRoadmapProvider({ apiKey: 'test-key', fetch: fetchMock })
