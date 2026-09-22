@@ -71,7 +71,15 @@ content_path = "./supabase/templates/confirmation.html"
 enabled = true
 file_size_limit = "50MiB"
 
+# Kept in step with 20260910143751_lower_note_file_cap.sql, which is the source
+# of truth and matches production. This block is applied after the migrations, so
+# a stale value here silently raises the cap back on a local stack.
 [storage.buckets.note-files]
 public = false
-file_size_limit = "25MiB"
+file_size_limit = "10MiB"
 allowed_mime_types = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+
+[storage.buckets.profile-avatars]
+public = true
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]

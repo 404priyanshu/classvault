@@ -21,5 +21,12 @@ create policy "profile_avatars_select_own"
     and name = (select auth.uid())::text || '/avatar'
   );
 
-comment on policy "profile_avatars_select_own" on storage.objects is
-  'Authenticated students may read only their exact stable avatar object.';
+-- Skipped on a local stack: COMMENT ON POLICY needs ownership of
+-- storage.objects, which only hosted Supabase's migration role has (42501).
+do $$
+begin
+  execute $c$comment on policy "profile_avatars_select_own" on storage.objects is 'Authenticated students may read only their exact stable avatar object.'$c$;
+exception when insufficient_privilege then
+  raise notice 'skipped comment on profile_avatars_select_own: %', sqlerrm;
+end
+$$;

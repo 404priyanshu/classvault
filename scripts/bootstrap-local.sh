@@ -24,13 +24,33 @@ cd "$(dirname "$0")/.."
 step() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
 
 step "1/5  Checking the container runtime"
+
+# Docker Desktop only symlinks into /usr/local/bin when its privileged helper is
+# installed. Declining that leaves a working daemon whose CLI lives under the
+# home directory and whose socket is not /var/run/docker.sock, which is where
+# both this script and the Supabase CLI would otherwise look.
+if ! command -v docker >/dev/null 2>&1 && [ -x "$HOME/.docker/bin/docker" ]; then
+  export PATH="$HOME/.docker/bin:$PATH"
+fi
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is not installed. Install Docker Desktop, then re-run this script." >&2
   exit 1
 fi
+
 if ! docker info >/dev/null 2>&1; then
   echo "Docker is installed but not running. Start Docker Desktop, then re-run this script." >&2
   exit 1
+fi
+
+# The Supabase CLI reads DOCKER_HOST but does not resolve Docker contexts, so a
+# context-based install needs the endpoint handed to it explicitly.
+if [ -z "${DOCKER_HOST:-}" ]; then
+  context_host="$(docker context inspect --format '{{.Endpoints.docker.Host}}' 2>/dev/null || true)"
+  if [ -n "$context_host" ] && [ "$context_host" != "unix:///var/run/docker.sock" ]; then
+    export DOCKER_HOST="$context_host"
+    echo "Using DOCKER_HOST=$DOCKER_HOST"
+  fi
 fi
 
 step "2/5  Starting the local Supabase stack"
