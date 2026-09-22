@@ -98,12 +98,26 @@ worker ran.
 
 ## Database migrations
 
-Migrations are applied to the linked Supabase project, not by the deploy:
+Migrations are applied to the linked Supabase project, not by the deploy. They go
+to staging first and reach production only once its pgTAP suites pass there — see
+`docs/staging.md`:
 
 ```bash
-npm run db:push
+npm run db:target          # which project is linked?
+npm run db:push            # staging only; refuses production
+npm run db:test:hosted     # every pgTAP suite against staging
 npm run db:types
 ```
+
+Promoting to production is a separate, deliberate act with the production project
+linked:
+
+```bash
+npm run db:push:production
+```
+
+It is the only script that writes to production, and `npm run db:push` will not do
+it by accident.
 
 Review the generated types before committing them. The checked-in
 `database.types.ts` preserves stricter nullability than the CLI generator

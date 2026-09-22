@@ -20,7 +20,7 @@ document:
 project_name: ClassVault
 product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation, and realtime study rooms
 production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation, and temporary realtime study rooms are implemented and live in production
-supabase_project: One hosted project (ref hndgstbutlkjqnrxvqtm, ap-south-1) backs both local development and the Vercel deployment — there is no separate staging database. A migration, policy change, or data edit applied from a laptop lands on production data immediately. Treat every schema change as a production change.
+supabase_project: Production is ref hndgstbutlkjqnrxvqtm, ap-south-1. A separate hosted staging project is the intended target for all local development and every pgTAP run; docs/staging.md is its runbook. The staging project does not exist yet — the Supabase organization is on the Free plan, whose two-active-project limit is already taken by ClassVault and an unrelated project, so an operator has to free a slot or upgrade before it can be created. Until then production still backs local development, and a migration or data edit run from a laptop lands on live student data. scripts/supabase-target.mjs and scripts/run-pgtap-hosted.py refuse to target production unless ALLOW_PRODUCTION_DB_WRITE=1 is set deliberately; npm run db:push, db:reset:staging, and db:test:hosted all go through that guard. Promote a proven migration with npm run db:push:production as a separately reviewed act. Apply migrations through the CLI, not the dashboard: the dashboard stamps wall-clock time instead of the filename's version, which is how five 2026-09-10 migrations came to be recorded under versions the repository did not have. Those files were renamed on 2026-09-22 and the two histories now match exactly at 32 migrations; npm run db:status re-checks that against whichever project is linked.
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 90 Vitest tests, 16 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57 hosted study-room pgTAP tests
+automated_test_suite: 158 Vitest tests, 27 Playwright browser smoke tests, 38 hosted pgTAP foundation tests, 38 hosted upload-pipeline pgTAP tests, 13 hosted library-access pgTAP tests, 29 hosted rating/ranking pgTAP tests, 22 hosted lifecycle pgTAP tests, 20 hosted moderation pgTAP tests, 17 hosted search pgTAP tests, 39 hosted roadmap-authorization pgTAP tests, 25 hosted roadmap-generation pgTAP tests, 13 hosted profile-avatar pgTAP tests, and 57 hosted study-room pgTAP tests
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -662,7 +662,7 @@ These are product claims, not implemented or validated system behavior.
   deterministic output validation, worker behavior, roadmap actions, and
   validated settings/profile/avatar/password server actions, and validated
   study-room mutations.
-- A 16-test Playwright smoke suite (`npm run test:e2e`) covering the landing
+- A 27-test Playwright smoke suite (`npm run test:e2e`) covering the landing
   page, security headers, sign-in/sign-up/phone routes, unauthenticated
   redirects for protected routes including roadmap detail, settings, and both
   study-room routes, scheduler-secret rejection, and the interactive roadmap
@@ -975,10 +975,19 @@ Architecture notes:
 
 ```bash
 npm install
+npm run check:env
 npm run dev
 ```
 
 Default development URL: `http://localhost:3000`
+
+`.env.local` is not in the repository and cannot be reconstructed from it. Restore
+it with `scripts/bootstrap-staging.sh <staging-ref>`, which links the CLI to
+staging, pushes migrations, runs the pgTAP suites, and pulls the six variables from
+the Vercel **Development** environment. `npm run check:env` reports every missing,
+placeholder, or production-pointing value at once and never prints one. The full
+sequence, including the dashboard steps no script can perform, is in
+`docs/staging.md`.
 
 Required verification before handing off code changes:
 
@@ -996,17 +1005,21 @@ port 3100, so run `npm run build` first (the script order above does).
 
 `npm run db:test` requires a running local Supabase/Postgres stack or an
 explicitly connected test database. Without Docker, the pgTAP suites run
-against the linked hosted project through
-`python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql`, which uses
-the Supabase CLI access token from the macOS keychain and prints full TAP
-output. Search, both roadmap suites, and the study-room suite were last run
-transactionally against the applied hosted schema on 2026-08-24.
+against the linked hosted project through `npm run db:test:hosted` (every suite)
+or `python3 scripts/run-pgtap-hosted.py supabase/tests/<suite>.sql` (one). The
+runner takes its target from the linked ref or `SUPABASE_PROJECT_REF`, never a
+hard-coded one, and refuses production without `ALLOW_PRODUCTION_DB_WRITE=1`;
+these suites insert rows and roll them back, so they belong on staging. It
+authenticates with `SUPABASE_ACCESS_TOKEN` or the Supabase CLI's macOS keychain
+entry and prints full TAP output. Search, both roadmap suites, and the
+study-room suite were last run transactionally against the applied hosted schema
+on 2026-08-24, before the staging separation.
 
-Last verified baseline on 2026-08-24:
+Last verified baseline on 2026-09-22 (pgTAP counts are from the 2026-08-24 hosted run; they have not been re-run since, pending the staging project):
 
 ```yaml
-vitest_tests: 90 passed
-e2e_smoke_tests: 16 passed
+vitest_tests: 158 passed
+e2e_smoke_tests: 27 passed
 hosted_notes_foundation_pgtap_tests: 38 passed
 hosted_note_upload_pgtap_tests: 38 passed
 hosted_note_library_access_pgtap_tests: 13 passed
@@ -1097,7 +1110,7 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage includes 90 Vitest tests, a 16-test Playwright smoke
+1. Automated coverage includes 158 Vitest tests, a 27-test Playwright smoke
    suite (`npm run test:e2e`, unauthenticated flows only), 38 hosted
    notes-foundation pgTAP tests, 38 hosted upload-pipeline pgTAP tests, 13
    hosted library-access pgTAP tests, 29 hosted rating pgTAP tests, 22 hosted
@@ -1233,7 +1246,7 @@ The correct starting assumption for future work is:
 > The repository has a 90-test Vitest foundation for Auth, onboarding,
 > protected routes, file signatures, note-upload server actions, stalled
 > completion recovery, rating actions, and library query normalization, plus
-> a 16-test Playwright smoke suite for public
+> a 27-test Playwright smoke suite for public
 > routes, security headers, and the roadmap demo. The
 > current Turnstile widget is registered for
 > localhost, so deployment must add the production hostname or use a separate
