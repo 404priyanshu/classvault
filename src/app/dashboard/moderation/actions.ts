@@ -20,6 +20,16 @@ const moderationSchema = z.object({
   safeOwnerMessage: z.string().trim().max(1000).optional(),
 })
 
+const suspendSchema = z.object({
+  noteId: z.string().uuid(),
+  reason: z.string().trim().min(1).max(500),
+})
+
+const restoreSchema = z.object({
+  reason: z.string().trim().min(1).max(500),
+  userId: z.string().uuid(),
+})
+
 function moderationRedirect(message: string) {
   return `/dashboard/moderation?status=${encodeURIComponent(message)}`
 }
@@ -62,4 +72,66 @@ export async function moderateNoteAction(formData: FormData) {
   revalidatePath(`/dashboard/notes/${parsed.data.noteId}`)
   revalidatePath('/dashboard/vault')
   redirect(moderationRedirect('Moderation action saved.'))
+}
+
+/**
+ * Suspends the uploader of a reported note.
+ *
+ * Addressed by note rather than by student: the queue shows a pseudonymous
+ * owner label and no id, and `suspend_note_owner` resolves the owner itself.
+ * The database refuses anyone who is not a platform administrator, so the only
+ * check here is that the form was well formed.
+ */
+export async function suspendNoteOwnerAction(formData: FormData) {
+  const parsed = suspendSchema.safeParse({
+    noteId: formData.get('noteId'),
+    reason: formData.get('reason'),
+  })
+  if (!parsed.success) {
+    redirect(moderationRedirect('A suspension needs a reason of up to 500 characters.'))
+  }
+
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/moderation')
+
+  const { data, error } = await supabase.rpc('suspend_note_owner', {
+    p_note_id: parsed.data.noteId,
+    p_reason: parsed.data.reason,
+  })
+
+  if (error || !data) {
+    redirect(moderationRedirect('That account could not be suspended.'))
+  }
+
+  revalidatePath('/dashboard/moderation')
+  redirect(moderationRedirect('Account suspended.'))
+}
+
+/** Lifts a suspension from the administrator's list of suspended accounts. */
+export async function restoreAccountAction(formData: FormData) {
+  const parsed = restoreSchema.safeParse({
+    reason: formData.get('reason'),
+    userId: formData.get('userId'),
+  })
+  if (!parsed.success) {
+    redirect(moderationRedirect('Lifting a suspension needs a reason.'))
+  }
+
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  if (!claimsData?.claims) redirect('/auth/sign-in?next=/dashboard/moderation')
+
+  const { data, error } = await supabase.rpc('set_account_suspension', {
+    p_reason: parsed.data.reason,
+    p_suspended: false,
+    p_user_id: parsed.data.userId,
+  })
+
+  if (error || !data) {
+    redirect(moderationRedirect('That suspension could not be lifted.'))
+  }
+
+  revalidatePath('/dashboard/moderation')
+  redirect(moderationRedirect('Suspension lifted.'))
 }

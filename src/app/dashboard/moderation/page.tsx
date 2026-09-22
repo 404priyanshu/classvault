@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Building2,
   CheckCircle2,
+  CircleSlash,
   Eye,
   Flag,
   ShieldAlert,
@@ -15,7 +16,11 @@ import { PageHeader } from '@/components/dashboard/PageHeader'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
-import { moderateNoteAction } from './actions'
+import {
+  moderateNoteAction,
+  restoreAccountAction,
+  suspendNoteOwnerAction,
+} from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,7 +68,36 @@ function actionLabel(action: string) {
     .join(' ')
 }
 
-function QueueCard({ item }: { item: QueueItem }) {
+function SuspendOwnerForm({ item }: { item: QueueItem }) {
+  return (
+    <form
+      action={suspendNoteOwnerAction}
+      className="mt-4 grid gap-3 border-t border-dashed border-club-line pt-4 sm:grid-cols-[minmax(0,1fr)_auto]"
+    >
+      <input name="noteId" type="hidden" value={item.note_id} />
+      <label className="sr-only" htmlFor={`suspend-${item.report_id}`}>
+        Reason for suspending the uploader
+      </label>
+      <input
+        className="h-10 rounded-full border border-[#9a3328]/40 bg-[#fff2ef] px-3 text-xs outline-none placeholder:text-club-muted focus:border-[#9a3328]"
+        id={`suspend-${item.report_id}`}
+        maxLength={500}
+        name="reason"
+        placeholder="Why this uploader's access is being suspended"
+        required
+      />
+      <button
+        className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[#9a3328] bg-[#fff2ef] px-3 text-xs font-black text-[#9a3328] hover:-translate-y-0.5"
+        type="submit"
+      >
+        <CircleSlash aria-hidden className="h-3.5 w-3.5" />
+        Suspend uploader
+      </button>
+    </form>
+  )
+}
+
+function QueueCard({ item, canSuspend }: { item: QueueItem; canSuspend: boolean }) {
   return (
     <article className="rounded-3xl border border-club-line bg-club-paper p-5 [box-shadow:var(--elev-inline)] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -155,6 +189,8 @@ function QueueCard({ item }: { item: QueueItem }) {
           </button>
         </form>
       </div>
+
+      {canSuspend ? <SuspendOwnerForm item={item} /> : null}
     </article>
   )
 }
@@ -165,9 +201,20 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
   const claims = await getRequestClaims()
   if (!claims) redirect('/auth/sign-in?next=/dashboard/moderation')
 
-  const { data, error } = await supabase.rpc('list_moderation_queue', { p_limit: 100 })
+  const [
+    { data, error },
+    { data: adminRoleData },
+    { data: suspendedData },
+  ] = await Promise.all([
+    supabase.rpc('list_moderation_queue', { p_limit: 100 }),
+    supabase.rpc('has_platform_notes_role', { accepted_roles: ['platform_admin'] }),
+    // Returns nothing for a non-administrator, so no extra gate is needed here.
+    supabase.rpc('list_suspended_accounts', { p_limit: 100 }),
+  ])
   if (error) throw new Error('The moderation queue could not be loaded.')
   const items = (data || []) as QueueItem[]
+  const isAdmin = Boolean(adminRoleData)
+  const suspendedAccounts = suspendedData || []
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-4">
@@ -185,7 +232,9 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
 
       {items.length ? (
         <section className="space-y-4" aria-label="Open moderation reports">
-          {items.map((item) => <QueueCard item={item} key={item.report_id} />)}
+          {items.map((item) => (
+            <QueueCard canSuspend={isAdmin} item={item} key={item.report_id} />
+          ))}
         </section>
       ) : (
         <section className="grid min-h-[360px] place-items-center rounded-xl border border-club-line bg-club-paper px-6 py-12 text-center">
@@ -196,6 +245,49 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
           </div>
         </section>
       )}
+
+      {isAdmin && suspendedAccounts.length ? (
+        <section aria-label="Suspended accounts" className="rounded-xl border border-club-line bg-club-paper p-5">
+          <h2 className="font-display text-xl font-black">Suspended accounts</h2>
+          <p className="mt-1 text-xs leading-relaxed text-club-muted">
+            Access only. Their notes and shared plans stay visible under the
+            usual rules.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {suspendedAccounts.map((account) => (
+              <li className="rounded-xl border border-club-line bg-white/70 p-4" key={account.user_id}>
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="text-sm font-black">{account.display_name || 'Student'}</span>
+                  {account.decided_by_label ? (
+                    <span className="text-xs text-club-muted">suspended by {account.decided_by_label}</span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-club-ink/80">{account.suspension_reason}</p>
+                <form action={restoreAccountAction} className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <input name="userId" type="hidden" value={account.user_id} />
+                  <label className="sr-only" htmlFor={`restore-${account.user_id}`}>
+                    Reason for lifting this suspension
+                  </label>
+                  <input
+                    className="h-10 rounded-full border border-club-line bg-club-lavender px-3 text-xs outline-none placeholder:text-club-muted focus:border-club-purple"
+                    id={`restore-${account.user_id}`}
+                    maxLength={500}
+                    name="reason"
+                    placeholder="Why this suspension is being lifted"
+                    required
+                  />
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-club-purple bg-club-purple px-3 text-xs font-black text-club-paper hover:-translate-y-0.5"
+                    type="submit"
+                  >
+                    Lift suspension
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <p className="inline-flex items-center gap-2 text-xs leading-relaxed text-club-muted"><XCircle aria-hidden className="h-4 w-4 text-[#9a3f2f]" /> Actions are audited. Owners see only the safe message you provide, never reporter identity or internal reason codes.</p>
     </div>

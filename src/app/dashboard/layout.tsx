@@ -24,7 +24,7 @@ export default async function DashboardLayout({
   const [profileResult, membershipResult, platformRoleResult] = await Promise.all([
     supabase
       .from('profiles')
-      .select('avatar_url, display_name, university_name, course, onboarding_completed_at')
+      .select('avatar_url, display_name, university_name, course, onboarding_completed_at, suspended_at')
       .eq('id', claims.sub)
       .maybeSingle(),
     supabase
@@ -41,6 +41,14 @@ export default async function DashboardLayout({
 
   if (!profile?.onboarding_completed_at) {
     redirect('/onboarding')
+  }
+
+  // The notice lives outside /dashboard, so this can redirect unconditionally
+  // without the layout needing to know which dashboard route was requested.
+  // The database refuses a suspended student's writes regardless; this is what
+  // stops them staring at a shell whose every control fails.
+  if (profile.suspended_at) {
+    redirect('/suspended')
   }
 
   const email =
