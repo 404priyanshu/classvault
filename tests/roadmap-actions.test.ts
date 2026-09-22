@@ -59,6 +59,7 @@ describe('roadmap generation actions', () => {
       createRoadmapAction,
       retryRoadmapAction,
       roadmapActions.setRoadmapTaskProgressAction,
+      roadmapActions.setRoadmapSharingAction,
     ])
     expect(
       Object.values(roadmapActions).every(
@@ -131,5 +132,65 @@ describe('roadmap generation actions', () => {
       ROADMAP_ID,
       OWNER_ID,
     )
+  })
+
+  it('does not reach the database when the sharing form is malformed', async () => {
+    const formData = new FormData()
+    formData.set('roadmapId', 'not-a-uuid')
+    formData.set('enabled', 'true')
+
+    await roadmapActions.setRoadmapSharingAction(formData)
+
+    expect(createClientMock).not.toHaveBeenCalled()
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  it('passes the sharing decision straight to the database function', async () => {
+    const rpc = authenticatedClient()
+    const formData = new FormData()
+    formData.set('roadmapId', ROADMAP_ID)
+    formData.set('enabled', 'true')
+
+    await roadmapActions.setRoadmapSharingAction(formData)
+
+    expect(rpc).toHaveBeenCalledWith('set_roadmap_sharing', {
+      p_enabled: true,
+      p_roadmap_id: ROADMAP_ID,
+    })
+    expect(revalidatePathMock).toHaveBeenCalledWith(
+      `/dashboard/roadmaps/${ROADMAP_ID}`,
+    )
+  })
+
+  // Anything other than the literal 'true' must revoke rather than enable, so a
+  // mangled form cannot turn sharing on by accident.
+  it('treats a non-true enabled field as a revocation', async () => {
+    const rpc = authenticatedClient()
+    const formData = new FormData()
+    formData.set('roadmapId', ROADMAP_ID)
+    formData.set('enabled', 'false')
+
+    await roadmapActions.setRoadmapSharingAction(formData)
+
+    expect(rpc).toHaveBeenCalledWith('set_roadmap_sharing', {
+      p_enabled: false,
+      p_roadmap_id: ROADMAP_ID,
+    })
+  })
+
+  it('does not revalidate when the database refuses the sharing change', async () => {
+    createClientMock.mockResolvedValue({
+      auth: {
+        getClaims: vi.fn().mockResolvedValue({ data: { claims: { sub: OWNER_ID } } }),
+      },
+      rpc: vi.fn().mockResolvedValue({ data: null, error: { message: 'denied' } }),
+    })
+    const formData = new FormData()
+    formData.set('roadmapId', ROADMAP_ID)
+    formData.set('enabled', 'true')
+
+    await roadmapActions.setRoadmapSharingAction(formData)
+
+    expect(revalidatePathMock).not.toHaveBeenCalled()
   })
 })

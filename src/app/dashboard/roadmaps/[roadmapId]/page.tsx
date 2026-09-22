@@ -2,17 +2,16 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
   ArrowLeft,
-  BookOpenCheck,
   CalendarDays,
   CheckCircle2,
-  FileWarning,
   LockKeyhole,
-  Route,
 } from 'lucide-react'
 import { z } from 'zod'
-import { RoadmapTaskToggle } from '@/components/roadmaps/RoadmapTaskToggle'
+import { RoadmapSections } from '@/components/roadmaps/RoadmapSections'
+import { RoadmapShareControls } from '@/components/roadmaps/RoadmapShareControls'
 import { formatRoadmapStudyMode } from '@/lib/roadmaps/foundation'
 import { roadmapSnapshotSchema } from '@/lib/roadmaps/snapshot'
+import { getSiteUrl } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -44,6 +43,18 @@ export default async function RoadmapDetailPage({
   const roadmap = parsed.data
   const tasks = roadmap.sections.flatMap((section) => section.tasks)
   const completedTasks = tasks.filter((task) => task.completed).length
+
+  // Owner-only, and separate from the snapshot on purpose: the snapshot is the
+  // same shape a share viewer receives, so the token never belongs in it.
+  const { data: shareRows } = await supabase.rpc('get_roadmap_share_state', {
+    p_roadmap_id: roadmapId.data,
+  })
+  const shareState = shareRows?.[0]
+  const sharingEnabled = shareState?.sharing_enabled ?? false
+  const shareUrl =
+    sharingEnabled && shareState?.share_token
+      ? `${getSiteUrl()}/roadmaps/shared/${roadmap.id}/${shareState.share_token}`
+      : null
 
   return (
     <div className="mx-auto max-w-[1120px] space-y-6 sm:space-y-8">
@@ -82,99 +93,19 @@ export default async function RoadmapDetailPage({
             Private progress
           </span>
         </div>
+
+        <RoadmapShareControls
+          roadmapId={roadmap.id}
+          shareUrl={shareUrl}
+          sharingEnabled={sharingEnabled}
+        />
       </header>
 
-      <div className="space-y-5">
-        {roadmap.sections.map((section) =>
-          section.available ? (
-            <section
-              className="border border-club-line bg-club-paper [box-shadow:var(--elev-inline)]"
-              key={section.id}
-            >
-              <div className="border-b border-club-line p-5 sm:p-6">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.09em] text-[#b56d00]">
-                    <Route aria-hidden className="h-4 w-4" />
-                    Phase {section.position}
-                  </span>
-                  <span className="rounded-full border border-club-line bg-club-lavender px-2.5 py-1 text-[11px] font-black">
-                    {section.timeframe}
-                  </span>
-                </div>
-                <h2 className="font-display mt-3 text-2xl font-black sm:text-3xl">
-                  {section.title}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-club-muted">
-                  {section.summary}
-                </p>
-              </div>
-
-              <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
-                <div className="p-5 sm:p-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.08em]">
-                    Tasks
-                  </h3>
-                  <ul className="mt-3 space-y-3">
-                    {section.tasks.map((task) => (
-                      <li className="flex items-start gap-3" key={task.id}>
-                        <RoadmapTaskToggle
-                          completed={Boolean(task.completed)}
-                          roadmapId={roadmap.id}
-                          taskId={task.id}
-                        />
-                        <span
-                          className={`pt-1 text-sm leading-relaxed ${task.completed ? 'text-club-muted line-through' : 'text-club-ink/80'}`}
-                        >
-                          {task.text}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <aside className="border-t border-club-line bg-club-lavender p-5 lg:border-l lg:border-t-0">
-                  <h3 className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.08em]">
-                    <BookOpenCheck aria-hidden className="h-4 w-4 text-club-purple" />
-                    Cited sources
-                  </h3>
-                  <ul className="mt-3 space-y-2">
-                    {section.sources.map((source, sourceIndex) => (
-                      <li className="text-xs leading-relaxed" key={`${section.id}-${source.noteId || sourceIndex}`}>
-                        {source.linkAvailable && source.noteId ? (
-                          <Link
-                            className="font-bold text-club-purple underline decoration-club-yellow decoration-2 underline-offset-2"
-                            href={`/dashboard/notes/${source.noteId}`}
-                          >
-                            {source.title}
-                          </Link>
-                        ) : (
-                          <span className="font-bold text-club-muted">
-                            {source.title} · unavailable
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </aside>
-              </div>
-            </section>
-          ) : (
-            <section
-              className="border border-dashed border-[#9a3328]/50 bg-[#fff2ef] p-6"
-              key={section.id}
-            >
-              <FileWarning aria-hidden className="h-6 w-6 text-[#9a3328]" />
-              <h2 className="font-display mt-3 text-2xl font-black">
-                Phase {section.position} is unavailable
-              </h2>
-              <p className="mt-2 text-sm text-club-muted">
-                At least one cited source is no longer authorized, so the entire
-                derived section has been withheld.
-              </p>
-            </section>
-          ),
-        )}
-      </div>
+      <RoadmapSections
+        roadmapId={roadmap.id}
+        sections={roadmap.sections}
+        showProgress
+      />
     </div>
   )
 }

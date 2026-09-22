@@ -1394,6 +1394,15 @@ export type Database = {
           publication_status: string
         }[]
       }
+      get_roadmap_share_state: {
+        Args: { p_roadmap_id: string }
+        // share_token is null once sharing is revoked; the CLI generator types
+        // it as a plain string.
+        Returns: {
+          share_token: string | null
+          sharing_enabled: boolean
+        }[]
+      }
       get_roadmap_snapshot: {
         Args: { p_roadmap_id: string; p_share_token?: string }
         Returns: Json
