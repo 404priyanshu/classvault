@@ -25,6 +25,9 @@ import { isRoadmapWorkerConfigured } from '@/lib/roadmaps/worker'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+// Roadmap generation runs inside this route's server actions and can wait on
+// a model for tens of seconds.
+export const maxDuration = 60
 
 const dateFormatter = new Intl.DateTimeFormat('en-IN', {
   day: 'numeric',

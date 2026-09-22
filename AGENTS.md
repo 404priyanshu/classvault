@@ -437,7 +437,7 @@ product_pillars:
     intent:
       - Generate study plans grounded in notes the student may access
       - Respect content permissions and university boundaries
-    implementation_status: Deterministic source-cited generation, static snapshot/source authorization, retry recovery, owner progress, and revocable sharing are implemented; live AI model calls remain deferred and the landing-page demo remains scripted
+    implementation_status: Deterministic source-cited generation, static snapshot/source authorization, retry recovery, owner progress, and revocable sharing are implemented; AI generation through Gemini (`src/lib/roadmaps/gemini.ts`) is implemented and switches on only when `GEMINI_API_KEY` is set; without it the deterministic generator runs. Only public notes are sent to the model, because the free tier may use submitted content to improve Google's products; campus-only notes are cited in a locally written closing section instead. AI roadmaps are capped per student per rolling day (`ROADMAP_DAILY_LIMIT`, default 5). The landing-page demo remains scripted
 ```
 
 Additional product concepts currently expressed in page copy:
@@ -698,7 +698,7 @@ These are product claims, not implemented or validated system behavior.
 not_implemented:
   - A staffed campus membership-review queue (the workflow is live; no reviewer has been appointed, deliberately, until the operator invites students)
   - Payments or subscriptions
-  - Live AI model calls, prompt orchestration, or model evaluation
+  - A configured AI key in production, and any evaluation of AI roadmap quality against real notes
   - WebRTC video/audio
   - Durable cross-room chat or message history
   - Image OCR for note search (blocked on a Google Cloud Vision account)

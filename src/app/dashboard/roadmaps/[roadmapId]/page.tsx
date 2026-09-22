@@ -15,6 +15,9 @@ import { getSiteUrl } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+// Roadmap generation runs inside this route's server actions and can wait on
+// a model for tens of seconds.
+export const maxDuration = 60
 
 const roadmapIdSchema = z.string().uuid()
 const generatedDateFormatter = new Intl.DateTimeFormat('en-IN', {
