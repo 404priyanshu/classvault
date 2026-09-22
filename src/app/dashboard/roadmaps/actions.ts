@@ -69,7 +69,7 @@ function generationFailureMessage(failureCode: string) {
     return 'This roadmap is already generating. Its status will refresh automatically.'
   }
   if (failureCode === 'no_sources') {
-    return 'Upload or publish at least one eligible note before generating a roadmap.'
+    return 'No notes match that topic yet. Try the course or subject name, or upload notes for it.'
   }
   if (failureCode === 'source_access_changed') {
     return 'A source changed while generation was starting. Create a new roadmap to refresh the source set.'

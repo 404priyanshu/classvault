@@ -124,6 +124,7 @@ export default async function RoadmapsPage() {
 
       <div id="generate-roadmap">
         <RoadmapRequestForm
+          aiEnabled={Boolean(process.env.GEMINI_API_KEY?.trim())}
           sourceCount={Number(eligibility?.total_eligible_count || 0)}
           workerConfigured={workerConfigured}
         />
@@ -136,7 +137,7 @@ export default async function RoadmapsPage() {
               Your starting material
             </h2>
             <p className="mt-1 text-xs text-club-muted">
-              We’ll select from the notes you can open. Your campus access determines what’s available.
+              We’ll pick the notes that match your topic from the ones you can open. Your campus access determines what’s available.
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.08em] text-club-purple">
