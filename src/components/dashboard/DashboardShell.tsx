@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, FileText, LayoutDashboard, Menu, Route, Settings, ShieldAlert, Trash2, Upload, UsersRound, X, ArrowUpRight } from 'lucide-react'
+import { BookOpen, FileText, GraduationCap, LayoutDashboard, Menu, Route, Settings, ShieldAlert, Trash2, Upload, UsersRound, X, ArrowUpRight } from 'lucide-react'
 import { ProfileAvatar } from '@/components/settings/ProfileAvatar'
 import { Brand } from '@/components/ui/Brand'
 import { cn } from '@/lib/utils'
@@ -25,6 +25,7 @@ const navigation = [
   { href: '/dashboard/notes', icon: FileText, label: 'Notes library' },
   { href: '/dashboard/roadmaps', icon: Route, label: 'Study roadmaps' },
   { href: '/dashboard/study-rooms', icon: UsersRound, label: 'Study rooms' },
+  { href: '/dashboard/verification', icon: GraduationCap, label: 'Campus verification' },
   { href: '/dashboard/vault', icon: BookOpen, label: 'My Vault' },
   { href: '/dashboard/vault?view=trash', icon: Trash2, label: 'Trash' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
@@ -34,6 +35,7 @@ function getPageTitle(path: string, isTrash: boolean) {
   if (path === '/dashboard/vault') return isTrash ? 'Trash' : 'My Vault'
   if (path === '/dashboard/notes/new') return 'Upload notes'
   if (path === '/dashboard/notes/batch') return 'Batch upload'
+  if (path.startsWith('/dashboard/verification')) return 'Campus verification'
   if (path.startsWith('/dashboard/moderation')) return 'Moderation'
   return [...navigation].reverse().find(item => path.startsWith(item.href.split('?')[0]))?.label || 'Your clubhouse'
 }
@@ -94,7 +96,7 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
             <div><span className="hidden text-[10px] font-bold uppercase tracking-wider text-club-muted sm:block">Your study space</span><p className="truncate text-base font-extrabold tracking-tight">{getPageTitle(pathname, isTrash)}</p></div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-full bg-club-lavender px-3 py-2 text-[11px] font-semibold text-club-deep sm:block">{membershipStatus === 'verified' ? '✓ Campus verified' : 'Campus verification pending'}</span>
+            <span className="hidden rounded-full bg-club-lavender px-3 py-2 text-[11px] font-semibold text-club-deep sm:block">{membershipStatus === 'verified' ? '✓ Campus verified' : membershipStatus === 'rejected' ? 'Campus access unverified' : 'Campus verification pending'}</span>
             <Link href="/dashboard/settings" aria-label="Edit profile settings"><ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} className="h-10 w-10 rounded-full text-sm" /></Link>
           </div>
         </header>
