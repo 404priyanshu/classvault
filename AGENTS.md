@@ -656,9 +656,17 @@ These are product claims, not implemented or validated system behavior.
   a co-host, or a platform moderator, because the database refuses them. The
   room snapshot carries `viewerMuted` for the caller and `mutedUserIds` only for
   a host or co-host, so a mute is visible to the person it silences and to the
-  person who can lift it, and to nobody else. The reports themselves have no
-  reviewer surface yet: they are filed and stored, and `/dashboard/moderation`
-  still lists note reports only.
+  person who can lift it, and to nobody else.
+- Study-room reports are reviewed on `/dashboard/moderation`, in a section
+  below the note queue, by platform moderators and administrators only --
+  campus moderators do not see them, because a public room mixes campuses. Each
+  card shows the room name, whether the room is still live, the reporter and
+  reported participant as labels rather than ids, and the messages the reporter
+  cited. A reviewer takes a report under review or closes it, and closing
+  requires a note saying what was decided; the reviewer and their note are
+  recorded on the report. An administrator can suspend the reported account
+  from the card, addressed by report id, which is the same shape
+  `suspend_note_owner` uses to keep ids out of a moderator's queue.
 - Rooms delete with their messages when ended, when the last member leaves, or
   through the service-role-only `/api/cron/purge-study-rooms` expiry worker.
   Plan capacity/duration values are server-owned snapshots; all users currently

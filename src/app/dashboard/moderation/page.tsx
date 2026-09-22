@@ -13,6 +13,10 @@ import {
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { PageHeader } from '@/components/dashboard/PageHeader'
+import {
+  StudyRoomReportCard,
+  type StudyRoomReportItem,
+} from '@/components/moderation/StudyRoomReportCard'
 import { AuthMessage } from '@/components/auth/AuthMessage'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
@@ -205,16 +209,24 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
     { data, error },
     { data: adminRoleData },
     { data: suspendedData },
+    { data: roomReportData, error: roomReportError },
   ] = await Promise.all([
     supabase.rpc('list_moderation_queue', { p_limit: 100 }),
     supabase.rpc('has_platform_notes_role', { accepted_roles: ['platform_admin'] }),
     // Returns nothing for a non-administrator, so no extra gate is needed here.
     supabase.rpc('list_suspended_accounts', { p_limit: 100 }),
+    // Same shape: the function returns nothing to a student, so a campus
+    // moderator loading this page simply sees no room section.
+    supabase.rpc('list_study_room_reports', { p_limit: 100 }),
   ])
   if (error) throw new Error('The moderation queue could not be loaded.')
+  if (roomReportError) {
+    throw new Error('The study-room report queue could not be loaded.')
+  }
   const items = (data || []) as QueueItem[]
   const isAdmin = Boolean(adminRoleData)
   const suspendedAccounts = suspendedData || []
+  const roomReports = (roomReportData || []) as StudyRoomReportItem[]
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-4">
@@ -245,6 +257,29 @@ export default async function ModerationPage({ searchParams }: ModerationPagePro
           </div>
         </section>
       )}
+
+      {roomReports.length ? (
+        <section className="space-y-4" aria-label="Open study-room reports">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-club-line pt-5">
+            <h2 className="font-display text-2xl font-black">Study-room reports</h2>
+            <span className="text-xs font-bold text-club-purple">
+              {roomReports.length} open
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed text-club-muted">
+            Reported by a participant, reviewed by platform staff rather than by
+            the room&rsquo;s host. Rooms are temporary, so most of these are
+            judged after the room has already ended.
+          </p>
+          {roomReports.map((report) => (
+            <StudyRoomReportCard
+              canSuspend={isAdmin}
+              item={report}
+              key={report.report_id}
+            />
+          ))}
+        </section>
+      ) : null}
 
       {isAdmin && suspendedAccounts.length ? (
         <section aria-label="Suspended accounts" className="rounded-xl border border-club-line bg-club-paper p-5">
