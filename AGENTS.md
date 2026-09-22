@@ -657,6 +657,17 @@ These are product claims, not implemented or validated system behavior.
   room snapshot carries `viewerMuted` for the caller and `mutedUserIds` only for
   a host or co-host, so a mute is visible to the person it silences and to the
   person who can lift it, and to nobody else.
+- Both ADR 0030 abuse limits are enforced in the database and configurable
+  without a deploy: `study_room_plan_limits` gained
+  `chat_messages_per_window`, `chat_window_seconds`, `rooms_per_window` and
+  `room_window_minutes`, so tightening either cap after the pilot is an update
+  statement. Free is 12 messages per 30 seconds and 6 rooms per hour; pro is 30
+  and 12. The chat cap counts straight from `study_room_messages` and is
+  governed by the room's `host_plan_snapshot`, not the poster's plan. Room
+  creation needs `study_room_creation_log`, a who-and-when ledger, because a
+  study_rooms row is deleted when the room ends and counting live rooms would
+  let create/end/create/end evade the cap entirely; it is pruned on write to
+  twice the widest configured window.
 - Study-room reports are reviewed on `/dashboard/moderation`, in a section
   below the note queue, by platform moderators and administrators only --
   campus moderators do not see them, because a public room mixes campuses. Each

@@ -331,4 +331,43 @@ describe('study-room server actions', () => {
     ).resolves.toMatchObject({ kind: 'error' })
     expect(createClientMock).not.toHaveBeenCalled()
   })
+  // The database expresses both ADR 0030 caps as a raised 53400. These assert
+  // the room surface turns each into copy a student can act on, rather than the
+  // generic "could not update" that every unmapped error falls through to.
+  it('explains a room-creation cap instead of failing generically', async () => {
+    authenticatedClient(() => ({
+      data: null,
+      error: { message: 'Too many rooms created recently' },
+    }))
+
+    await expect(
+      studyRoomActions.createStudyRoomAction(
+        initialStudyRoomActionState,
+        validCreateForm(),
+      ),
+    ).resolves.toMatchObject({
+      kind: 'error',
+      message: expect.stringContaining('Wait a few minutes'),
+    })
+  })
+
+  it('explains a chat cap instead of failing generically', async () => {
+    authenticatedClient(() => ({
+      data: null,
+      error: { message: 'You are sending messages too quickly' },
+    }))
+    const formData = new FormData()
+    formData.set('body', 'spam spam spam')
+    formData.set('roomId', ROOM_ID)
+
+    await expect(
+      studyRoomActions.sendStudyRoomMessageAction(
+        initialStudyRoomActionState,
+        formData,
+      ),
+    ).resolves.toMatchObject({
+      kind: 'error',
+      message: expect.stringContaining('too quickly'),
+    })
+  })
 })

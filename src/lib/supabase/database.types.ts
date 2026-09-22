@@ -854,6 +854,32 @@ export type Database = {
           },
         ]
       }
+      study_room_creation_log: {
+        Row: {
+          created_at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_room_creation_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_room_members: {
         Row: {
           avatar_url_snapshot: string | null
@@ -978,25 +1004,37 @@ export type Database = {
       }
       study_room_plan_limits: {
         Row: {
+          chat_messages_per_window: number
+          chat_window_seconds: number
           duration_minutes: number
           maximum_break_minutes: number
           maximum_focus_minutes: number
           member_capacity: number
           plan: string
+          room_window_minutes: number
+          rooms_per_window: number
         }
         Insert: {
+          chat_messages_per_window?: number
+          chat_window_seconds?: number
           duration_minutes: number
           maximum_break_minutes: number
           maximum_focus_minutes: number
           member_capacity: number
           plan: string
+          room_window_minutes?: number
+          rooms_per_window?: number
         }
         Update: {
+          chat_messages_per_window?: number
+          chat_window_seconds?: number
           duration_minutes?: number
           maximum_break_minutes?: number
           maximum_focus_minutes?: number
           member_capacity?: number
           plan?: string
+          room_window_minutes?: number
+          rooms_per_window?: number
         }
         Relationships: []
       }
