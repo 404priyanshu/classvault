@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 export function NoteMetadataFields({
   description,
   hasVerifiedUniversity,
+  initialTitle = '',
   onDescriptionChange,
   onTagsChange,
   subjects,
@@ -16,6 +17,7 @@ export function NoteMetadataFields({
 }: {
   description: string
   hasVerifiedUniversity: boolean
+  initialTitle?: string
   onDescriptionChange: (value: string) => void
   onTagsChange: (value: string) => void
   subjects: SubjectOption[]
@@ -30,6 +32,7 @@ export function NoteMetadataFields({
           Title
           <input
             className="app-field px-3 text-base font-medium"
+            defaultValue={initialTitle}
             maxLength={180}
             name="title"
             placeholder="Enter a clear and specific title"

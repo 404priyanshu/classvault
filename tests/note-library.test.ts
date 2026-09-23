@@ -3,6 +3,8 @@ import {
   formatFileSize,
   normalizeNoteLibraryQuery,
   noteLibrarySearchParams,
+  uploadHrefForSearch,
+  uploadTitleFromSearch,
 } from '@/lib/notes/library'
 
 describe('normalizeNoteLibraryQuery', () => {
@@ -81,5 +83,23 @@ describe('formatFileSize', () => {
   it('formats kilobytes and megabytes for note metadata', () => {
     expect(formatFileSize(512)).toBe('1 KB')
     expect(formatFileSize(1024 * 1024 * 2.25)).toBe('2.3 MB')
+  })
+})
+
+describe('upload prompt from an empty search', () => {
+  it('carries the search into the upload form as a starting title', () => {
+    expect(uploadHrefForSearch('  DBMS   normalisation ')).toBe(
+      '/dashboard/notes/new?title=DBMS+normalisation',
+    )
+  })
+
+  it('falls back to a blank form when there is nothing to carry', () => {
+    expect(uploadHrefForSearch('   ')).toBe('/dashboard/notes/new')
+    expect(uploadTitleFromSearch(undefined)).toBe('')
+  })
+
+  it('keeps the first value and stays within the title limit', () => {
+    expect(uploadTitleFromSearch(['OS', 'ignored'])).toBe('OS')
+    expect(uploadTitleFromSearch('x'.repeat(400))).toHaveLength(180)
   })
 })

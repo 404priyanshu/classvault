@@ -8,11 +8,13 @@ import {
   SearchX,
   ShieldCheck,
   Star,
+  Upload,
 } from 'lucide-react'
 import {
   formatNoteType,
   noteLibrarySearchParams,
   type NoteLibraryQuery,
+  uploadHrefForSearch,
 } from '@/lib/notes/library'
 
 export type LibraryNoteItem = {
@@ -186,19 +188,48 @@ export function NoteLibraryResults({
                 className="mx-auto h-10 w-10 text-club-purple"
                 strokeWidth={1.45}
               />
-              <h3 className="font-display mt-4 text-2xl font-black">
-                No notes match this shelf
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-club-muted">
-                Try clearing a filter or searching with fewer words. Notes you
-                cannot access remain hidden by the database.
-              </p>
-              <Link
-                className="mt-5 inline-flex min-h-10 items-center rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)]"
-                href="/dashboard/notes"
-              >
-                Clear all filters
-              </Link>
+              {query.query ? (
+                <>
+                  <h3 className="font-display mt-4 text-2xl font-black">
+                    Nobody has shared “{query.query}” yet
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-club-muted">
+                    If you have notes on it, you could be the first. The next
+                    student who searches for it will find yours.
+                  </p>
+                  <div className="mt-5 flex flex-wrap justify-center gap-2">
+                    <Link
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)]"
+                      href={uploadHrefForSearch(query.query)}
+                    >
+                      <Upload aria-hidden className="h-4 w-4" />
+                      Share notes on this
+                    </Link>
+                    <Link
+                      className="inline-flex min-h-10 items-center rounded-full border border-club-line bg-club-paper px-4 text-sm font-black text-club-purple hover:border-club-purple"
+                      href="/dashboard/notes"
+                    >
+                      Clear all filters
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-display mt-4 text-2xl font-black">
+                    No notes match this shelf
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-club-muted">
+                    Try clearing a filter or searching with fewer words. Notes
+                    you cannot access remain hidden by the database.
+                  </p>
+                  <Link
+                    className="mt-5 inline-flex min-h-10 items-center rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)]"
+                    href="/dashboard/notes"
+                  >
+                    Clear all filters
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

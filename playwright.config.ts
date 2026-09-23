@@ -37,6 +37,10 @@ export default defineConfig({
     command: `npm run start -- -p ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
+    // Roadmaps under test use the deterministic generator. A GEMINI_API_KEY in
+    // .env.local would otherwise send test notes to Google on every run; an
+    // explicitly empty value wins over .env.local and switches it off.
+    env: { GEMINI_API_KEY: '' },
     timeout: 60_000,
   },
 })
