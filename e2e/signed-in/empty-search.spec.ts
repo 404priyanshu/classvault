@@ -31,7 +31,9 @@ test('a search that finds nothing invites the student to share that note', async
       timeout: 1_000,
     })
   }).toPass({ timeout: 15_000 })
-  await page.getByLabel('Subject').fill('Operating Systems')
+  // A course the seeded catalog lacks, published with the default Public
+  // access: the pairing that used to be refused.
+  await page.getByLabel('Subject').fill(`Compiler Design ${randomUUID().slice(0, 4)}`)
   await page.getByLabel('Note type').selectOption('lecture_notes')
   await page.getByRole('button', { name: 'Publish note' }).click()
   await expect(page).toHaveURL(/\/dashboard(\?|$)/, { timeout: 20_000 })

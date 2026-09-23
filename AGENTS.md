@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 5 signed-in Playwright journeys, and 449 pgTAP tests across 18 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
+automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 6 signed-in Playwright journeys, and 458 pgTAP tests across 19 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -699,12 +699,12 @@ These are product claims, not implemented or validated system behavior.
   production on 2026-09-23.
 - Automated coverage as of 2026-09-23: 194 Vitest tests across 30 files
   (server actions, validation, helpers, the Supabase target guard), 28
-  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 5
+  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 6
   signed-in Playwright journeys (`npm run test:e2e:signed-in`, local stack
   only: email sign-up through Mailpit and onboarding, note upload/search/open/
   download with usage-event checks, roadmap generation, and a two-student
   study room with Realtime chat), and
-  449 pgTAP tests across 18 suites in `supabase/tests/`, run locally with
+  458 pgTAP tests across 19 suites in `supabase/tests/`, run locally with
   `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
   database: rows left behind by manual browser testing have broken assertions
   that pass after `supabase db reset`.
