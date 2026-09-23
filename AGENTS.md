@@ -20,7 +20,7 @@ document:
 project_name: ClassVault
 product_stage: Deployed pre-launch application — marketing landing page plus authenticated onboarding, notes, moderation, search, deterministic study-roadmap generation with sharing, realtime study rooms with room-scoped abuse controls, campus membership review, and account suspension
 production_application_status: Auth, secure onboarding, notes upload/library/detail/lifecycle, moderation, permission-safe search, deterministic source-cited study-roadmap generation and sharing, temporary realtime study rooms with the full ADR 0030 abuse controls, campus membership review, and account suspension are implemented and live in production. No campus reviewer has been appointed: that is deliberate and waits on the operator inviting students, so the review queue exists with nobody staffing it
-supabase_project: Production is ref hndgstbutlkjqnrxvqtm, ap-south-1. Development and every pgTAP run target a LOCAL Supabase stack in Docker, not a hosted project — `npm run local:bootstrap` starts it, resets it, runs `supabase test db`, and writes `.env.local` from `supabase status`. ADR 0029 decided that development must never target production and assumed a second hosted project; the Supabase organization is on the Free plan, whose two-active-project limit is already taken, so the isolation is provided by the local stack instead. The ADR was amended on 2026-09-22 to record the local stack as the mechanism. docs/staging.md remains the runbook if a hosted staging project is ever created. scripts/supabase-target.mjs and scripts/run-pgtap-hosted.py refuse to target production unless ALLOW_PRODUCTION_DB_WRITE=1 is set deliberately; npm run db:push, db:reset:staging, and db:test:hosted all go through that guard. Promote a proven migration with npm run db:push:production as a separately reviewed act, and dry-run it first — `db push` promotes everything pending on disk, so check out the branch whose state you intend to promote rather than pushing from a feature branch that carries unmerged migrations. Apply migrations through the CLI, not the dashboard: the dashboard stamps wall-clock time instead of the filename's version, which is how five 2026-09-10 migrations came to be recorded under versions the repository did not have. Those files were renamed on 2026-09-22; the two histories match exactly at 41 migrations as of 2026-09-22, with nothing unpromoted. npm run db:status re-checks that against whichever project is linked.
+supabase_project: Production is ref hndgstbutlkjqnrxvqtm, ap-south-1. Development and every pgTAP run target a LOCAL Supabase stack in Docker, not a hosted project — `npm run local:bootstrap` starts it, resets it, runs `supabase test db`, and writes `.env.local` from `supabase status`. ADR 0029 decided that development must never target production and assumed a second hosted project; the Supabase organization is on the Free plan, whose two-active-project limit is already taken, so the isolation is provided by the local stack instead. The ADR was amended on 2026-09-22 to record the local stack as the mechanism. docs/staging.md remains the runbook if a hosted staging project is ever created. scripts/supabase-target.mjs and scripts/run-pgtap-hosted.py refuse to target production unless ALLOW_PRODUCTION_DB_WRITE=1 is set deliberately; npm run db:push, db:reset:staging, and db:test:hosted all go through that guard. Promote a proven migration with npm run db:push:production as a separately reviewed act, and dry-run it first — `db push` promotes everything pending on disk, so check out the branch whose state you intend to promote rather than pushing from a feature branch that carries unmerged migrations. Apply migrations through the CLI, not the dashboard: the dashboard stamps wall-clock time instead of the filename's version, which is how five 2026-09-10 migrations came to be recorded under versions the repository did not have. Those files were renamed on 2026-09-22; the two histories match exactly at 43 migrations as of 2026-09-23, with nothing unpromoted. npm run db:status re-checks that against whichever project is linked.
 framework: Next.js 16.3.1
 router: Next.js App Router
 language: TypeScript
@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 175 Vitest tests (28 files), 28 Playwright smoke tests, and 427 pgTAP tests across 16 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-22)
+automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, and 449 pgTAP tests across 18 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -695,12 +695,12 @@ These are product claims, not implemented or validated system behavior.
   a non-owner opening a note, a download, a publication, a ready roadmap, and
   creating or joining a room. The operator reads `usage_daily_summary` and
   `usage_weekly_students` (active and returning students) from the SQL editor
-  or with the service role; students cannot read any of it. Not yet promoted
-  to production.
-- Automated coverage as of 2026-09-22: 175 Vitest tests across 28 files
+  or with the service role; students cannot read any of it. Promoted to
+  production on 2026-09-23.
+- Automated coverage as of 2026-09-23: 194 Vitest tests across 30 files
   (server actions, validation, helpers, the Supabase target guard), 28
   Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), and
-  427 pgTAP tests across 16 suites in `supabase/tests/`, run locally with
+  449 pgTAP tests across 18 suites in `supabase/tests/`, run locally with
   `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
   database: rows left behind by manual browser testing have broken assertions
   that pass after `supabase db reset`.
@@ -1305,7 +1305,7 @@ The correct starting assumption for future work, as of 2026-09-22:
 
 > Every pillar except live AI calls, image OCR, payments, and room media is
 > implemented, tested, and live in production at https://www.classvault.in,
-> with the production database matching the repository at 41 migrations.
+> with the production database matching the repository at 43 migrations.
 > Study rooms carry the full ADR 0030 abuse controls; account suspension,
 > campus membership review, and roadmap sharing shipped on 2026-09-22.
 > Development runs against a local Supabase stack in Docker. The product has no
