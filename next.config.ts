@@ -17,6 +17,23 @@ const securityHeaders = [
   },
 ]
 
+// A production build pointed at the local Supabase stack (the signed-in e2e
+// suite) talks to http://127.0.0.1:54321 and its ws:// Realtime socket, which
+// *.supabase.co does not cover, and upgrade-insecure-requests would rewrite
+// both to https. Hosted builds are
+// unaffected: their URL is already a *.supabase.co origin.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const localSupabaseOrigin =
+  supabaseUrl && /^http:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(supabaseUrl)
+    ? new URL(supabaseUrl).origin
+    : null
+const storageSources = localSupabaseOrigin
+  ? `https://*.supabase.co ${localSupabaseOrigin}`
+  : 'https://*.supabase.co'
+const realtimeSources = localSupabaseOrigin
+  ? `wss://*.supabase.co ${localSupabaseOrigin.replace(/^http/, 'ws')}`
+  : 'wss://*.supabase.co'
+
 // Production-only because Next.js dev overlays require 'unsafe-eval'.
 const productionContentSecurityPolicy = [
   "default-src 'self'",
@@ -25,20 +42,20 @@ const productionContentSecurityPolicy = [
   // Turnstile widget script and frame.
   "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co",
+  `img-src 'self' data: blob: ${storageSources}`,
   "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self' ${storageSources} ${realtimeSources}`,
   // Chrome renders a PDF <object> in a nested browsing context, which frame-src
   // governs rather than object-src, so note previews need Storage listed here
   // too or they silently fail to paint.
-  'frame-src https://challenges.cloudflare.com https://*.supabase.co',
+  `frame-src https://challenges.cloudflare.com ${storageSources}`,
   // Note previews embed private signed Storage URLs through <object>.
-  'object-src https://*.supabase.co',
+  `object-src ${storageSources}`,
   "worker-src 'self' blob:",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  'upgrade-insecure-requests',
+  ...(localSupabaseOrigin ? [] : ['upgrade-insecure-requests']),
 ].join('; ')
 
 const nextConfig: NextConfig = {

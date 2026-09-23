@@ -17,8 +17,21 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: 'signed-in/**',
       use: { ...devices['Desktop Chrome'] },
     },
+    // Signed-in journeys need the local Supabase stack (npm run
+    // local:bootstrap) and a build made against it, so they only run when
+    // asked for: npm run test:e2e:signed-in.
+    ...(process.env.E2E_SIGNED_IN
+      ? [
+          {
+            name: 'signed-in',
+            testDir: './e2e/signed-in',
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
   ],
   webServer: {
     command: `npm run start -- -p ${PORT}`,

@@ -4,7 +4,8 @@
 # minute rather than waiting behind a browser install and a production build.
 #
 # No repository secrets are required. Every value below is synthetic: the
-# specs only exercise signed-out routes, and `getClaims` returns without a
+# `e2e` specs only exercise signed-out routes (the signed-in job overrides them
+# with a local stack's own keys), and `getClaims` returns without a
 # network call when the request carries no session cookie, so a well-formed
 # but fictional Supabase URL is enough to get past `isSupabaseConfigured`.
 # Wiring the real project in would buy nothing and would stop the workflow
@@ -79,5 +80,50 @@ jobs:
         if: failure()
         with:
           name: playwright-trace
+          path: test-results/
+          retention-days: 7
+
+  # Signed-in journeys against a throwaway local Supabase stack on the runner:
+  # sign-up with email confirmation, note upload/search/download, roadmap
+  # generation, and a two-student study room. Still no repository secrets --
+  # every key below is the stack's own, printed by `supabase status`.
+  e2e-signed-in:
+    name: End-to-end (signed in)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      # `start` applies every migration; the analytics, edge-runtime, and
+      # studio containers are not needed here and only slow the pull.
+      - run: npx supabase start -x studio,edge-runtime,logflare,vector,imgproxy,supavisor
+
+      # Overrides the synthetic workflow values for this job only. The build
+      # reads NEXT_PUBLIC_* at build time, so this has to precede it.
+      - name: Point the app at the local stack
+        run: |
+          eval "$(npx supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}"
+          } >> "$GITHUB_ENV"
+
+      - run: npm run build
+
+      - run: npm run test:e2e:signed-in
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-trace-signed-in
           path: test-results/
           retention-days: 7
