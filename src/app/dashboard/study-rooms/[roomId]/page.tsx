@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { StudyRoomChat } from '@/components/study-rooms/StudyRoomChat'
 import { StudyRoomExitControls } from '@/components/study-rooms/StudyRoomExitControls'
 import { StudyRoomMembers } from '@/components/study-rooms/StudyRoomMembers'
+import { StudyRoomMessagesProvider } from '@/components/study-rooms/StudyRoomMessages'
 import { StudyRoomRealtime } from '@/components/study-rooms/StudyRoomRealtime'
 import { StudyRoomTimer } from '@/components/study-rooms/StudyRoomTimer'
 import { parseStudyRoomSnapshot } from '@/lib/study-rooms/types'
@@ -64,6 +65,7 @@ export default async function StudyRoomPage({
   const isHost = viewerRole === 'host'
 
   return (
+    <StudyRoomMessagesProvider initialMessages={messages} roomId={room.id}>
     <div className="space-y-6">
       <StudyRoomRealtime roomId={room.id} />
 
@@ -154,7 +156,6 @@ export default async function StudyRoomPage({
             <StudyRoomMembers
               currentUserId={currentUserId}
               members={members}
-              messages={messages}
               mutedUserIds={mutedInRoom}
               roomId={room.id}
               viewerRole={viewerRole}
@@ -164,11 +165,11 @@ export default async function StudyRoomPage({
 
         <StudyRoomChat
           currentUserId={currentUserId}
-          initialMessages={messages}
           roomId={room.id}
           viewerMuted={viewerMuted}
         />
       </div>
     </div>
+    </StudyRoomMessagesProvider>
   )
 }

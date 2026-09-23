@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { Flag, MicOff, UserMinus, Volume2, X } from 'lucide-react'
-import type { StudyRoomMessage } from '@/lib/study-rooms/types'
+import { useStudyRoomMessages } from './StudyRoomMessages'
 import { StudyRoomReasonForm } from './StudyRoomReasonForm'
 import { StudyRoomReportForm } from './StudyRoomReportForm'
 
@@ -21,18 +21,21 @@ const pillClass =
 export function StudyRoomMemberActions({
   displayName,
   isMuted,
-  messages,
   roomId,
   showControls,
   userId,
 }: {
   displayName: string
   isMuted: boolean
-  messages: StudyRoomMessage[]
   roomId: string
   showControls: boolean
   userId: string
 }) {
+  // Live, not the server snapshot: a message posted since the page loaded is
+  // usually the one being reported.
+  const messages = useStudyRoomMessages().filter(
+    (message) => message.authorId === userId,
+  )
   const [panel, setPanel] = useState<Panel>(null)
   const close = useCallback(() => setPanel(null), [])
 
