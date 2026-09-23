@@ -684,6 +684,19 @@ These are product claims, not implemented or validated system behavior.
   resolve to Free until billing supplies real entitlements. The 57-test hosted
   study-room pgTAP suite covers privileges, campus isolation, lifecycle, role
   transfer, timer concurrency, chat scope, cleanup, and Realtime publication.
+- First-party demand-pilot usage counts (2026-09-23). Migration
+  `20260923010000_create_usage_events.sql` adds a forced-RLS `usage_events`
+  ledger (who, which of six events, optional note id, whether a search found
+  anything, when) written only through the authenticated
+  `record_usage_event(...)` RPC, which derives the student from `auth.uid()`
+  and drops a repeat `note_opened` within ten minutes. No search text or
+  request details are stored. `src/lib/usage.ts` records events in `after()`
+  so counting never slows or fails a request. Recorded: a search's first page,
+  a non-owner opening a note, a download, a publication, a ready roadmap, and
+  creating or joining a room. The operator reads `usage_daily_summary` and
+  `usage_weekly_students` (active and returning students) from the SQL editor
+  or with the service role; students cannot read any of it. Not yet promoted
+  to production.
 - Automated coverage as of 2026-09-22: 175 Vitest tests across 28 files
   (server actions, validation, helpers, the Supabase target guard), 28
   Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), and

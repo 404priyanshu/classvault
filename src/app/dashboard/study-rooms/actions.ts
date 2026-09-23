@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import type { StudyRoomActionState } from '@/lib/study-rooms/action-state'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 const roomIdSchema = z.string().uuid()
 const createRoomSchema = z.object({
@@ -140,6 +141,8 @@ export async function createStudyRoomAction(
     return { kind: 'error', message: mapRoomError(error?.message) }
   }
 
+  // The host joins the room they open, so creating one counts as a join.
+  recordUsageEvent(authenticated.supabase, { event: 'study_room_joined' })
   refreshRoom(roomId)
   redirect(`/dashboard/study-rooms/${roomId}`)
 }
@@ -167,6 +170,7 @@ export async function joinStudyRoomAction(
     return { kind: 'error', message: mapRoomError(error?.message) }
   }
 
+  recordUsageEvent(authenticated.supabase, { event: 'study_room_joined' })
   refreshRoom(roomId.data)
   redirect(`/dashboard/study-rooms/${roomId.data}`)
 }

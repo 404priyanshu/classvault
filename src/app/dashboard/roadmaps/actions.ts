@@ -6,6 +6,7 @@ import type { RoadmapGenerationActionState } from '@/lib/roadmaps/action-state'
 import { generateRoadmapForOwner, isRoadmapWorkerConfigured } from '@/lib/roadmaps/worker'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 const roadmapRequestSchema = z.object({
   studyMode: z.enum(['indepth', 'exam']),
@@ -144,6 +145,7 @@ export async function createRoadmapAction(
   revalidatePath('/dashboard/roadmaps')
 
   if (result.status === 'ready') {
+    recordUsageEvent(authenticated.supabase, { event: 'roadmap_generated' })
     revalidatePath(`/dashboard/roadmaps/${result.roadmapId}`)
     return {
       kind: 'success',
