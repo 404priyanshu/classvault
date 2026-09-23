@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createClientMock, redirectMock, revalidatePathMock } = vi.hoisted(() => ({
-  createClientMock: vi.fn(),
-  redirectMock: vi.fn(),
-  revalidatePathMock: vi.fn(),
-}))
+const { createClientMock, recordUsageEventMock, redirectMock, revalidatePathMock } =
+  vi.hoisted(() => ({
+    createClientMock: vi.fn(),
+    recordUsageEventMock: vi.fn(),
+    redirectMock: vi.fn(),
+    revalidatePathMock: vi.fn(),
+  }))
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: createClientMock }))
 vi.mock('next/cache', () => ({ revalidatePath: revalidatePathMock }))
 vi.mock('next/navigation', () => ({ redirect: redirectMock }))
+vi.mock('@/lib/usage', () => ({ recordUsageEvent: recordUsageEventMock }))
 
 import * as studyRoomActions from '@/app/dashboard/study-rooms/actions'
 import { initialStudyRoomActionState } from '@/lib/study-rooms/action-state'
@@ -116,6 +119,9 @@ describe('study-room server actions', () => {
       formData,
     )
 
+    expect(recordUsageEventMock).toHaveBeenCalledWith(expect.anything(), {
+      event: 'study_room_joined',
+    })
     expect(rpc).toHaveBeenCalledWith('join_study_room', {
       p_room_id: ROOM_ID,
     })

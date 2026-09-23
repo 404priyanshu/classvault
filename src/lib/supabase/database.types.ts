@@ -1926,6 +1926,10 @@ export type Database = {
         Args: { p_reason: string; p_room_id: string; p_user_id: string }
         Returns: boolean
       }
+      record_usage_event: {
+        Args: { p_event: string; p_found_results?: boolean; p_note_id?: string }
+        Returns: boolean
+      }
       report_note: {
         Args: { p_category: string; p_details?: string; p_note_id: string }
         Returns: {

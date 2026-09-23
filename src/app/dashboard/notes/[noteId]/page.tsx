@@ -20,6 +20,7 @@ import { RatingStars } from '@/components/notes/RatingStars'
 import { ReportNoteForm } from '@/components/notes/ReportNoteForm'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,6 +92,10 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
       : Number(rating.average_rating)
   const viewerId = claimsResult?.sub ?? null
   const canRate = viewerId !== null && viewerId !== note.owner_id
+  // An owner rereading their own upload is not demand.
+  if (canRate) {
+    recordUsageEvent(supabase, { event: 'note_opened', noteId: note.id })
+  }
   let previewUrl: string | null = null
 
   if (file) {

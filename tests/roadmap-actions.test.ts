@@ -5,8 +5,10 @@ const {
   createClientMock,
   generateRoadmapForOwnerMock,
   isRoadmapWorkerConfiguredMock,
+  recordUsageEventMock,
   revalidatePathMock,
 } = vi.hoisted(() => ({
+  recordUsageEventMock: vi.fn(),
   adminCountMock: vi.fn(),
   createClientMock: vi.fn(),
   generateRoadmapForOwnerMock: vi.fn(),
@@ -20,6 +22,7 @@ vi.mock('@/lib/roadmaps/worker', () => ({
   isRoadmapWorkerConfigured: isRoadmapWorkerConfiguredMock,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: revalidatePathMock }))
+vi.mock('@/lib/usage', () => ({ recordUsageEvent: recordUsageEventMock }))
 // The daily-cap count: a chain ending in the awaited count result.
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
@@ -114,6 +117,9 @@ describe('roadmap generation actions', () => {
       kind: 'success',
       message: 'Your grounded roadmap is ready.',
       roadmapId: ROADMAP_ID,
+    })
+    expect(recordUsageEventMock).toHaveBeenCalledWith(expect.anything(), {
+      event: 'roadmap_generated',
     })
     expect(rpc).toHaveBeenCalledWith('create_roadmap_source_snapshot', {
       p_study_mode: 'exam',

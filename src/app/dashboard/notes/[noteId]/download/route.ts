@@ -4,6 +4,7 @@ import {
   getAccessibleNoteFile,
 } from '@/lib/notes/storage/access'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 export async function GET(
   request: NextRequest,
@@ -30,6 +31,7 @@ export async function GET(
       download: true,
     })
 
+    recordUsageEvent(supabase, { event: 'note_downloaded', noteId })
     return NextResponse.redirect(downloadUrl)
   } catch {
     return new NextResponse('Note file not found', { status: 404 })

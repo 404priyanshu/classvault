@@ -13,6 +13,7 @@ import {
 } from '@/lib/notes/library'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 export const dynamic = 'force-dynamic'
 
@@ -114,6 +115,14 @@ export default async function NotesLibraryPage({
   if (query.page > pageCount && totalCount > 0) {
     const params = noteLibrarySearchParams(query, { page: pageCount })
     redirect(`/dashboard/notes${params ? `?${params}` : ''}`)
+  }
+
+  // Counted once per search, not once per page of its results.
+  if (query.query && query.page === 1) {
+    recordUsageEvent(supabase, {
+      event: 'notes_searched',
+      foundResults: totalCount > 0,
+    })
   }
 
   const activeFilterCount = [

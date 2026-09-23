@@ -6,6 +6,7 @@ import { NOTE_FILE_BUCKET, NOTE_FILE_MAX_BYTES } from '@/lib/notes/storage/contr
 import { runNoteExtraction } from '@/lib/notes/search/runner'
 import { verifyStoredNoteFile } from '@/lib/notes/storage/supabase-server'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsageEvent } from '@/lib/usage'
 
 const noteTypeSchema = z.enum([
   'lecture_notes',
@@ -330,6 +331,11 @@ export async function completeNoteUploadAction(input: {
     }
 
     if (completed.publication_status === 'published') {
+      recordUsageEvent(supabase, {
+        event: 'note_uploaded',
+        noteId: parsed.data.noteId,
+      })
+
       // Index after the response is sent so publishing stays fast. The claim
       // RPC is FIFO and shared with the scheduled worker, so this drains the
       // oldest pending notes rather than necessarily this one; either way the
