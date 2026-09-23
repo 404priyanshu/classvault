@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, and 449 pgTAP tests across 18 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
+automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 5 signed-in Playwright journeys, and 449 pgTAP tests across 18 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -699,7 +699,11 @@ These are product claims, not implemented or validated system behavior.
   production on 2026-09-23.
 - Automated coverage as of 2026-09-23: 194 Vitest tests across 30 files
   (server actions, validation, helpers, the Supabase target guard), 28
-  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), and
+  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 5
+  signed-in Playwright journeys (`npm run test:e2e:signed-in`, local stack
+  only: email sign-up through Mailpit and onboarding, note upload/search/open/
+  download with usage-event checks, roadmap generation, and a two-student
+  study room with Realtime chat), and
   449 pgTAP tests across 18 suites in `supabase/tests/`, run locally with
   `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
   database: rows left behind by manual browser testing have broken assertions
@@ -1043,6 +1047,12 @@ npm run db:test
 `npm run test:e2e` builds nothing itself; it starts the production server on
 port 3100, so run `npm run build` first (the script order above does).
 
+`npm run test:e2e:signed-in` needs the local stack (`npm run local:bootstrap`)
+and a build made against it, because `NEXT_PUBLIC_*` values are baked in at
+build time. It refuses any Supabase URL that is not 127.0.0.1 or localhost.
+Accounts it creates use unique `e2e-*@bennett.edu.in` addresses and are not
+cleaned up; `npm run db:reset` clears them.
+
 `npm run db:test` runs the pgTAP suites against the local stack, which is the
 normal way to run them now: all 311 assertions across 11 suites passed there on
 2026-09-22, the first run anywhere since 2026-08-24. It requires a running local
@@ -1170,9 +1180,10 @@ package-manager migration. Do not introduce `pnpm-lock.yaml` or
 
 ## 8. Known risks and technical debt
 
-1. Automated coverage is listed in section 3. Authenticated multi-user
-   journeys (upload/download, rooms, moderation) have no automated browser
-   coverage and rely on manual runs against the local stack.
+1. Automated coverage is listed in section 3. Signed-in journeys run in CI
+   against a throwaway local stack (the `e2e-signed-in` job). Moderation,
+   reporting, room abuse controls, settings, and account suspension still have
+   no automated browser coverage.
 2. `npm audit --omit=dev` reported zero vulnerabilities as of 2026-08-21 after
    the Next.js 16.3.1 upgrade. Do not run `npm audit fix --force`; prefer a
    deliberate in-range upgrade verified by the full suite.

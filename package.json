@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:signed-in": "E2E_SIGNED_IN=1 playwright test --project=signed-in",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "supabase:start": "supabase start",
