@@ -21,7 +21,7 @@ export default async function DashboardLayout({
     redirect('/auth/sign-in?next=/dashboard')
   }
 
-  const [profileResult, membershipResult, platformRoleResult] = await Promise.all([
+  const [profileResult, membershipResult, platformRoleResult, adminRoleResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('avatar_url, display_name, university_name, course, onboarding_completed_at, suspended_at')
@@ -34,6 +34,9 @@ export default async function DashboardLayout({
       .maybeSingle(),
     supabase.rpc('has_platform_notes_role', {
       accepted_roles: ['platform_moderator', 'platform_admin'],
+    }),
+    supabase.rpc('has_platform_notes_role', {
+      accepted_roles: ['platform_admin'],
     }),
   ])
 
@@ -64,6 +67,7 @@ export default async function DashboardLayout({
       course={profile.course}
       displayName={displayName}
       membershipStatus={membershipResult.data?.status || 'pending'}
+      isAdmin={Boolean(adminRoleResult.data)}
       isModerator={
         Boolean(platformRoleResult.data) ||
         ['moderator', 'admin'].includes(membershipResult.data?.role || '')

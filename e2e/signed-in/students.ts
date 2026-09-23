@@ -203,3 +203,14 @@ export async function publishNote(
   // The dashboard drops its ?status= notice from the address once shown.
   await expect(page).toHaveURL(/\/dashboard(\?|$)/, { timeout: 20_000 })
 }
+
+/** Grants a platform role directly; there is no in-app flow for it. */
+export async function grantPlatformRole(
+  studentId: string,
+  role: 'platform_admin' | 'platform_moderator',
+) {
+  const { error } = await adminClient()
+    .from('platform_roles')
+    .insert({ role, user_id: studentId } as never)
+  if (error) throw new Error(`Could not grant ${role}: ${error.message}`)
+}

@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(14);
+select extensions.plan(19);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
@@ -104,6 +104,57 @@ select extensions.is(
   array['abababab-0000-4000-8000-00000000e001'::uuid],
   'events are attributed to the caller, never to a supplied user'
 );
+
+-- The admin-only readers behind /dashboard/usage.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+)
+values
+  ('00000000-0000-0000-0000-000000000000', 'abababab-0000-4000-8000-00000000e003', 'authenticated', 'authenticated', 'usage-admin@example.com', '', now(), '{}', '{}', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', 'abababab-0000-4000-8000-00000000e004', 'authenticated', 'authenticated', 'usage-moderator@example.com', '', now(), '{}', '{}', now(), now());
+insert into public.platform_roles (user_id, role)
+values
+  ('abababab-0000-4000-8000-00000000e003', 'platform_admin'),
+  ('abababab-0000-4000-8000-00000000e004', 'platform_moderator');
+
+select extensions.ok(
+  not has_function_privilege('anon', 'public.get_usage_daily(integer)', 'EXECUTE')
+    and not has_function_privilege('anon', 'public.get_usage_weekly(integer)', 'EXECUTE'),
+  'anonymous visitors cannot read usage summaries'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'abababab-0000-4000-8000-00000000e001', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-0000-4000-8000-00000000e001","role":"authenticated"}', true);
+select extensions.throws_ok(
+  $$select * from public.get_usage_daily()$$,
+  '42501',
+  null,
+  'a student cannot read usage summaries'
+);
+
+select set_config('request.jwt.claim.sub', 'abababab-0000-4000-8000-00000000e004', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-0000-4000-8000-00000000e004","role":"authenticated"}', true);
+select extensions.throws_ok(
+  $$select * from public.get_usage_weekly()$$,
+  '42501',
+  null,
+  'a moderator who is not an administrator cannot read usage summaries'
+);
+
+select set_config('request.jwt.claim.sub', 'abababab-0000-4000-8000-00000000e003', true);
+select set_config('request.jwt.claims', '{"sub":"abababab-0000-4000-8000-00000000e003","role":"authenticated"}', true);
+select extensions.is(
+  (select sum(events)::integer from public.get_usage_daily(7) where event = 'note_opened'),
+  1,
+  'an administrator sees daily counts, with the repeat open already dropped'
+);
+select extensions.ok(
+  (select active_students from public.get_usage_weekly(1)) >= 1,
+  'an administrator sees weekly active students'
+);
+reset role;
 
 select * from extensions.finish();
 rollback;

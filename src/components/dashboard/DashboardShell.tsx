@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, FileText, GraduationCap, LayoutDashboard, Menu, Route, Settings, ShieldAlert, Trash2, Upload, UsersRound, X, ArrowUpRight } from 'lucide-react'
+import { BarChart3, BookOpen, FileText, GraduationCap, LayoutDashboard, Menu, Route, Settings, ShieldAlert, Trash2, Upload, UsersRound, X, ArrowUpRight } from 'lucide-react'
 import { ProfileAvatar } from '@/components/settings/ProfileAvatar'
 import { Brand } from '@/components/ui/Brand'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ type DashboardShellProps = {
   membershipStatus: string
   signOutControl: ReactNode
   universityName: string | null
+  isAdmin?: boolean
   isModerator?: boolean
 }
 
@@ -37,16 +38,21 @@ function getPageTitle(path: string, isTrash: boolean) {
   if (path === '/dashboard/notes/batch') return 'Batch upload'
   if (path.startsWith('/dashboard/verification')) return 'Campus verification'
   if (path.startsWith('/dashboard/moderation')) return 'Moderation'
+  if (path.startsWith('/dashboard/usage')) return 'Usage'
   return [...navigation].reverse().find(item => path.startsWith(item.href.split('?')[0]))?.label || 'Your clubhouse'
 }
 
-export function DashboardShell({ avatarUrl, children, course, displayName, membershipStatus, signOutControl, universityName, isModerator = false }: DashboardShellProps) {
+export function DashboardShell({ avatarUrl, children, course, displayName, membershipStatus, signOutControl, universityName, isAdmin = false, isModerator = false }: DashboardShellProps) {
   const pathname = usePathname()
   const params = useSearchParams()
   const [menuOpen, setMenuOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const isTrash = params.get('view') === 'trash'
-  const items = isModerator ? [...navigation, { href: '/dashboard/moderation', icon: ShieldAlert, label: 'Moderation' }] : navigation
+  const items = [
+    ...navigation,
+    ...(isModerator ? [{ href: '/dashboard/moderation', icon: ShieldAlert, label: 'Moderation' }] : []),
+    ...(isAdmin ? [{ href: '/dashboard/usage', icon: BarChart3, label: 'Usage' }] : []),
+  ]
 
   useEffect(() => {
     if (menuOpen) dialogRef.current?.showModal()
