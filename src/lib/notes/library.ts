@@ -94,3 +94,24 @@ export function formatFileSize(bytes: number) {
 
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+const NOTE_TITLE_MAX_LENGTH = 180
+
+/**
+ * A title to start an upload with, carried over from a search that found
+ * nothing. Only ever a starting value in the form: the student edits it and
+ * the server validates it like any other title.
+ */
+export function uploadTitleFromSearch(value: string | string[] | undefined) {
+  const raw = Array.isArray(value) ? value[0] : value
+  const title = (raw ?? '').replace(/\s+/g, ' ').trim()
+  return title.slice(0, NOTE_TITLE_MAX_LENGTH)
+}
+
+/** Where a search that found nothing sends the student to share the note. */
+export function uploadHrefForSearch(query: string) {
+  const title = uploadTitleFromSearch(query)
+  return title
+    ? `/dashboard/notes/new?${new URLSearchParams({ title })}`
+    : '/dashboard/notes/new'
+}

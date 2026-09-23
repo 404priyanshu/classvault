@@ -11,12 +11,14 @@ import { validateSelectedFile } from './upload/file-prep'
 
 type UploadNoteFormProps = {
   hasVerifiedUniversity: boolean
+  initialTitle?: string
   subjects: SubjectOption[]
   universityName: string | null
 }
 
 export function UploadNoteForm({
   hasVerifiedUniversity,
+  initialTitle = '',
   subjects,
   universityName,
 }: UploadNoteFormProps) {
@@ -136,6 +138,7 @@ export function UploadNoteForm({
             />
 
             <NoteMetadataFields
+              initialTitle={initialTitle}
               description={description}
               hasVerifiedUniversity={hasVerifiedUniversity}
               onDescriptionChange={setDescription}

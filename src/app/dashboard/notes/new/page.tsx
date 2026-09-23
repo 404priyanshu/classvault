@@ -1,11 +1,17 @@
 import { redirect } from 'next/navigation'
 import { UploadNoteForm } from '@/components/notes/UploadNoteForm'
+import { uploadTitleFromSearch } from '@/lib/notes/library'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewNotePage() {
+type NewNotePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function NewNotePage({ searchParams }: NewNotePageProps) {
+  const initialTitle = uploadTitleFromSearch((await searchParams).title)
   const supabase = await createClient()
   const claims = await getRequestClaims()
 
@@ -43,6 +49,7 @@ export default async function NewNotePage() {
     <div className="mx-auto max-w-7xl">
       <UploadNoteForm
         hasVerifiedUniversity={membership?.status === 'verified'}
+        initialTitle={initialTitle}
         subjects={subjects || []}
         universityName={profile.university_name}
       />
