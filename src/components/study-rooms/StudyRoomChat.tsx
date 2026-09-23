@@ -1,13 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import {
-  parseStudyRoomMessageRow,
-  type StudyRoomMessage,
-} from '@/lib/study-rooms/types'
 import { StudyRoomChatForm } from './StudyRoomChatForm'
+import { useStudyRoomMessages } from './StudyRoomMessages'
 
 /**
  * Times are pinned to the room's audience rather than the renderer's clock.
@@ -25,79 +20,19 @@ const messageTimeFormat = new Intl.DateTimeFormat('en-IN', {
 })
 
 /**
- * Room chat that grows from its own realtime feed.
- *
- * Every message used to arrive as `router.refresh()`, so one student typing in
- * a room of ten cost ten snapshot queries and ten full server renders. The
- * insert payload already carries every column this list draws, including the
- * denormalised author name, so the message can simply be appended.
- *
- * Realtime applies the subscriber's own select policy before delivering a row,
- * which is the same boundary `get_study_room_snapshot` renders behind: a
- * student who could not read the message on the server cannot receive it here.
+ * Room chat. The messages come from StudyRoomMessagesProvider, which keeps
+ * them current over realtime for the whole room.
  */
 export function StudyRoomChat({
   currentUserId,
-  initialMessages,
   roomId,
   viewerMuted,
 }: {
   currentUserId: string
-  initialMessages: StudyRoomMessage[]
   roomId: string
   viewerMuted: boolean
 }) {
-  const [liveMessages, setLiveMessages] = useState<StudyRoomMessage[]>([])
-
-  // The snapshot is the base and anything realtime delivered sits on top,
-  // deduplicated by id. Merging rather than replacing means a re-render from a
-  // member joining cannot drop a message that arrived since the snapshot was
-  // built, and a message the snapshot has already caught up on collapses back
-  // into a single entry. Identity ordering is insertion ordering, so sorting by
-  // id reproduces the `created_at, id` order the snapshot is built with.
-  const messages = useMemo(() => {
-    if (liveMessages.length === 0) return initialMessages
-
-    const byId = new Map<number, StudyRoomMessage>()
-    for (const message of [...initialMessages, ...liveMessages]) {
-      byId.set(message.id, message)
-    }
-
-    return [...byId.values()].sort((left, right) => left.id - right.id)
-  }, [initialMessages, liveMessages])
-
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`study-room-chat-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          filter: `room_id=eq.${roomId}`,
-          schema: 'public',
-          table: 'study_room_messages',
-        },
-        (payload) => {
-          const message = parseStudyRoomMessageRow(payload.new)
-          if (!message) return
-
-          setLiveMessages((current) =>
-            // The sender receives their own insert too, and a reconnect can
-            // replay one that already landed.
-            current.some((existing) => existing.id === message.id)
-              ? current
-              : [...current, message],
-          )
-        },
-      )
-
-    channel.subscribe()
-
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [roomId])
+  const messages = useStudyRoomMessages()
 
   return (
     <section className="flex min-h-[640px] flex-col rounded-3xl border border-club-line bg-club-paper p-5 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]">

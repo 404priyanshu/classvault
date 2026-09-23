@@ -14,14 +14,12 @@ function roleLabel(role: 'host' | 'cohost' | 'member') {
 export function StudyRoomMembers({
   currentUserId,
   members,
-  messages,
   mutedUserIds,
   roomId,
   viewerRole,
 }: {
   currentUserId: string
   members: StudyRoomSnapshot['members']
-  messages: StudyRoomSnapshot['messages']
   mutedUserIds: string[]
   roomId: string
   viewerRole: StudyRoomSnapshot['viewerRole']
@@ -98,9 +96,6 @@ export function StudyRoomMembers({
               <StudyRoomMemberActions
                 displayName={member.displayName}
                 isMuted={isMuted}
-                messages={messages.filter(
-                  (message) => message.authorId === member.userId,
-                )}
                 roomId={roomId}
                 showControls={showControls}
                 userId={member.userId}
