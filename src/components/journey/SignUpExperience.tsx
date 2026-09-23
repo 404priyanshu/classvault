@@ -89,11 +89,16 @@ export function SignUpExperience({
               type="email"
               required
               placeholder="you@college.edu"
+              aria-describedby="signup-email-hint"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
         </fieldset>
+        <p id="signup-email-hint" className={styles.hint}>
+          Use your college email to unlock campus-only notes and rooms straight
+          away. You can add it later too.
+        </p>
         <div>
           <label htmlFor="signup-password" className={styles.label}>
             Password

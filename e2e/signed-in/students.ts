@@ -47,15 +47,19 @@ export function uniqueEmail(label: string, domain = BENNETT_DOMAIN) {
 }
 
 /**
- * A confirmed Bennett student who has finished onboarding.
+ * A confirmed student who has finished onboarding at Bennett.
  *
  * Built through the same RPC the onboarding form calls, signed in as the
  * student, so the membership comes out `verified` for the real reason (a
- * confirmed academic address) rather than by writing the row directly.
+ * confirmed academic address) rather than by writing the row directly. Pass
+ * another domain for a student whose campus is still `pending`.
  */
-export async function createStudent(label: string): Promise<Student> {
+export async function createStudent(
+  label: string,
+  { domain = BENNETT_DOMAIN }: { domain?: string } = {},
+): Promise<Student> {
   const admin = adminClient()
-  const email = uniqueEmail(label)
+  const email = uniqueEmail(label, domain)
   const password = `E2e-${randomUUID()}`
   const displayName = `E2E ${label} ${randomUUID().slice(0, 4)}`
 

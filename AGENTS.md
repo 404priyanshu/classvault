@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 9 signed-in Playwright journeys, and 463 pgTAP tests across 19 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
+automated_test_suite: 199 Vitest tests (31 files), 28 Playwright smoke tests, 10 signed-in Playwright journeys, and 470 pgTAP tests across 20 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -708,16 +708,24 @@ These are product claims, not implemented or validated system behavior.
   use a subject from its owner's own campus. Before it, only the nine seeded
   global subjects could carry a public note. Another campus's subject is still
   refused, and a campus-only note still needs its own campus's subject.
+- Self-serve campus verification (2026-09-23). A student whose membership is
+  pending (signed up with Gmail, phone, or GitHub) can enter their college
+  address on `/dashboard/verification`; it becomes their sign-in email through
+  Supabase's email-change confirmation, and the `auth.users` trigger from
+  `20260923040000_verify_membership_from_confirmed_email.sql` marks the
+  membership verified once a confirmed address is on the university's domain.
+  Upgrade only: moving the email off campus later keeps the verification.
+  Manual review remains for students with no college email.
 - A library search that finds nothing offers "Share notes on this", opening
   the upload form with the search pre-filled as the title.
 - Automated coverage as of 2026-09-23: 194 Vitest tests across 30 files
   (server actions, validation, helpers, the Supabase target guard), 28
-  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 9
+  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 10
   signed-in Playwright journeys (`npm run test:e2e:signed-in`, local stack
   only: email sign-up through Mailpit and onboarding, note upload/search/open/
   download with usage-event checks, roadmap generation, and a two-student
   study room with Realtime chat), and
-  463 pgTAP tests across 19 suites in `supabase/tests/`, run locally with
+  470 pgTAP tests across 20 suites in `supabase/tests/`, run locally with
   `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
   database: rows left behind by manual browser testing have broken assertions
   that pass after `supabase db reset`.
