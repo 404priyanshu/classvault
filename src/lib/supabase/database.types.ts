@@ -1657,6 +1657,24 @@ export type Database = {
         Returns: Json
       }
       get_study_room_snapshot: { Args: { p_room_id: string }; Returns: Json }
+      get_usage_daily: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          event: string
+          events: number
+          searches_without_results: number
+          students: number
+        }[]
+      }
+      get_usage_weekly: {
+        Args: { p_weeks?: number }
+        Returns: {
+          active_students: number
+          returning_students: number
+          week: string
+        }[]
+      }
       has_platform_notes_role: {
         Args: { accepted_roles: string[] }
         Returns: boolean

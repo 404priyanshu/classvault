@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 6 signed-in Playwright journeys, and 458 pgTAP tests across 19 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
+automated_test_suite: 194 Vitest tests (30 files), 28 Playwright smoke tests, 7 signed-in Playwright journeys, and 463 pgTAP tests across 19 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
@@ -96,6 +96,8 @@ implemented_routes:
     type: protected responsive note draft/upload/publication workflow with stalled-response recovery
   - path: /dashboard/vault
     type: protected owner-only active uploads and 30-day Trash lifecycle
+  - path: /dashboard/usage
+    type: protected platform-admin-only demand-pilot usage counts
   - path: /api/cron/extract-notes
     type: server-only scheduled PDF extraction and permission-safe search indexing route
   - path: /dashboard/moderation
@@ -695,7 +697,9 @@ These are product claims, not implemented or validated system behavior.
   a non-owner opening a note, a download, a publication, a ready roadmap, and
   creating or joining a room. The operator reads `usage_daily_summary` and
   `usage_weekly_students` (active and returning students) from the SQL editor
-  or with the service role; students cannot read any of it. Promoted to
+  or with the service role, and platform administrators see them at
+  `/dashboard/usage` through the admin-only `get_usage_daily` and
+  `get_usage_weekly` RPCs; students cannot read any of it. Promoted to
   production on 2026-09-23.
 - Free-form subjects work with public notes (2026-09-23). A subject the
   catalog lacks is created for the uploader's campus by
@@ -708,12 +712,12 @@ These are product claims, not implemented or validated system behavior.
   the upload form with the search pre-filled as the title.
 - Automated coverage as of 2026-09-23: 194 Vitest tests across 30 files
   (server actions, validation, helpers, the Supabase target guard), 28
-  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 6
+  Playwright smoke tests (`npm run test:e2e`, unauthenticated flows only), 7
   signed-in Playwright journeys (`npm run test:e2e:signed-in`, local stack
   only: email sign-up through Mailpit and onboarding, note upload/search/open/
   download with usage-event checks, roadmap generation, and a two-student
   study room with Realtime chat), and
-  458 pgTAP tests across 19 suites in `supabase/tests/`, run locally with
+  463 pgTAP tests across 19 suites in `supabase/tests/`, run locally with
   `supabase test db`. The pgTAP suites are only trustworthy on a freshly reset
   database: rows left behind by manual browser testing have broken assertions
   that pass after `supabase db reset`.
