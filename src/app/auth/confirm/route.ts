@@ -26,6 +26,18 @@ export async function GET(request: NextRequest) {
   const next = safeNextPath(url.searchParams.get('next'))
   const supabase = await createClient()
 
+  // With secure email change on, GoTrue asks for a link from both the old and
+  // the new address. The first one confirmed arrives with an informational
+  // `message` and no code; the change is half done, not failed.
+  if (!code && !tokenHash && !providerError && url.searchParams.get('message')) {
+    const halfway = new URL(next, url.origin)
+    halfway.searchParams.set(
+      'status',
+      'One link confirmed. Open the link sent to your other email address to finish.',
+    )
+    return NextResponse.redirect(halfway)
+  }
+
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 

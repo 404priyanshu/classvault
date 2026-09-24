@@ -5,6 +5,7 @@ import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
 import {
   reviewMembershipVerificationAction,
+  startCollegeEmailVerificationAction,
   submitMembershipVerificationAction,
 } from './actions'
 
@@ -17,6 +18,9 @@ type VerificationPageProps = {
 const dateFormat = new Intl.DateTimeFormat('en-IN', {
   day: 'numeric', month: 'short', year: 'numeric',
 })
+
+const REVIEW_EXPLANATION =
+  'Submit your enrolment ID and a short explanation. A reviewer must independently check a trusted university roster or confirm with campus staff before approving access. Do not enter passwords, OTPs, or ID card images.'
 
 export default async function VerificationPage({ searchParams }: VerificationPageProps) {
   const params = await searchParams
@@ -46,6 +50,14 @@ export default async function VerificationPage({ searchParams }: VerificationPag
   const isReviewer = Boolean(roleResult.data) ||
     (membership?.status === 'verified' &&
       ['moderator', 'admin'].includes(membership.role))
+  const { data: domainRows } = membership && membership.status !== 'verified'
+    ? await supabase
+        .from('university_email_domains')
+        .select('domain')
+        .eq('university_id', membership.university_id)
+    : { data: [] }
+  const domains = (domainRows ?? []).map((row) => row.domain)
+  const canUseCollegeEmail = domains.length > 0
   const canApply = Boolean(membership) && membership?.status !== 'verified' && latest?.status !== 'pending'
 
   return (
@@ -66,11 +78,31 @@ export default async function VerificationPage({ searchParams }: VerificationPag
           <p className="mt-4 text-sm">Your campus-only notes and rooms are available.</p>
         ) : latest?.status === 'pending' ? (
           <p className="mt-4 text-sm">Your request from {dateFormat.format(new Date(latest.submitted_at))} is waiting for a campus reviewer. Public features remain available.</p>
+        ) : canUseCollegeEmail ? (
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-club-muted">
+            Verify your campus to unlock campus-only notes and rooms. Public notes and rooms are open to you already.
+          </p>
         ) : (
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-club-muted">
-            Submit your enrolment ID and a short explanation. A reviewer must independently check a trusted university roster or confirm with campus staff before approving access. Do not enter passwords, OTPs, or ID card images.
+            {REVIEW_EXPLANATION}
           </p>
         )}
+
+        {canUseCollegeEmail ? (
+          <form action={startCollegeEmailVerificationAction} className="mt-6 grid max-w-2xl gap-3 rounded-2xl border border-club-purple/30 bg-club-lavender p-5">
+            <div>
+              <h3 className="text-base font-black">Fastest: confirm your college email</h3>
+              <p className="mt-1 text-sm leading-relaxed text-club-muted">
+                Enter your address ending in @{domains[0]} and open the link we send. Campus access unlocks as soon as it is confirmed. It also becomes the email you sign in with.
+              </p>
+            </div>
+            <label className="grid gap-1 text-sm font-bold">
+              College email
+              <input autoComplete="email" className="min-h-11 rounded-xl border border-club-line bg-club-paper px-4 font-normal" inputMode="email" maxLength={254} name="collegeEmail" placeholder={`you@${domains[0]}`} required type="email" />
+            </label>
+            <button className="min-h-11 justify-self-start rounded-full bg-club-purple px-6 text-sm font-black text-club-paper" type="submit">Send confirmation link</button>
+          </form>
+        ) : null}
 
         {latest?.status === 'rejected' && latest.decision_reason ? (
           <p className="mt-4 rounded-xl bg-club-lavender p-4 text-sm">Previous decision: {latest.decision_reason}</p>
@@ -78,6 +110,12 @@ export default async function VerificationPage({ searchParams }: VerificationPag
 
         {canApply ? (
           <form action={submitMembershipVerificationAction} className="mt-6 grid max-w-2xl gap-4">
+            {canUseCollegeEmail ? (
+              <div>
+                <h3 className="text-base font-black">No college email? Ask for a review</h3>
+                <p className="mt-1 text-sm leading-relaxed text-club-muted">{REVIEW_EXPLANATION}</p>
+              </div>
+            ) : null}
             <label className="grid gap-1 text-sm font-bold">
               Enrolment ID
               <input className="min-h-11 rounded-xl border border-club-line bg-club-bg px-4 font-normal" name="enrolmentId" minLength={4} maxLength={60} required autoComplete="off" />
