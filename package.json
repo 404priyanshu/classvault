@@ -27,7 +27,8 @@
     "check:env": "node scripts/check-env.mjs",
     "local:bootstrap": "scripts/bootstrap-local.sh",
     "staging:bootstrap": "scripts/bootstrap-staging.sh",
-    "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts"
+    "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
+    "local:account": "node scripts/create-local-account.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.5",

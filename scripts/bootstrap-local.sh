@@ -102,6 +102,7 @@ cat <<'DONE'
 Local stack is ready.
 
   npm run dev              http://localhost:3000
+  npm run local:account    a confirmed, onboarded dev@bennett.edu.in to sign in as
   Mailpit (signup mail)    http://127.0.0.1:54324
   Studio                   http://127.0.0.1:54323
 
@@ -110,6 +111,6 @@ Local stack is ready.
   npm run supabase:stop    stop the stack
 
 Google/GitHub OAuth, real SMTP, and CAPTCHA enforcement are hosted settings and
-are not available locally. Use email/password signup and read the confirmation
-link out of Mailpit.
+are not available locally. Use npm run local:account, or sign up with
+email/password and read the confirmation link out of Mailpit.
 DONE
