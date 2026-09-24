@@ -1358,6 +1358,15 @@
     min-height: 44px;
     padding: 9px 12px;
   }
+  /* The compact padding above would otherwise put the typed university
+     name underneath the search icon. */
+  .onboardingSurface .search .input {
+    padding-left: 40px;
+  }
+  .onboardingSurface .search > svg {
+    left: 12px;
+    top: 12px;
+  }
   .onboardingSurface .choices {
     gap: 7px;
     margin-top: 14px;

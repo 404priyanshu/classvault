@@ -68,7 +68,7 @@ loading_feedback:
   accessibility: Exposes a status label when standalone, becomes decorative beside descriptive pending text, and respects prefers-reduced-motion
 database: Supabase Postgres
 supabase_project_ref: hndgstbutlkjqnrxvqtm
-automated_test_suite: 199 Vitest tests (31 files), 28 Playwright smoke tests, 10 signed-in Playwright journeys, and 470 pgTAP tests across 20 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
+automated_test_suite: 199 Vitest tests (31 files), 29 Playwright smoke tests, 10 signed-in Playwright journeys, and 470 pgTAP tests across 20 suites run against the local Supabase stack with `supabase test db` (counts as of 2026-09-23)
 implemented_routes:
   - path: /
     type: statically rendered marketing page
