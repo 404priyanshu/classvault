@@ -67,6 +67,10 @@ otp_expiry = 3600
 subject = "Confirm your ClassVault email"
 content_path = "./supabase/templates/confirmation.html"
 
+[auth.email.template.email_change]
+subject = "Confirm your new ClassVault sign-in email"
+content_path = "./supabase/templates/email-change.html"
+
 [storage]
 enabled = true
 file_size_limit = "50MiB"
