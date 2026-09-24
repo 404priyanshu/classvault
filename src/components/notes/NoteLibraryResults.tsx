@@ -213,6 +213,27 @@ export function NoteLibraryResults({
                     </Link>
                   </div>
                 </>
+              ) : !query.subjectId &&
+                query.noteType === 'all' &&
+                query.access === 'all' ? (
+                // Nothing searched and nothing filtered: the library itself is
+                // empty, which is the first thing a pilot student sees.
+                <>
+                  <h3 className="font-display mt-4 text-2xl font-black">
+                    The shelves are just getting stocked
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-club-muted">
+                    No notes have been shared with you yet. Share a set from
+                    your own courses and your classmates will find it here.
+                  </p>
+                  <Link
+                    className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border border-club-purple bg-club-purple px-4 text-sm font-black text-club-paper [box-shadow:var(--elev-inline)]"
+                    href="/dashboard/notes/new"
+                  >
+                    <Upload aria-hidden className="h-4 w-4" />
+                    Share the first note
+                  </Link>
+                </>
               ) : (
                 <>
                   <h3 className="font-display mt-4 text-2xl font-black">

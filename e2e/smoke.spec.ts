@@ -288,3 +288,21 @@ test.describe('protected routes', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
   })
 })
+
+test.describe('link previews', () => {
+  test('shared links carry a title, image, and icon', async ({ page, request }) => {
+    await page.goto('/')
+    const meta = (property: string) =>
+      page.locator(`meta[property="${property}"]`).getAttribute('content')
+
+    expect(await meta('og:title')).toContain('ClassVault')
+    const image = await meta('og:image')
+    expect(image).toMatch(/^https:\/\/www\.classvault\.in\/opengraph-image/)
+    await expect(page.locator('link[rel="icon"]').first()).toHaveAttribute('href', /icon/)
+
+    // The absolute URL points at production; fetch the same path locally.
+    const rendered = await request.get(new URL(image!).pathname)
+    expect(rendered.status()).toBe(200)
+    expect(rendered.headers()['content-type']).toBe('image/png')
+  })
+})
