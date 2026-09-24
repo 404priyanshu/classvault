@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canOpenOwnedNote,
   daysUntilPurge,
   formatVaultFileSize,
   formatVaultStatus,
@@ -61,5 +62,18 @@ describe('My Vault helpers', () => {
     expect(
       formatVaultStatus({ ...baseNote, moderation_status: 'restricted' }),
     ).toBe('Restricted by moderation')
+  })
+})
+
+describe('canOpenOwnedNote', () => {
+  it('opens published notes that are clear or under review', () => {
+    expect(canOpenOwnedNote(baseNote)).toBe(true)
+    expect(canOpenOwnedNote({ ...baseNote, moderation_status: 'under_review' })).toBe(true)
+  })
+
+  it('keeps drafts, restricted, and trashed notes to the vault', () => {
+    expect(canOpenOwnedNote({ ...baseNote, publication_status: 'draft' })).toBe(false)
+    expect(canOpenOwnedNote({ ...baseNote, moderation_status: 'restricted' })).toBe(false)
+    expect(canOpenOwnedNote({ ...baseNote, deleted_at: '2026-09-01T00:00:00Z' })).toBe(false)
   })
 })

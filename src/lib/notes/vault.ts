@@ -43,6 +43,17 @@ export function daysUntilPurge(purgeAfter: string | null, now = new Date()) {
   return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)))
 }
 
+/** Whether the owner can open the note's detail page, or only manage it. */
+export function canOpenOwnedNote(
+  note: Pick<OwnedNote, 'deleted_at' | 'moderation_status' | 'publication_status'>,
+) {
+  return (
+    note.publication_status === 'published' &&
+    !note.deleted_at &&
+    ['clear', 'under_review'].includes(note.moderation_status)
+  )
+}
+
 export function formatVaultStatus(note: OwnedNote) {
   if (note.moderation_status === 'restricted') return 'Restricted by moderation'
   if (note.moderation_status === 'removed') return 'Removed by moderation'
