@@ -146,7 +146,7 @@ npm run db:test             # pgTAP; trustworthy only on a freshly reset databas
   (`supabase gen types typescript --local`). Keep the `__InternalSupabase`
   header, and review the diff rather than replacing it wholesale: the checked-in
   types keep some stricter nullability on purpose.
-- Test counts as of 2026-09-24: 199 Vitest, 29 smoke, 11 signed-in, and 470
+- Test counts as of 2026-09-24: 199 Vitest, 29 smoke, 13 signed-in, and 470
   pgTAP across 20 suites.
 
 ## Operations
