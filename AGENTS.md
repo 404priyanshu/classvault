@@ -117,6 +117,7 @@ spinner (`src/components/ui/spinner.tsx`) is the shared loading indicator.
 ```bash
 npm run local:bootstrap   # start local Supabase, apply migrations, run pgTAP, write .env.local
 npm run dev               # http://localhost:3000
+npm run local:account     # dev@bennett.edu.in / classvault-dev, verified and onboarded (--admin adds platform_admin)
 ```
 
 Development and every test run against the local Supabase stack in Docker,
