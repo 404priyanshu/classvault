@@ -12,6 +12,7 @@ import {
   noteLibrarySearchParams,
 } from '@/lib/notes/library'
 import { PageHeader } from '@/components/dashboard/PageHeader'
+import { LibraryFilterDisclosure } from '@/components/notes/LibraryFilterDisclosure'
 import { createClient } from '@/lib/supabase/server'
 import { recordUsageEvent } from '@/lib/usage'
 
@@ -125,6 +126,14 @@ export default async function NotesLibraryPage({
     })
   }
 
+  // Dropdown filters only: the search box sits outside the fold.
+  const filterCount = [
+    query.subjectId,
+    query.noteType !== 'all',
+    query.access !== 'all',
+    query.sort !== 'newest',
+  ].filter(Boolean).length
+
   const activeFilterCount = [
     query.query,
     query.subjectId,
@@ -166,8 +175,8 @@ export default async function NotesLibraryPage({
           ) : null}
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(280px,1.7fr)_minmax(170px,1fr)_minmax(150px,0.8fr)_minmax(140px,0.75fr)_minmax(130px,0.65fr)_auto]">
-          <label className="relative block">
+        <div className="mt-4 flex gap-2">
+          <label className="relative block min-w-0 flex-1">
             <span className="sr-only">Search note titles</span>
             <Search
               aria-hidden
@@ -182,7 +191,15 @@ export default async function NotesLibraryPage({
               type="search"
             />
           </label>
+          <button
+            className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-club-purple px-4 text-sm font-black text-club-paper transition-colors hover:bg-club-ink"
+            type="submit"
+          >
+            Search
+          </button>
+        </div>
 
+        <LibraryFilterDisclosure activeCount={filterCount}>
           <label>
             <span className="sr-only">Subject</span>
             <select
@@ -243,12 +260,12 @@ export default async function NotesLibraryPage({
           </label>
 
           <button
-            className="inline-flex h-11 items-center justify-center bg-club-ink px-5 text-sm font-black text-club-paper transition-colors hover:bg-club-purple"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-club-ink px-5 text-sm font-black text-club-paper transition-colors hover:bg-club-purple md:col-span-2 xl:col-span-1"
             type="submit"
           >
             Apply
           </button>
-        </div>
+        </LibraryFilterDisclosure>
       </form>
 
       <NoteLibraryResults
