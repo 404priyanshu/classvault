@@ -102,7 +102,9 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
             <div><span className="hidden text-[10px] font-bold uppercase tracking-wider text-club-muted sm:block">Your study space</span><p className="truncate text-base font-extrabold tracking-tight">{getPageTitle(pathname, isTrash)}</p></div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-full bg-club-lavender px-3 py-2 text-[11px] font-semibold text-club-deep sm:block">{membershipStatus === 'verified' ? '✓ Campus verified' : membershipStatus === 'rejected' ? 'Campus access unverified' : 'Campus verification pending'}</span>
+            {membershipStatus === 'verified'
+              ? <span className="hidden rounded-full bg-club-lavender px-3 py-2 text-[11px] font-semibold text-club-deep sm:block">✓ Campus verified</span>
+              : <Link href="/dashboard/verification" className="hidden rounded-full bg-club-yellow px-3 py-2 text-[11px] font-semibold text-club-deep transition hover:bg-club-yellow/70 sm:block">{membershipStatus === 'rejected' ? 'Campus access unverified' : 'Verify your campus'} →</Link>}
             <Link href="/dashboard/settings" aria-label="Edit profile settings"><ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} className="h-10 w-10 rounded-full text-sm" /></Link>
           </div>
         </header>

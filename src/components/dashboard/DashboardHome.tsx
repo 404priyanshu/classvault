@@ -2,13 +2,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
+  Check,
   Clock3,
   FileText,
+  GraduationCap,
   Route,
   Search,
   ShieldCheck,
   Upload,
   UsersRound,
+  type LucideIcon,
 } from 'lucide-react'
 import clubhouse from '@/assets/study-clubhouse.webp'
 import { formatTimerSeconds, type StudyRoomListItem } from '@/lib/study-rooms/types'
@@ -28,7 +31,6 @@ export type DashboardHomeProps = {
   liveRoomCount: number
   notes: DashboardNote[]
   ownedNoteCount: number
-  query: string
   roadmapCount: number
   suggestedRoom: StudyRoomListItem | null
 }
@@ -129,14 +131,110 @@ function RailCard({
   )
 }
 
+type SetupStep = {
+  action: string
+  description: string
+  done: boolean
+  href: string
+  icon: LucideIcon
+  title: string
+}
+
+/**
+ * What a new student does first, in place of counts that would all read zero.
+ *
+ * Three steps, each ticked by something the database already knows: a verified
+ * membership, a note the student owns, a roadmap they built. Joining a room is
+ * not one of them, because leaving a room deletes the membership and a step
+ * that unticks itself is worse than no step. The whole panel goes once every
+ * step is done, and the greeting's counts take its place.
+ */
+function SetupChecklist({ steps }: { steps: SetupStep[] }) {
+  const doneCount = steps.filter((step) => step.done).length
+
+  return (
+    <section aria-labelledby="setup-heading" className="app-panel p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h2
+            className="text-lg font-extrabold tracking-tight"
+            id="setup-heading"
+          >
+            Get set up
+          </h2>
+          <p className="mt-0.5 text-[11px] text-club-muted">
+            Three things that make ClassVault useful from day one.
+          </p>
+        </div>
+        <span className="text-xs font-bold text-club-deep">
+          {doneCount} of {steps.length} done
+        </span>
+      </div>
+      <div
+        aria-hidden
+        className="mt-3 h-1.5 overflow-hidden rounded-full bg-club-lavender"
+      >
+        <div
+          className="h-full rounded-full bg-club-purple transition-[width]"
+          style={{ width: `${(doneCount / steps.length) * 100}%` }}
+        />
+      </div>
+      <ol className="mt-4 grid gap-3 md:grid-cols-3">
+        {steps.map(({ action, description, done, href, icon: Icon, title }) => (
+          <li
+            className={`flex flex-col rounded-xl border p-4 ${
+              done
+                ? 'border-club-line bg-club-paper/60'
+                : 'border-club-purple/30 bg-club-paper'
+            }`}
+            key={title}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                  done
+                    ? 'bg-club-mint text-club-deep'
+                    : 'bg-club-lavender text-club-purple'
+                }`}
+              >
+                {done ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
+              </span>
+              <h3
+                className={`text-[15px] font-bold leading-snug ${
+                  done ? 'text-club-muted' : ''
+                }`}
+              >
+                {title}
+                {done ? <span className="sr-only"> (done)</span> : null}
+              </h3>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-club-muted">
+              {description}
+            </p>
+            {done ? null : (
+              <Link
+                className="mt-3 inline-flex items-center gap-1.5 self-start text-xs font-bold text-club-purple"
+                href={href}
+              >
+                {action} <ArrowRight size={14} />
+              </Link>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
 /**
  * The clubhouse, laid out as something you work in.
  *
  * The screen used to stack full-width bands -- an illustrated hero, three large
  * action tiles, a panel, then two poster-sized panels -- so on a laptop the
  * library began below the fold and showed two notes. The greeting is now a
- * strip, the actions are a rail, and the library takes the width it needs,
- * which is what a dashboard is for: the work first, the welcome around it.
+ * strip, a new student's first steps sit under it until they are done, and the
+ * library takes the width it needs. The quick-action links that used to head
+ * the rail are gone: the sidebar already carries every one of them.
  */
 export function DashboardHome({
   firstName,
@@ -144,10 +242,40 @@ export function DashboardHome({
   liveRoomCount,
   notes,
   ownedNoteCount,
-  query,
   roadmapCount,
   suggestedRoom,
 }: DashboardHomeProps) {
+  const setupSteps: SetupStep[] = [
+    {
+      action: 'Go to verification',
+      description:
+        'Switch your sign-in to your college email to open campus notes and rooms.',
+      done: isVerified,
+      href: '/dashboard/verification',
+      icon: GraduationCap,
+      title: 'Verify your campus',
+    },
+    {
+      action: 'Upload a note',
+      description:
+        'A PDF or a photo of your notes. You choose who can see it.',
+      done: ownedNoteCount > 0,
+      href: '/dashboard/notes/new',
+      icon: Upload,
+      title: 'Share a note',
+    },
+    {
+      action: 'Start a roadmap',
+      description:
+        'Turn a subject into a study plan that cites the notes it came from.',
+      done: roadmapCount > 0,
+      href: '/dashboard/roadmaps',
+      icon: Route,
+      title: 'Build a roadmap',
+    },
+  ]
+  const setupComplete = setupSteps.every((step) => step.done)
+
   return (
     <div className="space-y-4">
       <section className="club-home-greet">
@@ -163,11 +291,13 @@ export function DashboardHome({
             the way.
           </p>
         </div>
-        <div className="club-home-stats">
-          <StatPill label="Your notes" value={ownedNoteCount} />
-          <StatPill label="Roadmaps" value={roadmapCount} />
-          <StatPill label="Rooms live" value={liveRoomCount} />
-        </div>
+        {setupComplete ? (
+          <div className="club-home-stats">
+            <StatPill label="Your notes" value={ownedNoteCount} />
+            <StatPill label="Roadmaps" value={roadmapCount} />
+            <StatPill label="Rooms live" value={liveRoomCount} />
+          </div>
+        ) : null}
         <Image
           alt="The ClassVault study crew in their book-filled clubhouse."
           className="club-home-art"
@@ -175,6 +305,8 @@ export function DashboardHome({
           src={clubhouse}
         />
       </section>
+
+      {setupComplete ? null : <SetupChecklist steps={setupSteps} />}
 
       <form action="/dashboard/notes" className="relative" role="search">
         <Search
@@ -184,7 +316,6 @@ export function DashboardHome({
         <input
           aria-label="Search Notes Library"
           className="app-field h-11 pl-11 pr-24 text-sm"
-          defaultValue={query}
           name="q"
           placeholder="What are we studying today?"
           type="search"
@@ -202,7 +333,7 @@ export function DashboardHome({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-extrabold tracking-tight">
-                {query ? 'Your search results' : 'Fresh from the library'}
+                Fresh from the library
               </h2>
               <p className="mt-0.5 inline-flex items-center gap-1.5 text-[11px] text-club-muted">
                 <ShieldCheck size={13} />
@@ -232,20 +363,17 @@ export function DashboardHome({
                 strokeWidth={1.5}
               />
               <h3 className="mt-3 text-lg font-extrabold">
-                {query
-                  ? 'No matches just yet'
-                  : 'A fresh shelf. A good place to start.'}
+                A fresh shelf. A good place to start.
               </h3>
               <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-club-muted">
-                {query
-                  ? 'Try another title or browse the full library.'
-                  : 'Your first shared note could make someone’s next revision session a little easier.'}
+                Your first shared note could make someone’s next revision
+                session easier.
               </p>
               <Link
                 className="btn-ink mt-4 inline-flex min-h-10 items-center gap-2 px-4 text-sm font-bold"
-                href={query ? '/dashboard' : '/dashboard/notes/new'}
+                href="/dashboard/notes/new"
               >
-                {query ? 'Clear search' : 'Share the first note'}
+                Share the first note
                 <ArrowRight size={15} />
               </Link>
             </div>
@@ -253,39 +381,21 @@ export function DashboardHome({
         </section>
 
         <aside className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-1">
-          <nav
-            className="club-home-actions md:col-span-2 xl:col-span-1"
-            aria-label="Quick study actions"
-          >
-            <Link href="/dashboard/notes/new" data-cuelume-hover="tick">
-              <Upload size={17} />
-              <span>Pass the good notes</span>
-              <ArrowRight size={14} className="ml-auto shrink-0" />
-            </Link>
-            <Link href="/dashboard/roadmaps" data-cuelume-hover="tick">
-              <Route size={17} />
-              <span>Make a little plan</span>
-              <ArrowRight size={14} className="ml-auto shrink-0" />
-            </Link>
-            <Link href="/dashboard/study-rooms" data-cuelume-hover="tick">
-              <UsersRound size={17} />
-              <span>Find some company</span>
-              <ArrowRight size={14} className="ml-auto shrink-0" />
-            </Link>
-          </nav>
-
-          <RailCard
-            accent="bg-club-yellow"
-            action="Open your roadmaps"
-            eyebrow="Small steps, less overwhelm"
-            href="/dashboard/roadmaps"
-            title="Big syllabus? Start with one topic."
-          >
-            <p className="mt-1.5 text-xs leading-relaxed text-club-muted">
-              Build a roadmap from notes you can access. Each section points
-              back to its sources.
-            </p>
-          </RailCard>
+          {/* Until the student has a roadmap, the checklist already asks for one. */}
+          {roadmapCount > 0 ? (
+            <RailCard
+              accent="bg-club-yellow"
+              action="Open your roadmaps"
+              eyebrow="Small steps, less overwhelm"
+              href="/dashboard/roadmaps"
+              title="Big syllabus? Start with one topic."
+            >
+              <p className="mt-1.5 text-xs leading-relaxed text-club-muted">
+                Build a roadmap from notes you can access. Each section points
+                back to its sources.
+              </p>
+            </RailCard>
+          ) : null}
 
           <RailCard
             accent="bg-club-mint"

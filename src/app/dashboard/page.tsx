@@ -11,32 +11,18 @@ import { createClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 type DashboardPageProps = {
-  searchParams: Promise<{ q?: string; status?: string }>
+  searchParams: Promise<{ status?: string }>
 }
 
 export default async function DashboardPage({
   searchParams,
 }: DashboardPageProps) {
-  const { q = '', status } = await searchParams
-  const query = q.trim().slice(0, 80)
+  const { status } = await searchParams
   const supabase = await createClient()
   const claims = await getRequestClaims()
 
   if (!claims) {
     redirect('/auth/sign-in?next=/dashboard')
-  }
-
-  let notesQuery = supabase
-    .from('notes')
-    .select('id, title, note_type, published_at, visibility, subjects(code, name)')
-    .eq('publication_status', 'published')
-    .eq('moderation_status', 'clear')
-    .is('deleted_at', null)
-    .order('published_at', { ascending: false })
-    .limit(4)
-
-  if (query) {
-    notesQuery = notesQuery.ilike('title', `%${query}%`)
   }
 
   // One trip instead of two. The feed and rooms do not depend on the profile,
@@ -45,7 +31,7 @@ export default async function DashboardPage({
   // screen; it just no longer gates the queries that never needed it.
   //
   // The two counts ride along rather than adding a hop: they are head-only, and
-  // the greeting strip is meaningless without them.
+  // they decide both the greeting's numbers and the setup checklist.
   const [
     profileResult,
     membershipResult,
@@ -64,7 +50,14 @@ export default async function DashboardPage({
       .select('status')
       .eq('user_id', claims.sub)
       .maybeSingle(),
-    notesQuery,
+    supabase
+      .from('notes')
+      .select('id, title, note_type, published_at, visibility, subjects(code, name)')
+      .eq('publication_status', 'published')
+      .eq('moderation_status', 'clear')
+      .is('deleted_at', null)
+      .order('published_at', { ascending: false })
+      .limit(4),
     supabase.rpc('list_study_rooms'),
     supabase
       .from('notes')
@@ -100,7 +93,6 @@ export default async function DashboardPage({
         liveRoomCount={rooms.length}
         notes={(recentNotes || []) as DashboardNote[]}
         ownedNoteCount={ownedNotesResult.count || 0}
-        query={query}
         roadmapCount={roadmapsResult.count || 0}
         suggestedRoom={rooms[0] || null}
       />
