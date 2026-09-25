@@ -732,8 +732,10 @@ html:has([data-landing-page])::-webkit-scrollbar-thumb {
 .club-campus-label > span { font-size: 27px; color: #fff1a8; }
 .club-campus-label strong { display: block; font-size: 12px; }
 .club-campus-label small { display: block; margin-top: 4px; font-size: 10px; color: #fffdf5; }
-.club-sidebar-nav { display: grid; gap: 5px; }
-.club-nav-item { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 12px 15px; border-radius: 14px; color: #fffdf5; font-size: 13px; font-weight: 600; transition: background-color 180ms; }
+.club-sidebar-nav { display: grid; gap: 18px; }
+.club-nav-group { display: grid; gap: 4px; }
+.club-nav-group-label { padding: 0 15px 2px; font-size: 10px; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; color: #fffdf5b3; }
+.club-nav-item { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 10px 15px; border-radius: 14px; color: #fffdf5; font-size: 13px; font-weight: 600; transition: background-color 180ms; }
 .club-nav-item:hover { background: #ffffff18; }
 .club-nav-active, .club-nav-active:hover { background: #fffdf5; color: #4144ad; font-weight: 750; }
 .club-sidebar-upload { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 24px; padding: 14px; border-radius: 999px; background: #fff1a8; color: #202044; font-size: 12px; font-weight: 750; transition: transform 180ms; }
@@ -753,6 +755,14 @@ body:has(.club-drawer[open]) { overflow: hidden; }
 .club-skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 12px 18px; border-radius: 12px; background: #fff1a8; color: #202044; transform: translateY(-150%); }
 .club-skip-link:focus { transform: none; }
 @media (min-width: 1024px) { .club-workspace-header .club-menu-button, .club-sidebar .club-drawer-close { display: none; } }
+/* Below the desktop breakpoint the sidebar is a drawer, so the four study
+   areas sit in a bottom tab bar within thumb reach. The main column pads its
+   foot so the bar never covers the last row of a page. */
+.club-tabbar { position: fixed; inset: auto 0 0 0; z-index: 35; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #e6e0ec; background: #fffdf5f2; backdrop-filter: blur(16px); }
+.club-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 4px; border-radius: 12px; color: #666279; font-size: 11px; font-weight: 650; }
+.club-tab-active { background: #e7e4fa; color: #4144ad; font-weight: 800; }
+.club-tabbar :is(a):focus-visible { outline: 2px solid #5b5fd7; outline-offset: 2px; }
+@media (max-width: 1023px) { .club-workspace-main { padding-bottom: calc(88px + env(safe-area-inset-bottom)); } }
 @media (max-width: 640px) { .club-workspace-header { min-height: 70px; padding: 14px 18px; } }
 
 @media (min-width: 901px) and (max-width: 1023px) {
