@@ -23,6 +23,27 @@ export type OwnedRoadmapSummary = {
   total_task_count: number
 }
 
+/**
+ * The roadmap the dashboard offers to continue.
+ *
+ * The newest ready roadmap with tasks left, since that is the one a student is
+ * most likely mid-way through. When every ready roadmap is finished, or none is
+ * ready yet, the newest roadmap of any kind, so a plan still generating or
+ * needing a retry is not hidden. Expects the newest-first order that
+ * `list_owned_roadmaps` returns.
+ */
+export function pickRoadmapToContinue(roadmaps: OwnedRoadmapSummary[]) {
+  return (
+    roadmaps.find(
+      (roadmap) =>
+        roadmap.status === 'ready' &&
+        roadmap.completed_task_count < roadmap.total_task_count,
+    ) ||
+    roadmaps[0] ||
+    null
+  )
+}
+
 export function formatRoadmapStudyMode(value: string) {
   return value === 'exam' ? 'Exam revision' : 'In-depth study'
 }

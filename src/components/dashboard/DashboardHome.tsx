@@ -14,6 +14,12 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import clubhouse from '@/assets/study-clubhouse.webp'
+import {
+  canOpenOwnedNote,
+  formatVaultStatus,
+  type OwnedNote,
+} from '@/lib/notes/vault'
+import type { OwnedRoadmapSummary } from '@/lib/roadmaps/foundation'
 import { formatTimerSeconds, type StudyRoomListItem } from '@/lib/study-rooms/types'
 
 export type DashboardNote = {
@@ -31,7 +37,9 @@ export type DashboardHomeProps = {
   liveRoomCount: number
   notes: DashboardNote[]
   ownedNoteCount: number
+  recentUploads: OwnedNote[]
   roadmapCount: number
+  roadmapToContinue: OwnedRoadmapSummary | null
   suggestedRoom: StudyRoomListItem | null
 }
 
@@ -128,6 +136,121 @@ function RailCard({
         <ArrowRight size={14} />
       </Link>
     </section>
+  )
+}
+
+/**
+ * The student's own roadmap, where the rail used to carry a fixed pitch for
+ * roadmaps in general.
+ */
+function RoadmapProgressCard({ roadmap }: { roadmap: OwnedRoadmapSummary }) {
+  const { completed_task_count: done, total_task_count: total } = roadmap
+  const isReady = roadmap.status === 'ready'
+  const isFinished = isReady && total > 0 && done >= total
+
+  let eyebrow = 'Pick up where you left off'
+  let action = 'Continue roadmap'
+  let href = `/dashboard/roadmaps/${roadmap.roadmap_id}`
+  let detail: string | null = null
+
+  if (isFinished) {
+    eyebrow = 'Roadmap finished'
+    action = 'Start another roadmap'
+    href = '/dashboard/roadmaps'
+  } else if (!isReady) {
+    const generating = roadmap.status === 'generating'
+    eyebrow = generating ? 'Roadmap generating' : 'Roadmap needs a retry'
+    action = 'Open your roadmaps'
+    href = '/dashboard/roadmaps'
+    detail = generating
+      ? 'Still being written. It will be ready shortly.'
+      : 'This one did not finish. You can retry it from your roadmaps.'
+  }
+
+  return (
+    <RailCard
+      accent="bg-club-yellow"
+      action={action}
+      eyebrow={eyebrow}
+      href={href}
+      title={roadmap.title}
+    >
+      {detail ? (
+        <p className="mt-1.5 text-xs leading-relaxed text-club-muted">{detail}</p>
+      ) : (
+        <>
+          <div
+            aria-hidden
+            className="mt-3 h-1.5 overflow-hidden rounded-full bg-club-paper/80"
+          >
+            <div
+              className="h-full rounded-full bg-club-deep"
+              style={{ width: `${total ? (done / total) * 100 : 0}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-[11px] font-semibold text-club-muted">
+            {done} of {total} tasks done
+          </p>
+        </>
+      )}
+    </RailCard>
+  )
+}
+
+function uploadStatusTone(status: string) {
+  if (status === 'Published') return 'text-[#2d7c58]'
+  if (status === 'Upload needs attention' || status.includes('moderation')) {
+    return 'text-[#9a3f2f]'
+  }
+  return 'text-[#b56d00]'
+}
+
+/** The last few notes the student touched, with where each one stands. */
+function RecentUploadsCard({
+  count,
+  notes,
+}: {
+  count: number
+  notes: OwnedNote[]
+}) {
+  return (
+    <RailCard
+      accent="bg-club-lavender"
+      action="Open your vault"
+      eyebrow="Your uploads"
+      href="/dashboard/vault"
+      title={`${count} ${count === 1 ? 'note' : 'notes'} in your vault`}
+    >
+      <ul className="mt-2.5 space-y-1.5">
+        {notes.map((note) => {
+          const status = formatVaultStatus(note)
+          return (
+            <li
+              className="rounded-lg bg-club-paper/80 px-3 py-2"
+              key={note.note_id}
+            >
+              {canOpenOwnedNote(note) ? (
+                <Link
+                  className="block truncate text-[13px] font-bold hover:text-club-purple"
+                  href={`/dashboard/notes/${note.note_id}`}
+                >
+                  {note.title}
+                </Link>
+              ) : (
+                <span className="block truncate text-[13px] font-bold">
+                  {note.title}
+                </span>
+              )}
+              <span
+                className={`mt-0.5 block text-[11px] font-semibold ${uploadStatusTone(status)}`}
+              >
+                {status}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </RailCard>
   )
 }
 
@@ -242,7 +365,9 @@ export function DashboardHome({
   liveRoomCount,
   notes,
   ownedNoteCount,
+  recentUploads,
   roadmapCount,
+  roadmapToContinue,
   suggestedRoom,
 }: DashboardHomeProps) {
   const setupSteps: SetupStep[] = [
@@ -381,20 +506,13 @@ export function DashboardHome({
         </section>
 
         <aside className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-1">
-          {/* Until the student has a roadmap, the checklist already asks for one. */}
-          {roadmapCount > 0 ? (
-            <RailCard
-              accent="bg-club-yellow"
-              action="Open your roadmaps"
-              eyebrow="Small steps, less overwhelm"
-              href="/dashboard/roadmaps"
-              title="Big syllabus? Start with one topic."
-            >
-              <p className="mt-1.5 text-xs leading-relaxed text-club-muted">
-                Build a roadmap from notes you can access. Each section points
-                back to its sources.
-              </p>
-            </RailCard>
+          {/* Until the student has a roadmap or a note, the checklist already
+              asks for one, so these cards only appear once there is work to show. */}
+          {roadmapToContinue ? (
+            <RoadmapProgressCard roadmap={roadmapToContinue} />
+          ) : null}
+          {recentUploads.length > 0 ? (
+            <RecentUploadsCard count={ownedNoteCount} notes={recentUploads} />
           ) : null}
 
           <RailCard

@@ -16,6 +16,7 @@ import { AuthMessage } from '@/components/auth/AuthMessage'
 import { VaultLifecycleButton } from '@/components/notes/VaultLifecycleButton'
 import { formatNoteType } from '@/lib/notes/library'
 import {
+  canOpenOwnedNote,
   daysUntilPurge,
   formatVaultFileSize,
   formatVaultStatus,
@@ -76,10 +77,7 @@ function ModerationNotice({ notice }: { notice: OwnedModerationNotice }) {
 }
 
 function OwnedNoteRow({ note }: { note: OwnedNote }) {
-  const canOpen =
-    note.publication_status === 'published' &&
-    !note.deleted_at &&
-    ['clear', 'under_review'].includes(note.moderation_status)
+  const canOpen = canOpenOwnedNote(note)
   const subject = note.subject_code || note.subject_name || 'General notes'
   const recoveryDays = daysUntilPurge(note.purge_after)
 

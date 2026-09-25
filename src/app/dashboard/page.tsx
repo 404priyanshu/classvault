@@ -4,6 +4,11 @@ import {
   DashboardHome,
   type DashboardNote,
 } from '@/components/dashboard/DashboardHome'
+import type { OwnedNote } from '@/lib/notes/vault'
+import {
+  pickRoadmapToContinue,
+  type OwnedRoadmapSummary,
+} from '@/lib/roadmaps/foundation'
 import type { StudyRoomListItem } from '@/lib/study-rooms/types'
 import { getRequestClaims } from '@/lib/supabase/claims'
 import { createClient } from '@/lib/supabase/server'
@@ -30,15 +35,17 @@ export default async function DashboardPage({
   // page could start rendering. The onboarding redirect below still guards the
   // screen; it just no longer gates the queries that never needed it.
   //
-  // The two counts ride along rather than adding a hop: they are head-only, and
-  // they decide both the greeting's numbers and the setup checklist.
+  // The student's own notes and roadmaps ride along rather than adding a hop.
+  // They give the greeting its counts, tick the setup checklist, and fill the
+  // rail with the student's own work. A pilot student owns a handful of each,
+  // so the full lists cost about what the head-only counts they replaced did.
   const [
     profileResult,
     membershipResult,
     { data: recentNotes },
     { data: roomRows },
-    ownedNotesResult,
-    roadmapsResult,
+    { data: ownedNoteRows },
+    { data: roadmapRows },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -59,15 +66,8 @@ export default async function DashboardPage({
       .order('published_at', { ascending: false })
       .limit(4),
     supabase.rpc('list_study_rooms'),
-    supabase
-      .from('notes')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', claims.sub)
-      .is('deleted_at', null),
-    supabase
-      .from('study_roadmaps')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', claims.sub),
+    supabase.rpc('list_owned_notes', { p_include_deleted: false }),
+    supabase.rpc('list_owned_roadmaps'),
   ])
 
   const profile = profileResult.data
@@ -83,6 +83,8 @@ export default async function DashboardPage({
   const displayName =
     profile.display_name || (email ? email.split('@')[0] : phone || 'Student')
   const rooms = (roomRows || []) as StudyRoomListItem[]
+  const ownedNotes = (ownedNoteRows || []) as OwnedNote[]
+  const roadmaps = (roadmapRows || []) as OwnedRoadmapSummary[]
 
   return (
     <>
@@ -92,8 +94,10 @@ export default async function DashboardPage({
         isVerified={membershipResult.data?.status === 'verified'}
         liveRoomCount={rooms.length}
         notes={(recentNotes || []) as DashboardNote[]}
-        ownedNoteCount={ownedNotesResult.count || 0}
-        roadmapCount={roadmapsResult.count || 0}
+        ownedNoteCount={ownedNotes.length}
+        recentUploads={ownedNotes.slice(0, 3)}
+        roadmapCount={roadmaps.length}
+        roadmapToContinue={pickRoadmapToContinue(roadmaps)}
         suggestedRoom={rooms[0] || null}
       />
     </>
