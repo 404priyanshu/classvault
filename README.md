@@ -6,6 +6,20 @@ slices for Supabase authentication, student onboarding, university membership,
 private note upload and discovery, moderation, permission-safe search, and
 deterministic source-cited study roadmaps, plus temporary realtime study rooms.
 
+## Preview
+
+[Open ClassVault](https://www.classvault.in) · [Product and permissions](docs/notes-product-data-permissions-spec.md)
+
+![ClassVault Notes Library with subject filters and accessible study notes](docs/images/notes-library.png)
+
+*Actual Notes Library interface captured with example accounts and notes for the product demo. The examples do not represent production usage.*
+
+## Engineering choice: access follows the source
+
+A shared roadmap rechecks access to its cited notes when it is viewed. If a viewer cannot read any source in a section, that whole section is withheld. This keeps a derived plan from becoming a way around private or campus-only note access. The tradeoff is that a previously shared plan can lose sections when its sources are hidden, deleted, or no longer accessible.
+
+See the [sharing decision](docs/adr/0008-access-gate-shared-study-roadmaps-by-source-scope.md) and [source lifecycle decision](docs/adr/0016-align-note-chunk-lifecycle-with-note-availability.md).
+
 ## Stack
 
 - Next.js App Router
