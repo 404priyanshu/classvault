@@ -53,6 +53,13 @@ function formatNoteType(value: string) {
     .join(' ')
 }
 
+const publishedFormatter = new Intl.DateTimeFormat('en-IN', {
+  day: 'numeric',
+  month: 'short',
+  // Rendered on the server, which runs in UTC; students read Indian dates.
+  timeZone: 'Asia/Kolkata',
+})
+
 /**
  * A note as a row of facts rather than a poster.
  *
@@ -79,9 +86,17 @@ function NoteCard({ note }: { note: DashboardNote }) {
       <h3 className="font-display line-clamp-2 text-[15px] font-bold leading-snug">
         {note.title}
       </h3>
-      <span className="mt-auto inline-flex items-center gap-1.5 text-[11px] text-club-muted">
-        <FileText className="h-3.5 w-3.5" />
+      <span className="mt-auto flex items-center gap-1.5 text-[11px] text-club-muted">
+        <FileText className="h-3.5 w-3.5 shrink-0" />
         {formatNoteType(note.note_type)}
+        {note.published_at ? (
+          <>
+            <span aria-hidden>·</span>
+            <time dateTime={note.published_at}>
+              {publishedFormatter.format(new Date(note.published_at))}
+            </time>
+          </>
+        ) : null}
       </span>
     </Link>
   )
@@ -406,10 +421,10 @@ export function DashboardHome({
       <section className="club-home-greet">
         <div className="min-w-0">
           <span className="club-eyebrow text-club-purple">
-            Your little corner of campus
+            Your corner of campus
           </span>
           <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-[28px]">
-            Hey {firstName}, let’s make a little progress.
+            Hey {firstName}, let’s make some progress.
           </h1>
           <p className="mt-1.5 text-sm text-club-muted">
             A good set of notes, a plan that feels doable, some company along
@@ -522,7 +537,7 @@ export function DashboardHome({
                 ? 'Back to your room'
                 : 'Explore study rooms'
             }
-            eyebrow="A little focus, a little company"
+            eyebrow="Focus, with company"
             href={
               suggestedRoom?.current_user_joined
                 ? `/dashboard/study-rooms/${suggestedRoom.room_id}`

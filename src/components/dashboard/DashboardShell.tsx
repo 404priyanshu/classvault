@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { BarChart3, BookOpen, FileText, GraduationCap, LayoutDashboard, Menu, Route, Settings, ShieldAlert, Trash2, Upload, UsersRound, X, ArrowUpRight } from 'lucide-react'
+import { BarChart3, BookOpen, FileText, GraduationCap, LayoutDashboard, Menu, Route, ShieldAlert, Upload, UsersRound, X, ArrowUpRight, type LucideIcon } from 'lucide-react'
 import { ProfileAvatar } from '@/components/settings/ProfileAvatar'
 import { Brand } from '@/components/ui/Brand'
 import { cn } from '@/lib/utils'
@@ -21,15 +21,15 @@ type DashboardShellProps = {
   isModerator?: boolean
 }
 
-const navigation = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Your clubhouse' },
-  { href: '/dashboard/notes', icon: FileText, label: 'Notes library' },
-  { href: '/dashboard/roadmaps', icon: Route, label: 'Study roadmaps' },
-  { href: '/dashboard/study-rooms', icon: UsersRound, label: 'Study rooms' },
-  { href: '/dashboard/verification', icon: GraduationCap, label: 'Campus verification' },
-  { href: '/dashboard/vault', icon: BookOpen, label: 'My Vault' },
-  { href: '/dashboard/vault?view=trash', icon: Trash2, label: 'Trash' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+type NavItem = { href: string; icon: LucideIcon; label: string; shortLabel?: string }
+
+// The four places a student studies. They head the sidebar and, below the
+// desktop breakpoint, make up the bottom tab bar.
+const studyNavigation: NavItem[] = [
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Your clubhouse', shortLabel: 'Home' },
+  { href: '/dashboard/notes', icon: FileText, label: 'Notes library', shortLabel: 'Library' },
+  { href: '/dashboard/roadmaps', icon: Route, label: 'Study roadmaps', shortLabel: 'Roadmaps' },
+  { href: '/dashboard/study-rooms', icon: UsersRound, label: 'Study rooms', shortLabel: 'Rooms' },
 ]
 
 function getPageTitle(path: string, isTrash: boolean) {
@@ -39,7 +39,16 @@ function getPageTitle(path: string, isTrash: boolean) {
   if (path.startsWith('/dashboard/verification')) return 'Campus verification'
   if (path.startsWith('/dashboard/moderation')) return 'Moderation'
   if (path.startsWith('/dashboard/usage')) return 'Usage'
-  return [...navigation].reverse().find(item => path.startsWith(item.href.split('?')[0]))?.label || 'Your clubhouse'
+  if (path.startsWith('/dashboard/settings')) return 'Settings'
+  return [...studyNavigation].reverse().find(item => path.startsWith(item.href))?.label || 'Your clubhouse'
+}
+
+function isActive(href: string, pathname: string) {
+  if (href === '/dashboard') return pathname === href
+  // Uploading has its own page title and the sidebar's upload button; it is
+  // not browsing the library.
+  if (href === '/dashboard/notes') return pathname.startsWith(href) && !pathname.endsWith('/new') && !pathname.endsWith('/batch')
+  return pathname.startsWith(href)
 }
 
 export function DashboardShell({ avatarUrl, children, course, displayName, membershipStatus, signOutControl, universityName, isAdmin = false, isModerator = false }: DashboardShellProps) {
@@ -48,10 +57,25 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
   const [menuOpen, setMenuOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const isTrash = params.get('view') === 'trash'
-  const items = [
-    ...navigation,
-    ...(isModerator ? [{ href: '/dashboard/moderation', icon: ShieldAlert, label: 'Moderation' }] : []),
-    ...(isAdmin ? [{ href: '/dashboard/usage', icon: BarChart3, label: 'Usage' }] : []),
+  // Trash is a tab inside My Vault, and verification drops out once it is done
+  // (the page still answers at its address). Settings lives behind the profile
+  // at the foot of the sidebar.
+  const groups: { label: string; items: NavItem[] }[] = [
+    { label: 'Study', items: studyNavigation },
+    {
+      label: 'Yours',
+      items: [
+        { href: '/dashboard/vault', icon: BookOpen, label: 'My Vault' },
+        ...(membershipStatus === 'verified' ? [] : [{ href: '/dashboard/verification', icon: GraduationCap, label: 'Campus verification' }]),
+      ],
+    },
+    {
+      label: 'Team',
+      items: [
+        ...(isModerator ? [{ href: '/dashboard/moderation', icon: ShieldAlert, label: 'Moderation' }] : []),
+        ...(isAdmin ? [{ href: '/dashboard/usage', icon: BarChart3, label: 'Usage' }] : []),
+      ],
+    },
   ]
 
   useEffect(() => {
@@ -67,21 +91,22 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
       </div>
       <div className="club-campus-label"><span aria-hidden>✳</span><div><strong>{universityName || 'Your campus corner'}</strong><small>{course || 'One good study day at a time'}</small></div></div>
       <nav aria-label="Dashboard navigation" className="club-sidebar-nav">
-        {items.map(({ href, icon: Icon, label }) => {
-          const base = href.split('?')[0]
-          const active = base === '/dashboard' ? pathname === base
-            : base === '/dashboard/vault' ? pathname === base && (href.includes('?') === isTrash)
-            : base === '/dashboard/notes' ? pathname.startsWith(base) && !pathname.endsWith('/new') && !pathname.endsWith('/batch')
-            : pathname.startsWith(base)
-          return <Link key={href} href={href} aria-current={active ? 'page' : undefined} className={cn('club-nav-item', active && 'club-nav-active')} data-cuelume-hover="tick" onClick={() => setMenuOpen(false)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
-        })}
+        {groups.filter(group => group.items.length > 0).map(group => (
+          <div key={group.label} role="group" aria-labelledby={`nav-group-${group.label}`} className="club-nav-group">
+            <span id={`nav-group-${group.label}`} className="club-nav-group-label">{group.label}</span>
+            {group.items.map(({ href, icon: Icon, label }) => {
+              const active = isActive(href, pathname)
+              return <Link key={href} href={href} aria-current={active ? 'page' : undefined} className={cn('club-nav-item', active && 'club-nav-active')} data-cuelume-hover="tick" onClick={() => setMenuOpen(false)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
+            })}
+          </div>
+        ))}
       </nav>
       <Link href="/dashboard/notes/new" className="club-sidebar-upload" data-cuelume-press data-cuelume-release onClick={() => setMenuOpen(false)}><Upload size={18} /> Share your notes <ArrowUpRight size={16} /></Link>
-      <p className="club-sidebar-nudge">A little knowledge goes a long way.</p>
+      <p className="club-sidebar-nudge">Every note you share helps someone revise.</p>
       <div className="club-sidebar-profile">
         <Link href="/dashboard/settings" onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3">
           <ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} className="h-10 w-10 rounded-xl text-sm" />
-          <span className="min-w-0"><strong className="block truncate text-sm">{displayName}</strong><small className="mt-1 block text-[11px] text-club-paper/80">Make this place yours</small></span>
+          <span className="min-w-0"><strong className="block truncate text-sm">{displayName}</strong><small className="mt-1 block text-[11px] text-club-paper/80">Profile and settings</small></span>
         </Link>
         <div className="club-sidebar-signout">{signOutControl}</div>
       </div>
@@ -108,8 +133,14 @@ export function DashboardShell({ avatarUrl, children, course, displayName, membe
             <Link href="/dashboard/settings" aria-label="Edit profile settings"><ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} className="h-10 w-10 rounded-full text-sm" /></Link>
           </div>
         </header>
-        <main id="dashboard-main" className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-7 sm:py-8 xl:px-10">{children}</main>
+        <main id="dashboard-main" className="club-workspace-main mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-7 sm:py-8 xl:px-10">{children}</main>
       </div>
+      <nav aria-label="Main sections" className="club-tabbar lg:hidden">
+        {studyNavigation.map(({ href, icon: Icon, shortLabel, label }) => {
+          const active = isActive(href, pathname)
+          return <Link key={href} href={href} aria-current={active ? 'page' : undefined} className={cn('club-tab', active && 'club-tab-active')}><Icon size={20} strokeWidth={active ? 2.2 : 1.8} /><span>{shortLabel || label}</span></Link>
+        })}
+      </nav>
     </div>
   )
 }
