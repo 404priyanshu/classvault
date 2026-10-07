@@ -28,7 +28,9 @@ now.
 - DNS: Hostinger zone for `classvault.in`, managed through the hostinger-dns
   MCP. It carries both the site and the mail records (see Operations).
 - Mail: Supabase Auth sends through Resend SMTP as
-  `ClassVault <no-reply@classvault.in>`.
+  `ClassVault <no-reply@classvault.in>`. Mailboxes for `@classvault.in` are on
+  Zoho Mail (India data centre, `mailadmin.zoho.in`), on a Mail Premium trial;
+  the operator's mailbox is `priyanshu@classvault.in`.
 
 ## What exists
 
@@ -163,9 +165,14 @@ npm run db:test             # pgTAP; trustworthy only on a freshly reset databas
   not read `supabase/config.toml`. Email templates (`confirmation.html`,
   `email-change.html`), auth providers, CAPTCHA, SMTP (Resend on port 465, not
   587, which times out), and the SMS limit (10 per hour) are set there by hand.
-- **DNS:** the `www` CNAME target is specific to this Vercel project, and the
-  apex MX points at Resend's inbound mail. Take a `DNS_getDNSSnapshotListV1`
-  snapshot before editing the zone. The apex redirects to `www`.
+- **DNS:** the `www` CNAME target is specific to this Vercel project. The apex
+  MX records (`mx`, `mx2`, `mx3.zoho.in`), the apex SPF
+  (`include:zohomail.in`), the `zoho-verification` TXT, and the
+  `zmail._domainkey` DKIM key belong to Zoho Mail;
+  Resend sends through the `send` and `rsend` subdomains and
+  `resend._domainkey`, so the apex SPF does not need Resend. Take a
+  `DNS_getDNSSnapshotListV1` snapshot before editing the zone. The apex
+  redirects to `www`.
 - **Vercel environments:** Preview has only the public Supabase URL and
   publishable key. It runs a PR's code against production data under RLS, with
   no service-role key or cron secret. Development has no variables.
@@ -177,6 +184,9 @@ npm run db:test             # pgTAP; trustworthy only on a freshly reset databas
 - Google sign-in shows the Supabase project domain, and its consent screen is in
   Testing. The Twilio account may still be a trial, so SMS reaches only verified
   numbers. Delivering SMS to Indian numbers may require TRAI DLT registration.
+- The Zoho Mail Premium trial started 2026-10-07 and ends 2026-10-22.
+  Before then, move to Mail Lite (about ₹700 a year for one user, plus GST) or
+  let it lapse.
 - Phone numbers get recycled, so a verified phone is not proof of identity or
   campus membership.
 - Undecided: AI provider and evaluation, video/audio provider, analytics, and
